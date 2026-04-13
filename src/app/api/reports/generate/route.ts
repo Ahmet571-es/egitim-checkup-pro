@@ -58,6 +58,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Öğrenci bulunamadı.' }, { status: 404 });
     }
 
+    // Cross-school kontrol: öğretmen/yönetici sadece kendi okulundaki öğrenciye rapor üretebilir
+    if (callerProfile.role !== 'admin' && callerProfile.school_id && student.school_id !== callerProfile.school_id) {
+      return NextResponse.json({ error: 'Bu öğrenci sizin okulunuzda değil.' }, { status: 403 });
+    }
+
     // --- BÜTÜNCÜL RAPOR ---
     if (report_type === 'holistic') {
       // Tüm tamamlanan test sonuçlarını çek

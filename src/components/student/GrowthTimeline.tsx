@@ -121,20 +121,25 @@ export default function GrowthTimeline() {
 
   useEffect(() => {
     async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
+        const allTrends = await getStudentAllTrends(user.id);
+        setTrends(allTrends);
+
+        // Varsayilan: tum testleri sec
+        setSelectedTests(new Set(allTrends.map((t) => t.testType)));
+      } catch (err) {
+        console.error('Gelişim verisi yüklenemedi:', err);
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const allTrends = await getStudentAllTrends(user.id);
-      setTrends(allTrends);
-
-      // Varsayilan: tum testleri sec
-      setSelectedTests(new Set(allTrends.map((t) => t.testType)));
-      setLoading(false);
     }
     load();
   }, [supabase]);

@@ -23,6 +23,7 @@ export default function CoachingTracking() {
 
   async function loadData() {
     setLoading(true);
+    try {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -108,6 +109,10 @@ export default function CoachingTracking() {
 
     setStudents(result);
     setLoading(false);
+    } catch (err) {
+      console.error('Koçluk verisi yüklenemedi:', err);
+      setLoading(false);
+    }
   }
 
   function getStatusColor(student: StudentCoachingInfo): string {

@@ -56,6 +56,7 @@ export default function AnonymousComparison({ childId }: AnonymousComparisonProp
 
   useEffect(() => {
     async function load() {
+      try {
       const supabase = createClient();
 
       // Çocuğun sınıf bilgisini bul
@@ -143,6 +144,10 @@ export default function AnonymousComparison({ childId }: AnonymousComparisonProp
 
       setData(comparison);
       setLoading(false);
+      } catch (err) {
+        console.error('Veri yuklenemedi:', err);
+        setLoading(false);
+      }
     }
     load();
   }, [childId]);

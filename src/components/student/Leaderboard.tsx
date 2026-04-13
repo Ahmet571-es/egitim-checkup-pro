@@ -15,6 +15,7 @@ export default function Leaderboard() {
   }, []);
 
   async function loadData() {
+    try {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -73,6 +74,10 @@ export default function Leaderboard() {
 
     setEntries(result);
     setLoading(false);
+    } catch (err) {
+      console.error('Liderlik tablosu yüklenemedi:', err);
+      setLoading(false);
+    }
   }
 
   const rankIcon = (rank: number) => {

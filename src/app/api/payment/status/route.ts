@@ -20,11 +20,24 @@ export async function GET(req: Request) {
   }
 
   if (ref) {
+    // Kullanıcının okul ID'sini al
+    const { data: userProfile } = await supabase
+      .from('profiles')
+      .select('school_id')
+      .eq('id', user.id)
+      .maybeSingle();
+
     const { data: payment } = await supabase
       .from('payments')
-      .select('id, status, plan_name, amount, created_at')
+      .select('id, status, plan_name, amount, created_at, school_id')
       .eq('conversation_id', ref)
       .maybeSingle();
+
+    // Başka okulun ödemesini göremez
+    if (payment && userProfile?.school_id && payment.school_id !== userProfile.school_id) {
+      return NextResponse.json({ ok: false, error: 'Yetkisiz erişim' }, { status: 403 });
+    }
+
     return NextResponse.json({ ok: true, payment });
   }
 

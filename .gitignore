@@ -54,3 +54,15 @@ FAZ2/
 # QA raporları
 QA_*.md
 GUVENLIK_*.md
+
+# Ek gereksiz dosyalar
+*.vbs
+*.ps1
+*.txt
+!package-lock.json
+FAZ3_RAPOR.md
+AGENTS.md
+CLAUDE.md
+DEPLOY_ALL.ps1
+SUPABASE_SQL_FIXES.sql
+ALL_MIGRATIONS_*.sql

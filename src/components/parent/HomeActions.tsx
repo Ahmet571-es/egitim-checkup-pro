@@ -97,6 +97,7 @@ export default function HomeActions({ childId }: HomeActionsProps) {
 
   useEffect(() => {
     async function load() {
+      try {
       const supabase = createClient();
       const { data } = await supabase
         .from('test_results')
@@ -132,6 +133,10 @@ export default function HomeActions({ childId }: HomeActionsProps) {
       const score = extractNormalizedScore(firstTest, result.scores) ?? 50;
       setActions(getStaticActions(firstTest, score));
       setLoading(false);
+      } catch (err) {
+        console.error('Veri yuklenemedi:', err);
+        setLoading(false);
+      }
     }
     load();
   }, [childId]);
