@@ -138,6 +138,7 @@ export default function TestPage() {
 
   // Autosave — studentId + resume prompt
   const [studentId, setStudentId] = useState<string | null>(null);
+  const [studentGrade, setStudentGrade] = useState<number>(7);
   const [resumePrompt, setResumePrompt] = useState<{
     currentQuestion: number;
     answers: AnswerMap;
@@ -145,11 +146,23 @@ export default function TestPage() {
   } | null>(null);
   const [resumeChecked, setResumeChecked] = useState<boolean>(false);
 
-  // Auth user'ı bir kere oku
+  // Auth user'ı bir kere oku + sınıf seviyesini al
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user?.id) setStudentId(data.user.id);
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (data?.user?.id) {
+        setStudentId(data.user.id);
+        // Öğrencinin sınıf seviyesini profil veya sınıf tablosundan al
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('grade')
+          .eq('id', data.user.id)
+          .single();
+        if (profile?.grade) {
+          const g = parseInt(String(profile.grade), 10);
+          if (!isNaN(g) && g >= 1 && g <= 12) setStudentGrade(g);
+        }
+      }
     });
   }, []);
 
@@ -446,7 +459,7 @@ export default function TestPage() {
 
   // Hızlı okuma tamamlandı
   const handleSpeedReadingComplete = (readAnswers: Record<string, string>, readingTimeSec: number) => {
-    const { passage, kademe } = getPassageForGrade(7); // varsayılan 7. sınıf
+    const { passage, kademe } = getPassageForGrade(studentGrade);
     const s = calculateSpeedReading(readAnswers, passage, readingTimeSec, kademe);
     setResult({
       main: `${s.speedEmoji} ${s.wpm} Kelime/Dakika`,
@@ -500,7 +513,7 @@ export default function TestPage() {
 
   // ── Hızlı Okuma ───────────────────────────────────────
   if (testId === 'hizli-okuma') {
-    const { passage } = getPassageForGrade(7);
+    const { passage } = getPassageForGrade(studentGrade);
     return <SpeedReadingTest passage={passage} onComplete={handleSpeedReadingComplete} accentColor={test.color} />;
   }
 

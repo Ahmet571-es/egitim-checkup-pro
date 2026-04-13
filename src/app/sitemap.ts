@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://egitim-checkup-pro.vercel.app';
+  const baseUrl = 'https://egitim-checkup.com';
 
   return [
     {

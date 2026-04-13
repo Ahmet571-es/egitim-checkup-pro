@@ -2,17 +2,18 @@ import type { Metadata } from 'next';
 import './globals.css';
 import OfflineBanner from '@/components/OfflineBanner';
 import AccessibilityToggle from '@/components/ui/AccessibilityToggle';
+import CookieConsent from '@/components/CookieConsent';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export const metadata: Metadata = {
   title: 'Eğitim Check-Up | Psikometrik Test ve AI Analiz Platformu',
   description: '10 bilimsel psikometrik test, yapay zekâ destekli analiz raporları ve 5 farklı kullanıcı paneli ile öğrencilerinizi gerçekten tanıyın.',
-  metadataBase: new URL('https://egitim-checkup-pro.vercel.app'),
+  metadataBase: new URL('https://egitim-checkup.com'),
   openGraph: {
     title: 'Eğitim Check-Up | Psikometrik Test ve AI Analiz Platformu',
     description: '10 bilimsel psikometrik test, yapay zekâ destekli analiz raporları ve 5 farklı kullanıcı paneli ile öğrencilerinizi gerçekten tanıyın.',
-    url: 'https://egitim-checkup-pro.vercel.app',
+    url: 'https://egitim-checkup.com',
     siteName: 'Eğitim Check-Up',
     locale: 'tr_TR',
     type: 'website',
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <OfflineBanner />
         {children}
         <AccessibilityToggle />
+        <CookieConsent />
         <Analytics />
         <SpeedInsights />
       </body>

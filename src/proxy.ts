@@ -16,7 +16,7 @@ function generateCSRFToken(): string {
 }
 
 // Oturum gerektirmeyen public yollar
-const PUBLIC_PATHS = ['/', '/login', '/register', '/kvkk', '/pricing'];
+const PUBLIC_PATHS = ['/', '/login', '/register', '/kvkk', '/pricing', '/forgot-password'];
 
 const ROLE_PREFIX_MAP: Record<string, UserRole> = {
   '/admin': 'admin',
@@ -58,7 +58,7 @@ export async function proxy(request: NextRequest) {
     if (!csrfExempt) {
       const cookieToken = request.cookies.get(CSRF_COOKIE)?.value;
       const headerToken = request.headers.get(CSRF_HEADER);
-      if (cookieToken && headerToken && cookieToken !== headerToken) {
+      if (!cookieToken || !headerToken || cookieToken !== headerToken) {
         return NextResponse.json({ error: 'CSRF token geçersiz' }, { status: 403 });
       }
     }
