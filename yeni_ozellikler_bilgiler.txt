@@ -1,0 +1,15 @@
+Eğitim Check-Up Pro — Yeni Özellikler Session Bilgileri
+========================================================
+Tarih: 2026-04-11
+
+AGENT_ID:       agent_011CZxezXSzMcxj9qTYDkgxn
+ENVIRONMENT_ID: env_01JfsxfskKya366TmxvHVWW9
+SESSION_ID:     sesn_011CZxezbngsD76tuntFdn6J
+
+Model: claude-sonnet-4-6
+Beta: managed-agents-2026-04-01
+
+Özellikler:
+  1. Mezun sınıf seçimi (öğrenci kayıt + profil)
+  2. Öğretmen paneli şifre korumalı giriş + RLS
+  3. Yönetim paneli öğretmen yönetimi + dashboard istatistikleri

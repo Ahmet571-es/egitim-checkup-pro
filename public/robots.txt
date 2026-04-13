@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /kvkk
+Disallow: /student/
+Disallow: /teacher/
+Disallow: /school/
+Disallow: /parent/
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://egitim-checkup-pro.vercel.app/sitemap.xml

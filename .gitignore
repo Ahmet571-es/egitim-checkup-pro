@@ -1,0 +1,39 @@
+# Next.js
+/node_modules
+/.next/
+/out/
+*.tsbuildinfo
+
+# Env
+.env
+.env.*
+
+# Local Faz helper scripts and logs
+faz*.py
+faz*.bat
+faz*.log
+faz*.txt
+faz*.sql
+faz?_outputs/
+qa_*.bat
+qa_*.log
+qa_build.bat
+src/app/page.tsx.test
+
+# Build artifacts
+FAZ1/tmp/
+FAZ1/.next/
+.next/
+*.log
+cleanup_*.bat
+fix_*.bat
+push_*.bat
+test_build.bat
+build_output.txt
+egitim_checkup_8faz_update.py 
+egitim_checkup_8faz.py 
+egitim_checkup_8faz_update.py 
+egitim_checkup_8faz.py 
+
+egitim_checkup_8faz_update.py
+egitim_checkup_8faz.py

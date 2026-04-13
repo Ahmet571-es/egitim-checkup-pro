@@ -1,0 +1,397 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+/* ═══ CSS CUSTOM PROPERTIES ═══ */
+:root {
+  --color-primary: #0f2847;
+  --color-accent: #10b981;
+  --color-accent-dark: #059669;
+  --anim-micro: 150ms;
+  --anim-normal: 300ms;
+  --anim-dramatic: 600ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ═══ DARK MODE READINESS (Madde 31) ═══ */
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #e2e8f0;
+    --color-accent: #34d399;
+    --bg-surface: #0f172a;
+    --bg-card: rgba(30, 41, 59, 0.7);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-subtle: rgba(148, 163, 184, 0.15);
+  }
+} */
+
+/* ═══ BASE TYPOGRAPHY ═══ */
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ═══ MADDE 29: SELECTION COLOR ═══ */
+::selection {
+  background-color: #10b981;
+  color: white;
+}
+::-moz-selection {
+  background-color: #10b981;
+  color: white;
+}
+
+/* ═══ MADDE 28: CUSTOM SCROLLBAR ═══ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #10b981, #14b8a6);
+  border-radius: 99px;
+  transition: width 0.2s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #059669, #0d9488);
+  width: 8px;
+}
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #10b981 transparent;
+}
+
+/* ═══ MADDE 30: FOCUS INDICATORS ═══ */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px rgba(16, 185, 129, 0.4);
+  border-radius: 8px;
+}
+
+/* ═══ MADDE 27: SMOOTH SCROLL ═══ */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ═══ GLASS UTILITY ═══ */
+@utility glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* ═══ KEYFRAME ANIMATIONS ═══ */
+
+/* Madde 1: Hero fade-in from black */
+@keyframes hero-reveal {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Madde 1: Word-by-word stagger fade-in + rise */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Madde 1: CTA scale-in */
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Madde 1: Badge drop-in from top */
+@keyframes drop-in {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Madde 1: Blob subtle float */
+@keyframes blob-float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%      { transform: translateY(-20px) scale(1.02); }
+}
+
+/* Madde 1: Mesh gradient rotate */
+@keyframes mesh-rotate {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Madde 2: Shimmer effect for stat cards */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Madde 5: Animated gradient border for popular plan */
+@keyframes border-glow {
+  0%, 100% { border-color: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.15); }
+  50%      { border-color: #14b8a6; box-shadow: 0 0 25px rgba(20, 184, 166, 0.25); }
+}
+
+/* Madde 5: Pulse glow for CTA button */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.3), 0 4px 15px rgba(16, 185, 129, 0.15); }
+  50%      { box-shadow: 0 0 20px rgba(16, 185, 129, 0.5), 0 4px 25px rgba(16, 185, 129, 0.3); }
+}
+
+/* Madde 8: Page fade-in (used by panels) */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Madde 9: Subtle gradient pulse for stat icon bg */
+@keyframes icon-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.75; }
+}
+
+/* Madde 10: Nav active left border slide */
+@keyframes border-slide-in {
+  from { height: 0; }
+  to   { height: 100%; }
+}
+
+/* Madde 11: Typewriter cursor blink */
+@keyframes blink-cursor {
+  0%, 100% { border-color: currentColor; }
+  50%      { border-color: transparent; }
+}
+
+/* Madde 15: Question slide-out left */
+@keyframes q-slide-out {
+  to { opacity: 0; transform: translateX(-30px); }
+}
+
+/* Madde 15: Question slide-in right */
+@keyframes q-slide-in {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Madde 17: Confetti fall */
+@keyframes confetti-fall {
+  0%   { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* Madde 17: Score ring fill */
+@keyframes ring-fill {
+  from { stroke-dashoffset: 283; }
+}
+
+/* Madde 17: Bounce scale */
+@keyframes bounce-in {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.1); }
+  80%  { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Madde 18: D2 heartbeat pulse */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  15%      { transform: scale(1.08); }
+  30%      { transform: scale(1); }
+  45%      { transform: scale(1.05); }
+}
+
+/* Madde 18: Shake animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-3px); }
+  40%      { transform: translateX(3px); }
+  60%      { transform: translateX(-2px); }
+  80%      { transform: translateX(2px); }
+}
+
+/* Madde 20: Modal enter */
+@keyframes modal-enter {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Madde 20: Backdrop fade */
+@keyframes backdrop-enter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Madde 21: Toast slide-in */
+@keyframes toast-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes toast-out {
+  from { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(100%); opacity: 0; }
+}
+
+/* Madde 22: Empty state float */
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-15px); }
+}
+
+/* Madde 32: Skeleton shimmer */
+@keyframes skeleton-sweep {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Madde 7: Footer link underline */
+@keyframes underline-slide {
+  from { transform: scaleX(0); transform-origin: left; }
+  to   { transform: scaleX(1); transform-origin: left; }
+}
+
+/* Madde 26: Hamburger morph (lines to X) */
+@keyframes line1-to-x { to { transform: translateY(7px) rotate(45deg); } }
+@keyframes line2-to-x { to { opacity: 0; transform: scaleX(0); } }
+@keyframes line3-to-x { to { transform: translateY(-7px) rotate(-45deg); } }
+
+/* ═══ UTILITY CLASSES ═══ */
+
+/* Madde 32: Skeleton loading */
+.skeleton {
+  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.5s infinite ease-in-out;
+  border-radius: 12px;
+}
+
+/* Madde 8: Staggered children animation */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-in-up 0.4s var(--ease-out) forwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 360ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 420ms; }
+.stagger-children > *:nth-child(9) { animation-delay: 480ms; }
+.stagger-children > *:nth-child(10) { animation-delay: 540ms; }
+
+/* Madde 5: Popular plan glow border */
+.glow-border {
+  animation: border-glow 3s ease-in-out infinite;
+}
+
+/* Madde 5: Pulse glow button */
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Madde 1: Hero animation classes */
+.hero-word-1 { opacity: 0; animation: fade-in-up 0.6s var(--ease-out) 0ms forwards; }
+.hero-word-2 { opacity: 0; animation: fade-in-up 0.6s var(--ease-out) 200ms forwards; }
+.hero-word-3 { opacity: 0; animation: fade-in-up 0.6s var(--ease-out) 400ms forwards; }
+.hero-subtitle { opacity: 0; animation: fade-in-up 0.5s var(--ease-out) 600ms forwards; }
+.hero-cta { opacity: 0; animation: scale-in 0.5s var(--ease-out) 800ms forwards; }
+.hero-badge { opacity: 0; animation: drop-in 0.5s var(--ease-out) 1000ms forwards; }
+
+/* Blob floats */
+.blob-float { animation: blob-float 30s ease-in-out infinite; }
+.blob-float-delay { animation: blob-float 25s ease-in-out infinite 5s; }
+.blob-float-delay2 { animation: blob-float 35s ease-in-out infinite 10s; }
+
+/* Madde 8: Page enter animation */
+.page-enter {
+  animation: page-enter 0.3s var(--ease-out) forwards;
+}
+
+/* Madde 17: Confetti */
+.confetti-piece {
+  position: fixed;
+  top: -10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  animation: confetti-fall 2.5s linear forwards;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* Madde 21: Toast */
+.toast-enter { animation: toast-in 0.3s var(--ease-out) forwards; }
+.toast-exit  { animation: toast-out 0.2s ease-in forwards; }
+
+/* Madde 25: Touch feedback */
+@media (hover: none) {
+  .touch-feedback:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+    transition: transform 50ms, opacity 50ms;
+  }
+}
+
+/* Madde 25: Ripple effect base */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+.ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%), rgba(255,255,255,0.3) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.ripple:active::after {
+  opacity: 1;
+}
+
+/* Madde 7: Footer link hover underline */
+.footer-link {
+  position: relative;
+}
+.footer-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s var(--ease-out);
+}
+.footer-link:hover::after {
+  transform: scaleX(1);
+}
+
+/* Madde 6: Navbar scroll enhancement */
+.navbar-scrolled {
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* ═══ MADDE 31: PREFERS-REDUCED-MOTION ═══ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+  .stagger-children > * {
+    opacity: 1;
+    animation: none;
+  }
+}
