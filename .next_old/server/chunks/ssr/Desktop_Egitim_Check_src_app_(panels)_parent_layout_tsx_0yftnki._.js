@@ -1,3 +1,0 @@
-module.exports=[23376,a=>{"use strict";var b=a.i(55232),c=a.i(8851);let d=[{label:"Dashboard",href:"/parent/dashboard",icon:"dashboard"},{label:"Çocuklarım",href:"/parent/my-children",icon:"my-children"},{label:"Sonuçlar",href:"/parent/results",icon:"results"}];a.s(["default",0,function({children:a}){return(0,b.jsx)(c.default,{role:"parent",navItems:d,children:a})}])}];
-
-//# sourceMappingURL=Desktop_Egitim_Check_src_app_%28panels%29_parent_layout_tsx_0yftnki._.js.map

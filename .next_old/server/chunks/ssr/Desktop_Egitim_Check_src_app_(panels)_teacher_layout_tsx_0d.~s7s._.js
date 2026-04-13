@@ -1,3 +1,0 @@
-module.exports=[99129,a=>{"use strict";var b=a.i(55232),c=a.i(8851);let d=[{label:"Dashboard",href:"/teacher/dashboard",icon:"dashboard"},{label:"Sınıflarım",href:"/teacher/my-classes",icon:"my-classes"},{label:"Test Ata",href:"/teacher/assign-test",icon:"assign-test"},{label:"Sonuçlar",href:"/teacher/results",icon:"results"},{label:"Raporlar",href:"/teacher/reports",icon:"reports"}];a.s(["default",0,function({children:a}){return(0,b.jsx)(c.default,{role:"teacher",navItems:d,children:a})}])}];
-
-//# sourceMappingURL=Desktop_Egitim_Check_src_app_%28panels%29_teacher_layout_tsx_0d.~s7s._.js.map

@@ -24,6 +24,8 @@ src/app/page.tsx.test
 FAZ1/tmp/
 FAZ1/.next/
 .next/
+.next_old/
+build-and-push.bat
 *.log
 cleanup_*.bat
 fix_*.bat
@@ -37,3 +39,4 @@ egitim_checkup_8faz.py
 
 egitim_checkup_8faz_update.py
 egitim_checkup_8faz.py
+.next_old

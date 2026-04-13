@@ -1,3 +1,0 @@
-module.exports=[861,a=>{"use strict";var b=a.i(55232),c=a.i(8851);let d=[{label:"Dashboard",href:"/school/dashboard",icon:"dashboard"},{label:"Sınıflar",href:"/school/classes",icon:"classes"},{label:"Öğretmenler",href:"/school/teachers",icon:"teachers"},{label:"Öğrenciler",href:"/school/students",icon:"students"},{label:"Veliler",href:"/school/parents",icon:"parents"},{label:"Faturalandırma",href:"/school/billing",icon:"billing"}];a.s(["default",0,function({children:a}){return(0,b.jsx)(c.default,{role:"school_admin",navItems:d,children:a})}])}];
-
-//# sourceMappingURL=Desktop_Egitim_Check_src_app_%28panels%29_school_layout_tsx_0i1q~ma._.js.map

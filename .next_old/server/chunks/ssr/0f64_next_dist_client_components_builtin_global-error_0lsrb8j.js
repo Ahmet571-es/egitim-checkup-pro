@@ -1,3 +1,0 @@
-module.exports=[69685,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(49826);a.n(d("[project]/Desktop/Egitim_Check/node_modules/next/dist/client/components/builtin/global-error.js <module evaluation>"))},49934,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(49826);a.n(d("[project]/Desktop/Egitim_Check/node_modules/next/dist/client/components/builtin/global-error.js"))},13645,a=>{"use strict";a.i(69685);var b=a.i(49934);a.n(b)},29813,a=>{a.n(a.i(13645))}];
-
-//# sourceMappingURL=0f64_next_dist_client_components_builtin_global-error_0lsrb8j.js.map

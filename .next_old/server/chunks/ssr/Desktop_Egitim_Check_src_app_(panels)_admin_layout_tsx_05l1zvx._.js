@@ -1,3 +1,0 @@
-module.exports=[93635,a=>{"use strict";var b=a.i(55232),c=a.i(8851);let d=[{label:"Dashboard",href:"/admin/dashboard",icon:"dashboard"},{label:"Okullar",href:"/admin/schools",icon:"schools"},{label:"Lisanslar",href:"/admin/licenses",icon:"licenses"},{label:"Kullanıcılar",href:"/admin/users",icon:"users"},{label:"Ayarlar",href:"/admin/settings",icon:"settings"}];a.s(["default",0,function({children:a}){return(0,b.jsx)(c.default,{role:"admin",navItems:d,children:a})}])}];
-
-//# sourceMappingURL=Desktop_Egitim_Check_src_app_%28panels%29_admin_layout_tsx_05l1zvx._.js.map
