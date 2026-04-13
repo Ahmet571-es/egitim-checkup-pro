@@ -20,20 +20,24 @@ export default function AccessibilityToggle() {
   }, [highContrast, largeFont]);
 
   async function loadPrefs() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    const { data } = await supabase
-      .from('user_preferences')
-      .select('high_contrast, large_font, voice_mode')
-      .eq('user_id', user.id)
-      .single();
+      const { data } = await supabase
+        .from('user_preferences')
+        .select('high_contrast, large_font, voice_mode')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-    if (data) {
-      setHighContrast(data.high_contrast);
-      setLargeFont(data.large_font);
-      setVoiceMode(data.voice_mode);
+      if (data) {
+        setHighContrast(data.high_contrast);
+        setLargeFont(data.large_font);
+        setVoiceMode(data.voice_mode);
+      }
+    } catch (err) {
+      console.error('Tercihler yüklenemedi:', err);
     }
   }
 

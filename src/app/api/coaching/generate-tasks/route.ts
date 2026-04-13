@@ -84,6 +84,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ tasks: inserted });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('Generate tasks error:', err);
+    return NextResponse.json({ error: 'Görev oluşturulurken hata oluştu.' }, { status: 500 });
   }
 }

@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 });
 
     const { classId } = await request.json();
-    if (!classId) return NextResponse.json({ error: 'classId gerekli' }, { status: 400 });
+    if (!classId || typeof classId !== 'string' || classId.length > 50) return NextResponse.json({ error: 'Geçersiz classId' }, { status: 400 });
 
     // Sınıf bilgisi
     const { data: classData } = await supabase
@@ -69,6 +69,7 @@ KURALLAR:
     const reply = await generateAIReport(prompt);
     return NextResponse.json({ strategy: reply, className: classData.name });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('Class strategy error:', err);
+    return NextResponse.json({ error: 'Strateji oluşturulurken bir hata oluştu.' }, { status: 500 });
   }
 }

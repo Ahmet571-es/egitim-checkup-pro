@@ -44,7 +44,7 @@ export default function CoachingDashboard() {
       .from('coaching_streaks')
       .select('*')
       .eq('student_id', user.id)
-      .single();
+      .maybeSingle();
 
     setTasks(taskData || []);
     setStreak(streakData);
@@ -88,7 +88,7 @@ export default function CoachingDashboard() {
       .from('coaching_streaks')
       .select('*')
       .eq('student_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];

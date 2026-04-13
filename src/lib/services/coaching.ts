@@ -79,7 +79,7 @@ export async function getStreak(studentId: string): Promise<CoachingStreak | nul
     .from('coaching_streaks')
     .select('*')
     .eq('student_id', studentId)
-    .single();
+    .maybeSingle();
 
   if (error) return null;
   return data;
@@ -107,7 +107,7 @@ export async function completeTask(taskId: string, studentId: string): Promise<b
     .from('coaching_streaks')
     .select('*')
     .eq('student_id', studentId)
-    .single();
+    .maybeSingle();
 
   if (existing) {
     const lastDate = existing.last_completed_date;
@@ -156,7 +156,7 @@ export async function checkChatLimit(studentId: string): Promise<{ allowed: bool
     .select('message_count')
     .eq('student_id', studentId)
     .eq('usage_date', today)
-    .single();
+    .maybeSingle();
 
   const used = data?.message_count || 0;
   return { allowed: used < DAILY_LIMIT, remaining: DAILY_LIMIT - used };
@@ -172,7 +172,7 @@ export async function incrementChatUsage(studentId: string): Promise<void> {
     .select('id, message_count')
     .eq('student_id', studentId)
     .eq('usage_date', today)
-    .single();
+    .maybeSingle();
 
   if (existing) {
     await supabase

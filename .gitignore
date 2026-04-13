@@ -40,3 +40,17 @@ egitim_checkup_8faz.py
 egitim_checkup_8faz_update.py
 egitim_checkup_8faz.py
 .next_old
+
+# Eski faz dizinleri
+FAZ1/
+FAZ2/
+
+# Script ve geçici dosyalar
+*.bat
+*.pid
+*.py
+!playwright.config.ts
+
+# QA raporları
+QA_*.md
+GUVENLIK_*.md

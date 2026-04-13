@@ -190,7 +190,7 @@ export async function getNotificationPreferences(
     .from('notification_preferences')
     .select('*')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
   if (data) {
     return {

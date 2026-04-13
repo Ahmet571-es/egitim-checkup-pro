@@ -3,6 +3,16 @@ import { createClient } from '@/lib/supabase/server';
 import { generateAIReport } from '@/lib/ai/claude-client';
 import { buildCoachingChatPrompt } from '@/lib/ai/prompts/coaching';
 
+
+function sanitizeInput(text: string): string {
+  return text
+    .replace(/`/g, '')
+    .replace(/ignore previous instructions/gi, '')
+    .replace(/system prompt/gi, '')
+    .replace(/you are now/gi, '')
+    .slice(0, 500);
+}
+
 const DAILY_LIMIT = 5;
 
 export async function POST(request: Request) {
@@ -23,7 +33,7 @@ export async function POST(request: Request) {
       .select('id, message_count')
       .eq('student_id', user.id)
       .eq('usage_date', today)
-      .single();
+      .maybeSingle();
 
     const currentCount = usage?.message_count || 0;
     if (currentCount >= DAILY_LIMIT) {
@@ -60,7 +70,7 @@ export async function POST(request: Request) {
     }
 
     // AI yanıtı oluştur
-    const prompt = buildCoachingChatPrompt(testScores, message.trim());
+    const prompt = buildCoachingChatPrompt(testScores, sanitizeInput(message.trim()));
     const reply = await generateAIReport(prompt);
 
     return NextResponse.json({
@@ -68,6 +78,7 @@ export async function POST(request: Request) {
       remaining: DAILY_LIMIT - (currentCount + 1),
     });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('Chat error:', err);
+    return NextResponse.json({ error: 'Bir hata oluştu. Lütfen tekrar deneyin.' }, { status: 500 });
   }
 }

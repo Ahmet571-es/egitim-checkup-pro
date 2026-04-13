@@ -33,7 +33,7 @@ export default function GamificationProfile() {
       .from('student_xp')
       .select('total_xp')
       .eq('student_id', user.id)
-      .single();
+      .maybeSingle();
 
     const { data: allBadges } = await supabase
       .from('badges')
@@ -49,7 +49,7 @@ export default function GamificationProfile() {
       .from('coaching_streaks')
       .select('current_streak')
       .eq('student_id', user.id)
-      .single();
+      .maybeSingle();
 
     setXP(xpData?.total_xp || 0);
     setBadges(allBadges || []);

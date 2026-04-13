@@ -85,7 +85,7 @@ export async function getStudentXP(studentId: string): Promise<StudentXP | null>
     .from('student_xp')
     .select('*')
     .eq('student_id', studentId)
-    .single();
+    .maybeSingle();
   return data;
 }
 
@@ -96,7 +96,7 @@ export async function addXP(studentId: string, amount: number, reason: 'test' | 
     .from('student_xp')
     .select('*')
     .eq('student_id', studentId)
-    .single();
+    .maybeSingle();
 
   const oldXP = existing?.total_xp || 0;
   const newXP = oldXP + amount;
@@ -210,7 +210,7 @@ export async function getWeeklyChallenge(studentId: string): Promise<WeeklyChall
     .select('*')
     .eq('week_number', weekNumber)
     .eq('is_active', true)
-    .single();
+    .maybeSingle();
 
   if (!challenge) return null;
 
@@ -219,7 +219,7 @@ export async function getWeeklyChallenge(studentId: string): Promise<WeeklyChall
     .select('progress, is_completed')
     .eq('student_id', studentId)
     .eq('challenge_id', challenge.id)
-    .single();
+    .maybeSingle();
 
   return {
     ...challenge,

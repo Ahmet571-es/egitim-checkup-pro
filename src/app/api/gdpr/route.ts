@@ -67,6 +67,7 @@ export async function DELETE(request: Request) {
       deletedTables,
     });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('GDPR error:', err);
+    return NextResponse.json({ error: 'Silme işlemi sırasında hata oluştu.' }, { status: 500 });
   }
 }

@@ -42,7 +42,7 @@ export async function getNormScore(
     .eq('test_type', testType)
     .eq('grade', grade)
     .eq('gender', gender)
-    .single();
+    .maybeSingle();
 
   return data as NormScore | null;
 }

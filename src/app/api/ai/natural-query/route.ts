@@ -2,6 +2,16 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { generateAIReport } from '@/lib/ai/claude-client';
 
+
+function sanitizeInput(text: string): string {
+  return text
+    .replace(/`/g, '')
+    .replace(/ignore previous instructions/gi, '')
+    .replace(/system prompt/gi, '')
+    .replace(/you are now/gi, '')
+    .slice(0, 500);
+}
+
 const DAILY_LIMIT = 10;
 
 export async function POST(request: Request) {
@@ -23,6 +33,7 @@ export async function POST(request: Request) {
 
     const { question } = await request.json();
     if (!question) return NextResponse.json({ error: 'Soru gerekli' }, { status: 400 });
+    const cleanQuestion = sanitizeInput(question);
 
     // Günlük limit (basit)
     const today = new Date().toISOString().split('T')[0];
@@ -31,7 +42,7 @@ export async function POST(request: Request) {
       .select('id, message_count')
       .eq('student_id', user.id)
       .eq('usage_date', today)
-      .single();
+      .maybeSingle();
 
     if (usage && usage.message_count >= DAILY_LIMIT) {
       return NextResponse.json({ error: `Günlük ${DAILY_LIMIT} sorgu limitine ulaştınız.` }, { status: 429 });
@@ -86,7 +97,7 @@ export async function POST(request: Request) {
 ÖĞRETMENİN VERİLERİ:
 ${studentData || 'Veri bulunamadı'}
 
-ÖĞRETMENİN SORUSU: "${question}"
+ÖĞRETMENİN SORUSU: "${cleanQuestion}"
 
 KURALLAR:
 - Türkçe cevap ver
@@ -98,6 +109,7 @@ KURALLAR:
     const reply = await generateAIReport(prompt);
     return NextResponse.json({ reply, remaining: DAILY_LIMIT - ((usage?.message_count || 0) + 1) });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('Natural query error:', err);
+    return NextResponse.json({ error: 'Bir hata oluştu. Lütfen tekrar deneyin.' }, { status: 500 });
   }
 }

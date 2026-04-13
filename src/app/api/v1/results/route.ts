@@ -88,6 +88,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('API error:', err);
+    return NextResponse.json({ error: 'Bir hata oluştu.' }, { status: 500 });
   }
 }

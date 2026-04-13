@@ -20,10 +20,10 @@ export default function Page() {
   return (
     <div>
       <h1 className="text-2xl font-extrabold text-[#0f2847] mb-2">
-        Ogrenci Paneli
+        Öğrenci Paneli
       </h1>
       <p className="text-gray-500 text-sm mb-6">
-        Testlerin, sonuclarin ve gelisim grafigin
+        Testlerin, sonuçların ve gelişim grafiğin
       </p>
 
       {/* Hizli erisim kartlari */}
@@ -37,7 +37,7 @@ export default function Page() {
           </div>
           <div>
             <p className="font-bold text-[#0f2847] text-sm">Testlerim</p>
-            <p className="text-xs text-gray-400">Testleri coz</p>
+            <p className="text-xs text-gray-400">Testleri çöz</p>
           </div>
         </Link>
 
@@ -49,7 +49,7 @@ export default function Page() {
             <Award size={20} className="text-emerald-600" />
           </div>
           <div>
-            <p className="font-bold text-[#0f2847] text-sm">Sonuclarim</p>
+            <p className="font-bold text-[#0f2847] text-sm">Sonuçlarım</p>
             <p className="text-xs text-gray-400">Tamamlanan testler</p>
           </div>
         </Link>
@@ -62,8 +62,8 @@ export default function Page() {
             <Sparkles size={20} className="text-amber-600" />
           </div>
           <div>
-            <p className="font-bold text-[#0f2847] text-sm">AI Kocluk</p>
-            <p className="text-xs text-amber-500">Kisisel gorevler</p>
+            <p className="font-bold text-[#0f2847] text-sm">AI Koçluk</p>
+            <p className="text-xs text-amber-500">Kişisel görevler</p>
           </div>
         </Link>
 
@@ -75,7 +75,7 @@ export default function Page() {
             <Trophy size={20} className="text-yellow-600" />
           </div>
           <div>
-            <p className="font-bold text-[#0f2847] text-sm">Basarilarim</p>
+            <p className="font-bold text-[#0f2847] text-sm">Başarılarım</p>
             <p className="text-xs text-yellow-500">Rozetler & XP</p>
           </div>
         </Link>
@@ -89,7 +89,7 @@ export default function Page() {
           </div>
           <div>
             <p className="font-bold text-[#0f2847] text-sm">Profilim</p>
-            <p className="text-xs text-gray-400">Bilgilerimi gor</p>
+            <p className="text-xs text-gray-400">Bilgilerimi gör</p>
           </div>
         </Link>
 
@@ -102,7 +102,7 @@ export default function Page() {
           </div>
           <div>
             <p className="font-bold text-[#0f2847] text-sm">360 Profil</p>
-            <p className="text-xs text-violet-500">Butuncul analiz</p>
+            <p className="text-xs text-violet-500">Bütüncül analiz</p>
           </div>
         </Link>
       </div>
