@@ -67,22 +67,32 @@ export default function BulkStudentUpload() {
     if (validStudents.length === 0) return;
 
     setUploading(true);
-    let success = 0;
-    let failed = 0;
 
-    // Burada Supabase'e kayıt yapılacak
-    // Şimdilik mock
-    for (const s of validStudents) {
-      try {
-        // TODO: Supabase auth.admin.createUser + profiles insert
-        console.log('Öğrenci kaydediliyor:', s.full_name, s.email);
-        success++;
-      } catch {
-        failed++;
+    try {
+      const res = await fetch('/api/students/bulk-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          students: validStudents.map(s => ({
+            full_name: s.full_name,
+            email: s.email,
+            grade: s.grade,
+          })),
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success !== undefined) {
+        setResult({ success: data.success, failed: data.failed });
+      } else {
+        setResult({ success: 0, failed: validStudents.length });
+        alert(data.error || 'Yükleme başarısız');
       }
+    } catch {
+      setResult({ success: 0, failed: validStudents.length });
+      alert('Bağlantı hatası');
     }
 
-    setResult({ success, failed });
     setUploading(false);
   }
 

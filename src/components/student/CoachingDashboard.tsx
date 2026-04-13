@@ -115,6 +115,27 @@ export default function CoachingDashboard() {
     setCompletingId(null);
     setShowConfetti(true);
     setTimeout(() => setShowConfetti(false), 2000);
+
+    // Gamification: görev tamamlama XP'si
+    try {
+      const { data: xpData } = await supabase.from('student_xp').select('*').eq('student_id', user.id).maybeSingle();
+      const oldXP = xpData?.total_xp || 0;
+      const newXP = oldXP + 20; // Görev tamamlama +20 XP
+      const tasksCount = (xpData?.tasks_completed || 0) + 1;
+      const levels = [
+        { name: 'Çaylak', min: 0 }, { name: 'Kaşif', min: 100 },
+        { name: 'Uzman', min: 300 }, { name: 'Üstad', min: 600 }, { name: 'Efsane', min: 1000 }
+      ];
+      const newLevel = [...levels].reverse().find(l => newXP >= l.min)?.name || 'Çaylak';
+
+      if (xpData) {
+        await supabase.from('student_xp').update({ total_xp: newXP, current_level: newLevel, tasks_completed: tasksCount }).eq('student_id', user.id);
+      } else {
+        await supabase.from('student_xp').insert({ student_id: user.id, total_xp: newXP, current_level: newLevel, tasks_completed: tasksCount });
+      }
+    } catch (xpErr) {
+      console.warn('XP güncelleme hatası:', xpErr);
+    }
   }
 
   const completed = tasks.filter(t => t.is_completed).length;

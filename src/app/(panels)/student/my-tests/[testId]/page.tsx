@@ -253,6 +253,18 @@ export default function TestPage() {
         } else {
           console.log('[DB save] test_results kaydedildi:', testId);
           setDbSaved(true);
+
+          // Gamification: XP + rozet otomatik tetikleme
+          try {
+            const { onTestCompleted } = await import('@/lib/services/testCompletionHook');
+            const mainScore = typeof scoresObj._main === 'number' ? scoresObj._main : 50;
+            const gamResult = await onTestCompleted(studentId, testId, mainScore);
+            if (gamResult.xpGained > 0) {
+              console.log(`[Gamification] +${gamResult.xpGained} XP, rozetler: ${gamResult.newBadges.join(', ') || 'yok'}, level up: ${gamResult.levelUp}`);
+            }
+          } catch (gamErr) {
+            console.warn('[Gamification] tetikleme hatası (göz ardı edildi):', gamErr);
+          }
         }
       } catch (err) {
         console.error('[DB save] beklenmedik hata:', err);

@@ -13,6 +13,7 @@ import TeacherParentNotesSection from './TeacherParentNotesSection';
 import CoachingTrackingSection from './CoachingTrackingSection';
 import AIQuerySection from './AIQuerySection';
 import ClassStrategySection from './ClassStrategySection';
+import QRCodeSection from './QRCodeSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -108,6 +109,11 @@ export default async function Page() {
             </Link>
           );
         })}
+      </div>
+
+      {/* QR Kod ile Test Başlat */}
+      <div className="mt-4">
+        <QRCodeSection />
       </div>
 
       {/* Risk Altındaki Öğrenciler (FAZ 2) */}
