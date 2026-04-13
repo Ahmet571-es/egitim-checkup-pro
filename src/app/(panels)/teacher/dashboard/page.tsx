@@ -11,6 +11,8 @@ import RiskDashboardSection from './RiskDashboardSection';
 import ClassComparisonSection from './ClassComparisonSection';
 import TeacherParentNotesSection from './TeacherParentNotesSection';
 import CoachingTrackingSection from './CoachingTrackingSection';
+import AIQuerySection from './AIQuerySection';
+import ClassStrategySection from './ClassStrategySection';
 
 export const dynamic = 'force-dynamic';
 
@@ -126,6 +128,16 @@ export default async function Page() {
       {/* FAZ 5: Koçluk Takip */}
       <div className="mt-6">
         <CoachingTrackingSection />
+      </div>
+
+      {/* FAZ 8: AI Asistan */}
+      <div className="mt-6">
+        <AIQuerySection />
+      </div>
+
+      {/* FAZ 8: Sınıf Strateji Önerisi */}
+      <div className="mt-6">
+        <ClassStrategySection />
       </div>
 
       {/* Ogrenci Gelisim Takibi */}
