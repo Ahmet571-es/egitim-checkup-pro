@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { BarChart2, BookOpen, Award, Radar, Sparkles } from 'lucide-react';
+import { BarChart2, BookOpen, Award, Radar, Sparkles, Trophy } from 'lucide-react';
 import Link from 'next/link';
 
 const GrowthTimeline = dynamic(
@@ -27,7 +27,7 @@ export default function Page() {
       </p>
 
       {/* Hizli erisim kartlari */}
-      <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
         <Link
           href="/student/my-tests"
           className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-5 shadow-sm hover:shadow-md transition-all flex items-center gap-3"
@@ -64,6 +64,19 @@ export default function Page() {
           <div>
             <p className="font-bold text-[#0f2847] text-sm">AI Kocluk</p>
             <p className="text-xs text-amber-500">Kisisel gorevler</p>
+          </div>
+        </Link>
+
+        <Link
+          href="/student/achievements"
+          className="bg-gradient-to-br from-yellow-50 to-amber-50 backdrop-blur-xl rounded-2xl border border-yellow-200 p-5 shadow-sm hover:shadow-md transition-all flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-yellow-100 flex items-center justify-center">
+            <Trophy size={20} className="text-yellow-600" />
+          </div>
+          <div>
+            <p className="font-bold text-[#0f2847] text-sm">Basarilarim</p>
+            <p className="text-xs text-yellow-500">Rozetler & XP</p>
           </div>
         </Link>
 
