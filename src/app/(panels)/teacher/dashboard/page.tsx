@@ -56,14 +56,14 @@ export default async function Page() {
     {
       label: 'Sınıflarım',
       value: classCount,
-      href: '/teacher/classes',
+      href: '/teacher/my-classes',
       icon: BookOpen,
       gradient: 'from-emerald-500 to-teal-600',
     },
     {
       label: 'Öğrencilerim',
       value: studentCount,
-      href: '/teacher/students',
+      href: '/teacher/my-classes',
       icon: Users,
       gradient: 'from-sky-500 to-blue-600',
     },

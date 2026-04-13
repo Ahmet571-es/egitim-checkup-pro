@@ -22,7 +22,7 @@ interface GrowthCardsProps {
 
 const DIRECTION_CONFIG = {
   improving: {
-    label: 'Yukseliyor',
+    label: 'Yükseliyor',
     bg: 'bg-emerald-50',
     text: 'text-emerald-700',
     border: 'border-emerald-100',
@@ -30,7 +30,7 @@ const DIRECTION_CONFIG = {
     Icon: TrendingUp,
   },
   declining: {
-    label: 'Dusuyor',
+    label: 'Düşüyor',
     bg: 'bg-red-50',
     text: 'text-red-700',
     border: 'border-red-100',
@@ -53,10 +53,10 @@ export default function GrowthCards({ growthData }: GrowthCardsProps) {
       <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-8 text-center">
         <BarChart2 size={36} className="text-gray-300 mx-auto mb-3" />
         <p className="text-gray-500 font-semibold text-sm">
-          Henuz gelisim verisi yok
+          Henüz gelişim verisi yok
         </p>
         <p className="text-gray-400 text-xs mt-1">
-          Cocugunuz testleri tamamladikca gelisim kartlari burada gorunecek.
+          Çocuğunuz testleri tamamladıkça gelişim kartları burada görünecek.
         </p>
       </div>
     );
@@ -71,10 +71,10 @@ export default function GrowthCards({ growthData }: GrowthCardsProps) {
         </div>
         <div>
           <h2 className="text-lg font-extrabold text-[#0f2847]">
-            Gelisim Ozeti
+            Gelişim Özeti
           </h2>
           <p className="text-xs text-gray-400">
-            Cocugunuzun test bazli ilerleme durumu
+            Çocuğunuzun test bazlı ilerleme durumu
           </p>
         </div>
       </div>
@@ -151,7 +151,7 @@ export default function GrowthCards({ growthData }: GrowthCardsProps) {
                       {Math.round(item.previousScore)}
                     </p>
                     <p className="text-[10px] text-gray-400 mt-0.5">
-                      Onceki skor
+                      Önceki skor
                     </p>
                   </div>
                 </div>
@@ -159,7 +159,7 @@ export default function GrowthCards({ growthData }: GrowthCardsProps) {
                 {/* Deneme sayisi */}
                 <div className="mt-3 pt-2 border-t border-gray-50">
                   <p className="text-[10px] text-gray-400 text-center">
-                    Toplam {item.attemptCount} deneme yapildi
+                    Toplam {item.attemptCount} deneme yapıldı
                   </p>
                 </div>
               </div>

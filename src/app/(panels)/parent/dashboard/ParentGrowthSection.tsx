@@ -6,16 +6,16 @@ import GrowthCards from '@/components/parent/GrowthCards';
 import { getStudentAllTrends } from '@/lib/services/longitudinal';
 
 const TEST_LABELS: Record<string, string> = {
-  enneagram: 'Enneagram Kisilik',
-  vark: 'VARK Ogrenme Stilleri',
+  enneagram: 'Enneagram Kişilik',
+  vark: 'VARK Öğrenme Stilleri',
   holland: 'Holland RIASEC',
-  'coklu-zeka': 'Coklu Zeka',
-  'sinav-kaygisi': 'Sinav Kaygisi',
-  'calisma-davranisi': 'Calisma Davranisi',
+  'coklu-zeka': 'Çoklu Zekâ',
+  'sinav-kaygisi': 'Sınav Kaygısı',
+  'calisma-davranisi': 'Çalışma Davranışı',
   'akademik-analiz': 'Akademik Analiz',
-  'hizli-okuma': 'Hizli Okuma',
+  'hizli-okuma': 'Hızlı Okuma',
   'd2-dikkat': 'D2 Dikkat',
-  'sag-sol-beyin': 'Sag-Sol Beyin',
+  'sag-sol-beyin': 'Sağ-Sol Beyin',
 };
 
 const TEST_ICONS: Record<string, string> = {

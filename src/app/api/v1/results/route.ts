@@ -56,7 +56,7 @@ export async function GET(request: Request) {
     // Parametreler
     const studentId = searchParams.get('student_id');
     const testType = searchParams.get('test_type');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '50') || 50), 100);
 
     let query = supabase
       .from('test_results')
@@ -76,7 +76,7 @@ export async function GET(request: Request) {
     // API key kullanımını güncelle
     await supabase
       .from('api_keys')
-      .update({ last_used_at: new Date().toISOString(), requests_today: (keyData as unknown as { requests_today?: number }).requests_today || 0 + 1 })
+      .update({ last_used_at: new Date().toISOString(), requests_today: ((keyData as unknown as { requests_today?: number }).requests_today || 0) + 1 })
       .eq('key_hash', keyHash);
 
     return NextResponse.json({

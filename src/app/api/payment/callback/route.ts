@@ -21,13 +21,13 @@ async function handle(
     .eq('conversation_id', conversationId)
     .maybeSingle();
 
+  const origin = typeof raw._origin === 'string' && raw._origin ? raw._origin : 'https://egitim-checkup.com';
+
   if (selErr || !payment) {
     return NextResponse.redirect(
-      new URL(`/school/billing?status=not_found`, raw._origin as string),
+      new URL(`/school/billing?status=not_found`, origin),
     );
   }
-
-  const origin = raw._origin as string;
   const successUrl = new URL(
     `/school/billing?status=success&ref=${conversationId}`,
     origin,

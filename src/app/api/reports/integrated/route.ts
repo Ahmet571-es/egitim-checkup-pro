@@ -138,8 +138,14 @@ export async function POST(request: NextRequest) {
     });
 
     if (insertErr) {
-      // Tablo henüz yoksa veriyi yine de döndür
       console.error('[integrated_reports insert]', insertErr.message);
+      // Rapor üretildi ama kaydedilemedi — kullanıcıya bildir
+      return NextResponse.json({
+        success: true,
+        warning: 'Raporlar üretildi ancak veritabanına kaydedilemedi: ' + insertErr.message,
+        reports,
+        saved: false,
+      });
     }
 
     // Veliye rapor hazır bildirimi gönder (arka planda, hata akışı bozmaz)

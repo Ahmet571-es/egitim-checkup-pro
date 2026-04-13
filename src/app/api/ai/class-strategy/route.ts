@@ -43,6 +43,7 @@ export async function POST(request: Request) {
     }
 
     const averageSummary = Object.entries(testAverages)
+      .filter(([, data]) => data.count > 0)
       .map(([test, data]) => `- ${test}: ortalama ${Math.round(data.total / data.count)}/100 (${data.count} öğrenci)`)
       .join('\n');
 

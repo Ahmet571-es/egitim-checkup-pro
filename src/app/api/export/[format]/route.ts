@@ -38,6 +38,19 @@ export async function GET(
       }
     }
 
+    // Öğretmen/school_admin: sınıfın kendi okuluna ait olduğunu doğrula
+    if (classId && callerProfile.school_id && ['teacher', 'school_admin'].includes(callerProfile.role)) {
+      const { data: classCheck } = await supabase
+        .from('classes')
+        .select('id')
+        .eq('id', classId)
+        .eq('school_id', callerProfile.school_id)
+        .maybeSingle();
+      if (!classCheck) {
+        return NextResponse.json({ error: 'Bu sınıfa erişim yetkiniz yok.' }, { status: 403 });
+      }
+    }
+
     // ── EXCEL (Toplu Sınıf veya Öğrenci) ──
     if (format === 'excel') {
       const { generateStudentExcel, generateClassExcel } = await import('@/lib/export/excel-generator');
