@@ -115,6 +115,7 @@ Bu korelasyonları FİNAL SENTEZ bölümünde vurgula.
 Şimdi ${studentName} için ${aud.title} RAPORUNU yukarıdaki sıralama ve kurallara uygun olarak oluştur.`;
 }
 
+
 // Test adı normalleştirme (DB'deki ad → standart ad)
 const TEST_NAME_ALIASES: Record<string, string> = {
   'vark': 'VARK Öğrenme Stilleri',

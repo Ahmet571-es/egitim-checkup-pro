@@ -7,6 +7,7 @@ import { getCurrentProfile } from '@/lib/actions/auth';
 import { checkLicense } from '@/lib/license/check';
 import LicenseBanner from '@/components/LicenseBanner';
 import { createClient } from '@/lib/supabase/server';
+import AnalyticsSection from './AnalyticsSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -109,6 +110,11 @@ export default async function Page() {
             </Link>
           );
         })}
+      </div>
+
+      {/* FAZ 3: Okul Analitik Dashboard */}
+      <div className="mt-6">
+        <AnalyticsSection />
       </div>
     </div>
   );

@@ -75,7 +75,7 @@ export default function Page() {
             <Radar size={20} className="text-violet-600" />
           </div>
           <div>
-            <p className="font-bold text-[#0f2847] text-sm">360° Profil</p>
+            <p className="font-bold text-[#0f2847] text-sm">360 Profil</p>
             <p className="text-xs text-violet-500">Butuncul analiz</p>
           </div>
         </Link>

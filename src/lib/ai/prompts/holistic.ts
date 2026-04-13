@@ -338,4 +338,3 @@ Aşağıdaki korelasyon örüntülerini test verileriyle karşılaştır ve tesp
 - Akademik Performans (ağırlık %20)
 Genel risk seviyesini belirt: Kritik (<30), İzlenmeli (30-60), Sağlıklı (>60)`;
 }
-}

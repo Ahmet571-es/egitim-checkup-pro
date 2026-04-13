@@ -8,6 +8,7 @@ import { getCurrentProfile } from '@/lib/actions/auth';
 import { createClient } from '@/lib/supabase/server';
 import StudentTrendSection from './StudentTrendSection';
 import RiskDashboardSection from './RiskDashboardSection';
+import ClassComparisonSection from './ClassComparisonSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -108,6 +109,11 @@ export default async function Page() {
       {/* Risk Altındaki Öğrenciler (FAZ 2) */}
       <div className="mt-6">
         <RiskDashboardSection />
+      </div>
+
+      {/* FAZ 3: Sınıf Karşılaştırma */}
+      <div className="mt-6">
+        <ClassComparisonSection />
       </div>
 
       {/* Ogrenci Gelisim Takibi */}

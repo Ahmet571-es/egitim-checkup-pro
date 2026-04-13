@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { Building2, Users, GraduationCap, FileCheck2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import AdminAnalyticsSection from './AdminAnalyticsSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,6 +79,11 @@ export default async function Page() {
             </Link>
           );
         })}
+      </div>
+
+      {/* FAZ 3: Analitik Dashboard */}
+      <div className="mt-6">
+        <AdminAnalyticsSection />
       </div>
     </div>
   );
