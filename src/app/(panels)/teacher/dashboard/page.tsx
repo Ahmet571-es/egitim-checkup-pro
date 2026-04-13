@@ -10,6 +10,7 @@ import StudentTrendSection from './StudentTrendSection';
 import RiskDashboardSection from './RiskDashboardSection';
 import ClassComparisonSection from './ClassComparisonSection';
 import TeacherParentNotesSection from './TeacherParentNotesSection';
+import CoachingTrackingSection from './CoachingTrackingSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -120,6 +121,11 @@ export default async function Page() {
       {/* FAZ 4: Veli Notları */}
       <div className="mt-6">
         <TeacherParentNotesSection />
+      </div>
+
+      {/* FAZ 5: Koçluk Takip */}
+      <div className="mt-6">
+        <CoachingTrackingSection />
       </div>
 
       {/* Ogrenci Gelisim Takibi */}

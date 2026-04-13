@@ -6,6 +6,7 @@ const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/student/dashboard', icon: 'dashboard' },
   { label: 'Testlerim', href: '/student/my-tests', icon: 'my-tests' },
   { label: 'Sonuçlarım', href: '/student/my-results', icon: 'my-results' },
+  { label: 'AI Koçluk', href: '/student/coaching', icon: 'coaching' },
   { label: '360° Profil', href: '/student/profile-360', icon: 'profile-360' },
   { label: 'Profilim', href: '/student/profile', icon: 'profile' },
 ];
