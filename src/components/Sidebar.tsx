@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   Menu, X, LogOut, LayoutDashboard, School, Key, Users, Settings,
   BookOpen, GraduationCap, UserCheck, Heart, ClipboardList, FileText,
-  BarChart3, User, Baby, ChevronRight, CreditCard
+  BarChart3, User, Baby, ChevronRight, CreditCard, Radar
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { NavItem, UserRole } from '@/types';
@@ -18,7 +18,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   students: UserCheck, parents: Heart, 'my-classes': BookOpen,
   'assign-test': ClipboardList, results: BarChart3, reports: FileText,
   'my-tests': ClipboardList, 'my-results': BarChart3, profile: User,
-  'my-children': Baby, billing: CreditCard,
+  'profile-360': Radar, 'my-children': Baby, billing: CreditCard,
 };
 
 const ACCENT: Record<UserRole, { gradient: string; activeBg: string; text: string; border: string }> = {

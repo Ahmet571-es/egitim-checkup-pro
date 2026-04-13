@@ -103,6 +103,15 @@ Aşağıdaki listede sadece öğrencinin ÇÖZÜMÜŞ olduğu testler var. Eğer
 ${JSON.stringify(testDataList, null, 2)}
 \`\`\`
 
+## ÇAPRAZ KORELASYON VERİLERİ (FAZ 2)
+Eğer birden fazla test çözülmüşse, testler arası şu bağlantıları kontrol et ve raporuna dahil et:
+- Sınav Kaygısı ↑ + Dikkat ↓ → kaygı-dikkat bağlantısı (kaygı dikkat süresini kısaltıyor olabilir)
+- VARK Kinestetik + Çalışma Davranışı ↓ → öğrenme stili uyumsuzluğu
+- Akademik ↓ + Çalışma ↓ → temel akademik risk alanı
+- Çoklu Zekâ ↑ + Akademik ↓ → potansiyel-performans açığı
+- Holland + Çoklu Zekâ → kariyer yönlendirmesi sentezi
+Bu korelasyonları FİNAL SENTEZ bölümünde vurgula.
+
 Şimdi ${studentName} için ${aud.title} RAPORUNU yukarıdaki sıralama ve kurallara uygun olarak oluştur.`;
 }
 

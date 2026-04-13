@@ -7,6 +7,7 @@ import { BookOpen, Users, FileCheck2 } from 'lucide-react';
 import { getCurrentProfile } from '@/lib/actions/auth';
 import { createClient } from '@/lib/supabase/server';
 import StudentTrendSection from './StudentTrendSection';
+import RiskDashboardSection from './RiskDashboardSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,6 +103,11 @@ export default async function Page() {
             </Link>
           );
         })}
+      </div>
+
+      {/* Risk Altındaki Öğrenciler (FAZ 2) */}
+      <div className="mt-6">
+        <RiskDashboardSection />
       </div>
 
       {/* Ogrenci Gelisim Takibi */}

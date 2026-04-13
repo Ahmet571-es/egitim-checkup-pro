@@ -315,5 +315,27 @@ ${JSON.stringify(testDataList, null, 2)}
 
 *Bu rapor, EĞİTİM CHECK UP Pro psikometrik değerlendirme sistemi tarafından üretilmiştir. Bu rapor klinik tanı içermez.*
 
-*Dil: Türkçe. Üslup: Profesyonel, sıcak, yapıcı, dengeli ve gerçekçi.*`;
+*Dil: Türkçe. Üslup: Profesyonel, sıcak, yapıcı, dengeli ve gerçekçi.*
+
+---
+
+# 🔗 9. ÇAPRAZ KORELASYON ANALİZİ (FAZ 2)
+
+## Testler Arası Bağlantılar
+Aşağıdaki korelasyon örüntülerini test verileriyle karşılaştır ve tespit ettiklerini raporla:
+- Sınav Kaygısı ↑ + Dikkat ↓ → kaygı-dikkat bağlantısı
+- VARK Kinestetik + Çalışma Davranışı ↓ → öğrenme stili uyumsuzluğu
+- Akademik ↓ + Çalışma ↓ → temel akademik risk
+- Çoklu Zekâ ↑ + Akademik ↓ → potansiyel-performans açığı
+- Holland + Çoklu Zekâ → kariyer eşleştirmesi
+- Sağ-Sol Beyin + VARK → nörobilişsel öğrenme profili
+
+## Risk Değerlendirmesi
+4 boyutlu risk analizi yap:
+- Sınav Kaygısı (ağırlık %30)
+- Dikkat (ağırlık %25)
+- Çalışma Davranışı (ağırlık %25)
+- Akademik Performans (ağırlık %20)
+Genel risk seviyesini belirt: Kritik (<30), İzlenmeli (30-60), Sağlıklı (>60)`;
+}
 }

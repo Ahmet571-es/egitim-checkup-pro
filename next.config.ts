@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || '.next',
+  // Windows symlink/junction hatası nedeniyle Turbopack devre dışı
+  bundlePagesRouterDependencies: true,
   outputFileTracingIncludes: {
     '/api/export/[format]': [
       './node_modules/pdfmake/build/fonts/Roboto/*.ttf',
