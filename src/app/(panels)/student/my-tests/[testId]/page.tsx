@@ -258,6 +258,7 @@ export default function TestPage() {
             student_id: studentId,
             test_type: testId,
             scores: scoresObj,
+            raw_answers: answers,
             completed_at: new Date().toISOString(),
           });
 

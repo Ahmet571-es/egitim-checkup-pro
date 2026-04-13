@@ -11,6 +11,7 @@ interface TestResult {
   test_type: string;
   completed_at: string | null;
   scores: Record<string, unknown>;
+  raw_answers: Record<string, unknown> | null;
   ai_report: string | null;
   ai_report_generated_at: string | null;
   student_name?: string;
@@ -56,84 +57,97 @@ function formatScoreSummary(scores: Record<string, unknown>): string {
 export default function TeacherResultsPage() {
   const supabase = createClient();
 
+  const [teacherId, setTeacherId] = useState<string | null>(null);
+  const [myStudentIds, setMyStudentIds] = useState<string[]>([]);
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>('all');
   const [results, setResults] = useState<TestResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAnswers, setSelectedAnswers] = useState<TestResult | null>(null);
 
+  // 1. Giriş yapan öğretmeni bul + sadece kendi sınıflarını ve öğrencilerini al
   useEffect(() => {
-    async function loadClasses() {
-      const { data } = await supabase
+    async function initTeacherScope() {
+      // Öğretmenin kimliğini al
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) return;
+      setTeacherId(user.id);
+
+      // Sadece bu öğretmene ait sınıflar (teacher_id = auth.uid())
+      const { data: myClasses } = await supabase
         .from('classes')
         .select('id, name, grade')
+        .eq('teacher_id', user.id)
         .order('name');
-      setClasses(data ?? []);
+      setClasses(myClasses ?? []);
+
+      // Bu sınıflardaki öğrenci ID'leri
+      const classIds = (myClasses ?? []).map(c => c.id);
+      if (classIds.length === 0) {
+        setMyStudentIds([]);
+        return;
+      }
+
+      const { data: csRows } = await supabase
+        .from('class_students')
+        .select('student_id')
+        .in('class_id', classIds);
+      const ids = [...new Set((csRows ?? []).map(r => r.student_id))];
+      setMyStudentIds(ids);
     }
-    loadClasses();
+    initTeacherScope();
   }, [supabase]);
 
+  // 2. Sonuçları yükle — sadece öğretmenin kendi öğrencileri
   useEffect(() => {
     async function loadResults() {
+      if (!teacherId) return;
       setLoading(true);
 
-      if (selectedClass === 'all') {
-        // Tüm tamamlanmış testler
-        const { data: rawResults } = await supabase
-          .from('test_results')
-          .select(`
-            id, student_id, test_type, completed_at, scores,
-            ai_report, ai_report_generated_at,
-            profiles!test_results_student_id_fkey(full_name)
-          `)
-          .not('completed_at', 'is', null)
-          .order('completed_at', { ascending: false })
-          .limit(200);
+      // Hangi öğrenci ID'lerini sorgulayacağız?
+      let studentIds = myStudentIds;
 
-        const mapped = (rawResults ?? []).map(r => ({
-          ...r,
-          scores: r.scores as Record<string, unknown>,
-          student_name: (r.profiles as unknown as { full_name: string } | null)?.full_name ?? '—',
-        }));
-        setResults(mapped);
-      } else {
-        // Sınıf bazlı
+      if (selectedClass !== 'all') {
+        // Seçili sınıftaki öğrencilere daralt
         const { data: classStudents } = await supabase
           .from('class_students')
           .select('student_id')
           .eq('class_id', selectedClass);
-
-        const studentIds = (classStudents ?? []).map(cs => cs.student_id);
-
-        if (studentIds.length === 0) {
-          setResults([]);
-          setLoading(false);
-          return;
-        }
-
-        const { data: rawResults } = await supabase
-          .from('test_results')
-          .select(`
-            id, student_id, test_type, completed_at, scores,
-            ai_report, ai_report_generated_at,
-            profiles!test_results_student_id_fkey(full_name)
-          `)
-          .in('student_id', studentIds)
-          .not('completed_at', 'is', null)
-          .order('completed_at', { ascending: false });
-
-        const mapped = (rawResults ?? []).map(r => ({
-          ...r,
-          scores: r.scores as Record<string, unknown>,
-          student_name: (r.profiles as unknown as { full_name: string } | null)?.full_name ?? '—',
-        }));
-        setResults(mapped);
+        const classStudentIds = (classStudents ?? []).map(cs => cs.student_id);
+        // Hem sınıfa ait hem de öğretmenin öğrencisi olanlar (kesişim)
+        studentIds = classStudentIds.filter(id => myStudentIds.includes(id));
       }
 
+      if (studentIds.length === 0) {
+        setResults([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data: rawResults } = await supabase
+        .from('test_results')
+        .select(`
+          id, student_id, test_type, completed_at, scores, raw_answers,
+          ai_report, ai_report_generated_at,
+          profiles!test_results_student_id_fkey(full_name)
+        `)
+        .in('student_id', studentIds)
+        .not('completed_at', 'is', null)
+        .order('completed_at', { ascending: false })
+        .limit(200);
+
+      const mapped = (rawResults ?? []).map(r => ({
+        ...r,
+        scores: r.scores as Record<string, unknown>,
+        raw_answers: r.raw_answers as Record<string, unknown> | null,
+        student_name: (r.profiles as unknown as { full_name: string } | null)?.full_name ?? '—',
+      }));
+      setResults(mapped);
       setLoading(false);
     }
     loadResults();
-  }, [selectedClass, supabase]);
+  }, [selectedClass, teacherId, myStudentIds, supabase]);
 
   const filtered = results.filter(r =>
     !searchQuery ||
@@ -269,13 +283,24 @@ export default function TeacherResultsPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <Link
-                        href={`/teacher/reports?student_id=${r.student_id}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0f2847] text-white text-xs font-semibold hover:bg-[#1a3d6e] transition-all"
-                      >
-                        <FileText size={12} />
-                        Raporlar
-                      </Link>
+                      <div className="flex items-center justify-center gap-2">
+                        {r.raw_answers && Object.keys(r.raw_answers).length > 0 && (
+                          <button
+                            onClick={() => setSelectedAnswers(r)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-semibold hover:bg-amber-100 transition-all border border-amber-200"
+                          >
+                            <Eye size={12} />
+                            İşaretlemeler
+                          </button>
+                        )}
+                        <Link
+                          href={`/teacher/reports?student_id=${r.student_id}`}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#0f2847] text-white text-xs font-semibold hover:bg-[#1a3d6e] transition-all"
+                        >
+                          <FileText size={12} />
+                          Raporlar
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -287,8 +312,84 @@ export default function TeacherResultsPage() {
 
       {!loading && filtered.length > 0 && (
         <p className="text-center text-gray-400 text-xs mt-3">
-          {filtered.length} sonuç gösteriliyor
+          {filtered.length} sonuç gösteriliyor (sadece size ait öğrenciler)
         </p>
+      )}
+
+      {/* İŞARETLEMELER MODAL */}
+      {selectedAnswers && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-[#0f2847] to-[#1a3d6e]">
+              <div>
+                <h3 className="text-white font-bold text-lg">📝 Öğrenci İşaretlemeleri</h3>
+                <p className="text-white/70 text-sm">
+                  {selectedAnswers.student_name} — {getTestLabel(selectedAnswers.test_type)}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedAnswers(null)}
+                className="text-white/70 hover:text-white text-2xl leading-none px-2"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="overflow-y-auto flex-1 p-6">
+              {selectedAnswers.raw_answers && Object.keys(selectedAnswers.raw_answers).length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-gray-500 text-xs mb-4">
+                    Toplam {Object.keys(selectedAnswers.raw_answers).length} soru cevaplanmış.
+                  </p>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase w-1/3">Soru</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Öğrencinin Cevabı</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(selectedAnswers.raw_answers)
+                        .sort(([a], [b]) => {
+                          const na = parseInt(a.replace(/\D/g, ''));
+                          const nb = parseInt(b.replace(/\D/g, ''));
+                          return (isNaN(na) || isNaN(nb)) ? a.localeCompare(b) : na - nb;
+                        })
+                        .map(([questionId, answer], idx) => (
+                        <tr key={questionId} className={idx % 2 === 0 ? '' : 'bg-gray-50/50'}>
+                          <td className="px-3 py-2 text-gray-600 font-medium border-b border-gray-50">
+                            {questionId}
+                          </td>
+                          <td className="px-3 py-2 text-[#0f2847] font-semibold border-b border-gray-50">
+                            <span className="inline-block px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-xs">
+                              {String(answer)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-gray-400 text-center py-8">
+                  Bu test için işaretleme verisi bulunamadı.
+                </p>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-3 border-t border-gray-100 flex justify-end">
+              <button
+                onClick={() => setSelectedAnswers(null)}
+                className="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-all"
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
