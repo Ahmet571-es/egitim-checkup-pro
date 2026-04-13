@@ -1,0 +1,10 @@
+var R=require("../../chunks/ssr/[turbopack]_runtime.js")("server/app/_global-error/page.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0tl_06j._.js")
+R.c("server/chunks/ssr/0f64_next_dist_00qh9.l._.js")
+R.c("server/chunks/ssr/0f64_next_dist_esm_build_templates_app-page_03ryaq2.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0qruci7._.js")
+R.c("server/chunks/ssr/0f64_next_dist_12zai6s._.js")
+R.c("server/chunks/ssr/0f64_next_dist_client_components_builtin_global-error_0lsrb8j.js")
+R.c("server/chunks/ssr/0amv_Egitim_Check__next-internal_server_app__global-error_page_actions_0kq6~g6.js")
+R.m(33870)
+module.exports=R.m(33870).exports

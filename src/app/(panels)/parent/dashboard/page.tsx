@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getCurrentProfile } from '@/lib/actions/auth';
 import { Users, ClipboardCheck, FileText, Clock, CheckCircle, Baby } from 'lucide-react';
 import ParentGrowthSection from './ParentGrowthSection';
+import ParentFaz4Section from './ParentFaz4Section';
 
 export const dynamic = 'force-dynamic';
 
@@ -184,6 +185,15 @@ export default async function Page() {
         <div className="mt-6">
           <ParentGrowthSection childIds={childIds} />
         </div>
+      )}
+
+      {/* FAZ 4: Veli Deneyimi */}
+      {childIds.length > 0 && (
+        <ParentFaz4Section
+          parentId={profile.id}
+          parentName={profile.full_name}
+          childIds={childIds}
+        />
       )}
 
       {/* Hızlı Erişim */}

@@ -1,0 +1,10 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/reports/profile-360/route.js")
+R.c("server/chunks/[root-of-the-server]__0o3iyzj._.js")
+R.c("server/chunks/Desktop_Egitim_Check_src_lib_ai_claude-client_ts_0zl03ti._.js")
+R.c("server/chunks/0f64_next_dist_esm_build_templates_app-route_04u8m98.js")
+R.c("server/chunks/0f64_0jsureg._.js")
+R.c("server/chunks/[root-of-the-server]__0caz6b8._.js")
+R.c("server/chunks/0f64_next_dist_0b64icw._.js")
+R.c("server/chunks/08b0_Check__next-internal_server_app_api_reports_profile-360_route_actions_0on_py2.js")
+R.m(30929)
+module.exports=R.m(30929).exports

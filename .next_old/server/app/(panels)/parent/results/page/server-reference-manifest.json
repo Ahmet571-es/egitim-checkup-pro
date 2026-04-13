@@ -1,0 +1,53 @@
+{
+  "node": {
+    "0046a8742674dcde98b40dcf32b4c40f2271f31b0d": {
+      "workers": {
+        "app/(panels)/parent/results/page": {
+          "moduleId": 99289,
+          "async": false,
+          "exportedName": "getCurrentProfile",
+          "filename": "Desktop/Egitim_Check/src/lib/actions/auth.ts"
+        }
+      },
+      "exportedName": "getCurrentProfile",
+      "filename": "Desktop/Egitim_Check/src/lib/actions/auth.ts"
+    },
+    "00801464e8c5a8233a276e15b9f6b851353ea1d925": {
+      "workers": {
+        "app/(panels)/parent/results/page": {
+          "moduleId": 99289,
+          "async": false,
+          "exportedName": "signOut",
+          "filename": "Desktop/Egitim_Check/src/lib/actions/auth.ts"
+        }
+      },
+      "exportedName": "signOut",
+      "filename": "Desktop/Egitim_Check/src/lib/actions/auth.ts"
+    },
+    "40320452e09f185ada3fa068bc4b82f93abbfe7015": {
+      "workers": {
+        "app/(panels)/parent/results/page": {
+          "moduleId": 99289,
+          "async": false,
+          "exportedName": "signUp",
+          "filename": "Desktop/Egitim_Check/src/lib/actions/auth.ts"
+        }
+      },
+      "exportedName": "signUp",
+      "filename": "Desktop/Egitim_Check/src/lib/actions/auth.ts"
+    },
+    "40824e3bd4dfb29fcfa7d10bca730dd0f5e47a0dc7": {
+      "workers": {
+        "app/(panels)/parent/results/page": {
+          "moduleId": 99289,
+          "async": false,
+          "exportedName": "signIn",
+          "filename": "Desktop/Egitim_Check/src/lib/actions/auth.ts"
+        }
+      },
+      "exportedName": "signIn",
+      "filename": "Desktop/Egitim_Check/src/lib/actions/auth.ts"
+    }
+  },
+  "edge": {}
+}
