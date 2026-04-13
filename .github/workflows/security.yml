@@ -1,0 +1,83 @@
+name: Güvenlik Taraması
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Her Pazartesi 09:00 UTC'de otomatik tarama
+    - cron: '0 9 * * 1'
+
+jobs:
+  security-audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node.js kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Bağımlılıkları yükle
+        run: npm ci
+
+      - name: npm audit (kritik ve yüksek)
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: npm audit raporu (JSON)
+        run: npm audit --json > audit-report.json || true
+
+      - name: Kritik güvenlik açığı kontrolü
+        run: |
+          CRITICAL=$(npm audit --json 2>/dev/null | jq '.metadata.vulnerabilities.critical // 0')
+          HIGH=$(npm audit --json 2>/dev/null | jq '.metadata.vulnerabilities.high // 0')
+          echo "Kritik: $CRITICAL, Yüksek: $HIGH"
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "::error::$CRITICAL kritik güvenlik açığı bulundu!"
+            exit 1
+          fi
+
+  type-check:
+    name: TypeScript kontrol
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node.js kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Bağımlılıkları yükle
+        run: npm ci
+
+      - name: TypeScript derle
+        run: npx tsc --noEmit
+        continue-on-error: true
+
+  build-check:
+    name: Build kontrolü
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node.js kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Bağımlılıkları yükle
+        run: npm ci
+
+      - name: Next.js build
+        run: npx next build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder

@@ -2,6 +2,19 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import type { UserRole } from '@/types';
 
+const CSRF_COOKIE = 'csrf_token';
+const CSRF_HEADER = 'x-csrf-token';
+const TOKEN_LENGTH = 32;
+
+function generateCSRFToken(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let token = '';
+  for (let i = 0; i < TOKEN_LENGTH; i++) {
+    token += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return token;
+}
+
 // Oturum gerektirmeyen public yollar
 const PUBLIC_PATHS = ['/', '/login', '/register', '/kvkk', '/pricing'];
 
@@ -33,9 +46,27 @@ export async function proxy(request: NextRequest) {
   // Static asset, Next internal, API: atla
   if (
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/api') ||
     pathname.includes('.')
   ) {
+    return supabaseResponse;
+  }
+
+  // CSRF koruması: API POST/PUT/DELETE isteklerinde token doğrula
+  if (pathname.startsWith('/api') && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
+    // Muaf route'lar: public API (kendi auth'u var), payment callback (dış servis)
+    const csrfExempt = pathname.startsWith('/api/v1/') || pathname.startsWith('/api/payment/callback');
+    if (!csrfExempt) {
+      const cookieToken = request.cookies.get(CSRF_COOKIE)?.value;
+      const headerToken = request.headers.get(CSRF_HEADER);
+      if (cookieToken && headerToken && cookieToken !== headerToken) {
+        return NextResponse.json({ error: 'CSRF token geçersiz' }, { status: 403 });
+      }
+    }
+    return supabaseResponse;
+  }
+
+  // API GET istekleri: atla
+  if (pathname.startsWith('/api')) {
     return supabaseResponse;
   }
 
@@ -108,6 +139,17 @@ export async function proxy(request: NextRequest) {
       url.pathname = ROLE_HOME[role] ?? '/login';
       return NextResponse.redirect(url);
     }
+  }
+
+  // CSRF cookie yoksa oluştur
+  if (!request.cookies.get(CSRF_COOKIE)?.value) {
+    supabaseResponse.cookies.set(CSRF_COOKIE, generateCSRFToken(), {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 86400,
+    });
   }
 
   return supabaseResponse;

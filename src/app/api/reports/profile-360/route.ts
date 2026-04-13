@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import { generateAIReport } from '@/lib/ai/claude-client';
 import { TEST_LABELS } from '@/lib/services/correlation';
 import type { PatternInsight } from '@/lib/services/correlation';
@@ -14,11 +15,39 @@ interface RequestBody {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: RequestBody = await request.json();
-    const { results, patterns, risk, careers } = body;
+    // Auth kontrolü
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 });
+    }
 
-    // Test verilerini formatla
-    const testSummary = results
+    const body: RequestBody = await request.json();
+    const { patterns, risk, careers } = body;
+
+    // Sunucu tarafında gerçek test sonuçlarını çek — client verisine güvenme
+    const { data: dbResults } = await supabase
+      .from('test_results')
+      .select('test_type, scores, score')
+      .eq('student_id', user.id)
+      .not('completed_at', 'is', null)
+      .order('created_at', { ascending: false });
+
+    if (!dbResults || dbResults.length === 0) {
+      return NextResponse.json({ error: 'Tamamlanmış test sonucu bulunamadı.' }, { status: 400 });
+    }
+
+    // Her test tipi için en son sonucu al
+    const latestResults = new Map<string, { test_type: string; scores: Record<string, unknown> }>();
+    for (const r of dbResults) {
+      if (!latestResults.has(r.test_type)) {
+        latestResults.set(r.test_type, { test_type: r.test_type, scores: r.scores || {} });
+      }
+    }
+    const verifiedResults = Array.from(latestResults.values());
+
+    // Test verilerini formatla (sunucu doğrulamalı veriler)
+    const testSummary = verifiedResults
       .map(r => {
         const label = TEST_LABELS[r.test_type] || r.test_type;
         return `### ${label}\n\`\`\`json\n${JSON.stringify(r.scores, null, 2)}\n\`\`\``;
