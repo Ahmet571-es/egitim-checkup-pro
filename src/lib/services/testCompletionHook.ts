@@ -103,6 +103,17 @@ export async function onTestCompleted(studentId: string, testType: string, score
       // Tablo yoksa sessiz geç
     }
 
+    // 7. E-posta bildirimi tetikle (server-side, hata olursa sessiz geç)
+    try {
+      await fetch('/api/notifications/test-completed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId, testType, score }),
+      });
+    } catch {
+      // E-posta hatası test akışını etkilemesin
+    }
+
     return { xpGained: totalXP, newBadges, levelUp, newLevel };
   } catch (err) {
     console.error('onTestCompleted hatası:', err);

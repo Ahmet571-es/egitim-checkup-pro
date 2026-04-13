@@ -8,6 +8,7 @@ const navItems: NavItem[] = [
   { label: 'Öğretmenler', href: '/school/teachers', icon: 'teachers' },
   { label: 'Öğrenciler', href: '/school/students', icon: 'students' },
   { label: 'Veliler', href: '/school/parents', icon: 'parents' },
+  { label: 'Markalaşma', href: '/school/branding', icon: 'branding' },
   { label: 'Faturalandırma', href: '/school/billing', icon: 'billing' },
 ];
 
