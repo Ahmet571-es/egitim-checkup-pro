@@ -115,11 +115,7 @@ export default function TeacherMyClassesPage() {
     }
   };
 
-  const loadClassStudents = async (classId: string) => {
-    if (expandedClass === classId) { setExpandedClass(null); return; }
-    setExpandedClass(classId);
-    setShowAddStudent(false);
-
+  const refreshClassStudents = async (classId: string) => {
     const { data } = await supabase
       .from('class_students')
       .select('student_id, profiles!class_students_student_id_fkey(id, full_name, email, grade)')
@@ -128,6 +124,13 @@ export default function TeacherMyClassesPage() {
     setClassStudents(
       (data ?? []).map(d => d.profiles as unknown as StudentItem).filter(Boolean)
     );
+  };
+
+  const loadClassStudents = async (classId: string) => {
+    if (expandedClass === classId) { setExpandedClass(null); return; }
+    setExpandedClass(classId);
+    setShowAddStudent(false);
+    await refreshClassStudents(classId);
   };
 
   const loadAllStudents = async () => {
@@ -154,10 +157,8 @@ export default function TeacherMyClassesPage() {
       setMessage({ type: 'error', text: `Atama hatası: ${error.message}` });
     } else {
       setMessage({ type: 'success', text: 'Öğrenci sınıfa eklendi!' });
-      const tmp = expandedClass;
-      await loadClassStudents(tmp);
+      await refreshClassStudents(expandedClass);
       await loadClasses();
-      setExpandedClass(tmp);
     }
     setAddingStudent(false);
   };
@@ -166,10 +167,8 @@ export default function TeacherMyClassesPage() {
     if (!expandedClass || !confirm(`"${name}" öğrencisini çıkarmak istediğinize emin misiniz?`)) return;
     await supabase.from('class_students').delete().eq('class_id', expandedClass).eq('student_id', studentId);
     setMessage({ type: 'success', text: `"${name}" çıkarıldı.` });
-    const tmp = expandedClass;
-    await loadClassStudents(tmp);
+    await refreshClassStudents(expandedClass);
     await loadClasses();
-    setExpandedClass(tmp);
   };
 
   const filteredStudents = allStudents.filter(s =>
