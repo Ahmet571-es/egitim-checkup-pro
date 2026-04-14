@@ -55,6 +55,8 @@ function getTestLabel(type: string): string {
 export default function TeacherReportsPage() {
   const supabase = useMemo(() => createClient(), []);
 
+  const [teacherId, setTeacherId] = useState<string | null>(null);
+  const [myStudentIds, setMyStudentIds] = useState<string[]>([]);
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>('all');
   const [students, setStudents] = useState<Student[]>([]);
@@ -68,37 +70,62 @@ export default function TeacherReportsPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Sınıfları yükle
+  // Öğretmenin kimliğini al + sadece kendi sınıflarını ve öğrencilerini yükle
   useEffect(() => {
-    async function loadClasses() {
+    async function initTeacherScope() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setTeacherId(user.id);
 
-      const { data } = await supabase
+      // Sadece bu öğretmene ait sınıflar
+      const { data: myClasses } = await supabase
         .from('classes')
         .select('id, name, grade')
+        .eq('teacher_id', user.id)
         .order('name');
-      setClasses(data ?? []);
+      setClasses(myClasses ?? []);
+
+      // Bu sınıflardaki öğrenci ID'leri
+      const classIds = (myClasses ?? []).map(c => c.id);
+      if (classIds.length === 0) {
+        setMyStudentIds([]);
+        return;
+      }
+
+      const { data: csRows } = await supabase
+        .from('class_students')
+        .select('student_id')
+        .in('class_id', classIds);
+      const ids = [...new Set((csRows ?? []).map(r => r.student_id))];
+      setMyStudentIds(ids);
     }
-    loadClasses();
+    initTeacherScope();
   }, [supabase]);
 
-  // Öğrencileri yükle (sınıf filtrelemeli)
+  // Öğrencileri yükle — sadece öğretmenin kendi öğrencileri
   useEffect(() => {
     async function loadStudents() {
+      if (!teacherId) return;
       setLoading(true);
       setSelectedStudent(null);
       setTestResults([]);
       setIntegratedReport(null);
 
       if (selectedClass === 'all') {
+        // Öğretmenin tüm sınıflarındaki öğrenciler
+        if (myStudentIds.length === 0) {
+          setStudents([]);
+          setLoading(false);
+          return;
+        }
         const { data } = await supabase
           .from('profiles')
           .select('id, full_name')
-          .eq('role', 'student')
+          .in('id', myStudentIds)
           .order('full_name');
         setStudents(data ?? []);
       } else {
+        // Seçili sınıftaki öğrenciler
         const { data } = await supabase
           .from('class_students')
           .select('student_id, profiles!class_students_student_id_fkey(id, full_name)')
@@ -112,7 +139,7 @@ export default function TeacherReportsPage() {
       setLoading(false);
     }
     loadStudents();
-  }, [selectedClass, supabase]);
+  }, [selectedClass, teacherId, myStudentIds, supabase]);
 
   // Öğrenci seçildiğinde test sonuçlarını yükle
   const loadStudentData = useCallback(async (student: Student) => {
@@ -342,7 +369,17 @@ export default function TeacherReportsPage() {
       )}
 
       {/* Öğrenci Seçilmemişse */}
-      {!selectedStudent && (
+      {!selectedStudent && students.length === 0 && !loading && (
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-12 text-center shadow-sm">
+          <p className="text-5xl mb-4">📭</p>
+          <p className="text-gray-500 font-semibold">Henüz size atanmış öğrenci yok.</p>
+          <p className="text-gray-400 text-sm mt-2 max-w-md mx-auto">
+            Raporları görebilmek için önce sınıf oluşturulmalı ve öğrenciler sınıfınıza atanmalıdır.
+            Okul yöneticinizle iletişime geçin veya "Sınıflarım" sayfasından sınıf oluşturun.
+          </p>
+        </div>
+      )}
+      {!selectedStudent && students.length > 0 && (
         <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-12 text-center shadow-sm">
           <p className="text-5xl mb-4">👆</p>
           <p className="text-gray-500 font-semibold">Lütfen bir öğrenci seçin.</p>
