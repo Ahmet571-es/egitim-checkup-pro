@@ -237,55 +237,81 @@ export default function TestPage() {
 
   // ── Test sonucunu Supabase'e kaydet ──────────────────────
   const [dbSaved, setDbSaved] = useState(false);
-  useEffect(() => {
-    if (!result || !studentId || !testId || dbSaved) return;
-    const saveToDb = async () => {
-      try {
-        const supabase = createClient();
-        // Build scores object that my-results page can parse
-        const scoresObj: Record<string, unknown> = {};
-        for (const s of result.scores) {
-          // Try to store numeric value
-          const num = parseFloat(s.value.replace(/[^0-9.-]/g, ''));
-          scoresObj[s.label] = isNaN(num) ? s.value : num;
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveError, setSaveError] = useState('');
+
+  const doSaveToDb = useCallback(async () => {
+    if (!result || !testId) return;
+    setSaveStatus('saving');
+    setSaveError('');
+
+    try {
+      const supabase = createClient();
+
+      // Session expire olmuş olabilir — her kaydetmede tekrar kontrol et
+      let currentStudentId = studentId;
+      if (!currentStudentId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.id) {
+          currentStudentId = user.id;
+          setStudentId(user.id);
         }
-        scoresObj._main = result.main;
-        scoresObj._desc = result.desc;
-
-        const { error } = await supabase
-          .from('test_results')
-          .insert({
-            student_id: studentId,
-            test_type: testId,
-            scores: scoresObj,
-            raw_answers: answers,
-            completed_at: new Date().toISOString(),
-          });
-
-        if (error) {
-          console.error('[DB save] test_results insert hatası:', error);
-        } else {
-          console.log('[DB save] test_results kaydedildi:', testId);
-          setDbSaved(true);
-
-          // Gamification: XP + rozet otomatik tetikleme
-          try {
-            const { onTestCompleted } = await import('@/lib/services/testCompletionHook');
-            const mainScore = typeof scoresObj._main === 'number' ? scoresObj._main : 50;
-            const gamResult = await onTestCompleted(studentId, testId, mainScore);
-            if (gamResult.xpGained > 0) {
-              console.log(`[Gamification] +${gamResult.xpGained} XP, rozetler: ${gamResult.newBadges.join(', ') || 'yok'}, level up: ${gamResult.levelUp}`);
-            }
-          } catch (gamErr) {
-            console.warn('[Gamification] tetikleme hatası (göz ardı edildi):', gamErr);
-          }
-        }
-      } catch (err) {
-        console.error('[DB save] beklenmedik hata:', err);
       }
-    };
-    saveToDb();
-  }, [result, studentId, testId, dbSaved]);
+
+      if (!currentStudentId) {
+        setSaveStatus('error');
+        setSaveError('Oturum süresi dolmuş. Lütfen sayfayı yenileyip tekrar giriş yapın.');
+        return;
+      }
+
+      // Build scores object
+      const scoresObj: Record<string, unknown> = {};
+      for (const s of result.scores) {
+        const num = parseFloat(s.value.replace(/[^0-9.-]/g, ''));
+        scoresObj[s.label] = isNaN(num) ? s.value : num;
+      }
+      scoresObj._main = result.main;
+      scoresObj._desc = result.desc;
+
+      const { error } = await supabase
+        .from('test_results')
+        .insert({
+          student_id: currentStudentId,
+          test_type: testId,
+          scores: scoresObj,
+          raw_answers: answers,
+          completed_at: new Date().toISOString(),
+        });
+
+      if (error) {
+        console.error('[DB save] test_results insert hatası:', error);
+        setSaveStatus('error');
+        setSaveError(error.message || 'Veritabanına kaydedilemedi.');
+      } else {
+        console.log('[DB save] test_results kaydedildi:', testId);
+        setDbSaved(true);
+        setSaveStatus('saved');
+
+        // Gamification: XP + rozet
+        try {
+          const { onTestCompleted } = await import('@/lib/services/testCompletionHook');
+          const mainScore = typeof scoresObj._main === 'number' ? scoresObj._main : 50;
+          await onTestCompleted(currentStudentId, testId, mainScore);
+        } catch (gamErr) {
+          console.warn('[Gamification] tetikleme hatası (göz ardı edildi):', gamErr);
+        }
+      }
+    } catch (err) {
+      console.error('[DB save] beklenmedik hata:', err);
+      setSaveStatus('error');
+      setSaveError('Beklenmeyen bir hata oluştu. Tekrar deneyin.');
+    }
+  }, [result, studentId, testId, answers]);
+
+  useEffect(() => {
+    if (!result || dbSaved || saveStatus === 'saving') return;
+    doSaveToDb();
+  }, [result, dbSaved, saveStatus, doSaveToDb]);
 
   const handleResumeAccept = () => {
     if (!resumePrompt) return;
@@ -490,19 +516,47 @@ export default function TestPage() {
   // ── Sonuç ekranı ──────────────────────────────────────
   if (result) {
     return (
-      <TestResult
-        testName={test.name}
-        testIcon={test.icon}
-        mainResult={result.main}
-        mainDescription={result.desc}
-        scores={result.scores}
-        report={result.report}
-        accentColor={test.color}
-        onRetake={() => {
-          setResult(null); setAnswers({}); setCurrentQ(0); setElapsed(0); setDbSaved(false);
-          if (testId === 'd2-dikkat') setD2Rows(generateD2Test());
-        }}
-      />
+      <>
+        <TestResult
+          testName={test.name}
+          testIcon={test.icon}
+          mainResult={result.main}
+          mainDescription={result.desc}
+          scores={result.scores}
+          report={result.report}
+          accentColor={test.color}
+          onRetake={() => {
+            setResult(null); setAnswers({}); setCurrentQ(0); setElapsed(0); setDbSaved(false); setSaveStatus('idle');
+            if (testId === 'd2-dikkat') setD2Rows(generateD2Test());
+          }}
+        />
+        {/* Kaydetme durumu göstergesi */}
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+          {saveStatus === 'saving' && (
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-blue-600/90 backdrop-blur text-white text-sm font-medium shadow-lg">
+              <Loader2 size={14} className="animate-spin" /> Sonuç kaydediliyor...
+            </div>
+          )}
+          {saveStatus === 'saved' && (
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-emerald-600/90 backdrop-blur text-white text-sm font-medium shadow-lg animate-pulse">
+              ✅ Sonuç kaydedildi
+            </div>
+          )}
+          {saveStatus === 'error' && (
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-red-600/90 backdrop-blur text-white text-sm font-medium shadow-lg">
+                ❌ {saveError || 'Kaydetme başarısız'}
+              </div>
+              <button
+                onClick={doSaveToDb}
+                className="px-4 py-2 rounded-full bg-white/90 text-red-600 text-sm font-bold shadow-lg hover:bg-white transition-all"
+              >
+                🔄 Tekrar Dene
+              </button>
+            </div>
+          )}
+        </div>
+      </>
     );
   }
 
