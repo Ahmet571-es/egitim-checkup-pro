@@ -128,7 +128,7 @@ export interface D2RowDetail {
 }
 
 // ── Hızlı Okuma Tipleri ───────────────────────────────────
-export type Kademe = 'kademe_1' | 'kademe_2' | 'kademe_3' | 'kademe_4';
+export type Kademe = 'kademe_0' | 'kademe_1' | 'kademe_2' | 'kademe_3' | 'kademe_4';
 
 export interface ReadingPassage {
   id: string;

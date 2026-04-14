@@ -2,18 +2,22 @@
 // Hızlı Okuma Testi — Engine
 // ============================================================
 import type { SpeedReadingScores, Kademe, ReadingPassage } from '../types';
+import { getOamPassage } from './oam-passages';
 
 export const KADEME_MAP: Record<number, Kademe> = {
+  1: 'kademe_0', 2: 'kademe_0', 3: 'kademe_0', 4: 'kademe_0',
   5: 'kademe_1', 6: 'kademe_1', 7: 'kademe_2', 8: 'kademe_2',
   9: 'kademe_3', 10: 'kademe_3', 11: 'kademe_4', 12: 'kademe_4',
 };
 
 export const KADEME_LABELS: Record<Kademe, string> = {
+  kademe_0: '1-4. Sınıf (Başlangıç)',
   kademe_1: '5-6. Sınıf (Temel)', kademe_2: '7-8. Sınıf (Orta)',
   kademe_3: '9-10. Sınıf (İleri)', kademe_4: '11-12. Sınıf (Üst)',
 };
 
 export const WPM_NORMS: Record<Kademe, Record<string, number>> = {
+  kademe_0: { cok_yavas: 30, yavas: 50, ortalama: 75, hizli: 100, cok_hizli: 130 },
   kademe_1: { cok_yavas: 60, yavas: 80, ortalama: 110, hizli: 140, cok_hizli: 170 },
   kademe_2: { cok_yavas: 90, yavas: 120, ortalama: 155, hizli: 190, cok_hizli: 230 },
   kademe_3: { cok_yavas: 120, yavas: 155, ortalama: 195, hizli: 240, cok_hizli: 280 },
@@ -21,6 +25,7 @@ export const WPM_NORMS: Record<Kademe, Record<string, number>> = {
 };
 
 export const ALL_PASSAGES: Record<Kademe, ReadingPassage[]> = {
+  kademe_0: [], // 1-4. sınıf metinleri OAM'den gelir
   kademe_1: [{
     id: 'k1_p1', title: 'Deniz Kaplumbağalarının Yolculuğu',
     text: 'Deniz kaplumbağaları, dünyanın en ilginç gezginlerinden biridir. Her yıl binlerce kilometre yüzerek doğdukları sahillere geri dönerler. Dişi kaplumbağalar yumurtalarını kumda açtıkları çukurlara bırakır ve üzerlerini kumla örter. Yaklaşık iki ay sonra yumurtadan çıkan minik yavrular, ay ışığının yansımasını takip ederek denize ulaşmaya çalışır. Ancak bu yolculuk oldukça tehlikelidir. Kuşlar, yengeçler ve diğer avcılar yavruları yakalamaya çalışır. Denize ulaşmayı başaran yavrulardan sadece binde biri yetişkin olabilir.\n\nBilim insanları, deniz kaplumbağalarının dünyanın manyetik alanını kullanarak yollarını bulduğunu keşfetmiştir. Bu yetenek sayesinde okyanusun ortasında bile kaybolmadan binlerce kilometre yüzebilirler. Kaplumbağalar ayrıca denizanası, yosun ve küçük deniz canlılarıyla beslenir. Plastik poşetler denizanasına benzediği için kaplumbağalar bazen bunları yutarak hastalanır veya ölür.\n\nBugün yedi deniz kaplumbağası türünden altısı nesli tehlike altında olan canlılar listesindedir. Sahillerdeki yapay ışıklar, yavruların deniz yerine karaya doğru yönelmesine neden olur. Plastik kirliliği, iklim değişikliği ve avlanma da kaplumbağaların hayatını tehdit etmektedir. Birçok ülke kaplumbağa yumurtlama sahillerini koruma altına almış ve gönüllü koruma programları başlatmıştır. Türkiye\'de de Dalyan, Patara ve Anamur gibi sahiller önemli yumurtlama alanlarıdır.',
@@ -93,8 +98,21 @@ export function gradeToKademe(grade: number): Kademe {
 
 export function getPassageForGrade(grade: number): { passage: ReadingPassage; kademe: Kademe } {
   const kademe = gradeToKademe(grade);
-  const passages = ALL_PASSAGES[kademe];
-  return { passage: passages[0], kademe };
+
+  // Mevcut kademe metinleri + OAM sınıf bazlı metin
+  const pool: ReadingPassage[] = [...(ALL_PASSAGES[kademe] ?? [])];
+  const oamPassage = getOamPassage(grade);
+  if (oamPassage) pool.push(oamPassage);
+
+  // Havuz boşsa — en yakın kademe'den al
+  if (pool.length === 0) {
+    const fallback = ALL_PASSAGES['kademe_1'];
+    return { passage: fallback[0], kademe: 'kademe_1' };
+  }
+
+  // Havuzdan rastgele seç
+  const idx = Math.floor(Math.random() * pool.length);
+  return { passage: pool[idx], kademe };
 }
 
 export function countWords(text: string): number {
