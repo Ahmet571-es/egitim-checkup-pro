@@ -2,15 +2,13 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { BarChart2, TrendingUp, Award, Eye, FileText, Brain } from 'lucide-react';
+import { TrendingUp, Award, Eye } from 'lucide-react';
 
 interface TestResult {
   id: string;
   test_type: string;
   scores: Record<string, unknown>;
   completed_at: string | null;
-  ai_report: string | null;
-  ai_report_generated_at: string | null;
 }
 
 const TEST_META: Record<string, { label: string; icon: string; color: string }> = {
@@ -75,7 +73,6 @@ export default function MyResultsPage() {
   const [results, setResults] = useState<TestResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedResult, setSelectedResult] = useState<TestResult | null>(null);
-  const [viewingReport, setViewingReport] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -84,7 +81,7 @@ export default function MyResultsPage() {
 
       const { data } = await supabase
         .from('test_results')
-        .select('id, test_type, scores, completed_at, ai_report, ai_report_generated_at')
+        .select('id, test_type, scores, completed_at')
         .eq('student_id', user.id)
         .not('completed_at', 'is', null)
         .order('completed_at', { ascending: false });
@@ -102,8 +99,6 @@ export default function MyResultsPage() {
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
 
-  const reportCount = results.filter(r => r.ai_report).length;
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -116,15 +111,14 @@ export default function MyResultsPage() {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold text-[#0f2847] mb-1">Sonuçlarım</h1>
-        <p className="text-gray-500 text-sm">Tamamladığın testlerin sonuçları ve AI analiz raporların.</p>
+        <p className="text-gray-500 text-sm">Tamamladığın testlerin sonuçları ve puan detayları.</p>
       </div>
 
       {/* Özet Kartlar */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-4 mb-6">
         {[
           { label: 'Tamamlanan', value: results.length, icon: <Award size={18} className="text-emerald-500" />, color: 'text-emerald-600' },
           { label: 'Bu Ay', value: thisMonth, icon: <TrendingUp size={18} className="text-sky-500" />, color: 'text-sky-600' },
-          { label: 'AI Raporlarım', value: reportCount, icon: <Brain size={18} className="text-violet-500" />, color: 'text-violet-600' },
         ].map(({ label, value, icon, color }) => (
           <div key={label} className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 flex items-center gap-3 shadow-sm">
             {icon}
@@ -174,15 +168,6 @@ export default function MyResultsPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {r.ai_report && (
-                      <button
-                        onClick={() => setViewingReport(r.ai_report)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-violet-700 bg-violet-50 hover:bg-violet-100 transition-all"
-                      >
-                        <FileText size={13} />
-                        Raporumu Gör
-                      </button>
-                    )}
                     <button
                       onClick={() => setSelectedResult(selectedResult?.id === r.id ? null : r)}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 text-xs font-semibold hover:bg-gray-200 transition-all"
@@ -210,44 +195,6 @@ export default function MyResultsPage() {
         </div>
       )}
 
-      {/* Rapor Modal */}
-      {viewingReport && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4"
-          onClick={() => setViewingReport(null)}
-        >
-          <div
-            className="bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <Brain size={18} className="text-violet-500" />
-                <h3 className="font-extrabold text-[#0f2847]">AI Analiz Raporun</h3>
-              </div>
-              <button
-                onClick={() => setViewingReport(null)}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-all"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-6">
-              <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-sans">
-                {viewingReport}
-              </pre>
-            </div>
-            <div className="px-6 py-4 border-t border-gray-100">
-              <button
-                onClick={() => setViewingReport(null)}
-                className="w-full py-2.5 rounded-xl bg-[#0f2847] text-white text-sm font-semibold hover:bg-[#1a3d6e] transition-all"
-              >
-                Kapat
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
