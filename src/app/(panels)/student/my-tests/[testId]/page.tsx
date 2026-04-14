@@ -240,6 +240,24 @@ export default function TestPage() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [saveError, setSaveError] = useState('');
 
+  // Postgres / Supabase hatasını kullanıcı-dostu Türkçeye çevir
+  const friendlyError = (err: { code?: string; message?: string } | null | undefined): string => {
+    if (!err) return 'Veritabanına kaydedilemedi.';
+    const msg = err.message || '';
+    // 23502 = NOT NULL violation (en olası: school_id)
+    if (err.code === '23502' || /not-null constraint/i.test(msg)) {
+      return 'Profilinizde okul bilgisi eksik. Lütfen okul kodunuzu girip tekrar deneyin veya okul yöneticinizle iletişime geçin.';
+    }
+    // 42501 / RLS politikası
+    if (err.code === '42501' || /row-level security/i.test(msg)) {
+      return 'Bu işlem için yetkiniz yok. Lütfen okul yöneticinizle iletişime geçin.';
+    }
+    if (/JWT|expired|unauthorized/i.test(msg)) {
+      return 'Oturum süresi dolmuş. Lütfen sayfayı yenileyip tekrar giriş yapın.';
+    }
+    return msg || 'Veritabanına kaydedilemedi.';
+  };
+
   const doSaveToDb = useCallback(async () => {
     if (!result || !testId) return;
     setSaveStatus('saving');
@@ -264,6 +282,21 @@ export default function TestPage() {
         return;
       }
 
+      // Profilden school_id okunabiliyorsa insert payload'una ekle
+      // (DB nullable olsa bile okul-bağlı öğrenciler için school_id'nin
+      //  test_results üzerinde doğru bağlanması önemli.)
+      let schoolId: string | null = null;
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('school_id')
+          .eq('id', currentStudentId)
+          .maybeSingle();
+        schoolId = profile?.school_id ?? null;
+      } catch (e) {
+        console.warn('[DB save] school_id okunamadı:', e);
+      }
+
       // Build scores object
       const scoresObj: Record<string, unknown> = {};
       for (const s of result.scores) {
@@ -273,20 +306,23 @@ export default function TestPage() {
       scoresObj._main = result.main;
       scoresObj._desc = result.desc;
 
+      const insertPayload: Record<string, unknown> = {
+        student_id: currentStudentId,
+        test_type: testId,
+        scores: scoresObj,
+        raw_answers: answers,
+        completed_at: new Date().toISOString(),
+      };
+      if (schoolId) insertPayload.school_id = schoolId;
+
       const { error } = await supabase
         .from('test_results')
-        .insert({
-          student_id: currentStudentId,
-          test_type: testId,
-          scores: scoresObj,
-          raw_answers: answers,
-          completed_at: new Date().toISOString(),
-        });
+        .insert(insertPayload);
 
       if (error) {
         console.error('[DB save] test_results insert hatası:', error);
         setSaveStatus('error');
-        setSaveError(error.message || 'Veritabanına kaydedilemedi.');
+        setSaveError(friendlyError(error));
       } else {
         console.log('[DB save] test_results kaydedildi:', testId);
         setDbSaved(true);
@@ -308,8 +344,11 @@ export default function TestPage() {
     }
   }, [result, studentId, testId, answers]);
 
+  // Otomatik kayıt: SADECE 'idle' durumdayken tetikle.
+  // Daha önce 'saving' dışındaki tüm durumlar (özellikle 'error') effect'i
+  // yeniden tetikleyip sonsuz retry döngüsüne yol açıyordu (BUG P0).
   useEffect(() => {
-    if (!result || dbSaved || saveStatus === 'saving') return;
+    if (!result || dbSaved || saveStatus !== 'idle') return;
     doSaveToDb();
   }, [result, dbSaved, saveStatus, doSaveToDb]);
 

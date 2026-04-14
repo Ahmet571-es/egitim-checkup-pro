@@ -193,15 +193,16 @@ function MiniBar({ pct, color = '#10b981', delay = 0 }: { pct: number; color?: s
     return () => clearTimeout(timer);
   }, [pct, delay]);
 
+  // Yüzde değeri zaten bar'ın üstündeki item.value'da gösteriliyor (BUG P2 fix).
+  // MiniBar yalnızca görsel barı render eder; metni tekrar etmez.
   return (
-    <div className="flex items-center gap-2 mt-1">
+    <div className="flex items-center gap-2 mt-1 w-32 max-w-full" aria-hidden="true">
       <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-700 ease-out"
           style={{ width: `${width}%`, background: `linear-gradient(90deg, ${color}, ${color}dd)` }}
         />
       </div>
-      <span className="text-xs text-white/50 w-9 text-right">%{pct}</span>
     </div>
   );
 }

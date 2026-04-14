@@ -4,6 +4,25 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Plus, Users, Trash2, X, Search, UserPlus, BookOpen, ChevronDown } from 'lucide-react';
 
+// Postgres / Supabase hatasını kullanıcı-dostu Türkçeye çevir (BUG P1)
+function friendlyError(err: { code?: string; message?: string } | null | undefined, fallback = 'İşlem başarısız oldu.'): string {
+  if (!err) return fallback;
+  const msg = err.message || '';
+  if (err.code === '23502' || /not-null constraint/i.test(msg)) {
+    return 'Profilinizde okul bilgisi eksik. Lütfen okul yöneticinizle iletişime geçin.';
+  }
+  if (err.code === '42501' || /row-level security/i.test(msg)) {
+    return 'Bu işlem için yetkiniz yok. Lütfen okul yöneticinizle iletişime geçin.';
+  }
+  if (/duplicate key|unique constraint/i.test(msg)) {
+    return 'Bu kayıt zaten mevcut.';
+  }
+  if (/JWT|expired|unauthorized/i.test(msg)) {
+    return 'Oturum süresi dolmuş. Lütfen sayfayı yenileyip tekrar giriş yapın.';
+  }
+  return msg || fallback;
+}
+
 interface ClassItem {
   id: string;
   name: string;
@@ -93,7 +112,7 @@ export default function TeacherMyClassesPage() {
     const { error } = await supabase.from('classes').insert(insertData);
 
     if (error) {
-      setMessage({ type: 'error', text: `Hata: ${error.message}` });
+      setMessage({ type: 'error', text: friendlyError(error, 'Sınıf oluşturulamadı.') });
     } else {
       setMessage({ type: 'success', text: `"${newName.trim()}" sınıfı oluşturuldu!` });
       setNewName(''); setNewGrade(''); setNewSection(''); setShowCreate(false);
@@ -107,7 +126,7 @@ export default function TeacherMyClassesPage() {
     await supabase.from('class_students').delete().eq('class_id', classId);
     const { error } = await supabase.from('classes').delete().eq('id', classId);
     if (error) {
-      setMessage({ type: 'error', text: `Silme hatası: ${error.message}` });
+      setMessage({ type: 'error', text: friendlyError(error, 'Silme işlemi başarısız.') });
     } else {
       setMessage({ type: 'success', text: `"${className}" silindi.` });
       setExpandedClass(null);
@@ -154,7 +173,7 @@ export default function TeacherMyClassesPage() {
     }
     const { error } = await supabase.from('class_students').insert({ class_id: expandedClass, student_id: studentId });
     if (error) {
-      setMessage({ type: 'error', text: `Atama hatası: ${error.message}` });
+      setMessage({ type: 'error', text: friendlyError(error, 'Öğrenci eklenemedi.') });
     } else {
       setMessage({ type: 'success', text: 'Öğrenci sınıfa eklendi!' });
       await refreshClassStudents(expandedClass);
