@@ -14,22 +14,32 @@ function D2SymbolCell({
   symbol,
   selected,
   onToggle,
+  size,
 }: {
   symbol: D2Symbol;
   selected: boolean;
   onToggle: () => void;
+  size: 'sm' | 'md' | 'lg';
 }) {
+  const sizeClasses = {
+    sm: 'w-6 h-8 text-[10px]',
+    md: 'w-8 h-10 text-xs',
+    lg: 'w-10 h-12 text-sm',
+  };
+  const lineW = { sm: 'w-3', md: 'w-4', lg: 'w-5' };
+
   const lines = (count: number) =>
     Array.from({ length: count }, (_, i) => (
-      <div key={i} className="w-full h-px bg-current" />
+      <div key={i} className={`${lineW[size]} h-px bg-current`} />
     ));
 
   return (
     <button
       onClick={onToggle}
       className={`
-        flex flex-col items-center justify-center w-8 h-10 rounded border text-xs font-bold
-        transition-all select-none flex-shrink-0
+        flex flex-col items-center justify-center rounded border
+        font-bold transition-all select-none flex-shrink-0
+        ${sizeClasses[size]}
         ${selected
           ? 'bg-red-500/30 border-red-400 text-red-300 shadow-sm shadow-red-500/30'
           : 'bg-white/5 border-white/15 text-white/70 hover:bg-white/10 hover:border-white/30'
@@ -38,14 +48,11 @@ function D2SymbolCell({
       aria-pressed={selected}
       aria-label={`${symbol.letter} üst:${symbol.above} alt:${symbol.below}`}
     >
-      {/* Üst çizgiler */}
-      <div className="flex flex-col gap-0.5 w-4 mb-0.5">
+      <div className="flex flex-col gap-0.5 mb-0.5">
         {lines(symbol.above)}
       </div>
-      {/* Harf */}
-      <span className="text-sm font-extrabold leading-none">{symbol.letter}</span>
-      {/* Alt çizgiler */}
-      <div className="flex flex-col gap-0.5 w-4 mt-0.5">
+      <span className="font-extrabold leading-none">{symbol.letter}</span>
+      <div className="flex flex-col gap-0.5 mt-0.5">
         {lines(symbol.below)}
       </div>
     </button>
@@ -164,7 +171,7 @@ export default function D2TestBoard({ rows, timePerRow, onComplete }: D2TestBoar
   // ── Dikey mod uyarısı ─────────────────────────────────
   if (phase !== 'instructions' && isPortrait) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0f2847] to-[#1a3a5c] flex items-center justify-center p-6">
+      <div className="h-[100dvh] bg-gradient-to-br from-[#0f2847] to-[#1a3a5c] flex items-center justify-center p-6 fixed inset-0 z-50 overflow-hidden">
         <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-8 text-center max-w-sm">
           <div className="text-6xl mb-4">📱</div>
           <h2 className="text-white font-extrabold text-xl mb-2">Telefonu Yatay Çevirin</h2>
@@ -180,7 +187,7 @@ export default function D2TestBoard({ rows, timePerRow, onComplete }: D2TestBoar
   // ── Yönergeler ────────────────────────────────────────
   if (phase === 'instructions') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0f2847] to-[#1a3a5c] p-4 flex items-center justify-center">
+      <div className="h-[100dvh] bg-gradient-to-br from-[#0f2847] to-[#1a3a5c] p-4 flex items-center justify-center fixed inset-0 z-50 overflow-auto">
         <div className="max-w-xl w-full bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-6 space-y-5">
           <div className="text-center">
             <div className="text-5xl mb-3">🎯</div>
@@ -238,7 +245,7 @@ export default function D2TestBoard({ rows, timePerRow, onComplete }: D2TestBoar
   // ── Bitti ─────────────────────────────────────────────
   if (phase === 'done') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0f2847] to-[#1a3a5c] flex items-center justify-center p-4">
+      <div className="h-[100dvh] bg-gradient-to-br from-[#0f2847] to-[#1a3a5c] flex items-center justify-center p-4 fixed inset-0 z-50 overflow-hidden">
         <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-8 text-center">
           <div className="text-6xl mb-4">✅</div>
           <h2 className="text-white font-extrabold text-2xl mb-2">Test Tamamlandı!</h2>
@@ -252,53 +259,65 @@ export default function D2TestBoard({ rows, timePerRow, onComplete }: D2TestBoar
   const row = rows[currentRow] ?? [];
   const selectedCount = rowSelections[currentRow]?.filter(Boolean).length ?? 0;
 
+  // Sembol boyutunu ekrana göre hesapla
+  const symCount = row.length;
+  const symSize: 'sm' | 'md' | 'lg' =
+    typeof window !== 'undefined' && window.innerWidth < 768 ? 'sm' :
+    symCount > 30 ? 'md' : 'lg';
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f2847] to-[#1a3a5c] flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/10 flex-shrink-0">
-        <div className="text-white/70 text-sm font-semibold">
-          Satır {currentRow + 1} / {rows.length}
-        </div>
-        <CountdownCircle remaining={remaining} total={timePerRow} />
-        <div className="text-white/60 text-sm">
-          ✓ {selectedCount}
-        </div>
-      </div>
+    <>
+      {/* Body scroll'u kapat */}
+      <style>{`body, html { overflow: hidden !important; height: 100% !important; }`}</style>
 
-      {/* İlerleme */}
-      <div className="h-1 bg-white/10 flex-shrink-0">
-        <div
-          className="h-full bg-[#10b981] transition-all"
-          style={{ width: `${((currentRow) / rows.length) * 100}%` }}
-        />
-      </div>
+      <div className="h-[100dvh] bg-gradient-to-br from-[#0f2847] to-[#1a3a5c] flex flex-col overflow-hidden fixed inset-0 z-50">
+        {/* Header — kompakt */}
+        <div className="flex items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2 bg-white/5 border-b border-white/10 flex-shrink-0">
+          <div className="text-white/70 text-xs sm:text-sm font-semibold">
+            Satır {currentRow + 1} / {rows.length}
+          </div>
+          <CountdownCircle remaining={remaining} total={timePerRow} />
+          <div className="text-white/60 text-xs sm:text-sm">
+            ✓ {selectedCount}
+          </div>
+        </div>
 
-      {/* Sembol Alanı */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden py-4 px-3">
-        <div className="flex gap-1 min-w-max mx-auto" style={{ minWidth: `${row.length * 36}px` }}>
-          {row.map((sym, idx) => (
-            <D2SymbolCell
-              key={idx}
-              symbol={sym}
-              selected={rowSelections[currentRow]?.[idx] ?? false}
-              onToggle={() => toggleSymbol(currentRow, idx)}
-            />
-          ))}
+        {/* İlerleme */}
+        <div className="h-1 bg-white/10 flex-shrink-0">
+          <div
+            className="h-full bg-[#10b981] transition-all"
+            style={{ width: `${((currentRow) / rows.length) * 100}%` }}
+          />
+        </div>
+
+        {/* Sembol Alanı — tam ekranı doldur, sadece yatay scroll */}
+        <div className="flex-1 flex items-center overflow-x-auto overflow-y-hidden px-2 sm:px-3">
+          <div className="flex gap-0.5 sm:gap-1 mx-auto">
+            {row.map((sym, idx) => (
+              <D2SymbolCell
+                key={idx}
+                symbol={sym}
+                selected={rowSelections[currentRow]?.[idx] ?? false}
+                onToggle={() => toggleSymbol(currentRow, idx)}
+                size={symSize}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Footer — kompakt */}
+        <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 bg-white/5 border-t border-white/10 flex-shrink-0">
+          <p className="text-white/40 text-[10px] sm:text-xs">
+            ← Soldan sağa işaretle
+          </p>
+          <button
+            onClick={finishRow}
+            className="px-4 sm:px-5 py-1.5 sm:py-2 rounded-xl bg-white/10 border border-white/20 text-white text-xs sm:text-sm font-semibold hover:bg-white/20 transition-all active:scale-95"
+          >
+            Satırı Bitir →
+          </button>
         </div>
       </div>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between px-4 py-3 bg-white/5 border-t border-white/10 flex-shrink-0">
-        <p className="text-white/40 text-xs">
-          ← Soldan sağa işaretle
-        </p>
-        <button
-          onClick={finishRow}
-          className="px-5 py-2 rounded-xl bg-white/10 border border-white/20 text-white text-sm font-semibold hover:bg-white/20 transition-all"
-        >
-          Satırı Bitir →
-        </button>
-      </div>
-    </div>
+    </>
   );
 }
