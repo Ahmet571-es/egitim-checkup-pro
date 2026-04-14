@@ -24,6 +24,168 @@ export interface TestResultProps {
 }
 
 /** Madde 17: Animated score bar */
+
+// ── Renkli bar gradient paleti ──
+const BAR_COLORS = [
+  'linear-gradient(90deg, #10b981, #34d399)',  // Yeşil
+  'linear-gradient(90deg, #3b82f6, #60a5fa)',  // Mavi
+  'linear-gradient(90deg, #8b5cf6, #a78bfa)',  // Mor
+  'linear-gradient(90deg, #f59e0b, #fbbf24)',  // Sarı
+  'linear-gradient(90deg, #ef4444, #f87171)',  // Kırmızı
+  'linear-gradient(90deg, #06b6d4, #22d3ee)',  // Cyan
+  'linear-gradient(90deg, #ec4899, #f472b6)',  // Pembe
+  'linear-gradient(90deg, #f97316, #fb923c)',  // Turuncu
+  'linear-gradient(90deg, #14b8a6, #2dd4bf)',  // Teal
+  'linear-gradient(90deg, #6366f1, #818cf8)',  // İndigo
+];
+
+/** Markdown raporu renkli HTML'e çevirir — metin barları (█░) görsel barlara dönüşür */
+function renderReportHTML(report: string): string {
+  let colorIdx = 0;
+  const getColor = () => BAR_COLORS[colorIdx++ % BAR_COLORS.length];
+
+  // Her satırı işle
+  const lines = report.split('\n');
+  let html = '';
+  let inTable = false;
+  let tableRows: string[][] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    // Markdown tablo satırı mı?
+    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      // Separator satırı (|---|---|) → atla
+      if (/^\|[\s\-:|]+\|$/.test(trimmed)) {
+        continue;
+      }
+      // Tablo hücreleri
+      const cells = trimmed.split('|').filter(c => c.trim() !== '');
+      if (!inTable) {
+        inTable = true;
+        tableRows = [];
+        colorIdx = 0; // Her tablo için renkleri sıfırla
+      }
+      tableRows.push(cells.map(c => c.trim()));
+      continue;
+    }
+
+    // Tablo bittiyse render et
+    if (inTable) {
+      html += renderTable(tableRows, getColor);
+      inTable = false;
+      tableRows = [];
+    }
+
+    // Başlıklar
+    if (trimmed.startsWith('# ')) {
+      html += `<h1 style="font-size:1.3rem;font-weight:800;margin:20px 0 8px;color:#fff;">${esc(trimmed.slice(2))}</h1>`;
+    } else if (trimmed.startsWith('## ')) {
+      html += `<h2 style="font-size:1.1rem;font-weight:700;margin:18px 0 6px;color:#fff;">${esc(trimmed.slice(3))}</h2>`;
+    } else if (trimmed.startsWith('### ')) {
+      html += `<h3 style="font-size:0.95rem;font-weight:700;margin:14px 0 4px;color:rgba(255,255,255,0.9);">${esc(trimmed.slice(4))}</h3>`;
+    }
+    // Liste öğeleri
+    else if (trimmed.startsWith('- ')) {
+      html += `<div style="padding:3px 0 3px 16px;position:relative;"><span style="position:absolute;left:0;">•</span>${formatBold(esc(trimmed.slice(2)))}</div>`;
+    }
+    // Ayırıcı
+    else if (trimmed === '---') {
+      html += `<hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:14px 0;"/>`;
+    }
+    // Boş satır
+    else if (trimmed === '') {
+      html += '<div style="height:6px;"></div>';
+    }
+    // Normal paragraf
+    else {
+      html += `<p style="margin:4px 0;line-height:1.6;">${formatBold(esc(trimmed))}</p>`;
+    }
+  }
+
+  // Son kalan tablo
+  if (inTable && tableRows.length > 0) {
+    html += renderTable(tableRows, getColor);
+  }
+
+  return html;
+}
+
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function formatBold(s: string): string {
+  return s.replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;">$1</strong>');
+}
+
+function renderTable(rows: string[][], getColor: () => string): string {
+  if (rows.length === 0) return '';
+  const header = rows[0];
+  const dataRows = rows.slice(1);
+
+  // "Grafik" sütunu var mı? (█░ barları içeren)
+  const grafIdx = header.findIndex(h => /grafik/i.test(h));
+  // "Yüzde" sütunu var mı?
+  const pctIdx = header.findIndex(h => /yüzde|%/i.test(h));
+
+  let html = '<div style="margin:10px 0 14px;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.12);">';
+
+  // Header
+  html += '<div style="display:grid;grid-template-columns:repeat(' + header.length + ',1fr);background:rgba(255,255,255,0.08);padding:10px 14px;gap:8px;">';
+  for (let j = 0; j < header.length; j++) {
+    // Grafik sütun başlığını gizle (yerine "Görsel" yaz)
+    const hText = (j === grafIdx) ? 'Görsel' : header[j];
+    html += `<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.5);">${esc(hText)}</div>`;
+  }
+  html += '</div>';
+
+  // Rows
+  for (let i = 0; i < dataRows.length; i++) {
+    const row = dataRows[i];
+    const color = getColor();
+    const bgColor = i % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)';
+
+    // Yüzde değerini al (bar genişliği için)
+    let pctVal = 0;
+    if (pctIdx >= 0 && row[pctIdx]) {
+      const match = row[pctIdx].match(/(\d+(?:\.\d+)?)/);
+      if (match) pctVal = parseFloat(match[1]);
+    }
+    // Grafik sütunundan yüzde tahmini (█ sayısı × 10)
+    if (grafIdx >= 0 && row[grafIdx] && pctVal === 0) {
+      const fullBlocks = (row[grafIdx].match(/█/g) || []).length;
+      pctVal = fullBlocks * 10;
+    }
+
+    html += `<div style="display:grid;grid-template-columns:repeat(${header.length},1fr);padding:10px 14px;gap:8px;background:${bgColor};border-top:1px solid rgba(255,255,255,0.06);align-items:center;">`;
+
+    for (let j = 0; j < header.length; j++) {
+      const cell = (row[j] || '').trim();
+
+      if (j === grafIdx) {
+        // ★ Grafik sütunu → renkli bar
+        const w = Math.min(100, Math.max(5, pctVal));
+        html += `<div style="position:relative;height:22px;background:rgba(255,255,255,0.08);border-radius:11px;overflow:hidden;">`;
+        html += `<div style="position:absolute;top:0;left:0;height:100%;width:${w}%;background:${color};border-radius:11px;transition:width 0.8s cubic-bezier(0.16,1,0.3,1);box-shadow:0 0 12px rgba(255,255,255,0.15);"></div>`;
+        html += `</div>`;
+      } else {
+        // Normal hücre
+        const isFirst = j === 0;
+        const style = isFirst
+          ? 'font-weight:600;color:rgba(255,255,255,0.95);font-size:0.85rem;'
+          : 'color:rgba(255,255,255,0.7);font-size:0.82rem;';
+        html += `<div style="${style}">${esc(cell)}</div>`;
+      }
+    }
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
 function MiniBar({ pct, color = '#10b981', delay = 0 }: { pct: number; color?: string; delay?: number }) {
   const [width, setWidth] = useState(0);
   useEffect(() => {
@@ -188,9 +350,9 @@ export default function TestResult({
             </button>
             {showReport && (
               <div className="px-5 pb-5 border-t border-white/10" style={{ animation: 'fade-in-up 0.2s ease-out forwards' }}>
-                <pre className="text-white/80 text-xs sm:text-sm whitespace-pre-wrap font-sans leading-relaxed mt-4 max-h-96 overflow-y-auto">
-                  {report}
-                </pre>
+                <div className="text-white/80 text-xs sm:text-sm leading-relaxed mt-4 max-h-[32rem] overflow-y-auto pr-2 report-styled"
+                     dangerouslySetInnerHTML={{ __html: renderReportHTML(report) }}
+                />
               </div>
             )}
           </div>
