@@ -239,8 +239,10 @@ export default function RegisterPage() {
     }
 
     setSuccess(true);
-    // Giriş Yap sayfasına yönlendir
-    setTimeout(() => router.push('/login'), 2000);
+    // Giriş Yap sayfasına sert yönlendirme (window.location ile — middleware müdahale edemez)
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 2000);
   };
 
   if (success) {
