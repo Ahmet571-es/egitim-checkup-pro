@@ -79,6 +79,9 @@ type Phase = 'instructions' | 'practice' | 'running' | 'done';
 
 export default function D2TestBoard({ rows, timePerRow, onComplete }: D2TestBoardProps) {
   const [phase, setPhase] = useState<Phase>('instructions');
+  const [instructionStep, setInstructionStep] = useState(0);
+  const [practiceSelections, setPracticeSelections] = useState<boolean[]>(Array(10).fill(false));
+  const [practiceChecked, setPracticeChecked] = useState(false);
   const [currentRow, setCurrentRow] = useState(0);
   const [remaining, setRemaining] = useState(timePerRow);
   const [rowSelections, setRowSelections] = useState<boolean[][]>(() =>
@@ -88,6 +91,20 @@ export default function D2TestBoard({ rows, timePerRow, onComplete }: D2TestBoar
   const [results, setResults] = useState<D2RowResult[]>([]);
   const [isPortrait, setIsPortrait] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Antrenman sembolleri (5 doğru hedef, 5 yanlış)
+  const practiceSymbols: { letter: string; above: number; below: number; isTarget: boolean }[] = [
+    { letter: 'd', above: 2, below: 0, isTarget: true },
+    { letter: 'p', above: 1, below: 1, isTarget: false },
+    { letter: 'd', above: 0, below: 2, isTarget: true },
+    { letter: 'd', above: 3, below: 0, isTarget: false },
+    { letter: 'd', above: 1, below: 1, isTarget: true },
+    { letter: 'p', above: 2, below: 0, isTarget: false },
+    { letter: 'd', above: 1, below: 0, isTarget: false },
+    { letter: 'd', above: 0, below: 2, isTarget: true },
+    { letter: 'p', above: 0, below: 2, isTarget: false },
+    { letter: 'd', above: 2, below: 0, isTarget: true },
+  ];
 
   // Ekran yönü kontrolü
   useEffect(() => {
@@ -174,59 +191,204 @@ export default function D2TestBoard({ rows, timePerRow, onComplete }: D2TestBoar
     );
   }
 
-  // ── Yönergeler ────────────────────────────────────────
+  // ── Yönergeler + Antrenman ────────────────────────────
   if (phase === 'instructions') {
+    const totalSteps = 4; // 0: giriş, 1: neyi işaretle, 2: neyi işaretleme, 3: antrenman
+
+    const renderSymbol = (letter: string, above: number, below: number, color: string, label?: string) => (
+      <div className={`flex flex-col items-center rounded-lg p-2.5 gap-0.5 border ${color}`}>
+        <div className="flex gap-1.5 justify-center h-3">
+          {Array.from({ length: above }, (_, j) => <div key={j} className="w-0.5 h-full bg-current rounded-full" />)}
+        </div>
+        <span className="font-black text-xl leading-none">{letter}</span>
+        <div className="flex gap-1.5 justify-center h-3">
+          {Array.from({ length: below }, (_, j) => <div key={j} className="w-0.5 h-full bg-current rounded-full" />)}
+        </div>
+        {label && <span className="text-[10px] mt-1 opacity-70">{label}</span>}
+      </div>
+    );
+
+    // Antrenman sonuç hesaplama
+    const practiceCorrect = practiceChecked
+      ? practiceSymbols.reduce((acc, sym, i) => acc + (practiceSelections[i] === sym.isTarget ? 1 : 0), 0)
+      : 0;
+
     return (
       <div className="h-[100dvh] bg-gradient-to-br from-[#0f2847] to-[#1a3a5c] p-4 flex items-center justify-center fixed inset-0 z-50 overflow-auto">
-        <div className="max-w-xl w-full bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-6 space-y-5">
-          <div className="text-center">
-            <div className="text-5xl mb-3">🎯</div>
-            <h1 className="text-white font-extrabold text-2xl">D2 Dikkat Testi</h1>
-            <p className="text-white/60 text-sm mt-1">{rows.length} satır × {rows[0]?.length ?? 47} sembol</p>
+        <div className="max-w-lg w-full bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-6 space-y-5">
+
+          {/* İlerleme çubuğu */}
+          <div className="flex gap-1.5">
+            {Array.from({ length: totalSteps }, (_, i) => (
+              <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= instructionStep ? 'bg-emerald-400' : 'bg-white/15'}`} />
+            ))}
           </div>
 
-          {/* Hedef gösterimi */}
-          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-            <p className="text-white/70 text-sm font-semibold mb-3">🎯 İşaretlemen Gereken Hedef Semboller:</p>
-            <p className="text-white/60 text-xs mb-3">
-              Sadece <strong className="text-white">{"d"}</strong> harfi ile <strong className="text-white">toplam 2 çizgisi</strong> olan sembolleri işaretle:
-            </p>
-            <div className="flex gap-4 justify-center">
-              {[
-                { above: 2, below: 0 },
-                { above: 0, below: 2 },
-                { above: 1, below: 1 },
-              ].map((s, i) => (
-                <div key={i} className="flex flex-col items-center bg-green-500/20 border border-green-400/40 rounded-lg p-3 gap-1">
-                  <div className="flex gap-1.5 justify-center h-3">
-                    {Array.from({ length: s.above }, (_, j) => <div key={j} className="w-0.5 h-full bg-green-400 rounded-full" />)}
-                  </div>
-                  <span className="text-green-300 font-black text-xl">d</span>
-                  <div className="flex gap-1.5 justify-center h-3">
-                    {Array.from({ length: s.below }, (_, j) => <div key={j} className="w-0.5 h-full bg-green-400 rounded-full" />)}
-                  </div>
-                  <span className="text-green-400 text-xs">{s.above}+{s.below}</span>
+          {/* ADIM 0: Giriş */}
+          {instructionStep === 0 && (
+            <>
+              <div className="text-center">
+                <div className="text-5xl mb-3">🎯</div>
+                <h1 className="text-white font-extrabold text-2xl mb-2">D2 Dikkat Testi</h1>
+                <p className="text-white/60 text-sm">{rows.length} satır × {rows[0]?.length ?? 47} sembol</p>
+              </div>
+              <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+                <p className="text-white/80 text-sm leading-relaxed">
+                  Bu testte sana <strong className="text-white">d</strong> ve <strong className="text-white">p</strong> harflerinden oluşan semboller gösterilecek. Her sembolün üstünde ve altında dikey çizgiler var.
+                </p>
+                <p className="text-white/80 text-sm leading-relaxed">
+                  Senin görevin: sadece belirli sembolleri bulmak ve tıklamak. Hangilerini tıklaman gerektiğini sana adım adım göstereceğiz.
+                </p>
+              </div>
+              <button
+                onClick={() => setInstructionStep(1)}
+                className="w-full py-3.5 rounded-xl bg-[#10b981] text-white font-bold text-base hover:bg-[#059669] transition-all shadow-lg"
+              >
+                Devam Et →
+              </button>
+            </>
+          )}
+
+          {/* ADIM 1: Neyi İşaretle */}
+          {instructionStep === 1 && (
+            <>
+              <div className="text-center">
+                <h2 className="text-white font-extrabold text-xl mb-1">Bunları İşaretle ✅</h2>
+                <p className="text-white/60 text-sm">Sadece <strong className="text-emerald-400">d harfi</strong> + <strong className="text-emerald-400">toplam 2 çizgi</strong></p>
+              </div>
+              <div className="bg-emerald-500/10 rounded-xl p-5 border border-emerald-400/30">
+                <p className="text-emerald-300 text-sm mb-4 text-center font-semibold">Bu 3 sembol DOĞRU hedeftir — bunları tıkla:</p>
+                <div className="flex gap-5 justify-center text-emerald-400">
+                  {renderSymbol('d', 2, 0, 'bg-emerald-500/20 border-emerald-400/40', 'üstte 2 çizgi')}
+                  {renderSymbol('d', 0, 2, 'bg-emerald-500/20 border-emerald-400/40', 'altta 2 çizgi')}
+                  {renderSymbol('d', 1, 1, 'bg-emerald-500/20 border-emerald-400/40', 'üstte 1 + altta 1')}
                 </div>
-              ))}
-            </div>
-          </div>
+                <p className="text-emerald-300/70 text-xs text-center mt-4">Hepsinde ortak olan: <strong>d harfi</strong> ve <strong>toplam 2 çizgi</strong></p>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setInstructionStep(0)} className="flex-1 py-3 rounded-xl bg-white/10 text-white/70 font-semibold hover:bg-white/15 transition-all">← Geri</button>
+                <button onClick={() => setInstructionStep(2)} className="flex-1 py-3 rounded-xl bg-[#10b981] text-white font-bold hover:bg-[#059669] transition-all shadow-lg">Devam Et →</button>
+              </div>
+            </>
+          )}
 
-          <div className="space-y-2 text-white/70 text-sm">
-            <p>📋 Her satırda <strong className="text-white">{timePerRow} saniye</strong> süren var.</p>
-            <p>⏭️ Süre dolunca sonraki satıra otomatik geçilir.</p>
-            <p>👆 Soldaki sembolden başla, sağa doğru ilerle.</p>
-            <p>✅ Bir sembolü tekrar tıklayarak seçimini iptal edebilirsin.</p>
-            {isPortrait && (
-              <p className="text-amber-300">⚠️ Test sırasında telefonu yatay tutun!</p>
-            )}
-          </div>
+          {/* ADIM 2: Neyi İşaretleme */}
+          {instructionStep === 2 && (
+            <>
+              <div className="text-center">
+                <h2 className="text-white font-extrabold text-xl mb-1">Bunları İşaretleme ❌</h2>
+                <p className="text-white/60 text-sm">Bu sembolleri tıklama — bunlar tuzak!</p>
+              </div>
+              <div className="bg-red-500/10 rounded-xl p-5 border border-red-400/30">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <p className="text-red-300 text-xs font-semibold mb-2">p harfi olduğu için YANLIŞ</p>
+                    <div className="flex gap-3 justify-center text-red-400">
+                      {renderSymbol('p', 2, 0, 'bg-red-500/20 border-red-400/40')}
+                      {renderSymbol('p', 1, 1, 'bg-red-500/20 border-red-400/40')}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-red-300 text-xs font-semibold mb-2">Çizgi sayısı 2 değil, YANLIŞ</p>
+                    <div className="flex gap-3 justify-center text-red-400">
+                      {renderSymbol('d', 1, 0, 'bg-red-500/20 border-red-400/40', '1 çizgi')}
+                      {renderSymbol('d', 3, 0, 'bg-red-500/20 border-red-400/40', '3 çizgi')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                <p className="text-white/70 text-sm text-center">
+                  Kısacası: <strong className="text-emerald-400">d + 2 çizgi = İşaretle</strong> · Geri kalan her şey = Geç
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setInstructionStep(1)} className="flex-1 py-3 rounded-xl bg-white/10 text-white/70 font-semibold hover:bg-white/15 transition-all">← Geri</button>
+                <button onClick={() => { setInstructionStep(3); setPracticeChecked(false); setPracticeSelections(Array(10).fill(false)); }} className="flex-1 py-3 rounded-xl bg-[#10b981] text-white font-bold hover:bg-[#059669] transition-all shadow-lg">Antrenman Yap →</button>
+              </div>
+            </>
+          )}
 
-          <button
-            onClick={startTest}
-            className="w-full py-4 rounded-xl bg-[#10b981] text-white font-extrabold text-lg hover:bg-[#059669] transition-all hover:scale-[1.02] shadow-lg"
-          >
-            Testi Başlat 🚀
-          </button>
+          {/* ADIM 3: Antrenman */}
+          {instructionStep === 3 && (
+            <>
+              <div className="text-center">
+                <h2 className="text-white font-extrabold text-xl mb-1">Antrenman 🏋️</h2>
+                <p className="text-white/60 text-sm">Aşağıdaki sembollerden <strong className="text-emerald-400">d + 2 çizgi</strong> olanları tıkla</p>
+              </div>
+              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                <div className="grid grid-cols-5 gap-2 sm:gap-3">
+                  {practiceSymbols.map((sym, i) => {
+                    const isSelected = practiceSelections[i];
+                    const showResult = practiceChecked;
+                    const isCorrectSelection = showResult && isSelected === sym.isTarget;
+                    const isWrongSelection = showResult && isSelected !== sym.isTarget;
+
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          if (practiceChecked) return;
+                          setPracticeSelections(prev => { const n = [...prev]; n[i] = !n[i]; return n; });
+                        }}
+                        className={`flex flex-col items-center rounded-lg p-2 gap-0.5 border transition-all ${
+                          showResult
+                            ? isCorrectSelection
+                              ? 'bg-emerald-500/30 border-emerald-400 text-emerald-300'
+                              : isWrongSelection
+                                ? 'bg-red-500/30 border-red-400 text-red-300'
+                                : 'bg-white/5 border-white/15 text-white/50'
+                            : isSelected
+                              ? 'bg-amber-500/30 border-amber-400 text-amber-300 scale-105'
+                              : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10'
+                        }`}
+                      >
+                        <div className="flex gap-1 justify-center h-2.5">
+                          {Array.from({ length: sym.above }, (_, j) => <div key={j} className="w-0.5 h-full bg-current rounded-full" />)}
+                        </div>
+                        <span className="font-black text-lg leading-none">{sym.letter}</span>
+                        <div className="flex gap-1 justify-center h-2.5">
+                          {Array.from({ length: sym.below }, (_, j) => <div key={j} className="w-0.5 h-full bg-current rounded-full" />)}
+                        </div>
+                        {showResult && (
+                          <span className="text-[9px] mt-0.5">
+                            {isCorrectSelection ? '✅' : isWrongSelection ? '❌' : ''}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {practiceChecked && (
+                  <div className={`mt-4 p-3 rounded-lg text-center text-sm font-semibold ${
+                    practiceCorrect >= 8 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'
+                  }`}>
+                    {practiceCorrect}/10 doğru! {practiceCorrect >= 8 ? 'Harika, hazırsın! 🎉' : 'Tekrar dene, kuralı hatırla: d + 2 çizgi'}
+                  </div>
+                )}
+              </div>
+
+              {!practiceChecked ? (
+                <div className="flex gap-3">
+                  <button onClick={() => setInstructionStep(2)} className="flex-1 py-3 rounded-xl bg-white/10 text-white/70 font-semibold hover:bg-white/15 transition-all">← Geri</button>
+                  <button onClick={() => setPracticeChecked(true)} className="flex-1 py-3 rounded-xl bg-amber-500 text-white font-bold hover:bg-amber-600 transition-all shadow-lg">Kontrol Et ✓</button>
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <button onClick={() => { setPracticeChecked(false); setPracticeSelections(Array(10).fill(false)); }} className="flex-1 py-3 rounded-xl bg-white/10 text-white/70 font-semibold hover:bg-white/15 transition-all">Tekrar Dene</button>
+                  <button onClick={startTest} className="flex-1 py-3 rounded-xl bg-[#10b981] text-white font-extrabold hover:bg-[#059669] transition-all shadow-lg">Teste Başla 🚀</button>
+                </div>
+              )}
+
+              <div className="space-y-1.5 text-white/50 text-xs">
+                <p>⏱️ Gerçek testte her satır için {timePerRow} saniyen olacak.</p>
+                <p>👆 Soldan sağa doğru ilerle.</p>
+                {isPortrait && <p className="text-amber-300">⚠️ Test sırasında telefonu yatay tut!</p>}
+              </div>
+            </>
+          )}
+
         </div>
       </div>
     );
