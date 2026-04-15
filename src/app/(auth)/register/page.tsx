@@ -1,34 +1,73 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { GraduationCap, User, Lock, Building, ArrowRight, AlertCircle, CheckCircle2, Phone, MapPin } from 'lucide-react';
+import { GraduationCap, User, Lock, Building, ArrowRight, AlertCircle, CheckCircle2, Phone, MapPin, AtSign } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_PATHS, STUDENT_GRADES } from '@/types';
 import type { UserRole } from '@/types';
 
+// Türkçe karakterleri ASCII'ye çevir
+function turkishToAscii(str: string): string {
+  const map: Record<string, string> = {
+    'ç': 'c', 'Ç': 'c', 'ğ': 'g', 'Ğ': 'g', 'ı': 'i', 'İ': 'i',
+    'ö': 'o', 'Ö': 'o', 'ş': 's', 'Ş': 's', 'ü': 'u', 'Ü': 'u',
+  };
+  return str.replace(/[çÇğĞıİöÖşŞüÜ]/g, (ch) => map[ch] || ch);
+}
+
+// Ad ve soyaddan kullanıcı adı üret: ad_soyad (küçük harf, Türkçe → ASCII)
+function generateUsername(firstName: string, lastName: string): string {
+  const ad = turkishToAscii(firstName.trim().toLowerCase()).replace(/\s+/g, '');
+  const soyad = turkishToAscii(lastName.trim().toLowerCase()).replace(/\s+/g, '');
+  if (!ad || !soyad) return '';
+  return `${ad}_${soyad}`;
+}
+
 export default function RegisterPage() {
   const [form, setForm] = useState({
     firstName: '', lastName: '', phone: '', city: '', district: '', address: '',
-    password: '', role: 'student' as UserRole,
+    username: '', password: '', role: 'student' as UserRole,
     schoolName: '', grade: '', kvkk: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [usernameWarning, setUsernameWarning] = useState('');
   const submittingRef = useRef(false);
   const router = useRouter();
 
-  const update = (key: string, value: string | boolean) => setForm((f) => ({ ...f, [key]: value }));
+  // Beklenen kullanıcı adı (ad ve soyaddan otomatik)
+  const expectedUsername = useMemo(
+    () => generateUsername(form.firstName, form.lastName),
+    [form.firstName, form.lastName]
+  );
+
+  const update = (key: string, value: string | boolean) => {
+    setForm((f) => ({ ...f, [key]: value }));
+    // Kullanıcı adı uyarısını temizle
+    if (key === 'username' || key === 'firstName' || key === 'lastName') {
+      setUsernameWarning('');
+    }
+  };
+
+  // Kullanıcı adı doğrulama
+  const validateUsername = (value: string) => {
+    if (!expectedUsername) return;
+    if (value && value !== expectedUsername) {
+      setUsernameWarning(`Kullanıcı adınız ad_soyad formatında olmalıdır: ${expectedUsername}`);
+    } else {
+      setUsernameWarning('');
+    }
+  };
 
   // Telefon numarasını temizle (sadece rakam)
   const sanitizePhone = (val: string) => val.replace(/\D/g, '');
 
-  // Telefon numarasından otomatik e-posta üret
-  const phoneToEmail = (phone: string) => {
-    const digits = sanitizePhone(phone);
-    return `${digits}@ogrenci.egitimcheckup.com`;
+  // Kullanıcı adından otomatik e-posta üret
+  const usernameToEmail = (uname: string) => {
+    return `${uname}@ogrenci.egitimcheckup.com`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,6 +86,18 @@ export default function RegisterPage() {
     // Ad/Soyad boş olmasın
     if (!form.firstName.trim() || !form.lastName.trim()) {
       setError('Ad ve soyad alanları boş olamaz.');
+      submittingRef.current = false;
+      return;
+    }
+
+    // Kullanıcı adı kontrolü
+    if (!form.username.trim()) {
+      setError('Kullanıcı adı zorunludur.');
+      submittingRef.current = false;
+      return;
+    }
+    if (form.username !== expectedUsername) {
+      setError(`Kullanıcı adınız ad_soyad formatında olmalıdır: ${expectedUsername}`);
       submittingRef.current = false;
       return;
     }
@@ -103,7 +154,7 @@ export default function RegisterPage() {
 
     const fullName = `${form.firstName} ${form.lastName}`.trim();
     const isGraduated = form.role === 'student' && form.grade === 'mezun';
-    const autoEmail = phoneToEmail(form.phone);
+    const autoEmail = usernameToEmail(form.username);
 
     const { error: authError } = await supabase.auth.signUp({
       email: autoEmail,
@@ -111,6 +162,7 @@ export default function RegisterPage() {
       options: {
         data: {
           full_name: fullName,
+          username: form.username,
           role: form.role,
           school_id: schoolId,
           grade: form.role === 'student' ? form.grade : '',
@@ -125,7 +177,7 @@ export default function RegisterPage() {
 
     if (authError) {
       if (authError.message.includes('already registered')) {
-        setError('Bu telefon numarası zaten kayıtlı.');
+        setError('Bu kullanıcı adı zaten kayıtlı. Aynı ad-soyad ile daha önce kayıt yapılmış olabilir.');
       } else {
         setError(authError.message);
       }
@@ -235,6 +287,52 @@ export default function RegisterPage() {
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input type="password" value={form.password} onChange={(e) => update('password', e.target.value)} placeholder="Min. 6 karakter" maxLength={72} className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" required minLength={6} />
               </div>
+            </div>
+
+            {/* Kullanıcı Adı */}
+            <div>
+              <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">
+                Kullanıcı Adı <span className="text-red-500">*</span>
+                {expectedUsername && (
+                  <span className="text-gray-400 font-normal ml-1">(ad_soyad formatında: {expectedUsername})</span>
+                )}
+              </label>
+              <div className="relative">
+                <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  value={form.username}
+                  onChange={(e) => {
+                    const val = e.target.value.toLowerCase().replace(/\s/g, '');
+                    update('username', val);
+                  }}
+                  onBlur={() => validateUsername(form.username)}
+                  placeholder={expectedUsername || 'ad_soyad'}
+                  maxLength={100}
+                  className={`w-full pl-11 pr-4 py-3 rounded-xl border bg-white/60 text-sm focus:outline-none focus:ring-2 transition-all ${
+                    usernameWarning
+                      ? 'border-red-300 focus:ring-red-500/30 focus:border-red-400'
+                      : form.username && form.username === expectedUsername
+                        ? 'border-emerald-300 focus:ring-emerald-500/30 focus:border-emerald-400'
+                        : 'border-gray-200 focus:ring-emerald-500/30 focus:border-emerald-400'
+                  }`}
+                  required
+                />
+                {form.username && form.username === expectedUsername && (
+                  <CheckCircle2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
+                )}
+              </div>
+              {usernameWarning && (
+                <p className="text-[12px] text-red-500 mt-1.5 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  {usernameWarning}
+                </p>
+              )}
+              {!usernameWarning && expectedUsername && !form.username && (
+                <p className="text-[12px] text-gray-400 mt-1.5">
+                  Giriş yaparken bu kullanıcı adını kullanacaksınız.
+                </p>
+              )}
             </div>
 
             {/* Rol */}
