@@ -16,7 +16,7 @@ function generateCSRFToken(): string {
 }
 
 // Oturum gerektirmeyen public yollar
-const PUBLIC_PATHS = ['/', '/login', '/register', '/kvkk', '/pricing', '/forgot-password'];
+const PUBLIC_PATHS = ['/', '/login', '/register', '/kvkk', '/pricing', '/forgot-password', '/yonetici'];
 
 const ROLE_PREFIX_MAP: Record<string, UserRole> = {
   '/admin': 'admin',
@@ -54,7 +54,7 @@ export async function proxy(request: NextRequest) {
   // CSRF koruması: API POST/PUT/DELETE isteklerinde token doğrula
   if (pathname.startsWith('/api') && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
     // Muaf route'lar: public API (kendi auth'u var), payment callback (dış servis)
-    const csrfExempt = pathname.startsWith('/api/v1/') || pathname.startsWith('/api/payment/callback');
+    const csrfExempt = pathname.startsWith('/api/v1/') || pathname.startsWith('/api/payment/callback') || pathname.startsWith('/api/yonetici');
     if (!csrfExempt) {
       const cookieToken = request.cookies.get(CSRF_COOKIE)?.value;
       const headerToken = request.headers.get(CSRF_HEADER);
