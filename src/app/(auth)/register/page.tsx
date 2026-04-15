@@ -9,7 +9,7 @@ import { ROLE_PATHS, STUDENT_GRADES } from '@/types';
 import type { UserRole } from '@/types';
 
 export default function RegisterPage() {
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', role: 'teacher' as UserRole, schoolCode: '', grade: '', kvkk: false });
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', role: 'teacher' as UserRole, schoolName: '', grade: '', kvkk: false });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -47,17 +47,29 @@ export default function RegisterPage() {
       return;
     }
 
+    // Okul adı zorunlu
+    if (!form.schoolName.trim()) {
+      setError('Okul adı zorunludur.');
+      submittingRef.current = false;
+      return;
+    }
+
     setLoading(true);
 
     const supabase = createClient();
 
-    // Find school by code
+    // Find school by name
     let schoolId: string | null = null;
-    if (form.schoolCode) {
-      const { data: school } = await supabase.from('schools').select('id').eq('code', form.schoolCode.toUpperCase()).single();
-      if (school) schoolId = school.id;
-      else {
-        setError('Okul kodu bulunamadı.');
+    if (form.schoolName.trim()) {
+      const { data: school } = await supabase
+        .from('schools')
+        .select('id')
+        .ilike('name', form.schoolName.trim())
+        .maybeSingle();
+      if (school) {
+        schoolId = school.id;
+      } else {
+        setError('Bu isimde bir okul bulunamadı. Lütfen okulunuzun kayıtlı adını doğru girin.');
         setLoading(false);
         submittingRef.current = false;
         return;
@@ -191,10 +203,10 @@ export default function RegisterPage() {
               </div>
             )}
             <div>
-              <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Okul Kodu <span className="text-gray-400 font-normal">(opsiyonel)</span></label>
+              <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Okul Adı <span className="text-red-500">*</span></label>
               <div className="relative">
                 <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input type="text" value={form.schoolCode} onChange={(e) => update('schoolCode', e.target.value.toUpperCase())} placeholder="Okulunuzun kodu" className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all uppercase" />
+                <input type="text" value={form.schoolName} onChange={(e) => update('schoolName', e.target.value)} placeholder="Okulunuzun tam adı" className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" required />
               </div>
             </div>
             <label className="flex items-start gap-2.5 cursor-pointer pt-1">
