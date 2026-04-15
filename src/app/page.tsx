@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import {
   GraduationCap, Brain, Eye, Compass, Lightbulb, AlertTriangle,
-  BookOpen, BarChart3, Focus, SplitSquareHorizontal,
+  BookOpen, BarChart3, Focus, SplitSquareHorizontal, ArrowRight,
   CheckCircle2, Sparkles, Users, FileText, ChevronRight, Mail, Shield,
   Zap, TrendingUp, Award, UserCheck, School, ClipboardList
 } from 'lucide-react';
@@ -221,6 +221,21 @@ export default function LandingPage() {
             />
           </div>
 
+          {/* Giriş Butonları */}
+          <div className="hero-cta mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/login"
+              className="touch-feedback group px-10 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-[1.04] active:scale-[0.97] transition-all flex items-center gap-3 text-[16px] pulse-glow">
+              <GraduationCap className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
+              ÖĞRENCİ GİRİŞİ
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
+            </Link>
+            <Link href="/login"
+              className="touch-feedback group px-10 py-4 rounded-2xl bg-white/60 backdrop-blur-lg border border-white/50 text-[#0f2847] font-bold shadow-sm hover:shadow-lg hover:bg-white/80 hover:scale-[1.04] active:scale-[0.97] transition-all text-[16px] inline-flex items-center gap-3">
+              <School className="w-5 h-5 text-gray-400 group-hover:text-emerald-500 transition-colors duration-300" />
+              ÖĞRETMEN GİRİŞİ
+              <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all duration-200" />
+            </Link>
+          </div>
 
           <div className="hero-trust mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-gray-400">
             <span className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /> KVKK Uyumlu</span>
