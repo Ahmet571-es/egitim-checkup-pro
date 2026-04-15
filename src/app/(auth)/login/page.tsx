@@ -3,28 +3,39 @@
 import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { GraduationCap, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { GraduationCap, Phone, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_PATHS } from '@/types';
 import type { UserRole } from '@/types';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const submittingRef = useRef(false);
   const router = useRouter();
 
+  // Telefon numarasından e-posta üret
+  const phoneToEmail = (val: string) => {
+    const digits = val.replace(/\D/g, '');
+    return `${digits}@ogrenci.egitimcheckup.com`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Debounce: synchronous ref guard (React state closure'dan bagimsiz)
     if (submittingRef.current) return;
     submittingRef.current = true;
 
-    // Bosluk sifre kontrolu
     if (password.trim().length < 6) {
       setError('Şifre en az 6 karakter olmalı (boşluklar sayılmaz).');
+      submittingRef.current = false;
+      return;
+    }
+
+    const phoneDigits = phone.replace(/\D/g, '');
+    if (phoneDigits.length < 10) {
+      setError('Geçerli bir telefon numarası girin.');
       submittingRef.current = false;
       return;
     }
@@ -34,12 +45,13 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient();
+      const email = phoneToEmail(phone);
       const { error: authError, data } = await supabase.auth.signInWithPassword({ email, password });
 
       if (authError) {
         setError(
           authError.message === 'Invalid login credentials'
-            ? 'E-posta veya şifre hatalı.'
+            ? 'Telefon numarası veya şifre hatalı.'
             : authError.message
         );
         setLoading(false);
@@ -100,10 +112,10 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">E-posta</label>
+              <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Telefon Numarası</label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@okul.edu.tr" className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" required />
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="05XX XXX XX XX" maxLength={15} className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" required />
               </div>
             </div>
             <div>
@@ -118,13 +130,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="text-center mt-4">
-            <Link href="/forgot-password" className="text-sm text-gray-500 hover:text-emerald-600 transition-colors">
-              Şifremi Unuttum
-            </Link>
-          </div>
-
-          <p className="text-center text-sm text-gray-500 mt-4">
+          <p className="text-center text-sm text-gray-500 mt-6">
             Hesabınız yok mu?{' '}
             <Link href="/register" className="text-emerald-600 font-semibold hover:underline">Kayıt Olun</Link>
           </p>

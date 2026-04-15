@@ -3,13 +3,17 @@
 import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { GraduationCap, User, Mail, Lock, Building, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { GraduationCap, User, Lock, Building, ArrowRight, AlertCircle, CheckCircle2, Phone, MapPin } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_PATHS, STUDENT_GRADES } from '@/types';
 import type { UserRole } from '@/types';
 
 export default function RegisterPage() {
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', role: 'teacher' as UserRole, schoolName: '', grade: '', kvkk: false });
+  const [form, setForm] = useState({
+    firstName: '', lastName: '', phone: '', address: '',
+    password: '', role: 'student' as UserRole,
+    schoolName: '', grade: '', kvkk: false,
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -18,29 +22,51 @@ export default function RegisterPage() {
 
   const update = (key: string, value: string | boolean) => setForm((f) => ({ ...f, [key]: value }));
 
+  // Telefon numarasını temizle (sadece rakam)
+  const sanitizePhone = (val: string) => val.replace(/\D/g, '');
+
+  // Telefon numarasından otomatik e-posta üret
+  const phoneToEmail = (phone: string) => {
+    const digits = sanitizePhone(phone);
+    return `${digits}@ogrenci.egitimcheckup.com`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Debounce: synchronous ref guard (React state closure'dan bagimsiz)
     if (submittingRef.current) return;
     submittingRef.current = true;
-
     setError('');
 
-    // Bosluk sifre kontrolu
+    // Şifre kontrolü
     if (form.password.trim().length < 6) {
       setError('Şifre en az 6 karakter olmalı (boşluklar sayılmaz).');
       submittingRef.current = false;
       return;
     }
 
-    // Ad/Soyad bos olmasin
+    // Ad/Soyad boş olmasın
     if (!form.firstName.trim() || !form.lastName.trim()) {
       setError('Ad ve soyad alanları boş olamaz.');
       submittingRef.current = false;
       return;
     }
 
-    // Ogrenci ise sinif zorunlu
+    // Telefon kontrolü
+    const phoneDigits = sanitizePhone(form.phone);
+    if (phoneDigits.length < 10) {
+      setError('Geçerli bir cep telefonu numarası girin (en az 10 haneli).');
+      submittingRef.current = false;
+      return;
+    }
+
+    // Adres kontrolü
+    if (!form.address.trim()) {
+      setError('Ev adresi zorunludur.');
+      submittingRef.current = false;
+      return;
+    }
+
+    // Öğrenci ise sınıf zorunlu
     if (form.role === 'student' && !form.grade) {
       setError('Öğrenci için sınıf seçimi zorunludur.');
       submittingRef.current = false;
@@ -55,10 +81,9 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-
     const supabase = createClient();
 
-    // Find school by name
+    // Okulu adıyla bul
     let schoolId: string | null = null;
     if (form.schoolName.trim()) {
       const { data: school } = await supabase
@@ -78,8 +103,10 @@ export default function RegisterPage() {
 
     const fullName = `${form.firstName} ${form.lastName}`.trim();
     const isGraduated = form.role === 'student' && form.grade === 'mezun';
+    const autoEmail = phoneToEmail(form.phone);
+
     const { error: authError } = await supabase.auth.signUp({
-      email: form.email,
+      email: autoEmail,
       password: form.password,
       options: {
         data: {
@@ -88,12 +115,18 @@ export default function RegisterPage() {
           school_id: schoolId,
           grade: form.role === 'student' ? form.grade : '',
           is_graduated: isGraduated,
+          phone: phoneDigits,
+          address: form.address.trim(),
         },
       },
     });
 
     if (authError) {
-      setError(authError.message);
+      if (authError.message.includes('already registered')) {
+        setError('Bu telefon numarası zaten kayıtlı.');
+      } else {
+        setError(authError.message);
+      }
       setLoading(false);
       submittingRef.current = false;
       return;
@@ -147,42 +180,60 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Ad Soyad */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Ad</label>
+                <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Ad <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input type="text" value={form.firstName} onChange={(e) => update('firstName', e.target.value)} placeholder="Ad" maxLength={50} className="w-full pl-11 pr-3 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" required />
                 </div>
               </div>
               <div>
-                <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Soyad</label>
+                <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Soyad <span className="text-red-500">*</span></label>
                 <input type="text" value={form.lastName} onChange={(e) => update('lastName', e.target.value)} placeholder="Soyad" maxLength={50} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" required />
               </div>
             </div>
+
+            {/* Cep Numarası */}
             <div>
-              <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">E-posta</label>
+              <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Cep Numarası <span className="text-red-500">*</span> <span className="text-gray-400 font-normal">(öğrenci veya veli)</span></label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input type="email" value={form.email} onChange={(e) => update('email', e.target.value)} placeholder="ornek@okul.edu.tr" className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" required />
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input type="tel" value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="05XX XXX XX XX" maxLength={15} className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" required />
               </div>
             </div>
+
+            {/* Ev Adresi */}
             <div>
-              <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Şifre</label>
+              <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Ev Adresi <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-gray-400" />
+                <textarea value={form.address} onChange={(e) => update('address', e.target.value)} placeholder="Mahalle, sokak, no, ilçe / il" rows={2} maxLength={300} className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all resize-none" required />
+              </div>
+            </div>
+
+            {/* Şifre */}
+            <div>
+              <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Şifre <span className="text-red-500">*</span></label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input type="password" value={form.password} onChange={(e) => update('password', e.target.value)} placeholder="Min. 6 karakter" maxLength={72} className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" required minLength={6} />
               </div>
             </div>
+
+            {/* Rol */}
             <div>
               <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Rol</label>
               <select value={form.role} onChange={(e) => update('role', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all">
-                <option value="school_admin">Okul Yöneticisi</option>
-                <option value="teacher">Öğretmen</option>
                 <option value="student">Öğrenci</option>
+                <option value="teacher">Öğretmen</option>
+                <option value="school_admin">Okul Yöneticisi</option>
                 <option value="parent">Veli</option>
               </select>
             </div>
+
+            {/* Sınıf (öğrenci ise) */}
             {form.role === 'student' && (
               <div>
                 <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Sınıf <span className="text-red-500">*</span></label>
@@ -202,6 +253,8 @@ export default function RegisterPage() {
                 )}
               </div>
             )}
+
+            {/* Okul Adı */}
             <div>
               <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Okul Adı <span className="text-red-500">*</span></label>
               <div className="relative">
@@ -209,12 +262,15 @@ export default function RegisterPage() {
                 <input type="text" value={form.schoolName} onChange={(e) => update('schoolName', e.target.value)} placeholder="Okulunuzun tam adı" className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" required />
               </div>
             </div>
+
+            {/* KVKK */}
             <label className="flex items-start gap-2.5 cursor-pointer pt-1">
               <input type="checkbox" checked={form.kvkk} onChange={(e) => update('kvkk', e.target.checked)} className="mt-0.5 w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" required />
               <span className="text-[13px] text-gray-600">
                 <Link href="/kvkk" className="text-emerald-600 font-semibold hover:underline">KVKK Aydınlatma Metni</Link>&apos;ni okudum ve onaylıyorum.
               </span>
             </label>
+
             <button type="submit" disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all flex items-center justify-center gap-2 disabled:opacity-60">
               {loading ? 'Kayıt yapılıyor...' : <>Kayıt Ol <ArrowRight className="w-4 h-4" /></>}
             </button>
