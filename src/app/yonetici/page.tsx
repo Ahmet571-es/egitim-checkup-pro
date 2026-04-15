@@ -108,12 +108,11 @@ export default function YoneticiPage() {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  const storedPw = () => password || sessionStorage.getItem('ynPw') || '';
+  const storedPw = () => password;
 
   // ═══ Auth ═══
   const handleLogin = () => {
     if (password === 'ANKA_KUSU2026') {
-      sessionStorage.setItem('ynPw', password);
       setAuthed(true);
       setAuthError('');
       loadTeachers(password);
@@ -121,15 +120,6 @@ export default function YoneticiPage() {
       setAuthError('Şifre hatalı.');
     }
   };
-
-  useEffect(() => {
-    const saved = sessionStorage.getItem('ynPw');
-    if (saved === 'ANKA_KUSU2026') {
-      setPassword(saved);
-      setAuthed(true);
-      loadTeachers(saved);
-    }
-  }, []);
 
   // ═══ Loaders ═══
   const loadTeachers = async (pw: string) => {
@@ -255,7 +245,7 @@ export default function YoneticiPage() {
             </div>
             <span className="text-[14px] font-extrabold text-[#0f2847]">Yönetici Paneli</span>
           </div>
-          <button onClick={() => { sessionStorage.removeItem('ynPw'); setAuthed(false); setPassword(''); }}
+          <button onClick={() => { setAuthed(false); setPassword(''); setView('teachers'); setSelectedTeacher(null); setSelectedStudent(null); }}
             className="text-[13px] text-gray-500 hover:text-red-500 font-semibold transition-colors">
             Çıkış Yap
           </button>
