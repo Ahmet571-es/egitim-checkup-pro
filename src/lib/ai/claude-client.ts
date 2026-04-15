@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-// Claude API modeli
-const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
+// Claude API modeli — Haiku: hızlı, 60s Vercel limitine uygun
+const CLAUDE_MODEL = 'claude-haiku-4-5-20251001';
 const MAX_TOKENS = 4000;
 const MAX_RETRIES = 2;
 
