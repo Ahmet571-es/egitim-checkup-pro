@@ -21,7 +21,7 @@ function D2SymbolCell({
 }) {
   const lines = (count: number) =>
     Array.from({ length: count }, (_, i) => (
-      <div key={i} className="bg-current rounded-full" style={{ width: '2px', height: '100%' }} />
+      <div key={i} className="bg-current rounded-full" style={{ width: '1.5px', height: '100%' }} />
     ));
 
   return (
@@ -38,11 +38,11 @@ function D2SymbolCell({
       aria-pressed={selected}
       aria-label={`${symbol.letter} üst:${symbol.above} alt:${symbol.below}`}
     >
-      <div className="flex gap-[4px] justify-center items-end" style={{ height: '22%', marginBottom: '4px' }}>
+      <div className="flex gap-[3px] justify-center items-end" style={{ height: '22%', marginBottom: '3px' }}>
         {lines(symbol.above)}
       </div>
-      <span className="font-extrabold leading-none" style={{ fontSize: 'clamp(12px, 3vw, 22px)' }}>{symbol.letter}</span>
-      <div className="flex gap-[4px] justify-center items-start" style={{ height: '22%', marginTop: '4px' }}>
+      <span className="font-extrabold leading-none" style={{ fontSize: 'clamp(11px, 2.7vw, 20px)' }}>{symbol.letter}</span>
+      <div className="flex gap-[3px] justify-center items-start" style={{ height: '22%', marginTop: '3px' }}>
         {lines(symbol.below)}
       </div>
     </button>
@@ -281,7 +281,7 @@ export default function D2TestBoard({ rows, timePerRow, onComplete }: D2TestBoar
             style={{
               gridTemplateColumns: `repeat(${symCount}, 1fr)`,
               gap: 'clamp(1px, 0.3vw, 4px)',
-              height: 'clamp(52px, 12vh, 100px)',
+              height: 'clamp(47px, 11vh, 90px)',
             }}
           >
             {row.map((sym, idx) => (
