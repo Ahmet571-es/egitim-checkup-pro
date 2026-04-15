@@ -1,20 +1,64 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { GraduationCap, AtSign, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { GraduationCap, AtSign, Lock, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_PATHS } from '@/types';
 import type { UserRole } from '@/types';
 
+const STORAGE_KEY_USERNAME = 'ecup_username';
+const STORAGE_KEY_REMEMBER = 'ecup_remember';
+
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fromRegister, setFromRegister] = useState(false);
   const submittingRef = useRef(false);
   const router = useRouter();
+
+  // Sayfa yüklendiğinde localStorage'dan kullanıcı adını oku
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const savedUsername = localStorage.getItem(STORAGE_KEY_USERNAME);
+    const savedRemember = localStorage.getItem(STORAGE_KEY_REMEMBER);
+
+    if (savedUsername) {
+      setUsername(savedUsername);
+      // Kayıt sayfasından gelindiyse bilgi mesajı göster
+      setFromRegister(true);
+    }
+    if (savedRemember !== null) {
+      setRememberMe(savedRemember === 'true');
+    }
+  }, []);
+
+  // Kullanıcı adı değiştiğinde localStorage'a kaydet
+  const handleUsernameChange = (val: string) => {
+    const clean = val.toLowerCase().replace(/\s/g, '');
+    setUsername(clean);
+    if (rememberMe && typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY_USERNAME, clean);
+    }
+  };
+
+  // Beni hatırla değiştiğinde
+  const handleRememberChange = (checked: boolean) => {
+    setRememberMe(checked);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY_REMEMBER, String(checked));
+      if (checked) {
+        localStorage.setItem(STORAGE_KEY_USERNAME, username);
+      } else {
+        localStorage.removeItem(STORAGE_KEY_USERNAME);
+      }
+    }
+  };
 
   // Kullanıcı adından e-posta üret
   const usernameToEmail = (val: string) => {
@@ -41,6 +85,7 @@ export default function LoginPage() {
 
     setLoading(true);
     setError('');
+    setFromRegister(false);
 
     try {
       const supabase = createClient();
@@ -56,6 +101,13 @@ export default function LoginPage() {
         setLoading(false);
         submittingRef.current = false;
         return;
+      }
+
+      // Başarılı giriş: kullanıcı adını kalıcı olarak sakla
+      if (typeof window !== 'undefined') {
+        if (rememberMe) {
+          localStorage.setItem(STORAGE_KEY_USERNAME, username);
+        }
       }
 
       let role: UserRole | undefined = data.user?.user_metadata?.role as UserRole | undefined;
@@ -103,6 +155,14 @@ export default function LoginPage() {
           <h2 className="text-2xl font-extrabold text-[#0f2847] text-center mb-1">Giriş Yap</h2>
           <p className="text-sm text-gray-500 text-center mb-8">Kullanıcı adınız ve şifreniz ile giriş yapın</p>
 
+          {/* Kayıt sonrası bilgilendirme */}
+          {fromRegister && username && !error && (
+            <div className="mb-5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-sm text-emerald-700">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>Kayıt başarılı! Kullanıcı adınız hazır, şifrenizi girerek giriş yapabilirsiniz.</span>
+            </div>
+          )}
+
           {error && (
             <div className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2 text-sm text-red-600">
               <AlertCircle className="w-4 h-4 shrink-0" />{error}
@@ -117,22 +177,43 @@ export default function LoginPage() {
                 <input
                   type="text"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))}
-                  placeholder="ad_soyad"
+                  onChange={(e) => handleUsernameChange(e.target.value)}
+                  placeholder="ad_soyad_XXXX"
                   maxLength={100}
                   className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                   required
+                  autoComplete="username"
                 />
               </div>
-              <p className="text-[11px] text-gray-400 mt-1">Kayıt olurken belirlediğiniz ad_soyad formatındaki kullanıcı adınız</p>
             </div>
             <div>
               <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Şifre</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" maxLength={72} className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" required />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  maxLength={72}
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
+                  required
+                  autoComplete="current-password"
+                />
               </div>
             </div>
+
+            {/* Beni Hatırla */}
+            <label className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => handleRememberChange(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              <span className="text-[13px] text-gray-600">Kullanıcı adımı hatırla</span>
+            </label>
+
             <button type="submit" disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all flex items-center justify-center gap-2 disabled:opacity-60">
               {loading ? 'Giriş yapılıyor...' : <>Giriş Yap <ArrowRight className="w-4 h-4" /></>}
             </button>

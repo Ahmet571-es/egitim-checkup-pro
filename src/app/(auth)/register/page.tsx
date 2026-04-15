@@ -229,8 +229,17 @@ export default function RegisterPage() {
         .is('kvkk_accepted_at', null);
     }
 
+    // Kayıt sonrası oturumu kapat (giriş sayfasından tekrar giriş yapması için)
+    await supabase.auth.signOut();
+
+    // Kullanıcı adını localStorage'a kaydet (giriş sayfasında otomatik doldurulsun)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ecup_username', form.username);
+    }
+
     setSuccess(true);
-    setTimeout(() => router.push(ROLE_PATHS[form.role]), 1500);
+    // Giriş Yap sayfasına yönlendir
+    setTimeout(() => router.push('/login'), 2000);
   };
 
   if (success) {
@@ -240,7 +249,8 @@ export default function RegisterPage() {
           <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-[#0f2847] mb-2">Kayıt Başarılı!</h2>
           <p className="text-sm text-gray-500 mb-1">Kullanıcı adınız: <span className="font-bold text-emerald-600">{form.username}</span></p>
-          <p className="text-sm text-gray-500">Yönlendiriliyorsunuz...</p>
+          <p className="text-[12px] text-gray-400 mb-3">Bu kullanıcı adını unutmayın, giriş yaparken kullanacaksınız.</p>
+          <p className="text-sm text-gray-500">Giriş sayfasına yönlendiriliyorsunuz...</p>
         </div>
       </div>
     );
