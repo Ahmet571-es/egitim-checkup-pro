@@ -66,6 +66,7 @@ export default function TeacherReportsPage() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [integratedReport, setIntegratedReport] = useState<IntegratedReport | null>(null);
+  const [holisticReport, setHolisticReport] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'tekil' | 'butuncel' | 'entegre'>('tekil');
   const [activeIntegratedTab, setActiveIntegratedTab] = useState<'ogretmen' | 'ogrenci' | 'ebeveyn'>('ogretmen');
   const [viewingReport, setViewingReport] = useState<{ text: string; title: string; scores?: Record<string, unknown>; testType?: string; integratedType?: 'ogretmen' | 'ogrenci' | 'ebeveyn' } | null>(null);
@@ -149,6 +150,7 @@ export default function TeacherReportsPage() {
     setSelectedStudent(student);
     setTestResults([]);
     setIntegratedReport(null);
+    setHolisticReport(null);
     setLoading(true);
 
     const { data: results } = await supabase
@@ -159,6 +161,23 @@ export default function TeacherReportsPage() {
       .order('completed_at', { ascending: false });
 
     setTestResults(results ?? []);
+
+    // Bütüncül rapor: holistic_reports tablosundan kontrol (tablo yoksa hata yutulur)
+    try {
+      const { data: hr } = await supabase
+        .from('holistic_reports')
+        .select('report_text, generated_at')
+        .eq('student_id', student.id)
+        .order('generated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (hr?.report_text) {
+        setHolisticReport(hr.report_text);
+      }
+    } catch {
+      // Tablo yoksa sessizce geç
+    }
 
     // Entegre raporu kontrol et
     const { data: ir } = await supabase
@@ -234,10 +253,20 @@ export default function TeacherReportsPage() {
         }),
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.report) {
+        setHolisticReport(data.report);
         setMessage({ type: 'success', text: '✅ Bütüncül rapor üretildi!' });
+
+        // Test sonuçlarını yenile (rapor sayacı güncellenir)
+        const { data: freshResults } = await supabase
+          .from('test_results')
+          .select('id, test_type, scores, completed_at, ai_report, ai_report_generated_at')
+          .eq('student_id', selectedStudent.id)
+          .not('completed_at', 'is', null)
+          .order('completed_at', { ascending: false });
+        setTestResults(freshResults ?? []);
       } else {
-        setMessage({ type: 'error', text: data.error ?? 'Hata.' });
+        setMessage({ type: 'error', text: data.error ?? 'Rapor üretilemedi.' });
       }
     } catch {
       setMessage({ type: 'error', text: 'Sunucu hatası.' });
@@ -528,44 +557,87 @@ export default function TeacherReportsPage() {
 
           {/* BÜTÜNCÜL RAPOR */}
           {activeTab === 'butuncel' && (
-            <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-violet-100 flex items-center justify-center flex-shrink-0">
-                  <Brain size={22} className="text-violet-600" />
+            <div className="space-y-4">
+              <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm">
+                <div className="flex items-start gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-violet-100 flex items-center justify-center flex-shrink-0">
+                    <Brain size={22} className="text-violet-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-[#0f2847] text-lg">Bütüncül Analiz Raporu</h3>
+                    <p className="text-gray-500 text-sm mt-1">
+                      Öğrencinin tüm test sonuçlarını entegre eden, çapraz korelasyon analizi içeren kapsamlı bütüncül rapor.
+                      Minimum 3.000 kelime, 8 bölüm.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-extrabold text-[#0f2847] text-lg">Bütüncül Analiz Raporu</h3>
-                  <p className="text-gray-500 text-sm mt-1">
-                    Öğrencinin tüm test sonuçlarını entegre eden, çapraz korelasyon analizi içeren kapsamlı bütüncül rapor.
-                    Minimum 3.000 kelime, 8 bölüm.
-                  </p>
-                </div>
+
+                {testResults.length < 3 && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 text-sm text-amber-700 flex items-center gap-2">
+                    <AlertCircle size={16} />
+                    Bütüncül rapor için en az 3 tamamlanmış test önerilir. (Şu an: {testResults.length})
+                  </div>
+                )}
+
+                <button
+                  onClick={generateHolisticReport}
+                  disabled={loadingStates.holistic || testResults.length === 0}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold hover:opacity-90 disabled:opacity-50 transition-all shadow-lg"
+                >
+                  {loadingStates.holistic ? (
+                    <>
+                      <RefreshCw size={18} className="animate-spin" />
+                      Bütüncül rapor üretiliyor... (2-3 dk sürebilir)
+                    </>
+                  ) : holisticReport ? (
+                    <>
+                      <RefreshCw size={18} />
+                      Yeniden Üret ({testResults.length} test)
+                    </>
+                  ) : (
+                    <>
+                      <Brain size={18} />
+                      Bütüncül Rapor Üret ({testResults.length} test)
+                    </>
+                  )}
+                </button>
               </div>
 
-              {testResults.length < 3 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 text-sm text-amber-700 flex items-center gap-2">
-                  <AlertCircle size={16} />
-                  Bütüncül rapor için en az 3 tamamlanmış test önerilir. (Şu an: {testResults.length})
+              {/* Rapor Görüntüleme */}
+              {holisticReport && (
+                <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
+                  <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle size={16} className="text-emerald-500" />
+                      <h4 className="font-bold text-[#0f2847] text-sm">Bütüncül Rapor Hazır</h4>
+                    </div>
+                  </div>
+                  <div className="max-h-[600px] overflow-y-auto p-5">
+                    <ReportRenderer text={holisticReport} />
+                  </div>
+                  <div className="px-5 py-3.5 border-t border-gray-100 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setViewingReport({
+                        text: holisticReport,
+                        title: `${selectedStudent.full_name} — Bütüncül Analiz Raporu`,
+                      })}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0f2847] text-white text-sm font-semibold hover:bg-[#1a3d6e] transition-all"
+                    >
+                      <Eye size={15} />
+                      Tam Ekran Görüntüle
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(holisticReport);
+                        setMessage({ type: 'success', text: 'Rapor panoya kopyalandı!' });
+                      }}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-all"
+                    >
+                      📋 Kopyala
+                    </button>
+                  </div>
                 </div>
               )}
-
-              <button
-                onClick={generateHolisticReport}
-                disabled={loadingStates.holistic || testResults.length === 0}
-                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold hover:opacity-90 disabled:opacity-50 transition-all shadow-lg"
-              >
-                {loadingStates.holistic ? (
-                  <>
-                    <RefreshCw size={18} className="animate-spin" />
-                    Bütüncül rapor üretiliyor... (2-3 dk sürebilir)
-                  </>
-                ) : (
-                  <>
-                    <Brain size={18} />
-                    Bütüncül Rapor Üret ({testResults.length} test)
-                  </>
-                )}
-              </button>
             </div>
           )}
 
