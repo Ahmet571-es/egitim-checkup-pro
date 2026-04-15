@@ -21,7 +21,7 @@ function D2SymbolCell({
 }) {
   const lines = (count: number) =>
     Array.from({ length: count }, (_, i) => (
-      <div key={i} className="bg-current" style={{ width: '1.5px', height: '35%', borderRadius: '1px' }} />
+      <div key={i} className="bg-current" style={{ width: '2px', height: '35%', borderRadius: '1px' }} />
     ));
 
   return (
@@ -41,7 +41,7 @@ function D2SymbolCell({
       <div className="flex gap-[3px] justify-center" style={{ minHeight: '20%' }}>
         {lines(symbol.above)}
       </div>
-      <span className="font-extrabold leading-none" style={{ fontSize: 'clamp(10px, 2.5vw, 18px)' }}>{symbol.letter}</span>
+      <span className="font-extrabold leading-none" style={{ fontSize: 'clamp(11px, 2.8vw, 20px)' }}>{symbol.letter}</span>
       <div className="flex gap-[3px] justify-center" style={{ minHeight: '20%' }}>
         {lines(symbol.below)}
       </div>
@@ -275,12 +275,13 @@ export default function D2TestBoard({ rows, timePerRow, onComplete }: D2TestBoar
         </div>
 
         {/* Sembol Alanı — scroll yok, tüm satır ekrana sığar */}
-        <div className="flex-1 flex items-center px-1 sm:px-2 py-2 overflow-hidden">
+        <div className="flex-1 flex items-center px-1 sm:px-3 lg:px-6 py-2 overflow-hidden">
           <div
-            className="w-full grid gap-[2px] sm:gap-1 mx-auto"
+            className="w-full grid mx-auto"
             style={{
               gridTemplateColumns: `repeat(${symCount}, 1fr)`,
-              height: 'clamp(48px, 10vh, 80px)',
+              gap: 'clamp(1px, 0.3vw, 4px)',
+              height: 'clamp(52px, 12vh, 100px)',
             }}
           >
             {row.map((sym, idx) => (
