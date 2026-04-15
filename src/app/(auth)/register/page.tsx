@@ -167,24 +167,6 @@ export default function RegisterPage() {
     setLoading(true);
     const supabase = createClient();
 
-    // Okulu adıyla bul
-    let schoolId: string | null = null;
-    if (form.schoolName.trim()) {
-      const { data: school } = await supabase
-        .from('schools')
-        .select('id')
-        .ilike('name', form.schoolName.trim())
-        .maybeSingle();
-      if (school) {
-        schoolId = school.id;
-      } else {
-        setError('Bu isimde bir okul bulunamadı. Lütfen okulunuzun kayıtlı adını doğru girin.');
-        setLoading(false);
-        submittingRef.current = false;
-        return;
-      }
-    }
-
     const fullName = `${form.firstName} ${form.lastName}`.trim();
     const isGraduated = form.role === 'student' && form.grade === 'mezun';
     const autoEmail = usernameToEmail(form.username);
@@ -197,7 +179,7 @@ export default function RegisterPage() {
           full_name: fullName,
           username: form.username,
           role: form.role,
-          school_id: schoolId,
+          school_name: form.schoolName.trim(),
           grade: form.role === 'student' ? form.grade : '',
           is_graduated: isGraduated,
           phone: phoneDigits,
@@ -220,14 +202,6 @@ export default function RegisterPage() {
       setLoading(false);
       submittingRef.current = false;
       return;
-    }
-
-    if (form.kvkk && schoolId && form.role === 'school_admin') {
-      await supabase
-        .from('schools')
-        .update({ kvkk_accepted_at: new Date().toISOString() })
-        .eq('id', schoolId)
-        .is('kvkk_accepted_at', null);
     }
 
     // Kayıt sonrası oturumu kapat (giriş sayfasından tekrar giriş yapması için)
