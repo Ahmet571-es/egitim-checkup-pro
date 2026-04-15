@@ -199,20 +199,6 @@ export default function LandingPage() {
             </span>
           </h1>
 
-          {/* Flowing wave line */}
-          <div className="mt-6 flex justify-center">
-            <svg width="200" height="20" viewBox="0 0 200 20" className="wave-line overflow-visible">
-              <path d="M0,10 Q25,0 50,10 Q75,20 100,10 Q125,0 150,10 Q175,20 200,10" fill="none" stroke="url(#waveGrad)" strokeWidth="2.5" strokeLinecap="round" />
-              <defs>
-                <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#10b981" />
-                  <stop offset="50%" stopColor="#14b8a6" />
-                  <stop offset="100%" stopColor="#06b6d4" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-
           <div className="hero-subtitle mt-6 text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed min-h-[56px] flex flex-wrap items-center justify-center gap-x-1.5">
             <span>Psikometrik testler ve yapay zekâ ile</span>
             <TypingText
@@ -234,6 +220,12 @@ export default function LandingPage() {
               <School className="w-5 h-5 text-gray-400 group-hover:text-emerald-500 transition-colors duration-300" />
               ÖĞRETMEN GİRİŞİ
               <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all duration-200" />
+            </Link>
+            <Link href="/yonetici"
+              className="touch-feedback group px-10 py-4 rounded-2xl bg-[#0f2847]/90 backdrop-blur-lg border border-[#0f2847]/20 text-white font-bold shadow-sm hover:shadow-lg hover:bg-[#0f2847] hover:scale-[1.04] active:scale-[0.97] transition-all text-[16px] inline-flex items-center gap-3">
+              <Shield className="w-5 h-5 text-amber-400 group-hover:text-amber-300 transition-colors duration-300" />
+              YÖNETİCİ GİRİŞİ
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all duration-200" />
             </Link>
           </div>
 
