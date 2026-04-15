@@ -5,7 +5,8 @@ import Link from 'next/link';
 import {
   GraduationCap, Shield, Lock, ArrowRight, ArrowLeft, Users, Trash2,
   Phone, MapPin, BookOpen, FileText, ChevronRight, School,
-  AlertCircle, CheckCircle2, FolderOpen, User, BarChart3, X
+  AlertCircle, CheckCircle2, FolderOpen, User, BarChart3, X,
+  Mail, Calendar, Briefcase
 } from 'lucide-react';
 
 /* ═══ Types ═══ */
@@ -490,10 +491,14 @@ export default function YoneticiPage() {
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 gap-x-8">
-                <InfoRow icon={Phone} label="Telefon" value={selectedTeacher.phone || selectedTeacher.email} />
-                <InfoRow icon={School} label="Okul" value={selectedTeacher.schoolName} />
+                <InfoRow icon={Briefcase} label="Branş" value={String(selectedTeacher.full_info?.branch || '—')} />
+                <InfoRow icon={School} label="Çalıştığı Kurum" value={String(selectedTeacher.full_info?.school_name || selectedTeacher.schoolName || '—')} />
+                <InfoRow icon={Mail} label="E-posta" value={String(selectedTeacher.full_info?.real_email || '—')} />
+                <InfoRow icon={Phone} label="Telefon" value={String(selectedTeacher.full_info?.phone || selectedTeacher.phone || '—')} />
                 <InfoRow icon={Users} label="Öğrenci Sayısı" value={`${selectedTeacher.studentCount}`} />
                 <InfoRow icon={BarChart3} label="Yapılan Analiz Raporu" value={`${selectedTeacher.reportCount}`} />
+                <InfoRow icon={Calendar} label="Kayıt Tarihi" value={formatDate(selectedTeacher.created_at)} />
+                <InfoRow icon={CheckCircle2} label="Onay Durumu" value={selectedTeacher.full_info?.is_approved === true ? 'Onaylandı' : selectedTeacher.full_info?.is_approved === false ? 'Beklemede' : 'Onaylandı'} />
               </div>
             </div>
 

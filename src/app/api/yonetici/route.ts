@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
       const { teacherId } = body;
       if (!teacherId) return NextResponse.json({ error: 'teacherId gerekli' }, { status: 400 });
 
-      // Öğretmen bilgileri
+      // Öğretmen bilgileri (profiles tablosu)
       const { data: teacher } = await supabase
         .from('profiles')
         .select('*')
@@ -86,9 +86,18 @@ export async function POST(req: NextRequest) {
 
       if (!teacher) return NextResponse.json({ error: 'Öğretmen bulunamadı' }, { status: 404 });
 
+      // Auth user_metadata'dan kayıt bilgilerini çek (branş, kurum, gerçek e-posta, telefon)
+      let authMeta: Record<string, string> = {};
+      try {
+        const { data: authUser } = await supabase.auth.admin.getUserById(teacherId);
+        if (authUser?.user?.user_metadata) {
+          authMeta = authUser.user.user_metadata as Record<string, string>;
+        }
+      } catch { /* ignore */ }
+
       // Okul adı
-      let schoolName = '—';
-      if (teacher.school_id) {
+      let schoolName = authMeta.school_name || '—';
+      if (schoolName === '—' && teacher.school_id) {
         const { data: school } = await supabase.from('schools').select('name').eq('id', teacher.school_id).maybeSingle();
         if (school) schoolName = school.name;
       }
@@ -169,7 +178,15 @@ export async function POST(req: NextRequest) {
       }
 
       return NextResponse.json({
-        teacher: { ...teacher, schoolName },
+        teacher: {
+          ...teacher,
+          schoolName,
+          branch: authMeta.branch || teacher.branch || '—',
+          school_name: authMeta.school_name || '—',
+          real_email: authMeta.real_email || '',
+          phone: authMeta.phone || teacher.phone || '—',
+          is_approved: authMeta.is_approved ?? true,
+        },
         students,
       });
     }
