@@ -201,11 +201,65 @@ export async function POST(req: NextRequest) {
       const { userId } = body;
       if (!userId) return NextResponse.json({ error: 'userId gerekli' }, { status: 400 });
 
+      const { error: authErr } = await supabase.auth.admin.deleteUser(userId);
+      if (authErr) return NextResponse.json({ error: authErr.message }, { status: 500 });
+
+      await supabase.from('profiles').delete().eq('id', userId);
+
+      return NextResponse.json({ success: true });
+    }
+
+    // ═══ Onay Bekleyen Öğretmenler ═══
+    if (action === 'list-pending-teachers') {
+      // Auth admin API ile tüm kullanıcıları çek, is_approved=false olanları filtrele
+      const { data: { users }, error: listErr } = await supabase.auth.admin.listUsers({ perPage: 500 });
+      if (listErr) return NextResponse.json({ error: listErr.message }, { status: 500 });
+
+      const pending = (users || [])
+        .filter(u => u.user_metadata?.role === 'teacher' && u.user_metadata?.is_approved === false)
+        .map(u => ({
+          id: u.id,
+          full_name: u.user_metadata?.full_name || '—',
+          email: u.email || '—',
+          phone: u.user_metadata?.phone || '—',
+          branch: u.user_metadata?.branch || '—',
+          school_name: u.user_metadata?.school_name || '—',
+          created_at: u.created_at,
+        }));
+
+      return NextResponse.json({ pending });
+    }
+
+    // ═══ Öğretmen Onayla ═══
+    if (action === 'approve-teacher') {
+      const { userId } = body;
+      if (!userId) return NextResponse.json({ error: 'userId gerekli' }, { status: 400 });
+
+      // user_metadata'da is_approved = true yap
+      const { error: updateErr } = await supabase.auth.admin.updateUserById(userId, {
+        user_metadata: { is_approved: true },
+      });
+      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+
+      // Profiles tablosunda da güncelle (varsa)
+      await supabase
+        .from('profiles')
+        .update({ is_approved: true })
+        .eq('id', userId);
+
+      return NextResponse.json({ success: true });
+    }
+
+    // ═══ Öğretmen Başvurusu Reddet ═══
+    if (action === 'reject-teacher') {
+      const { userId } = body;
+      if (!userId) return NextResponse.json({ error: 'userId gerekli' }, { status: 400 });
+
       // Auth'dan sil
       const { error: authErr } = await supabase.auth.admin.deleteUser(userId);
       if (authErr) return NextResponse.json({ error: authErr.message }, { status: 500 });
 
-      // Profili sil (cascade ile ilişkili veriler de silinir)
+      // Profili sil
       await supabase.from('profiles').delete().eq('id', userId);
 
       return NextResponse.json({ success: true });

@@ -16,7 +16,7 @@ function generateCSRFToken(): string {
 }
 
 // Oturum gerektirmeyen public yollar
-const PUBLIC_PATHS = ['/', '/login', '/register', '/kvkk', '/pricing', '/forgot-password', '/yonetici'];
+const PUBLIC_PATHS = ['/', '/login', '/register', '/register/ogretmen', '/kvkk', '/pricing', '/forgot-password', '/yonetici'];
 
 const ROLE_PREFIX_MAP: Record<string, UserRole> = {
   '/admin': 'admin',
@@ -53,7 +53,7 @@ export async function proxy(request: NextRequest) {
   // CSRF koruması: API POST/PUT/DELETE isteklerinde token doğrula
   if (pathname.startsWith('/api') && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
     // Muaf route'lar: public API (kendi auth'u var), payment callback (dış servis)
-    const csrfExempt = pathname.startsWith('/api/v1/') || pathname.startsWith('/api/payment/callback') || pathname.startsWith('/api/yonetici');
+    const csrfExempt = pathname.startsWith('/api/v1/') || pathname.startsWith('/api/payment/callback') || pathname.startsWith('/api/yonetici') || pathname.startsWith('/api/auth/');
     if (!csrfExempt) {
       const cookieToken = request.cookies.get(CSRF_COOKIE)?.value;
       const headerToken = request.headers.get(CSRF_HEADER);
@@ -136,6 +136,19 @@ export async function proxy(request: NextRequest) {
     if (pathname.startsWith(prefix) && role !== requiredRole) {
       const url = request.nextUrl.clone();
       url.pathname = ROLE_HOME[role] ?? '/login';
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Onaysız öğretmen kontrolü
+  if (role === 'teacher') {
+    const isApproved = user.user_metadata?.is_approved;
+    if (isApproved === false) {
+      // Oturumu kapat ve login'e yönlendir
+      await supabase.auth.signOut();
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.searchParams.set('pending', '1');
       return NextResponse.redirect(url);
     }
   }

@@ -425,7 +425,6 @@ export default function RegisterPage() {
               <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Rol</label>
               <select value={form.role} onChange={(e) => update('role', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all">
                 <option value="student">Öğrenci</option>
-                <option value="teacher">Öğretmen</option>
                 <option value="school_admin">Okul Yöneticisi</option>
               </select>
             </div>
