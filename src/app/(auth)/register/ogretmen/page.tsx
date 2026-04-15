@@ -43,6 +43,7 @@ export default function TeacherRegisterPage() {
   const [codeSent, setCodeSent] = useState(false);
   const [codeVerified, setCodeVerified] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
+  const [fallbackCode, setFallbackCode] = useState('');
   const submittingRef = useRef(false);
 
   const update = (key: string, val: string) => setForm(f => ({ ...f, [key]: val }));
@@ -77,6 +78,9 @@ export default function TeacherRegisterPage() {
         setError(data.error || 'Kod gönderilemedi.');
       } else {
         setCodeSent(true);
+        if (data.fallback_code) {
+          setFallbackCode(data.fallback_code);
+        }
       }
     } catch {
       setError('Bağlantı hatası.');
@@ -312,6 +316,13 @@ export default function TeacherRegisterPage() {
                     <p className="text-sm text-emerald-700 font-semibold">Kod gönderildi!</p>
                     <p className="text-xs text-emerald-600 mt-1">E-posta adresinize 6 haneli doğrulama kodu gönderdik. 10 dakika içinde girin.</p>
                   </div>
+                  {fallbackCode && (
+                    <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 text-center">
+                      <p className="text-xs text-violet-600 mb-2 font-semibold">Test Modu — Doğrulama Kodunuz:</p>
+                      <p className="text-3xl font-extrabold text-violet-700 tracking-[0.3em]">{fallbackCode}</p>
+                      <p className="text-[10px] text-violet-400 mt-2">E-posta servisi aktif olduğunda bu kod ekranda gösterilmeyecek.</p>
+                    </div>
+                  )}
                   <div>
                     <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Doğrulama Kodu <span className="text-red-500">*</span></label>
                     <div className="relative">

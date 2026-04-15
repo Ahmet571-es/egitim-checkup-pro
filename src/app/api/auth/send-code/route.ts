@@ -52,7 +52,12 @@ export async function POST(request: Request) {
 
     if (!result.success) {
       console.warn('[send-code] email failed:', result.error);
-      // E-posta gönderilemese bile kodu döndürme (güvenlik), sadece log
+      // E-posta servisi yoksa kodu doğrudan döndür (test modu)
+      return NextResponse.json({
+        success: true,
+        message: 'E-posta servisi aktif değil. Kod ekranda gösteriliyor.',
+        fallback_code: code,
+      });
     }
 
     return NextResponse.json({ success: true, message: 'Doğrulama kodu e-posta adresinize gönderildi.' });
