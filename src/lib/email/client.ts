@@ -8,7 +8,7 @@ const apiKey = process.env.RESEND_API_KEY;
 
 export const resend = apiKey ? new Resend(apiKey) : null;
 
-export const EMAIL_FROM = process.env.EMAIL_FROM ?? 'noreply@egitimcheckup.com';
+export const EMAIL_FROM = process.env.EMAIL_FROM ?? 'Egitim Check-Up <onboarding@resend.dev>';
 export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
 
 export interface SendEmailOptions {
