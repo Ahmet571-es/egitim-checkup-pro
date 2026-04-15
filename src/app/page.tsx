@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import {
   GraduationCap, Brain, Eye, Compass, Lightbulb, AlertTriangle,
-  BookOpen, BarChart3, Focus, SplitSquareHorizontal, ArrowRight,
+  BookOpen, BarChart3, Focus, SplitSquareHorizontal,
   CheckCircle2, Sparkles, Users, FileText, ChevronRight, Mail, Shield,
   Zap, TrendingUp, Award, UserCheck, School, ClipboardList
 } from 'lucide-react';
@@ -138,7 +138,6 @@ function TypingText({ words, className }: { words: string[]; className?: string 
 /* ═══ LANDING PAGE ═══ */
 export default function LandingPage() {
   const [navScrolled, setNavScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setNavScrolled(window.scrollY > 20);
@@ -169,34 +168,7 @@ export default function LandingPage() {
             <span className="text-[15px] font-extrabold text-[#0f2847] tracking-tight">Eğitim Check-Up</span>
           </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden sm:flex items-center gap-2">
-            <Link href="/login" className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-[#0f2847] transition-colors">Giriş Yap</Link>
-            <Link href="/login" className="group px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center gap-2">
-              <GraduationCap className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
-              Öğrenci Girişi
-            </Link>
-          </div>
-
-          {/* Mobile hamburger */}
-          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="sm:hidden p-2 rounded-lg hover:bg-white/60 transition-colors" aria-label="Menüyü aç">
-            <div className="w-6 h-5 relative flex flex-col justify-between">
-              <span className={`w-full h-0.5 bg-[#0f2847] rounded transition-all duration-300 ${mobileMenuOpen ? 'translate-y-[9px] rotate-45' : ''}`} />
-              <span className={`w-full h-0.5 bg-[#0f2847] rounded transition-all duration-300 ${mobileMenuOpen ? 'opacity-0 scale-x-0' : ''}`} />
-              <span className={`w-full h-0.5 bg-[#0f2847] rounded transition-all duration-300 ${mobileMenuOpen ? '-translate-y-[9px] -rotate-45' : ''}`} />
-            </div>
-          </button>
         </div>
-
-        {mobileMenuOpen && (
-          <div className="sm:hidden absolute top-16 inset-x-0 bg-white/95 backdrop-blur-xl border-b border-gray-200/50 shadow-xl p-4 flex flex-col gap-2"
-               style={{ animation: 'fade-in-up 0.2s var(--ease-out) forwards' }}>
-            <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors text-center">Giriş Yap</Link>
-            <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-lg text-center flex items-center justify-center gap-2">
-              <GraduationCap className="w-4 h-4" /> Öğrenci Girişi
-            </Link>
-          </div>
-        )}
       </nav>
 
       {/* ═══ HERO ═══ */}
@@ -208,6 +180,9 @@ export default function LandingPage() {
         <div className="absolute top-[-200px] right-[-150px] w-[700px] h-[700px] rounded-full bg-gradient-to-br from-emerald-200/40 to-teal-200/20 blur-3xl pointer-events-none blob-float" />
         <div className="absolute bottom-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-blue-200/30 to-indigo-200/15 blur-3xl pointer-events-none blob-float-delay" />
         <div className="absolute top-[40%] left-[60%] w-[300px] h-[300px] rounded-full bg-gradient-to-br from-violet-200/20 to-purple-200/10 blur-3xl pointer-events-none blob-float-delay2" />
+        {/* Aurora flowing lights */}
+        <div className="absolute top-[10%] left-[-20%] w-[900px] h-[300px] bg-gradient-to-r from-emerald-300/15 via-teal-200/10 to-cyan-300/15 blur-3xl pointer-events-none aurora rounded-full" />
+        <div className="absolute bottom-[5%] right-[-15%] w-[700px] h-[250px] bg-gradient-to-r from-blue-300/10 via-violet-200/10 to-purple-300/10 blur-3xl pointer-events-none aurora-delay rounded-full" />
         <FloatingParticles />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-28 text-center">
@@ -217,12 +192,26 @@ export default function LandingPage() {
           </div>
 
           <h1 data-testid="hero-title" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#0f2847] leading-tight tracking-tight max-w-4xl mx-auto">
-            <span className="hero-word-1 inline-block">Öğrencilerinizi </span>
+            <span className="hero-word-1 inline-block animate-[float-text_3s_ease-in-out_infinite]">Öğrencilerinizi </span>
             <br className="hidden sm:block" />
-            <span className="hero-word-2 hero-word-3 inline-block bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_4s_ease-in-out_infinite]">
+            <span className="hero-word-2 hero-word-3 inline-block bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_4s_ease-in-out_infinite] hover:scale-[1.05] transition-transform duration-500 cursor-default">
               Gerçekten Tanıyın
             </span>
           </h1>
+
+          {/* Flowing wave line */}
+          <div className="mt-6 flex justify-center">
+            <svg width="200" height="20" viewBox="0 0 200 20" className="wave-line overflow-visible">
+              <path d="M0,10 Q25,0 50,10 Q75,20 100,10 Q125,0 150,10 Q175,20 200,10" fill="none" stroke="url(#waveGrad)" strokeWidth="2.5" strokeLinecap="round" />
+              <defs>
+                <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#10b981" />
+                  <stop offset="50%" stopColor="#14b8a6" />
+                  <stop offset="100%" stopColor="#06b6d4" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
 
           <div className="hero-subtitle mt-6 text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed min-h-[56px] flex flex-wrap items-center justify-center gap-x-1.5">
             <span>Psikometrik testler ve yapay zekâ ile</span>
@@ -232,19 +221,6 @@ export default function LandingPage() {
             />
           </div>
 
-          <div className="hero-cta mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/login"
-              className="touch-feedback group px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center gap-3 text-[15px] pulse-glow">
-              <GraduationCap className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
-              Öğrenci Girişi
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
-            </Link>
-            <Link href="/login"
-              className="touch-feedback group px-8 py-4 rounded-2xl bg-white/60 backdrop-blur-lg border border-white/50 text-[#0f2847] font-bold shadow-sm hover:shadow-md hover:bg-white/80 active:scale-[0.98] transition-all text-[15px] inline-flex items-center gap-2">
-              <School className="w-5 h-5 text-gray-400 group-hover:text-emerald-500 transition-colors" />
-              Okul / Öğretmen Girişi
-            </Link>
-          </div>
 
           <div className="hero-trust mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-gray-400">
             <span className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /> KVKK Uyumlu</span>
@@ -407,19 +383,7 @@ export default function LandingPage() {
           <div className="absolute top-[-50px] right-[-50px] w-[200px] h-[200px] rounded-full bg-emerald-500/10 blur-2xl" />
           <div className="absolute bottom-[-30px] left-[-30px] w-[150px] h-[150px] rounded-full bg-teal-500/10 blur-2xl" />
           <h2 className="relative text-2xl sm:text-3xl font-extrabold text-white mb-4">Öğrencilerinizin Potansiyelini Keşfedin</h2>
-          <p className="relative text-gray-300 mb-8 max-w-lg mx-auto">Bilimsel testler ve yapay zekâ analizleri ile her öğrenciyi bireysel olarak tanıyın.</p>
-          <div className="relative flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/login"
-              className="group px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center gap-2 text-[15px]">
-              <GraduationCap className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-              Öğrenci Girişi
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link href="/login"
-              className="px-8 py-4 rounded-2xl border border-white/20 text-white/90 font-semibold hover:bg-white/10 transition-all text-[15px] inline-flex items-center gap-2">
-              <School className="w-5 h-5" /> Okul Girişi
-            </Link>
-          </div>
+          <p className="relative text-gray-300 max-w-lg mx-auto">Bilimsel testler ve yapay zekâ analizleri ile her öğrenciyi bireysel olarak tanıyın.</p>
         </div>
       </section>
 

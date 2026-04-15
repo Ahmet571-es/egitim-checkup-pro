@@ -324,6 +324,40 @@ html {
   50%      { background-position: 100% center; }
 }
 
+/* Float text — gentle bounce */
+@keyframes float-text {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+/* Wave line draw + pulse */
+.wave-line path {
+  stroke-dasharray: 250;
+  stroke-dashoffset: 250;
+  animation: wave-draw 1.5s var(--ease-out) 0.8s forwards, wave-flow 3s ease-in-out 2.3s infinite;
+}
+@keyframes wave-draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes wave-flow {
+  0%, 100% { transform: translateX(0); opacity: 0.8; }
+  50%      { transform: translateX(8px); opacity: 1; }
+}
+
+/* Flowing aurora — large ambient light */
+@keyframes aurora-flow {
+  0%   { transform: translateX(-30%) translateY(0) rotate(0deg); }
+  33%  { transform: translateX(10%) translateY(-15px) rotate(2deg); }
+  66%  { transform: translateX(-10%) translateY(10px) rotate(-1deg); }
+  100% { transform: translateX(-30%) translateY(0) rotate(0deg); }
+}
+.aurora {
+  animation: aurora-flow 12s ease-in-out infinite;
+}
+.aurora-delay {
+  animation: aurora-flow 15s ease-in-out infinite 4s;
+}
+
 /* Hero trust line fade in */
 .hero-trust {
   opacity: 0;
