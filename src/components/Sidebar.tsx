@@ -49,7 +49,7 @@ export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: Si
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push('/login');
+    window.location.href = '/';
   };
 
   const nav = (
@@ -97,14 +97,13 @@ export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: Si
         })}
       </nav>
 
-      {/* User with online indicator */}
-      <div className="px-4 py-4 border-t border-gray-100">
+      {/* User + Güvenli Çıkış */}
+      <div className="px-4 py-4 border-t border-gray-100 space-y-3">
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${accent.gradient} flex items-center justify-center text-white text-xs font-bold`}>
               {userName.charAt(0).toUpperCase()}
             </div>
-            {/* Online indicator dot with pulse */}
             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white">
               <div className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
             </div>
@@ -113,10 +112,14 @@ export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: Si
             <p className="text-[13px] font-semibold text-gray-700 truncate">{userName}</p>
             <p className="text-[11px] text-gray-400">{ROLE_LABELS[role]}</p>
           </div>
-          <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-red-500 transition-colors">
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-[13px] font-semibold transition-colors"
+        >
+          <LogOut className="w-4 h-4" />
+          Güvenli Çıkış
+        </button>
       </div>
     </div>
   );
