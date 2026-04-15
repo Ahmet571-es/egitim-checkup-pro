@@ -14,23 +14,14 @@ function D2SymbolCell({
   symbol,
   selected,
   onToggle,
-  size,
 }: {
   symbol: D2Symbol;
   selected: boolean;
   onToggle: () => void;
-  size: 'sm' | 'md' | 'lg';
 }) {
-  const sizeClasses = {
-    sm: 'w-6 h-8 text-[10px]',
-    md: 'w-8 h-10 text-xs',
-    lg: 'w-10 h-12 text-sm',
-  };
-  const lineH = { sm: 'h-2', md: 'h-2.5', lg: 'h-3' };
-
   const lines = (count: number) =>
     Array.from({ length: count }, (_, i) => (
-      <div key={i} className={`w-px ${lineH[size]} bg-current`} />
+      <div key={i} className="bg-current" style={{ width: '1.5px', height: '35%', borderRadius: '1px' }} />
     ));
 
   return (
@@ -38,8 +29,7 @@ function D2SymbolCell({
       onClick={onToggle}
       className={`
         flex flex-col items-center justify-center rounded border
-        font-bold transition-all select-none flex-shrink-0
-        ${sizeClasses[size]}
+        font-bold transition-all select-none w-full h-full
         ${selected
           ? 'bg-red-500/30 border-red-400 text-red-300 shadow-sm shadow-red-500/30'
           : 'bg-white/5 border-white/15 text-white/70 hover:bg-white/10 hover:border-white/30'
@@ -48,11 +38,11 @@ function D2SymbolCell({
       aria-pressed={selected}
       aria-label={`${symbol.letter} üst:${symbol.above} alt:${symbol.below}`}
     >
-      <div className="flex gap-1 justify-center mb-0.5">
+      <div className="flex gap-[3px] justify-center" style={{ minHeight: '20%' }}>
         {lines(symbol.above)}
       </div>
-      <span className="font-extrabold leading-none">{symbol.letter}</span>
-      <div className="flex gap-1 justify-center mt-0.5">
+      <span className="font-extrabold leading-none" style={{ fontSize: 'clamp(10px, 2.5vw, 18px)' }}>{symbol.letter}</span>
+      <div className="flex gap-[3px] justify-center" style={{ minHeight: '20%' }}>
         {lines(symbol.below)}
       </div>
     </button>
@@ -258,20 +248,14 @@ export default function D2TestBoard({ rows, timePerRow, onComplete }: D2TestBoar
   // ── Test ekranı ───────────────────────────────────────
   const row = rows[currentRow] ?? [];
   const selectedCount = rowSelections[currentRow]?.filter(Boolean).length ?? 0;
-
-  // Sembol boyutunu ekrana göre hesapla
   const symCount = row.length;
-  const symSize: 'sm' | 'md' | 'lg' =
-    typeof window !== 'undefined' && window.innerWidth < 768 ? 'sm' :
-    symCount > 30 ? 'md' : 'lg';
 
   return (
     <>
-      {/* Body scroll'u kapat */}
       <style>{`body, html { overflow: hidden !important; height: 100% !important; }`}</style>
 
       <div className="h-[100dvh] bg-gradient-to-br from-[#0f2847] to-[#1a3a5c] flex flex-col overflow-hidden fixed inset-0 z-50">
-        {/* Header — kompakt */}
+        {/* Header */}
         <div className="flex items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2 bg-white/5 border-b border-white/10 flex-shrink-0">
           <div className="text-white/70 text-xs sm:text-sm font-semibold">
             Satır {currentRow + 1} / {rows.length}
@@ -290,22 +274,27 @@ export default function D2TestBoard({ rows, timePerRow, onComplete }: D2TestBoar
           />
         </div>
 
-        {/* Sembol Alanı — tam ekranı doldur, sadece yatay scroll */}
-        <div className="flex-1 flex items-center overflow-x-auto overflow-y-hidden px-2 sm:px-3">
-          <div className="flex gap-0.5 sm:gap-1 mx-auto">
+        {/* Sembol Alanı — scroll yok, tüm satır ekrana sığar */}
+        <div className="flex-1 flex items-center px-1 sm:px-2 py-2 overflow-hidden">
+          <div
+            className="w-full grid gap-[2px] sm:gap-1 mx-auto"
+            style={{
+              gridTemplateColumns: `repeat(${symCount}, 1fr)`,
+              height: 'clamp(48px, 10vh, 80px)',
+            }}
+          >
             {row.map((sym, idx) => (
               <D2SymbolCell
                 key={idx}
                 symbol={sym}
                 selected={rowSelections[currentRow]?.[idx] ?? false}
                 onToggle={() => toggleSymbol(currentRow, idx)}
-                size={symSize}
               />
             ))}
           </div>
         </div>
 
-        {/* Footer — kompakt */}
+        {/* Footer */}
         <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 bg-white/5 border-t border-white/10 flex-shrink-0">
           <p className="text-white/40 text-[10px] sm:text-xs">
             ← Soldan sağa işaretle
