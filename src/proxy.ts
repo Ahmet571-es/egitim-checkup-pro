@@ -23,7 +23,6 @@ const ROLE_PREFIX_MAP: Record<string, UserRole> = {
   '/school': 'school_admin',
   '/teacher': 'teacher',
   '/student': 'student',
-  '/parent': 'parent',
 };
 
 const ROLE_HOME: Record<UserRole, string> = {
@@ -31,7 +30,7 @@ const ROLE_HOME: Record<UserRole, string> = {
   school_admin: '/school/dashboard',
   teacher: '/teacher/dashboard',
   student: '/student/dashboard',
-  parent: '/parent/dashboard',
+  parent: '/login',
 };
 
 export async function proxy(request: NextRequest) {

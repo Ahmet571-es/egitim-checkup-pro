@@ -427,7 +427,6 @@ export default function RegisterPage() {
                 <option value="student">Öğrenci</option>
                 <option value="teacher">Öğretmen</option>
                 <option value="school_admin">Okul Yöneticisi</option>
-                <option value="parent">Veli</option>
               </select>
             </div>
 

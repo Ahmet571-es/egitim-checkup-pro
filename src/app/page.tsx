@@ -42,7 +42,7 @@ const HIGHLIGHTS = [
   { icon: Brain, title: 'AI Destekli Analiz', desc: 'Claude AI ile derinlemesine öğrenci profilleme', color: 'text-violet-600 bg-violet-50 border-violet-200' },
   { icon: TrendingUp, title: 'Gelişim Takibi', desc: 'Longitudinal veri ile öğrenci gelişimini izleyin', color: 'text-sky-600 bg-sky-50 border-sky-200' },
   { icon: Award, title: 'Koçluk Sistemi', desc: 'Haftalık görevler ve gamification ile motivasyon', color: 'text-amber-600 bg-amber-50 border-amber-200' },
-  { icon: UserCheck, title: '5 Farklı Panel', desc: 'Admin, okul, öğretmen, öğrenci ve veli panelleri', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
+  { icon: UserCheck, title: '4 Farklı Panel', desc: 'Admin, okul, öğretmen ve öğrenci panelleri', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
 ];
 
 /* ═══ SUB-COMPONENTS ═══ */
@@ -188,7 +188,7 @@ export default function LandingPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-28 text-center">
           <div className="hero-badge inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/70 backdrop-blur-lg border border-white/50 shadow-sm mb-8">
             <Sparkles className="w-4 h-4 text-emerald-500" />
-            <span className="text-[13px] font-semibold text-gray-600">10 Bilimsel Test · AI Analiz · 5 Panel</span>
+            <span className="text-[13px] font-semibold text-gray-600">10 Bilimsel Test · AI Analiz · 4 Panel</span>
           </div>
 
           <h1 data-testid="hero-title" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#0f2847] leading-tight tracking-tight max-w-4xl mx-auto">
