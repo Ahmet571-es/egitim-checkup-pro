@@ -16,7 +16,7 @@ function generateCSRFToken(): string {
 }
 
 // Oturum gerektirmeyen public yollar
-const PUBLIC_PATHS = ['/', '/login', '/register', '/register/ogretmen', '/kvkk', '/pricing', '/forgot-password', '/yonetici'];
+const PUBLIC_PATHS = ['/', '/login', '/login/ogretmen', '/register', '/register/ogretmen', '/kvkk', '/pricing', '/forgot-password', '/yonetici'];
 
 const ROLE_PREFIX_MAP: Record<string, UserRole> = {
   '/admin': 'admin',

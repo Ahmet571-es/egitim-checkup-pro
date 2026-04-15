@@ -215,7 +215,7 @@ export default function LandingPage() {
               ÖĞRENCİ GİRİŞİ
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
             </Link>
-            <Link href="/login"
+            <Link href="/login/ogretmen"
               className="touch-feedback group px-10 py-4 rounded-2xl bg-white/60 backdrop-blur-lg border border-white/50 text-[#0f2847] font-bold shadow-sm hover:shadow-lg hover:bg-white/80 hover:scale-[1.04] active:scale-[0.97] transition-all text-[16px] inline-flex items-center gap-3">
               <School className="w-5 h-5 text-gray-400 group-hover:text-emerald-500 transition-colors duration-300" />
               ÖĞRETMEN GİRİŞİ
