@@ -1,19 +1,38 @@
 /**
  * Öğrenci Profil — Faz C: grade + Mezun rozeti
  */
-import { GraduationCap, Mail, School as SchoolIcon, BookOpen, Sparkles } from 'lucide-react';
-import { getCurrentProfile } from '@/lib/actions/auth';
+import { GraduationCap, Mail, School as SchoolIcon, BookOpen, Sparkles, Phone as PhoneIcon, AtSign } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { GRADE_LABEL, ROLE_LABELS, type UserRole } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  const profile = await getCurrentProfile();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return <p>Oturum bulunamadı.</p>;
 
-  let schoolName = '—';
-  if (profile?.school_id) {
-    const supabase = await createClient();
+  const meta = user.user_metadata || {};
+
+  // Profiles tablosundan oku (varsa)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  // Bilgileri önce profiles'dan, yoksa user_metadata'dan al
+  const fullName = profile?.full_name || meta.full_name || '—';
+  const role = (profile?.role || meta.role || 'student') as UserRole;
+  const grade = profile?.grade || meta.grade || null;
+  const isGraduated = profile?.is_graduated ?? meta.is_graduated ?? false;
+  const email = profile?.email || user.email || '—';
+  const username = meta.username || '—';
+  const phone = meta.phone || profile?.phone || '—';
+
+  // Okul adı: önce user_metadata.school_name, yoksa school_id ile sorgula
+  let schoolName = meta.school_name || '—';
+  if (schoolName === '—' && profile?.school_id) {
     const { data: school } = await supabase
       .from('schools')
       .select('name')
@@ -23,7 +42,7 @@ export default async function Page() {
   }
 
   const initials =
-    (profile?.full_name || '?')
+    fullName
       .split(' ')
       .map((p: string) => p[0])
       .filter(Boolean)
@@ -31,7 +50,7 @@ export default async function Page() {
       .join('')
       .toUpperCase() || '?';
 
-  const gradeLabel = profile?.grade ? GRADE_LABEL[profile.grade] || profile.grade : null;
+  const gradeLabel = grade ? GRADE_LABEL[grade] || grade : null;
 
   return (
     <div>
@@ -47,20 +66,20 @@ export default async function Page() {
           <div className="flex-1 text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
               <h2 className="text-xl font-extrabold text-[#0f2847]">
-                {profile?.full_name || '—'}
+                {fullName}
               </h2>
-              {profile?.is_graduated && (
+              {isGraduated && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[11px] font-bold shadow-md shadow-amber-500/30">
                   <Sparkles className="w-3 h-3" /> MEZUN
                 </span>
               )}
             </div>
             <p className="text-sm text-gray-500">
-              {ROLE_LABELS[(profile?.role || 'student') as UserRole]}
+              {ROLE_LABELS[role]}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
-              <InfoRow icon={Mail} label="E-posta" value={profile?.email || '—'} />
+              <InfoRow icon={AtSign} label="Kullanıcı Adı" value={username} />
               <InfoRow icon={SchoolIcon} label="Okul" value={schoolName} />
               <InfoRow
                 icon={BookOpen}
@@ -70,7 +89,7 @@ export default async function Page() {
               <InfoRow
                 icon={GraduationCap}
                 label="Durum"
-                value={profile?.is_graduated ? 'Mezun' : 'Aktif Öğrenci'}
+                value={isGraduated ? 'Mezun' : 'Aktif Öğrenci'}
               />
             </div>
           </div>
