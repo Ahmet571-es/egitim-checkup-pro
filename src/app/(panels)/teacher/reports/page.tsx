@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { secureFetch } from '@/lib/csrf-client';
+import ReportRenderer from '@/components/ReportRenderer';
 import {
   Users, FileText, Brain, BarChart2,
   Download, RefreshCw, ChevronDown, CheckCircle,
@@ -66,7 +67,7 @@ export default function TeacherReportsPage() {
   const [integratedReport, setIntegratedReport] = useState<IntegratedReport | null>(null);
   const [activeTab, setActiveTab] = useState<'tekil' | 'butuncel' | 'entegre'>('tekil');
   const [activeIntegratedTab, setActiveIntegratedTab] = useState<'ogretmen' | 'ogrenci' | 'ebeveyn'>('ogretmen');
-  const [viewingReport, setViewingReport] = useState<{ text: string; title: string } | null>(null);
+  const [viewingReport, setViewingReport] = useState<{ text: string; title: string; scores?: Record<string, unknown>; testType?: string } | null>(null);
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -469,7 +470,7 @@ export default function TeacherReportsPage() {
                             Rapor Mevcut
                           </span>
                           <button
-                            onClick={() => setViewingReport({ text: tr.ai_report!, title: getTestLabel(tr.test_type) })}
+                            onClick={() => setViewingReport({ text: tr.ai_report!, title: getTestLabel(tr.test_type), scores: tr.scores, testType: getTestLabel(tr.test_type) })}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-semibold hover:bg-emerald-100 transition-all"
                           >
                             <Eye size={13} />
@@ -688,8 +689,8 @@ export default function TeacherReportsPage() {
 
                         {currentReport ? (
                           <>
-                            <div className="prose prose-sm max-w-none text-gray-700 bg-gray-50 rounded-xl p-4 max-h-[600px] overflow-y-auto mb-4 whitespace-pre-wrap text-sm leading-relaxed">
-                              {currentReport}
+                            <div className="max-h-[600px] overflow-y-auto mb-4">
+                              <ReportRenderer text={currentReport} />
                             </div>
                             <div className="flex gap-2">
                               <button
@@ -736,9 +737,11 @@ export default function TeacherReportsPage() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
-              <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-sans">
-                {viewingReport.text}
-              </pre>
+              <ReportRenderer 
+                text={viewingReport.text} 
+                scores={viewingReport.scores} 
+                testType={viewingReport.testType}
+              />
             </div>
             <div className="px-6 py-4 border-t border-gray-100 flex gap-2">
               <button
