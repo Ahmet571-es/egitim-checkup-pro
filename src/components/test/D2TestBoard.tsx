@@ -26,11 +26,11 @@ function D2SymbolCell({
     md: 'w-8 h-10 text-xs',
     lg: 'w-10 h-12 text-sm',
   };
-  const lineW = { sm: 'w-3', md: 'w-4', lg: 'w-5' };
+  const lineH = { sm: 'h-2', md: 'h-2.5', lg: 'h-3' };
 
   const lines = (count: number) =>
     Array.from({ length: count }, (_, i) => (
-      <div key={i} className={`${lineW[size]} h-px bg-current`} />
+      <div key={i} className={`w-px ${lineH[size]} bg-current`} />
     ));
 
   return (
@@ -48,11 +48,11 @@ function D2SymbolCell({
       aria-pressed={selected}
       aria-label={`${symbol.letter} üst:${symbol.above} alt:${symbol.below}`}
     >
-      <div className="flex flex-col gap-0.5 mb-0.5">
+      <div className="flex gap-1 justify-center mb-0.5">
         {lines(symbol.above)}
       </div>
       <span className="font-extrabold leading-none">{symbol.letter}</span>
-      <div className="flex flex-col gap-0.5 mt-0.5">
+      <div className="flex gap-1 justify-center mt-0.5">
         {lines(symbol.below)}
       </div>
     </button>
@@ -208,12 +208,12 @@ export default function D2TestBoard({ rows, timePerRow, onComplete }: D2TestBoar
                 { above: 1, below: 1 },
               ].map((s, i) => (
                 <div key={i} className="flex flex-col items-center bg-green-500/20 border border-green-400/40 rounded-lg p-3 gap-1">
-                  <div className="flex flex-col gap-0.5 w-6">
-                    {Array.from({ length: s.above }, (_, j) => <div key={j} className="w-full h-0.5 bg-green-400" />)}
+                  <div className="flex gap-1.5 justify-center h-3">
+                    {Array.from({ length: s.above }, (_, j) => <div key={j} className="w-0.5 h-full bg-green-400 rounded-full" />)}
                   </div>
                   <span className="text-green-300 font-black text-xl">d</span>
-                  <div className="flex flex-col gap-0.5 w-6">
-                    {Array.from({ length: s.below }, (_, j) => <div key={j} className="w-full h-0.5 bg-green-400" />)}
+                  <div className="flex gap-1.5 justify-center h-3">
+                    {Array.from({ length: s.below }, (_, j) => <div key={j} className="w-0.5 h-full bg-green-400 rounded-full" />)}
                   </div>
                   <span className="text-green-400 text-xs">{s.above}+{s.below}</span>
                 </div>
