@@ -435,9 +435,41 @@ export default function TeacherReportsPage() {
                   </span>
                   <span className="flex items-center gap-1.5 text-sm text-emerald-300">
                     <FileText size={14} />
-                    {testResults.filter(t => t.ai_report).length} rapor üretildi
+                    {testResults.filter(t => t.ai_report).length} tekil rapor
                   </span>
+                  {holisticReport && (
+                    <span className="flex items-center gap-1.5 text-sm text-violet-300">
+                      <Brain size={14} />
+                      Bütüncül rapor
+                    </span>
+                  )}
+                  {integratedReport && (
+                    <span className="flex items-center gap-1.5 text-sm text-pink-300">
+                      <Layers size={14} />
+                      Entegre 3&apos;lü rapor
+                    </span>
+                  )}
                 </div>
+                {/* Üretilen rapor isimleri */}
+                {testResults.filter(t => t.ai_report).length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {testResults.filter(t => t.ai_report).map(t => (
+                      <span key={t.id} className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 text-[10px] font-semibold">
+                        ✅ {getTestLabel(t.test_type)}
+                      </span>
+                    ))}
+                    {holisticReport && (
+                      <span className="px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-200 text-[10px] font-semibold">
+                        ✅ Bütüncül Rapor
+                      </span>
+                    )}
+                    {integratedReport && (
+                      <span className="px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-200 text-[10px] font-semibold">
+                        ✅ Entegre 3&apos;lü
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="flex gap-2">
                 <a
@@ -485,20 +517,22 @@ export default function TeacherReportsPage() {
                       <div>
                         <p className="font-bold text-[#0f2847] text-sm">{getTestLabel(tr.test_type)}</p>
                         <p className="text-xs text-gray-400">
-                          {tr.completed_at
+                          Test tarihi: {tr.completed_at
                             ? new Date(tr.completed_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })
                             : '—'}
                         </p>
+                        {tr.ai_report && tr.ai_report_generated_at && (
+                          <p className="text-xs text-emerald-600 font-semibold mt-0.5 flex items-center gap-1">
+                            <CheckCircle size={11} />
+                            Rapor üretildi: {new Date(tr.ai_report_generated_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        )}
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {tr.ai_report ? (
                         <>
-                          <span className="flex items-center gap-1 text-xs text-emerald-600 font-semibold">
-                            <CheckCircle size={13} />
-                            Rapor Mevcut
-                          </span>
                           <button
                             onClick={() => setViewingReport({ text: tr.ai_report!, title: getTestLabel(tr.test_type), scores: tr.scores, testType: getTestLabel(tr.test_type) })}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-semibold hover:bg-emerald-100 transition-all"

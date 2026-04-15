@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { BarChart2, ChevronDown, Download, FileText, Eye } from 'lucide-react';
+import { BarChart2, ChevronDown, Download, FileText, Eye, CheckCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
+import ReportRenderer from '@/components/ReportRenderer';
 
 interface TestResult {
   id: string;
@@ -65,6 +66,7 @@ export default function TeacherResultsPage() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAnswers, setSelectedAnswers] = useState<TestResult | null>(null);
+  const [viewingReport, setViewingReport] = useState<TestResult | null>(null);
 
   // 1. Giriş yapan öğretmeni bul + sadece kendi sınıflarını ve öğrencilerini al
   useEffect(() => {
@@ -275,31 +277,66 @@ export default function TeacherResultsPage() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       {r.ai_report ? (
-                        <span className="inline-flex items-center gap-1 text-emerald-600 text-xs font-semibold">
-                          ✅ Var
-                        </span>
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span className="inline-flex items-center gap-1 text-emerald-600 text-xs font-semibold">
+                            <CheckCircle size={12} /> Üretildi
+                          </span>
+                          {r.ai_report_generated_at && (
+                            <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
+                              <Clock size={9} />
+                              {new Date(r.ai_report_generated_at).toLocaleDateString('tr-TR')}
+                            </span>
+                          )}
+                        </div>
                       ) : (
-                        <span className="text-gray-300 text-xs">—</span>
+                        <span className="text-gray-300 text-xs">Üretilmedi</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                        {r.ai_report && (
+                          <>
+                            <button
+                              onClick={() => setViewingReport(r)}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[11px] font-semibold hover:bg-emerald-100 transition-all border border-emerald-200"
+                            >
+                              <Eye size={11} />
+                              Rapor
+                            </button>
+                            <a
+                              href={`/api/export/pdf?test_result_id=${r.id}&report_type=${encodeURIComponent(getTestLabel(r.test_type))}`}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-red-50 text-red-700 text-[11px] font-semibold hover:bg-red-100 transition-all border border-red-200"
+                            >
+                              <Download size={11} />
+                              PDF
+                            </a>
+                            <a
+                              href={`/api/export/docx?test_result_id=${r.id}&report_type=${encodeURIComponent(getTestLabel(r.test_type))}`}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-700 text-[11px] font-semibold hover:bg-blue-100 transition-all border border-blue-200"
+                            >
+                              <Download size={11} />
+                              Word
+                            </a>
+                          </>
+                        )}
                         {r.raw_answers && Object.keys(r.raw_answers).length > 0 && (
                           <button
                             onClick={() => setSelectedAnswers(r)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-semibold hover:bg-amber-100 transition-all border border-amber-200"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-50 text-amber-700 text-[11px] font-semibold hover:bg-amber-100 transition-all border border-amber-200"
                           >
-                            <Eye size={12} />
-                            İşaretlemeler
+                            <Eye size={11} />
+                            Cevaplar
                           </button>
                         )}
-                        <Link
-                          href={`/teacher/reports?student_id=${r.student_id}`}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#0f2847] text-white text-xs font-semibold hover:bg-[#1a3d6e] transition-all"
-                        >
-                          <FileText size={12} />
-                          Raporlar
-                        </Link>
+                        {!r.ai_report && (
+                          <Link
+                            href={`/teacher/reports?student_id=${r.student_id}`}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[#0f2847] text-white text-[11px] font-semibold hover:bg-[#1a3d6e] transition-all"
+                          >
+                            <FileText size={11} />
+                            Rapor Üret
+                          </Link>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -314,6 +351,75 @@ export default function TeacherResultsPage() {
         <p className="text-center text-gray-400 text-xs mt-3">
           {filtered.length} sonuç gösteriliyor (sadece size ait öğrenciler)
         </p>
+      )}
+
+      {/* RAPOR GÖRÜNTÜLEME MODAL */}
+      {viewingReport && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          onClick={() => setViewingReport(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-[#0f2847] to-[#1a3d6e]">
+              <div>
+                <h3 className="text-white font-bold text-lg">
+                  {viewingReport.student_name} — {getTestLabel(viewingReport.test_type)}
+                </h3>
+                {viewingReport.ai_report_generated_at && (
+                  <p className="text-white/60 text-xs mt-0.5">
+                    Rapor üretim tarihi: {new Date(viewingReport.ai_report_generated_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => setViewingReport(null)}
+                className="text-white/70 hover:text-white text-2xl leading-none px-2"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              <ReportRenderer
+                text={viewingReport.ai_report!}
+                scores={viewingReport.scores}
+                testType={getTestLabel(viewingReport.test_type)}
+              />
+            </div>
+            <div className="px-6 py-3 border-t border-gray-100 flex flex-wrap gap-2">
+              <a
+                href={`/api/export/pdf?test_result_id=${viewingReport.id}&report_type=${encodeURIComponent(getTestLabel(viewingReport.test_type))}`}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-50 text-red-700 text-sm font-semibold hover:bg-red-100 transition-all border border-red-200"
+              >
+                <Download size={14} />
+                PDF İndir
+              </a>
+              <a
+                href={`/api/export/docx?test_result_id=${viewingReport.id}&report_type=${encodeURIComponent(getTestLabel(viewingReport.test_type))}`}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100 transition-all border border-blue-200"
+              >
+                <Download size={14} />
+                Word İndir
+              </a>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(viewingReport.ai_report!);
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-all"
+              >
+                📋 Kopyala
+              </button>
+              <button
+                onClick={() => setViewingReport(null)}
+                className="ml-auto px-4 py-2 rounded-xl bg-[#0f2847] text-white text-sm font-semibold hover:bg-[#1a3d6e] transition-all"
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* İŞARETLEMELER MODAL */}
