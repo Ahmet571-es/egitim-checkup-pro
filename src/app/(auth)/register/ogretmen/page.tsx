@@ -130,8 +130,15 @@ export default function TeacherRegisterPage() {
       const supabase = createClient();
       const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`;
 
+      // Türkçe karakter dönüşümü
+      const trMap: Record<string, string> = { 'ç':'c','Ç':'c','ğ':'g','Ğ':'g','ı':'i','İ':'i','ö':'o','Ö':'o','ş':'s','Ş':'s','ü':'u','Ü':'u' };
+      const toAscii = (s: string) => s.replace(/[çÇğĞıİöÖşŞüÜ]/g, c => trMap[c] || c);
+      const ad = toAscii(form.firstName.trim().toLowerCase()).replace(/[^a-z]/g, '');
+      const soyad = toAscii(form.lastName.trim().toLowerCase()).replace(/[^a-z]/g, '');
+      const authEmail = `${ad}_${soyad}@ogretmen.egitimcheckup.com`;
+
       const { error: authError } = await supabase.auth.signUp({
-        email: form.email.trim().toLowerCase(),
+        email: authEmail,
         password: form.password,
         options: {
           data: {
@@ -140,6 +147,7 @@ export default function TeacherRegisterPage() {
             branch: form.branch,
             school_name: form.schoolName.trim(),
             phone: form.phone.replace(/\D/g, ''),
+            real_email: form.email.trim().toLowerCase(),
             is_approved: false,
           },
         },
