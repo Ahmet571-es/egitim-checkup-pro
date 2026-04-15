@@ -10,7 +10,7 @@ import type { UserRole } from '@/types';
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
-    firstName: '', lastName: '', phone: '', address: '',
+    firstName: '', lastName: '', phone: '', city: '', district: '', address: '',
     password: '', role: 'student' as UserRole,
     schoolName: '', grade: '', kvkk: false,
   });
@@ -60,8 +60,8 @@ export default function RegisterPage() {
     }
 
     // Adres kontrolü
-    if (!form.address.trim()) {
-      setError('Ev adresi zorunludur.');
+    if (!form.city.trim() || !form.district.trim() || !form.address.trim()) {
+      setError('İl, ilçe ve açık adres alanları zorunludur.');
       submittingRef.current = false;
       return;
     }
@@ -116,6 +116,8 @@ export default function RegisterPage() {
           grade: form.role === 'student' ? form.grade : '',
           is_graduated: isGraduated,
           phone: phoneDigits,
+          city: form.city.trim(),
+          district: form.district.trim(),
           address: form.address.trim(),
         },
       },
@@ -204,12 +206,25 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Ev Adresi */}
+            {/* Ev Adresi: İl, İlçe, Açık Adres */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">İl <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input type="text" value={form.city} onChange={(e) => update('city', e.target.value)} placeholder="Ankara" maxLength={50} className="w-full pl-11 pr-3 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" required />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">İlçe <span className="text-red-500">*</span></label>
+                <input type="text" value={form.district} onChange={(e) => update('district', e.target.value)} placeholder="Çankaya" maxLength={50} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" required />
+              </div>
+            </div>
             <div>
-              <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Ev Adresi <span className="text-red-500">*</span></label>
+              <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Açık Adres <span className="text-red-500">*</span></label>
               <div className="relative">
                 <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-gray-400" />
-                <textarea value={form.address} onChange={(e) => update('address', e.target.value)} placeholder="Mahalle, sokak, no, ilçe / il" rows={2} maxLength={300} className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all resize-none" required />
+                <textarea value={form.address} onChange={(e) => update('address', e.target.value)} placeholder="Mahalle, cadde, sokak, bina no, daire no" rows={2} maxLength={300} className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all resize-none" required />
               </div>
             </div>
 
