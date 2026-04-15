@@ -112,7 +112,7 @@ export default function YoneticiPage() {
 
   // ═══ Auth ═══
   const handleLogin = () => {
-    if (password === 'ANKA2026') {
+    if (password === 'ANKA_KUSU2026') {
       sessionStorage.setItem('ynPw', password);
       setAuthed(true);
       setAuthError('');
@@ -124,7 +124,7 @@ export default function YoneticiPage() {
 
   useEffect(() => {
     const saved = sessionStorage.getItem('ynPw');
-    if (saved === 'ANKA2026') {
+    if (saved === 'ANKA_KUSU2026') {
       setPassword(saved);
       setAuthed(true);
       loadTeachers(saved);

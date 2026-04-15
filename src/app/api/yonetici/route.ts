@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-const ADMIN_PASSWORD = 'ANKA2026';
+const ADMIN_PASSWORD = 'ANKA_KUSU2026';
 
 function unauthorized() {
   return NextResponse.json({ error: 'Yetkisiz erişim' }, { status: 401 });
