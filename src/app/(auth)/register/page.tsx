@@ -281,6 +281,10 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+            {/* Tarayıcı autofill tuzağı */}
+            <input type="text" name="prevent_autofill_user" style={{ display: 'none' }} tabIndex={-1} />
+            <input type="password" name="prevent_autofill_pass" style={{ display: 'none' }} tabIndex={-1} />
+
             {/* Ad Soyad */}
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -375,10 +379,11 @@ export default function RegisterPage() {
                   onChange={(e) => update('password', e.target.value)}
                   placeholder="Min. 6 karakter"
                   maxLength={72}
+                  name="ecup_pass_register"
                   className="w-full pl-11 pr-11 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                   required
                   minLength={6}
-                  autoComplete="off"
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"

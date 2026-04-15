@@ -163,6 +163,10 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
+            {/* Tarayıcı autofill tuzağı — gizli input, Chrome'u kandırır */}
+            <input type="text" name="prevent_autofill_user" style={{ display: 'none' }} tabIndex={-1} />
+            <input type="password" name="prevent_autofill_pass" style={{ display: 'none' }} tabIndex={-1} />
+
             <div>
               <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Kullanıcı Adı</label>
               <div className="relative">
@@ -173,9 +177,10 @@ export default function LoginPage() {
                   onChange={(e) => handleUsernameChange(e.target.value)}
                   placeholder="ad_soyad_XXXX"
                   maxLength={100}
+                  name="ecup_user_login"
                   className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                   required
-                  autoComplete="off"
+                  autoComplete="nope"
                 />
               </div>
             </div>
@@ -189,9 +194,10 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Şifrenizi girin"
                   maxLength={72}
+                  name="ecup_pass_login"
                   className="w-full pl-11 pr-11 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                   required
-                  autoComplete="off"
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
