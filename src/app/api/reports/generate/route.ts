@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { generateAIReport } from '@/lib/ai/claude-client';
 import { buildSingleTestPrompt } from '@/lib/ai/prompts/single-test';
 import { buildHolisticPrompt } from '@/lib/ai/prompts/holistic';
@@ -96,15 +97,21 @@ export async function POST(request: NextRequest) {
 
       const report = await generateAIReport(prompt);
 
-      // Raporu holistic_report alanına kaydet (ilk test_result'a)
+      // Admin client ile raporu kaydet (RLS bypass)
+      const admin = createAdminClient();
       if (results[0]?.id) {
-        await supabase
+        const { error: saveErr } = await admin
           .from('test_results')
           .update({
             ai_report: report,
             ai_report_generated_at: new Date().toISOString(),
           })
           .eq('id', results[0].id);
+
+        if (saveErr) {
+          console.error('[holistic save]', saveErr.message);
+          return NextResponse.json({ success: true, report, warning: 'Rapor üretildi ancak kaydedilemedi: ' + saveErr.message });
+        }
       }
 
       return NextResponse.json({ success: true, report });
@@ -145,8 +152,9 @@ export async function POST(request: NextRequest) {
 
     const report = await generateAIReport(prompt);
 
-    // Raporu kaydet
-    const { error: updateErr } = await supabase
+    // Admin client ile raporu kaydet (RLS bypass)
+    const admin = createAdminClient();
+    const { error: updateErr } = await admin
       .from('test_results')
       .update({
         ai_report: report,
@@ -155,7 +163,8 @@ export async function POST(request: NextRequest) {
       .eq('id', test_result_id);
 
     if (updateErr) {
-      return NextResponse.json({ error: 'Rapor kaydedilemedi.' }, { status: 500 });
+      console.error('[tekil save]', updateErr.message);
+      return NextResponse.json({ error: 'Rapor kaydedilemedi: ' + updateErr.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, report });
@@ -233,13 +242,19 @@ export async function PUT(request: NextRequest) {
 
     const report = await generateAIReport(prompt);
 
-    await supabase
+    // Admin client ile kaydet (RLS bypass)
+    const admin = createAdminClient();
+    const { error: saveErr } = await admin
       .from('test_results')
       .update({
         ai_report: report,
         ai_report_generated_at: new Date().toISOString(),
       })
       .eq('id', test_result_id);
+
+    if (saveErr) {
+      console.error('[PUT save]', saveErr.message);
+    }
 
     return NextResponse.json({ success: true, report });
   } catch (err) {

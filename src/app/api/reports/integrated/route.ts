@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { generateAIReport } from '@/lib/ai/claude-client';
 import {
   buildIntegratedReportPrompt,
@@ -126,8 +127,9 @@ export async function POST(request: NextRequest) {
     });
     await Promise.all(genPromises);
 
-    // Entegre raporları kaydet
-    const { error: insertErr } = await supabase.from('integrated_reports').insert({
+    // Admin client ile entegre raporları kaydet (RLS bypass)
+    const admin = createAdminClient();
+    const { error: insertErr } = await admin.from('integrated_reports').insert({
       student_id: student.id,
       school_id: student.school_id,
       teacher_report: reports.ogretmen ?? null,
@@ -258,7 +260,9 @@ export async function PUT(request: NextRequest) {
       reports[reportType] = await generateAIReport(prompt);
     }));
 
-    await supabase.from('integrated_reports').insert({
+    // Admin client ile kaydet (RLS bypass)
+    const adminPut = createAdminClient();
+    await adminPut.from('integrated_reports').insert({
       student_id: student.id,
       school_id: student.school_id,
       teacher_report: reports.ogretmen,
