@@ -112,12 +112,13 @@ export default function YoneticiPage() {
 
   // ═══ Auth ═══
   const handleLogin = () => {
-    if (password === 'ANKA_KUSU2026') {
+    const pw = password.trim();
+    if (pw === 'ANKA_KUSU2026') {
       setAuthed(true);
       setAuthError('');
-      loadTeachers(password);
+      loadTeachers(pw);
     } else {
-      setAuthError('Şifre hatalı.');
+      setAuthError('Şifre hatalı. Lütfen tekrar deneyin.');
     }
   };
 
