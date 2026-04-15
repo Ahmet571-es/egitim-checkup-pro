@@ -1,5 +1,6 @@
 'use client';
 
+import { secureFetch } from '@/lib/csrf-client';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { FileText, Loader2, Sparkles, Download, Calendar } from 'lucide-react';
@@ -94,14 +95,14 @@ export default function GuidancePlanPage() {
       }
 
       // AI ile plan oluştur
-      const res = await fetch('/api/ai/class-strategy', {
+      const res = await secureFetch('/api/ai/class-strategy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ classId: classIds[0] || '' }),
       });
 
       // Rehberlik planı prompt'u
-      const planRes = await fetch('/api/reports/generate', {
+      const planRes = await secureFetch('/api/reports/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { secureFetch } from '@/lib/csrf-client';
 import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/client';
 import { extractNormalizedScore, TEST_LABELS } from '@/lib/services/correlation';
@@ -90,7 +91,7 @@ export default function Profile360Page() {
   const generateAIReport = async () => {
     setAiLoading(true);
     try {
-      const res = await fetch('/api/reports/profile-360', {
+      const res = await secureFetch('/api/reports/profile-360', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ results, patterns, risk, careers }),

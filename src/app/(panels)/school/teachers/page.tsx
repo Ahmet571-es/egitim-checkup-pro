@@ -1,5 +1,6 @@
 'use client';
 
+import { secureFetch } from '@/lib/csrf-client';
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Plus, Trash2, X, Search, GraduationCap, KeyRound, BookMarked } from 'lucide-react';
@@ -81,7 +82,7 @@ export default function SchoolTeachersPage() {
     }
     setSaving(true);
     try {
-      const res = await fetch('/api/admin/create-teacher', {
+      const res = await secureFetch('/api/admin/create-teacher', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(addForm),
@@ -114,7 +115,7 @@ export default function SchoolTeachersPage() {
     }
     setSaving(true);
     try {
-      const res = await fetch('/api/admin/reset-teacher-password', {
+      const res = await secureFetch('/api/admin/reset-teacher-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -158,7 +159,7 @@ export default function SchoolTeachersPage() {
     setErr('');
     setSaving(true);
     try {
-      const res = await fetch('/api/admin/assign-teacher-classes', {
+      const res = await secureFetch('/api/admin/assign-teacher-classes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

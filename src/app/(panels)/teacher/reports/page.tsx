@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { secureFetch } from '@/lib/csrf-client';
 import {
   Users, FileText, Brain, BarChart2,
   Download, RefreshCw, ChevronDown, CheckCircle,
@@ -180,7 +181,7 @@ export default function TeacherReportsPage() {
 
     try {
       const method = force ? 'PUT' : 'POST';
-      const res = await fetch('/api/reports/generate', {
+      const res = await secureFetch('/api/reports/generate', {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -222,7 +223,7 @@ export default function TeacherReportsPage() {
     setMessage(null);
 
     try {
-      const res = await fetch('/api/reports/generate', {
+      const res = await secureFetch('/api/reports/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -251,7 +252,7 @@ export default function TeacherReportsPage() {
 
     try {
       const method = force ? 'PUT' : 'POST';
-      const res = await fetch('/api/reports/integrated', {
+      const res = await secureFetch('/api/reports/integrated', {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ student_id: selectedStudent.id }),

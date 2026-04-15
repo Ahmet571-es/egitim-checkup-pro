@@ -2,6 +2,7 @@
 /**
  * Faz 5: Plan kartı (client component — ödeme butonu akışı için)
  */
+import { secureFetch } from '@/lib/csrf-client';
 import { useState } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 import type { SubscriptionPlan } from '@/lib/payment/types';
@@ -27,7 +28,7 @@ export default function BillingPlanCard({ plan, currentMaxStudents, disabled }: 
     setLoading(true);
     setErr(null);
     try {
-      const res = await fetch('/api/payment/create', {
+      const res = await secureFetch('/api/payment/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ planKey: plan.key }),
