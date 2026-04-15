@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { GraduationCap, AtSign, Lock, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { GraduationCap, AtSign, Lock, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_PATHS } from '@/types';
 import type { UserRole } from '@/types';
@@ -14,6 +14,7 @@ const STORAGE_KEY_REMEMBER = 'ecup_remember';
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -30,7 +31,6 @@ export default function LoginPage() {
 
     if (savedUsername) {
       setUsername(savedUsername);
-      // Kayıt sayfasından gelindiyse bilgi mesajı göster
       setFromRegister(true);
     }
     if (savedRemember !== null) {
@@ -38,7 +38,6 @@ export default function LoginPage() {
     }
   }, []);
 
-  // Kullanıcı adı değiştiğinde localStorage'a kaydet
   const handleUsernameChange = (val: string) => {
     const clean = val.toLowerCase().replace(/\s/g, '');
     setUsername(clean);
@@ -47,7 +46,6 @@ export default function LoginPage() {
     }
   };
 
-  // Beni hatırla değiştiğinde
   const handleRememberChange = (checked: boolean) => {
     setRememberMe(checked);
     if (typeof window !== 'undefined') {
@@ -60,7 +58,6 @@ export default function LoginPage() {
     }
   };
 
-  // Kullanıcı adından e-posta üret
   const usernameToEmail = (val: string) => {
     const clean = val.trim().toLowerCase().replace(/\s/g, '');
     return `${clean}@ogrenci.egitimcheckup.com`;
@@ -103,11 +100,8 @@ export default function LoginPage() {
         return;
       }
 
-      // Başarılı giriş: kullanıcı adını kalıcı olarak sakla
-      if (typeof window !== 'undefined') {
-        if (rememberMe) {
-          localStorage.setItem(STORAGE_KEY_USERNAME, username);
-        }
+      if (typeof window !== 'undefined' && rememberMe) {
+        localStorage.setItem(STORAGE_KEY_USERNAME, username);
       }
 
       let role: UserRole | undefined = data.user?.user_metadata?.role as UserRole | undefined;
@@ -155,11 +149,10 @@ export default function LoginPage() {
           <h2 className="text-2xl font-extrabold text-[#0f2847] text-center mb-1">Giriş Yap</h2>
           <p className="text-sm text-gray-500 text-center mb-8">Kullanıcı adınız ve şifreniz ile giriş yapın</p>
 
-          {/* Kayıt sonrası bilgilendirme */}
           {fromRegister && username && !error && (
             <div className="mb-5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-sm text-emerald-700">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>Kayıt başarılı! Kullanıcı adınız hazır, şifrenizi girerek giriş yapabilirsiniz.</span>
+              <span>Kayıt başarılı! Şifrenizi girerek giriş yapabilirsiniz.</span>
             </div>
           )}
 
@@ -169,7 +162,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
             <div>
               <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Kullanıcı Adı</label>
               <div className="relative">
@@ -182,7 +175,7 @@ export default function LoginPage() {
                   maxLength={100}
                   className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                   required
-                  autoComplete="username"
+                  autoComplete="off"
                 />
               </div>
             </div>
@@ -191,19 +184,26 @@ export default function LoginPage() {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Şifrenizi girin"
                   maxLength={72}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
+                  className="w-full pl-11 pr-11 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                   required
-                  autoComplete="current-password"
+                  autoComplete="off"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
-            {/* Beni Hatırla */}
             <label className="flex items-center gap-2.5 cursor-pointer">
               <input
                 type="checkbox"
