@@ -21,7 +21,7 @@ function D2SymbolCell({
 }) {
   const lines = (count: number) =>
     Array.from({ length: count }, (_, i) => (
-      <div key={i} className="bg-current" style={{ width: '2px', height: '35%', borderRadius: '1px' }} />
+      <div key={i} className="bg-current rounded-full" style={{ width: '2px', height: '100%' }} />
     ));
 
   return (
@@ -38,11 +38,11 @@ function D2SymbolCell({
       aria-pressed={selected}
       aria-label={`${symbol.letter} üst:${symbol.above} alt:${symbol.below}`}
     >
-      <div className="flex gap-[3px] justify-center" style={{ minHeight: '20%' }}>
+      <div className="flex gap-[4px] justify-center items-end" style={{ height: '22%', marginBottom: '4px' }}>
         {lines(symbol.above)}
       </div>
-      <span className="font-extrabold leading-none" style={{ fontSize: 'clamp(11px, 2.8vw, 20px)' }}>{symbol.letter}</span>
-      <div className="flex gap-[3px] justify-center" style={{ minHeight: '20%' }}>
+      <span className="font-extrabold leading-none" style={{ fontSize: 'clamp(12px, 3vw, 22px)' }}>{symbol.letter}</span>
+      <div className="flex gap-[4px] justify-center items-start" style={{ height: '22%', marginTop: '4px' }}>
         {lines(symbol.below)}
       </div>
     </button>
