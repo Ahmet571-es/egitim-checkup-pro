@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { GraduationCap, User, Lock, Building, ArrowRight, AlertCircle, CheckCircle2, Phone, MapPin, AtSign } from 'lucide-react';
+import { GraduationCap, User, Lock, Building, ArrowRight, AlertCircle, CheckCircle2, Phone, MapPin, AtSign, Calendar } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_PATHS, STUDENT_GRADES } from '@/types';
 import type { UserRole } from '@/types';
@@ -17,18 +17,33 @@ function turkishToAscii(str: string): string {
   return str.replace(/[çÇğĞıİöÖşŞüÜ]/g, (ch) => map[ch] || ch);
 }
 
-// Ad ve soyaddan kullanıcı adı üret: ad_soyad (küçük harf, Türkçe → ASCII)
-function generateUsername(firstName: string, lastName: string): string {
-  const ad = turkishToAscii(firstName.trim().toLowerCase()).replace(/\s+/g, '');
-  const soyad = turkishToAscii(lastName.trim().toLowerCase()).replace(/\s+/g, '');
-  if (!ad || !soyad) return '';
-  return `${ad}_${soyad}`;
+// Ad, soyad ve telefon son 4 hanesinden kullanıcı adı üret
+function generateUsername(firstName: string, lastName: string, phone: string): string {
+  const ad = turkishToAscii(firstName.trim().toLowerCase()).replace(/[^a-z]/g, '');
+  const soyad = turkishToAscii(lastName.trim().toLowerCase()).replace(/[^a-z]/g, '');
+  const digits = phone.replace(/\D/g, '');
+  const last4 = digits.length >= 4 ? digits.slice(-4) : '';
+  if (!ad || !soyad || !last4) return '';
+  return `${ad}_${soyad}_${last4}`;
+}
+
+// Doğum tarihinden yaş hesapla
+function calculateAge(birthDate: string): number | null {
+  if (!birthDate) return null;
+  const birth = new Date(birthDate);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age >= 0 ? age : null;
 }
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
     firstName: '', lastName: '', phone: '', city: '', district: '', address: '',
-    username: '', password: '', role: 'student' as UserRole,
+    gender: '', birthDate: '', username: '', password: '', role: 'student' as UserRole,
     schoolName: '', grade: '', kvkk: false,
   });
   const [loading, setLoading] = useState(false);
@@ -38,16 +53,18 @@ export default function RegisterPage() {
   const submittingRef = useRef(false);
   const router = useRouter();
 
-  // Beklenen kullanıcı adı (ad ve soyaddan otomatik)
+  // Beklenen kullanıcı adı (ad + soyad + telefon son 4 hane)
   const expectedUsername = useMemo(
-    () => generateUsername(form.firstName, form.lastName),
-    [form.firstName, form.lastName]
+    () => generateUsername(form.firstName, form.lastName, form.phone),
+    [form.firstName, form.lastName, form.phone]
   );
+
+  // Yaş otomatik hesaplama
+  const calculatedAge = useMemo(() => calculateAge(form.birthDate), [form.birthDate]);
 
   const update = (key: string, value: string | boolean) => {
     setForm((f) => ({ ...f, [key]: value }));
-    // Kullanıcı adı uyarısını temizle
-    if (key === 'username' || key === 'firstName' || key === 'lastName') {
+    if (key === 'username' || key === 'firstName' || key === 'lastName' || key === 'phone') {
       setUsernameWarning('');
     }
   };
@@ -56,19 +73,15 @@ export default function RegisterPage() {
   const validateUsername = (value: string) => {
     if (!expectedUsername) return;
     if (value && value !== expectedUsername) {
-      setUsernameWarning(`Kullanıcı adınız ad_soyad formatında olmalıdır: ${expectedUsername}`);
+      setUsernameWarning(`Kullanıcı adınız şu formatta olmalıdır: ${expectedUsername}`);
     } else {
       setUsernameWarning('');
     }
   };
 
-  // Telefon numarasını temizle (sadece rakam)
   const sanitizePhone = (val: string) => val.replace(/\D/g, '');
 
-  // Kullanıcı adından otomatik e-posta üret
-  const usernameToEmail = (uname: string) => {
-    return `${uname}@ogrenci.egitimcheckup.com`;
-  };
+  const usernameToEmail = (uname: string) => `${uname}@ogrenci.egitimcheckup.com`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,9 +96,36 @@ export default function RegisterPage() {
       return;
     }
 
-    // Ad/Soyad boş olmasın
+    // Ad/Soyad
     if (!form.firstName.trim() || !form.lastName.trim()) {
       setError('Ad ve soyad alanları boş olamaz.');
+      submittingRef.current = false;
+      return;
+    }
+
+    // Telefon kontrolü
+    const phoneDigits = sanitizePhone(form.phone);
+    if (phoneDigits.length < 10) {
+      setError('Geçerli bir cep telefonu numarası girin (en az 10 haneli).');
+      submittingRef.current = false;
+      return;
+    }
+
+    // Cinsiyet kontrolü
+    if (!form.gender) {
+      setError('Cinsiyet seçimi zorunludur.');
+      submittingRef.current = false;
+      return;
+    }
+
+    // Doğum tarihi kontrolü
+    if (!form.birthDate) {
+      setError('Doğum tarihi zorunludur.');
+      submittingRef.current = false;
+      return;
+    }
+    if (calculatedAge === null || calculatedAge < 5 || calculatedAge > 100) {
+      setError('Geçerli bir doğum tarihi girin.');
       submittingRef.current = false;
       return;
     }
@@ -97,15 +137,7 @@ export default function RegisterPage() {
       return;
     }
     if (form.username !== expectedUsername) {
-      setError(`Kullanıcı adınız ad_soyad formatında olmalıdır: ${expectedUsername}`);
-      submittingRef.current = false;
-      return;
-    }
-
-    // Telefon kontrolü
-    const phoneDigits = sanitizePhone(form.phone);
-    if (phoneDigits.length < 10) {
-      setError('Geçerli bir cep telefonu numarası girin (en az 10 haneli).');
+      setError(`Kullanıcı adınız şu formatta olmalıdır: ${expectedUsername}`);
       submittingRef.current = false;
       return;
     }
@@ -168,6 +200,9 @@ export default function RegisterPage() {
           grade: form.role === 'student' ? form.grade : '',
           is_graduated: isGraduated,
           phone: phoneDigits,
+          gender: form.gender,
+          birth_date: form.birthDate,
+          age: calculatedAge,
           city: form.city.trim(),
           district: form.district.trim(),
           address: form.address.trim(),
@@ -177,7 +212,7 @@ export default function RegisterPage() {
 
     if (authError) {
       if (authError.message.includes('already registered')) {
-        setError('Bu kullanıcı adı zaten kayıtlı. Aynı ad-soyad ile daha önce kayıt yapılmış olabilir.');
+        setError('Bu kullanıcı adı zaten kayıtlı. Lütfen bilgilerinizi kontrol edin.');
       } else {
         setError(authError.message);
       }
@@ -204,6 +239,7 @@ export default function RegisterPage() {
         <div className="bg-white/72 backdrop-blur-[20px] rounded-3xl border border-white/40 shadow-xl p-8 text-center max-w-md">
           <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-[#0f2847] mb-2">Kayıt Başarılı!</h2>
+          <p className="text-sm text-gray-500 mb-1">Kullanıcı adınız: <span className="font-bold text-emerald-600">{form.username}</span></p>
           <p className="text-sm text-gray-500">Yönlendiriliyorsunuz...</p>
         </div>
       </div>
@@ -258,6 +294,43 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Cinsiyet + Doğum Tarihi */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Cinsiyet <span className="text-red-500">*</span></label>
+                <select
+                  value={form.gender}
+                  onChange={(e) => update('gender', e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
+                  required
+                >
+                  <option value="">Seçiniz</option>
+                  <option value="erkek">Erkek</option>
+                  <option value="kadin">Kadın</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">
+                  Doğum Tarihi <span className="text-red-500">*</span>
+                  {calculatedAge !== null && (
+                    <span className="text-emerald-600 font-normal ml-1">({calculatedAge} yaş)</span>
+                  )}
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <input
+                    type="date"
+                    value={form.birthDate}
+                    onChange={(e) => update('birthDate', e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                    min="1950-01-01"
+                    className="w-full pl-11 pr-3 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Ev Adresi: İl, İlçe, Açık Adres */}
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -294,7 +367,7 @@ export default function RegisterPage() {
               <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">
                 Kullanıcı Adı <span className="text-red-500">*</span>
                 {expectedUsername && (
-                  <span className="text-gray-400 font-normal ml-1">(ad_soyad formatında: {expectedUsername})</span>
+                  <span className="text-gray-400 font-normal ml-1">({expectedUsername})</span>
                 )}
               </label>
               <div className="relative">
@@ -307,9 +380,9 @@ export default function RegisterPage() {
                     update('username', val);
                   }}
                   onBlur={() => validateUsername(form.username)}
-                  placeholder={expectedUsername || 'ad_soyad'}
+                  placeholder={expectedUsername || 'ad_soyad_XXXX'}
                   maxLength={100}
-                  className={`w-full pl-11 pr-4 py-3 rounded-xl border bg-white/60 text-sm focus:outline-none focus:ring-2 transition-all ${
+                  className={`w-full pl-11 pr-10 py-3 rounded-xl border bg-white/60 text-sm focus:outline-none focus:ring-2 transition-all ${
                     usernameWarning
                       ? 'border-red-300 focus:ring-red-500/30 focus:border-red-400'
                       : form.username && form.username === expectedUsername
@@ -328,9 +401,11 @@ export default function RegisterPage() {
                   {usernameWarning}
                 </p>
               )}
-              {!usernameWarning && expectedUsername && !form.username && (
+              {!usernameWarning && !form.username && (
                 <p className="text-[12px] text-gray-400 mt-1.5">
-                  Giriş yaparken bu kullanıcı adını kullanacaksınız.
+                  {expectedUsername
+                    ? 'Yukarıdaki bilgilerden oluşan kullanıcı adınızı girin. Giriş yaparken bunu kullanacaksınız.'
+                    : 'Önce ad, soyad ve telefon numaranızı girin.'}
                 </p>
               )}
             </div>
