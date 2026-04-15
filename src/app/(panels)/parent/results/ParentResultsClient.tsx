@@ -8,8 +8,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BarChart3, ChevronDown, Eye, FileText, CheckCircle,
-  AlertCircle, Clock, X, Heart, BookOpen,
+  AlertCircle, Clock, X, Heart, BookOpen, Download,
 } from 'lucide-react';
+import IntegratedReportRenderer from '@/components/IntegratedReportRenderer';
 
 const TEST_LABELS: Record<string, string> = {
   enneagram: 'Enneagram Kişilik',
@@ -279,13 +280,17 @@ export default function ParentResultsClient({ children, activeChildId, testResul
                   </p>
                 </div>
               )}
-              <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-sans">
-                {modal.text}
-              </pre>
+              {modal.type === 'veli' ? (
+                <IntegratedReportRenderer text={modal.text} reportType="ebeveyn" />
+              ) : (
+                <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-sans">
+                  {modal.text}
+                </pre>
+              )}
             </div>
 
             {/* Modal footer */}
-            <div className="px-6 py-4 border-t border-gray-100 flex gap-2">
+            <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap gap-2">
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(modal.text);
@@ -294,6 +299,24 @@ export default function ParentResultsClient({ children, activeChildId, testResul
               >
                 📋 Kopyala
               </button>
+              {modal.type === 'veli' && activeChildId && (
+                <>
+                  <a
+                    href={`/api/export/integrated?student_id=${activeChildId}&format=pdf`}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-50 text-red-700 text-sm font-semibold hover:bg-red-100 transition-all border border-red-200"
+                  >
+                    <Download size={14} />
+                    PDF İndir
+                  </a>
+                  <a
+                    href={`/api/export/integrated?student_id=${activeChildId}&format=docx`}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100 transition-all border border-blue-200"
+                  >
+                    <Download size={14} />
+                    Word İndir
+                  </a>
+                </>
+              )}
               <button
                 onClick={() => setModal(null)}
                 className="ml-auto px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-semibold hover:opacity-90 transition-all"

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { secureFetch } from '@/lib/csrf-client';
 import ReportRenderer from '@/components/ReportRenderer';
+import IntegratedReportRenderer from '@/components/IntegratedReportRenderer';
 import {
   Users, FileText, Brain, BarChart2,
   Download, RefreshCw, ChevronDown, CheckCircle,
@@ -67,7 +68,7 @@ export default function TeacherReportsPage() {
   const [integratedReport, setIntegratedReport] = useState<IntegratedReport | null>(null);
   const [activeTab, setActiveTab] = useState<'tekil' | 'butuncel' | 'entegre'>('tekil');
   const [activeIntegratedTab, setActiveIntegratedTab] = useState<'ogretmen' | 'ogrenci' | 'ebeveyn'>('ogretmen');
-  const [viewingReport, setViewingReport] = useState<{ text: string; title: string; scores?: Record<string, unknown>; testType?: string } | null>(null);
+  const [viewingReport, setViewingReport] = useState<{ text: string; title: string; scores?: Record<string, unknown>; testType?: string; integratedType?: 'ogretmen' | 'ogrenci' | 'ebeveyn' } | null>(null);
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -690,16 +691,30 @@ export default function TeacherReportsPage() {
                         {currentReport ? (
                           <>
                             <div className="max-h-[600px] overflow-y-auto mb-4">
-                              <ReportRenderer text={currentReport} />
+                              <IntegratedReportRenderer text={currentReport} reportType={activeIntegratedTab} />
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex flex-wrap gap-2">
                               <button
-                                onClick={() => setViewingReport({ text: currentReport, title: `${selectedStudent.full_name} — ${activeIntegratedTab === 'ogretmen' ? 'Öğretmen' : activeIntegratedTab === 'ogrenci' ? 'Öğrenci' : 'Ebeveyn'} Raporu` })}
+                                onClick={() => setViewingReport({ text: currentReport, title: `${selectedStudent.full_name} — ${activeIntegratedTab === 'ogretmen' ? 'Öğretmen' : activeIntegratedTab === 'ogrenci' ? 'Öğrenci' : 'Ebeveyn'} Raporu`, integratedType: activeIntegratedTab })}
                                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0f2847] text-white text-sm font-semibold hover:bg-[#1a3d6e] transition-all"
                               >
                                 <Eye size={15} />
                                 Tam Ekran Görüntüle
                               </button>
+                              <a
+                                href={`/api/export/integrated?student_id=${selectedStudent.id}&format=pdf`}
+                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-50 text-red-700 text-sm font-semibold hover:bg-red-100 transition-all border border-red-200"
+                              >
+                                <Download size={15} />
+                                PDF İndir (3 Rapor)
+                              </a>
+                              <a
+                                href={`/api/export/integrated?student_id=${selectedStudent.id}&format=docx`}
+                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100 transition-all border border-blue-200"
+                              >
+                                <Download size={15} />
+                                Word İndir (3 Rapor)
+                              </a>
                             </div>
                           </>
                         ) : (
@@ -737,11 +752,18 @@ export default function TeacherReportsPage() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
-              <ReportRenderer 
-                text={viewingReport.text} 
-                scores={viewingReport.scores} 
-                testType={viewingReport.testType}
-              />
+              {viewingReport.integratedType ? (
+                <IntegratedReportRenderer 
+                  text={viewingReport.text} 
+                  reportType={viewingReport.integratedType}
+                />
+              ) : (
+                <ReportRenderer 
+                  text={viewingReport.text} 
+                  scores={viewingReport.scores} 
+                  testType={viewingReport.testType}
+                />
+              )}
             </div>
             <div className="px-6 py-4 border-t border-gray-100 flex gap-2">
               <button
