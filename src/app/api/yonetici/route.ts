@@ -105,10 +105,13 @@ export async function POST(req: NextRequest) {
       // Öğretmenin sınıfları ve öğrencileri
       const { data: classes } = await supabase.from('classes').select('id, name').eq('teacher_id', teacherId);
       const classIds = (classes || []).map((c) => c.id);
+      const classNameMap: Record<string, string> = {};
+      (classes || []).forEach((c) => { classNameMap[c.id] = c.name; });
 
       let students: Array<{
         id: string; full_name: string; email: string; phone: string;
         grade: string | null; school_id: string | null; schoolName: string;
+        class_id: string; class_name: string;
         created_at: string; city?: string; district?: string; address?: string;
         testCount: number; reportCount: number;
         tests: Array<{ id: string; test_type: string; completed_at: string; has_report: boolean }>;
@@ -117,10 +120,15 @@ export async function POST(req: NextRequest) {
       if (classIds.length > 0) {
         const { data: csRows } = await supabase
           .from('class_students')
-          .select('student_id')
+          .select('student_id, class_id')
           .in('class_id', classIds);
 
-        const sids = [...new Set((csRows || []).map((r) => r.student_id))];
+        // student_id -> class_id eşlemesi (bir öğrenci birden fazla sınıfta olabilir; ilkini al)
+        const studentClassMap: Record<string, string> = {};
+        (csRows || []).forEach((r) => {
+          if (!studentClassMap[r.student_id]) studentClassMap[r.student_id] = r.class_id;
+        });
+        const sids = Object.keys(studentClassMap);
 
         if (sids.length > 0) {
           const { data: profiles } = await supabase
@@ -137,7 +145,7 @@ export async function POST(req: NextRequest) {
                 if (sch) sSchoolName = sch.name;
               }
 
-              // Auth user metadata (city, district, address)
+              // Auth user metadata (city, district, address, school_name)
               let meta: Record<string, string> = {};
               try {
                 const { data: authUser } = await supabase.auth.admin.getUserById(s.id);
@@ -145,6 +153,14 @@ export async function POST(req: NextRequest) {
                   meta = authUser.user.user_metadata as Record<string, string>;
                 }
               } catch { /* ignore */ }
+
+              // Okul adı: önce profiles, yoksa user_metadata
+              if (sSchoolName === '—' && meta.school_name) {
+                sSchoolName = meta.school_name;
+              }
+
+              const cid = studentClassMap[s.id] || '';
+              const cname = classNameMap[cid] || 'Sınıfsız';
 
               // Testler
               const { data: testResults } = await supabase
@@ -165,6 +181,8 @@ export async function POST(req: NextRequest) {
               return {
                 ...s,
                 schoolName: sSchoolName,
+                class_id: cid,
+                class_name: cname,
                 city: meta.city || '',
                 district: meta.district || '',
                 address: meta.address || '',

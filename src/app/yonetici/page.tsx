@@ -23,6 +23,7 @@ interface StudentTest {
 interface Student {
   id: string; full_name: string; email: string; phone: string;
   grade: string | null; school_id: string | null; schoolName: string;
+  class_id: string; class_name: string;
   created_at: string; city?: string; district?: string; address?: string;
   testCount: number; reportCount: number; tests: StudentTest[];
 }
@@ -109,6 +110,7 @@ export default function YoneticiPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [integratedReports, setIntegratedReports] = useState<IntegratedReport[]>([]);
   const [openSchool, setOpenSchool] = useState<string | null>(null);
+  const [openClass, setOpenClass] = useState<string | null>(null);
   const [selectedReport, setSelectedReport] = useState<Report | IntegratedReport | null>(null);
   const [reportType, setReportType] = useState<'single' | 'integrated'>('single');
 
@@ -192,6 +194,7 @@ export default function YoneticiPage() {
     setSelectedTeacher(teacher);
     setView('teacher-detail');
     setOpenSchool(null);
+    setOpenClass(null);
     try {
       const data = await apiCall(storedPw(), 'teacher-detail', { teacherId: teacher.id });
       setSelectedTeacher({ ...teacher, full_info: data.teacher });
@@ -233,11 +236,13 @@ export default function YoneticiPage() {
     }
   };
 
-  // ═══ School grouping ═══
-  const studentsBySchool = students.reduce<Record<string, Student[]>>((acc, s) => {
-    const key = s.schoolName || 'Okulsuz';
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(s);
+  // ═══ School -> Class -> Students grouping ═══
+  const studentsBySchoolThenClass = students.reduce<Record<string, Record<string, Student[]>>>((acc, s) => {
+    const schoolKey = s.schoolName || 'Okulsuz';
+    const classKey = s.class_name || 'Sınıfsız';
+    if (!acc[schoolKey]) acc[schoolKey] = {};
+    if (!acc[schoolKey][classKey]) acc[schoolKey][classKey] = [];
+    acc[schoolKey][classKey].push(s);
     return acc;
   }, {});
 
@@ -521,51 +526,85 @@ export default function YoneticiPage() {
 
             {loading ? (
               <div className="text-center py-12 text-gray-400">Yükleniyor...</div>
-            ) : Object.keys(studentsBySchool).length === 0 ? (
+            ) : Object.keys(studentsBySchoolThenClass).length === 0 ? (
               <div className="text-center py-12 text-gray-400">Kayıtlı öğrenci bulunmuyor.</div>
             ) : (
               <div className="grid gap-3">
-                {Object.entries(studentsBySchool).map(([schoolName, schoolStudents]) => (
-                  <div key={schoolName} className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
-                    <button
-                      onClick={() => setOpenSchool(openSchool === schoolName ? null : schoolName)}
-                      className="w-full flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-                          <FolderOpen className="w-5 h-5 text-amber-600" />
-                        </div>
-                        <div className="text-left">
-                          <h4 className="text-[14px] font-bold text-[#0f2847]">{schoolName}</h4>
-                          <p className="text-[12px] text-gray-400">{schoolStudents.length} öğrenci</p>
-                        </div>
-                      </div>
-                      <ChevronRight className={`w-5 h-5 text-gray-300 transition-transform duration-200 ${openSchool === schoolName ? 'rotate-90' : ''}`} />
-                    </button>
-
-                    {openSchool === schoolName && (
-                      <div className="border-t border-gray-100 divide-y divide-gray-50">
-                        {schoolStudents.map((s) => (
-                          <div key={s.id} className="flex items-center justify-between px-4 py-3 hover:bg-gray-50/50 transition-colors">
-                            <button onClick={() => loadStudentReports(s)} className="flex items-center gap-3 text-left flex-1 min-w-0">
-                              <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
-                                <GraduationCap className="w-4 h-4 text-violet-600" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-[13px] font-semibold text-[#0f2847] truncate">{s.full_name}</p>
-                                <p className="text-[11px] text-gray-400">{s.grade ? `${s.grade}. Sınıf` : ''} · {s.testCount} test · {s.reportCount} rapor</p>
-                              </div>
-                              <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
-                            </button>
-                            <div className="ml-2 shrink-0">
-                              <DeleteButton onDelete={() => handleDeleteUser(s.id, 'student')} label="Sil" />
-                            </div>
+                {Object.entries(studentsBySchoolThenClass).map(([schoolName, classMap]) => {
+                  const schoolStudentCount = Object.values(classMap).reduce((sum, arr) => sum + arr.length, 0);
+                  const classCount = Object.keys(classMap).length;
+                  return (
+                    <div key={schoolName} className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
+                      {/* ── OKUL KLASÖRÜ ── */}
+                      <button
+                        onClick={() => { setOpenSchool(openSchool === schoolName ? null : schoolName); setOpenClass(null); }}
+                        className="w-full flex items-center justify-between p-4 hover:bg-amber-50/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                            <FolderOpen className="w-5 h-5 text-amber-600" />
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                          <div className="text-left">
+                            <h4 className="text-[14px] font-bold text-[#0f2847]">{schoolName}</h4>
+                            <p className="text-[12px] text-gray-400">{classCount} sınıf · {schoolStudentCount} öğrenci</p>
+                          </div>
+                        </div>
+                        <ChevronRight className={`w-5 h-5 text-gray-300 transition-transform duration-200 ${openSchool === schoolName ? 'rotate-90' : ''}`} />
+                      </button>
+
+                      {/* ── SINIF KLASÖRLERİ ── */}
+                      {openSchool === schoolName && (
+                        <div className="border-t border-gray-100 bg-gray-50/30">
+                          {Object.entries(classMap).map(([className, classStudents]) => {
+                            const classKey = `${schoolName}::${className}`;
+                            return (
+                              <div key={classKey} className="border-b border-gray-100 last:border-b-0">
+                                <button
+                                  onClick={() => setOpenClass(openClass === classKey ? null : classKey)}
+                                  className="w-full flex items-center justify-between px-4 py-3 pl-8 hover:bg-sky-50/40 transition-colors"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center">
+                                      <FolderOpen className="w-4 h-4 text-sky-600" />
+                                    </div>
+                                    <div className="text-left">
+                                      <h5 className="text-[13px] font-bold text-[#0f2847]">{className}</h5>
+                                      <p className="text-[11px] text-gray-400">{classStudents.length} öğrenci</p>
+                                    </div>
+                                  </div>
+                                  <ChevronRight className={`w-4 h-4 text-gray-300 transition-transform duration-200 ${openClass === classKey ? 'rotate-90' : ''}`} />
+                                </button>
+
+                                {/* ── ÖĞRENCİLER ── */}
+                                {openClass === classKey && (
+                                  <div className="bg-white/40 divide-y divide-gray-50">
+                                    {classStudents.map((s) => (
+                                      <div key={s.id} className="flex items-center justify-between px-4 py-3 pl-14 hover:bg-violet-50/40 transition-colors">
+                                        <button onClick={() => loadStudentReports(s)} className="flex items-center gap-3 text-left flex-1 min-w-0">
+                                          <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
+                                            <GraduationCap className="w-4 h-4 text-violet-600" />
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-[13px] font-semibold text-[#0f2847] truncate">{s.full_name}</p>
+                                            <p className="text-[11px] text-gray-400">{s.grade ? `${s.grade}. Sınıf` : ''} · {s.testCount} test · {s.reportCount} rapor</p>
+                                          </div>
+                                          <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+                                        </button>
+                                        <div className="ml-2 shrink-0">
+                                          <DeleteButton onDelete={() => handleDeleteUser(s.id, 'student')} label="Sil" />
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
