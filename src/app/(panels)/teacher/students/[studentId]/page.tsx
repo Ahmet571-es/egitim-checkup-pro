@@ -726,7 +726,7 @@ export default function StudentDetailPage() {
                                       )}
                                     </div>
                                   </div>
-                                  <div className="flex gap-1.5">
+                                  <div className="flex flex-wrap gap-1.5">
                                     <button
                                       onClick={() => setViewer({
                                         title: `${student.full_name} — Harmanlanmış Rapor (${formatDate(hr.generated_at)})`,
@@ -736,6 +736,24 @@ export default function StudentDetailPage() {
                                     >
                                       <Eye className="w-3 h-3" /> Görüntüle
                                     </button>
+                                    <a
+                                      href={`/api/export/holistic/pdf?id=${encodeURIComponent(hr.id)}`}
+                                      target="_blank"
+                                      rel="noopener"
+                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white text-rose-700 text-[11px] font-bold border border-rose-200 hover:bg-rose-50 transition"
+                                      title="PDF olarak indir"
+                                    >
+                                      <Download className="w-3 h-3" /> PDF
+                                    </a>
+                                    <a
+                                      href={`/api/export/holistic/docx?id=${encodeURIComponent(hr.id)}`}
+                                      target="_blank"
+                                      rel="noopener"
+                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white text-sky-700 text-[11px] font-bold border border-sky-200 hover:bg-sky-50 transition"
+                                      title="Word (DOCX) olarak indir"
+                                    >
+                                      <Download className="w-3 h-3" /> DOCX
+                                    </a>
                                     <button
                                       onClick={() => deleteHolistic(hr.id)}
                                       disabled={busyKey === 'holistic-delete-' + hr.id}
