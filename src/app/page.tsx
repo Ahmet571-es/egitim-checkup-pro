@@ -27,11 +27,11 @@ const TESTS = [
 const STEPS = [
   { num: '01', title: 'Okulunuzu Kaydedin', desc: 'Kurulum sadece 5 dakika. Okulunuzu tanımlayın ve sınıflarınızı oluşturun.', gradient: 'from-emerald-500 to-teal-600', icon: School },
   { num: '02', title: 'Testleri Atayın', desc: 'Sınıflarınıza testleri tek tıkla atayın. Öğrenciler kendi panellerinden çözer.', gradient: 'from-sky-500 to-blue-600', icon: ClipboardList },
-  { num: '03', title: 'AI Raporunu Alın', desc: 'Yapay zekâ destekli detaylı analizler ve kişiselleştirilmiş öneriler.', gradient: 'from-violet-500 to-purple-600', icon: Sparkles },
+  { num: '03', title: 'Test Analiz Raporlarınızı Alın', desc: 'Detaylı analizler ve kişiselleştirilmiş öneriler.', gradient: 'from-violet-500 to-purple-600', icon: Sparkles },
 ];
 
 const HIGHLIGHTS = [
-  { icon: Brain, title: 'AI Destekli Analiz', desc: 'Claude AI ile derinlemesine öğrenci profilleme', color: 'text-violet-600 bg-violet-50 border-violet-200' },
+  { icon: Brain, title: 'Derinlemesine Analiz', desc: 'Kapsamlı öğrenci profilleme ve değerlendirme', color: 'text-violet-600 bg-violet-50 border-violet-200' },
   { icon: TrendingUp, title: 'Gelişim Takibi', desc: 'Longitudinal veri ile öğrenci gelişimini izleyin', color: 'text-sky-600 bg-sky-50 border-sky-200' },
   { icon: Award, title: 'Koçluk Sistemi', desc: 'Haftalık görevler ve gamification ile motivasyon', color: 'text-amber-600 bg-amber-50 border-amber-200' },
   { icon: UserCheck, title: '4 Farklı Panel', desc: 'Admin, okul, öğretmen ve öğrenci panelleri', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
@@ -154,7 +154,7 @@ export default function LandingPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-28 text-center">
           <div className="hero-badge inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/70 backdrop-blur-lg border border-white/50 shadow-sm mb-8">
             <Sparkles className="w-4 h-4 text-emerald-500" />
-            <span className="text-[13px] font-semibold text-gray-600">10 Bilimsel Test · AI Analiz · 4 Panel</span>
+            <span className="text-[13px] font-semibold text-gray-600">10 Bilimsel Test · Detaylı Analiz · 4 Panel</span>
           </div>
 
           <h1 data-testid="hero-title" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#0f2847] leading-tight tracking-tight max-w-4xl mx-auto">
@@ -166,7 +166,7 @@ export default function LandingPage() {
           </h1>
 
           <div className="hero-subtitle mt-6 text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed min-h-[56px] flex flex-wrap items-center justify-center gap-x-1.5">
-            <span>Psikometrik testler ve yapay zekâ ile</span>
+            <span>Psikometrik testler ile öğrencilerinizin</span>
             <TypingText
               words={['potansiyeli keşfedin', 'kariyer yolunu çizin', 'gelişimi takip edin', 'öğrenme stilini belirleyin']}
               className="text-emerald-600 font-semibold"
@@ -198,7 +198,7 @@ export default function LandingPage() {
           <div className="hero-trust mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-gray-400">
             <span className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /> KVKK Uyumlu</span>
             <span className="hidden sm:inline w-1 h-1 rounded-full bg-gray-300" />
-            <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> AI Destekli Raporlar</span>
+            <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Detaylı Analiz Raporları</span>
             <span className="hidden sm:inline w-1 h-1 rounded-full bg-gray-300" />
             <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Bilimsel Temelli</span>
           </div>
@@ -320,11 +320,10 @@ export default function LandingPage() {
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847]">Güvenle Kullanın</h2>
           <p className="mt-3 text-gray-500 text-lg">Eğitim psikolojisi standartlarına uygun altyapı</p>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { icon: '🔒', title: 'KVKK Uyumlu', desc: 'Veriler güvenle saklanır', gradient: 'from-sky-500 to-blue-600' },
             { icon: '🧪', title: 'Bilimsel Testler', desc: 'Geçerlilik-güvenirlik kanıtlı', gradient: 'from-violet-500 to-purple-600' },
-            { icon: '🤖', title: 'AI Destekli', desc: 'Claude AI ile derinlemesine analiz', gradient: 'from-emerald-500 to-teal-600' },
             { icon: '📊', title: 'Anlık Raporlar', desc: '3 format: öğretmen · öğrenci · veli', gradient: 'from-amber-500 to-orange-600' },
           ].map((item, i) => (
             <div
@@ -349,7 +348,7 @@ export default function LandingPage() {
           <div className="absolute top-[-50px] right-[-50px] w-[200px] h-[200px] rounded-full bg-emerald-500/10 blur-2xl" />
           <div className="absolute bottom-[-30px] left-[-30px] w-[150px] h-[150px] rounded-full bg-teal-500/10 blur-2xl" />
           <h2 className="relative text-2xl sm:text-3xl font-extrabold text-white mb-4">Öğrencilerinizin Potansiyelini Keşfedin</h2>
-          <p className="relative text-gray-300 max-w-lg mx-auto">Bilimsel testler ve yapay zekâ analizleri ile her öğrenciyi bireysel olarak tanıyın.</p>
+          <p className="relative text-gray-300 max-w-lg mx-auto">Bilimsel testler ve detaylı analizler ile her öğrenciyi bireysel olarak tanıyın.</p>
         </div>
       </section>
 
