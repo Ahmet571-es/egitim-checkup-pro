@@ -12,7 +12,12 @@ export const maxDuration = 300;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { student_id, test_result_id, report_type } = body;
+    const { student_id, test_result_id, report_type, selected_test_types } = body as {
+      student_id?: string;
+      test_result_id?: string;
+      report_type?: string;
+      selected_test_types?: string[];
+    };
 
     if (!student_id) {
       return NextResponse.json({ error: 'student_id zorunludur.' }, { status: 400 });
@@ -65,7 +70,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Bu öğrenci sizin okulunuzda değil.' }, { status: 403 });
     }
 
-    // --- BÜTÜNCÜL RAPOR ---
+    // --- BÜTÜNCÜL (HARMANLANMIŞ) RAPOR ---
     if (report_type === 'holistic') {
       // Tüm tamamlanan test sonuçlarını çek
       const { data: results, error: resultsErr } = await admin
@@ -83,7 +88,36 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Öğrencinin tamamlanmış testi yok.' }, { status: 400 });
       }
 
-      const testDataList = results.map(r => ({
+      // Test type normalize (tire ↔ alt çizgi)
+      const normalize = (s: string) => s.replace(/-/g, '_');
+
+      // Seçili testler varsa filtrele, yoksa hepsini kullan (geriye uyum)
+      let filteredResults = results;
+      let selectedTypes: string[] = [];
+
+      if (Array.isArray(selected_test_types) && selected_test_types.length > 0) {
+        const selectedNormalized = new Set(selected_test_types.map(normalize));
+        filteredResults = results.filter(r => selectedNormalized.has(normalize(r.test_type)));
+
+        if (filteredResults.length < 2) {
+          return NextResponse.json(
+            { error: 'Harmanlanmış rapor için seçilen testlerden en az 2 tanesi öğrencide tamamlanmış olmalıdır.' },
+            { status: 400 }
+          );
+        }
+        selectedTypes = Array.from(new Set(filteredResults.map(r => normalize(r.test_type))));
+      } else {
+        // Geriye uyum: tüm testler kullanılır
+        if (results.length < 2) {
+          return NextResponse.json(
+            { error: 'Harmanlanmış rapor için en az 2 tamamlanmış test gerekir.' },
+            { status: 400 }
+          );
+        }
+        selectedTypes = Array.from(new Set(results.map(r => normalize(r.test_type))));
+      }
+
+      const testDataList = filteredResults.map(r => ({
         test_name: r.test_type,
         scores: r.scores ?? {},
         date: r.completed_at,
@@ -98,23 +132,37 @@ export async function POST(request: NextRequest) {
 
       const report = await generateAIReport(prompt);
 
-      // Admin client ile raporu kaydet (RLS bypass — outer scope admin)
-      if (results[0]?.id) {
-        const { error: saveErr } = await admin
-          .from('test_results')
-          .update({
-            ai_report: report,
-            ai_report_generated_at: new Date().toISOString(),
-          })
-          .eq('id', results[0].id);
+      // holistic_reports tablosuna YENİ KAYIT olarak ekle (üzerine yazmaz, geçmiş korunur)
+      const { data: inserted, error: saveErr } = await admin
+        .from('holistic_reports')
+        .insert({
+          student_id,
+          school_id: student.school_id || null,
+          report_text: report,
+          selected_test_types: selectedTypes,
+          test_count: filteredResults.length,
+          generated_at: new Date().toISOString(),
+        })
+        .select('id, generated_at')
+        .single();
 
-        if (saveErr) {
-          console.error('[holistic save]', saveErr.message);
-          return NextResponse.json({ success: true, report, warning: 'Rapor üretildi ancak kaydedilemedi: ' + saveErr.message });
-        }
+      if (saveErr) {
+        console.error('[holistic save]', saveErr.message);
+        return NextResponse.json({
+          success: true,
+          report,
+          warning: 'Rapor üretildi ancak kaydedilemedi: ' + saveErr.message,
+        });
       }
 
-      return NextResponse.json({ success: true, report });
+      return NextResponse.json({
+        success: true,
+        report,
+        id: inserted?.id,
+        generated_at: inserted?.generated_at,
+        selected_test_types: selectedTypes,
+        test_count: filteredResults.length,
+      });
     }
 
     // --- TEKİL RAPOR ---

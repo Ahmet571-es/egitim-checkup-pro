@@ -167,18 +167,31 @@ export async function POST(req: NextRequest) {
       // Atanmış ama henüz tamamlanmamış testler (uyarı için)
       const activeAssignments = assignedTests.filter((t) => !completedTypes.has(normalize(t)));
 
-      // Bütüncül (Harmanlanmış) Rapor — holistic_reports tablosundan
+      // Bütüncül (Harmanlanmış) Rapor — holistic_reports tablosundan (çoklu kayıt)
       let holisticReport: { text: string; generated_at: string } | null = null;
+      let holisticReports: Array<{
+        id: string;
+        text: string;
+        selected_test_types: string[];
+        test_count: number;
+        generated_at: string;
+      }> = [];
       try {
-        const { data: hr } = await admin
+        const { data: hrList } = await admin
           .from('holistic_reports')
-          .select('report_text, generated_at')
+          .select('id, report_text, selected_test_types, test_count, generated_at')
           .eq('student_id', studentId)
-          .order('generated_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (hr?.report_text) {
-          holisticReport = { text: hr.report_text, generated_at: hr.generated_at };
+          .order('generated_at', { ascending: false });
+        if (Array.isArray(hrList) && hrList.length > 0) {
+          holisticReports = hrList.map(hr => ({
+            id: hr.id,
+            text: hr.report_text,
+            selected_test_types: Array.isArray(hr.selected_test_types) ? hr.selected_test_types : [],
+            test_count: hr.test_count || 0,
+            generated_at: hr.generated_at,
+          }));
+          // Geriye uyum: en yeni raporu tekil field olarak da ver
+          holisticReport = { text: hrList[0].report_text, generated_at: hrList[0].generated_at };
         }
       } catch { /* tablo yoksa sessizce geç */ }
 
@@ -249,6 +262,7 @@ export async function POST(req: NextRequest) {
         pendingTypes,
         activeAssignments,
         holisticReport,
+        holisticReports,
         integratedReport: ir || null,
         advanced,
       });

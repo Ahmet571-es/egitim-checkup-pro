@@ -8,7 +8,8 @@ import ReportRenderer from '@/components/ReportRenderer';
 import {
   ArrowLeft, GraduationCap, CheckCircle2, Circle, Bell, AlertCircle,
   FileText, BookOpen, X, Send, Loader2, Sparkles, Eye, Download, RefreshCw,
-  Brain, Layers, Shield, Link2, Briefcase, Lock, TrendingUp
+  Brain, Layers, Shield, Link2, Briefcase, Lock, TrendingUp,
+  Trash2, ChevronDown, ChevronUp, AlertTriangle, CheckSquare, Square
 } from 'lucide-react';
 
 const TEST_LABELS: Record<string, string> = {
@@ -60,6 +61,14 @@ interface HolisticReport {
   generated_at: string;
 }
 
+interface HolisticHistoryItem {
+  id: string;
+  text: string;
+  selected_test_types: string[];
+  test_count: number;
+  generated_at: string;
+}
+
 interface RiskDimension { key: string; name: string; score: number | null; weight: number; available: boolean; }
 interface RiskFlag { id: string; message: string; severity: 'kritik' | 'uyarı'; icon: string; }
 interface RiskScore {
@@ -96,6 +105,11 @@ export default function StudentDetailPage() {
   const [pending, setPending] = useState<string[]>([]);
   const [activeAssignments, setActiveAssignments] = useState<string[]>([]);
   const [holistic, setHolistic] = useState<HolisticReport | null>(null);
+  const [holisticHistory, setHolisticHistory] = useState<HolisticHistoryItem[]>([]);
+  const [holisticExpanded, setHolisticExpanded] = useState(false);
+  const [holisticSelected, setHolisticSelected] = useState<Set<string>>(new Set());
+  const [holisticConfirmOpen, setHolisticConfirmOpen] = useState(false);
+  const [holisticHistoryOpen, setHolisticHistoryOpen] = useState(false);
   const [integrated, setIntegrated] = useState<IntegratedReport | null>(null);
   const [advanced, setAdvanced] = useState<AdvancedAnalysis>({ unlocked: false });
 
@@ -124,6 +138,7 @@ export default function StudentDetailPage() {
       setPending(data.pendingTypes || []);
       setActiveAssignments(data.activeAssignments || []);
       setHolistic(data.holisticReport || null);
+      setHolisticHistory(Array.isArray(data.holisticReports) ? data.holisticReports : []);
       setIntegrated(data.integratedReport || null);
       setAdvanced(data.advanced || { unlocked: false });
       setSelected(new Set());
@@ -213,21 +228,29 @@ export default function StudentDetailPage() {
     setBusyKey(null);
   };
 
-  // ═══ Bütüncül (Harmanlanmış) rapor üret ═══
+  // ═══ Bütüncül (Harmanlanmış) rapor üret — SEÇİLİ TESTLERLE ═══
   const generateHolistic = async () => {
     setBusyKey('holistic');
     setError('');
     setSuccess('');
+    setHolisticConfirmOpen(false);
     try {
+      const selectedTypes = Array.from(holisticSelected);
       const res = await secureFetch('/api/reports/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ student_id: studentId, report_type: 'holistic' }),
+        body: JSON.stringify({
+          student_id: studentId,
+          report_type: 'holistic',
+          selected_test_types: selectedTypes,
+        }),
       });
       const data = await res.json();
       if (data.success && data.report) {
-        setSuccess('✅ Harmanlanmış rapor üretildi.');
-        setTimeout(() => setSuccess(''), 3000);
+        setSuccess(`✅ ${selectedTypes.length} test için harmanlanmış rapor üretildi.`);
+        setTimeout(() => setSuccess(''), 3500);
+        setHolisticSelected(new Set());
+        setHolisticExpanded(false);
         await loadDetail();
       } else {
         setError(data.error || 'Rapor üretilemedi.');
@@ -236,6 +259,48 @@ export default function StudentDetailPage() {
       setError((e as Error).message);
     }
     setBusyKey(null);
+  };
+
+  // ═══ Tek bir harmanlanmış raporu sil ═══
+  const deleteHolistic = async (id: string) => {
+    if (!confirm('Bu harmanlanmış raporu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) return;
+    setBusyKey('holistic-delete-' + id);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await secureFetch(`/api/reports/holistic?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccess('✅ Rapor silindi.');
+        setTimeout(() => setSuccess(''), 3000);
+        await loadDetail();
+      } else {
+        setError(data.error || 'Rapor silinemedi.');
+      }
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setBusyKey(null);
+  };
+
+  // ═══ Checkbox toggle ═══
+  const toggleHolisticTest = (testType: string) => {
+    setHolisticSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(testType)) next.delete(testType);
+      else next.add(testType);
+      return next;
+    });
+  };
+
+  const selectAllHolistic = () => {
+    setHolisticSelected(new Set(completed.map(c => c.test_type)));
+  };
+
+  const clearAllHolistic = () => {
+    setHolisticSelected(new Set());
   };
 
   // ═══ Entegre 3'lü rapor üret ═══
@@ -510,7 +575,7 @@ export default function StudentDetailPage() {
               {/* Çoklu Test Raporları (2+ test gerekli) */}
               {completed.length >= 2 && (
                 <>
-                  {/* HARMANLANMIŞ (BÜTÜNCÜL) RAPOR */}
+                  {/* HARMANLANMIŞ (BÜTÜNCÜL) RAPOR — ÇOKLU SEÇİM DESTEKLİ */}
                   <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl p-5 shadow-sm mb-4">
                     <div className="flex items-start gap-3 mb-3">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md shrink-0">
@@ -518,41 +583,174 @@ export default function StudentDetailPage() {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-[15px] font-extrabold text-[#0f2847]">Harmanlanmış (Bütüncül) Rapor</h3>
-                        <p className="text-[12px] text-purple-700 mt-0.5">Tüm testleri birleştiren bütüncül analiz.</p>
+                        <p className="text-[12px] text-purple-700 mt-0.5">Seçtiğiniz testleri birleştiren bütüncül analiz. İstediğiniz test kombinasyonu için ayrı rapor üretebilirsiniz.</p>
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2" style={{ paddingLeft: '52px' }}>
-                      {!holistic ? (
-                        <button
-                          onClick={generateHolistic}
-                          disabled={busyKey === 'holistic'}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-[12px] font-bold shadow-md hover:shadow-lg disabled:opacity-60 transition-all"
-                        >
-                          {busyKey === 'holistic' ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Üretiliyor...</> : <><Sparkles className="w-3.5 h-3.5" /> Harmanlanmış Rapor Üret</>}
-                        </button>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => setViewer({
-                              title: `${student.full_name} — Harmanlanmış Rapor`,
-                              text: holistic.text,
-                            })}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white text-purple-700 text-[12px] font-bold border border-purple-300 hover:bg-purple-50 transition-all"
-                          >
-                            <Eye className="w-3.5 h-3.5" /> Görüntüle
-                          </button>
-                          <button
-                            onClick={generateHolistic}
-                            disabled={busyKey === 'holistic'}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white text-gray-600 text-[12px] font-bold border border-gray-300 hover:bg-gray-50 disabled:opacity-60 transition-all"
-                          >
-                            {busyKey === 'holistic' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Yenile
-                          </button>
-                          <span className="text-[11px] text-purple-600 self-center">Üretildi: {formatDate(holistic.generated_at)}</span>
-                        </>
-                      )}
+                    {/* Accordion Toggle */}
+                    <div style={{ paddingLeft: '52px' }}>
+                      <button
+                        onClick={() => setHolisticExpanded(v => !v)}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white text-purple-700 text-[12px] font-bold border border-purple-300 hover:bg-purple-50 transition-all"
+                      >
+                        {holisticExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                        {holisticExpanded ? 'Test Seçimini Gizle' : 'Test Seç ve Harmanla'}
+                        {holisticSelected.size > 0 && !holisticExpanded && (
+                          <span className="ml-1 px-1.5 py-0.5 rounded-full bg-purple-600 text-white text-[10px]">
+                            {holisticSelected.size} seçili
+                          </span>
+                        )}
+                      </button>
                     </div>
+
+                    {/* Test Seçim Listesi */}
+                    {holisticExpanded && (
+                      <div className="mt-3 bg-white rounded-xl border border-purple-200 p-4" style={{ marginLeft: '52px' }}>
+                        <div className="flex items-center justify-between mb-3 pb-3 border-b border-purple-100">
+                          <div className="text-[12px] font-bold text-[#0f2847]">
+                            Harmanlanacak testleri seçin
+                            <span className="ml-2 text-[11px] font-normal text-purple-600">
+                              ({holisticSelected.size} / {completed.length} seçili)
+                            </span>
+                          </div>
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={selectAllHolistic}
+                              className="text-[11px] font-semibold text-purple-700 hover:text-purple-900 px-2 py-1 rounded hover:bg-purple-50 transition"
+                            >
+                              Tümünü Seç
+                            </button>
+                            <button
+                              onClick={clearAllHolistic}
+                              className="text-[11px] font-semibold text-gray-600 hover:text-gray-900 px-2 py-1 rounded hover:bg-gray-50 transition"
+                            >
+                              Temizle
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                          {completed.map(ct => {
+                            const isSelected = holisticSelected.has(ct.test_type);
+                            return (
+                              <button
+                                key={ct.id}
+                                onClick={() => toggleHolisticTest(ct.test_type)}
+                                className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-left transition-all ${
+                                  isSelected
+                                    ? 'bg-purple-50 border-purple-400 text-purple-900 shadow-sm'
+                                    : 'bg-white border-gray-200 text-gray-700 hover:border-purple-300 hover:bg-purple-50/50'
+                                }`}
+                              >
+                                {isSelected ? (
+                                  <CheckSquare className="w-4 h-4 text-purple-600 shrink-0" />
+                                ) : (
+                                  <Square className="w-4 h-4 text-gray-400 shrink-0" />
+                                )}
+                                <span className="text-[12px] font-semibold flex-1 truncate">{labelOf(ct.test_type)}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Bilgi + Üret Butonu */}
+                        {holisticSelected.size < 2 ? (
+                          <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                            <p className="text-[12px] text-amber-800">
+                              Harmanlama için en az <strong>2 test</strong> seçmelisiniz.
+                            </p>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setHolisticConfirmOpen(true)}
+                            disabled={busyKey === 'holistic'}
+                            className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-[13px] font-bold shadow-md hover:shadow-lg disabled:opacity-60 transition-all"
+                          >
+                            {busyKey === 'holistic' ? (
+                              <><Loader2 className="w-4 h-4 animate-spin" /> Üretiliyor...</>
+                            ) : (
+                              <><Sparkles className="w-4 h-4" /> Seçili {holisticSelected.size} Testi Harmanla</>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* GEÇMİŞ RAPORLAR LİSTESİ */}
+                    {holisticHistory.length > 0 && (
+                      <div className="mt-3" style={{ marginLeft: '52px' }}>
+                        <button
+                          onClick={() => setHolisticHistoryOpen(v => !v)}
+                          className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-white border border-purple-200 hover:bg-purple-50 transition"
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-purple-600" />
+                            <span className="text-[12px] font-bold text-[#0f2847]">
+                              Geçmiş Harmanlanmış Raporlar
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold">
+                              {holisticHistory.length}
+                            </span>
+                          </div>
+                          {holisticHistoryOpen ? <ChevronUp className="w-4 h-4 text-purple-600" /> : <ChevronDown className="w-4 h-4 text-purple-600" />}
+                        </button>
+
+                        {holisticHistoryOpen && (
+                          <div className="mt-2 space-y-2">
+                            {holisticHistory.map((hr, idx) => (
+                              <div key={hr.id} className="bg-white rounded-xl border border-purple-200 p-3 hover:shadow-sm transition">
+                                <div className="flex items-start justify-between gap-3 flex-wrap">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1.5">
+                                      <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-[10px] font-bold">
+                                        #{holisticHistory.length - idx}
+                                      </span>
+                                      <span className="text-[12px] font-semibold text-[#0f2847]">
+                                        {formatDate(hr.generated_at)}
+                                      </span>
+                                      <span className="text-[11px] text-purple-600">
+                                        {hr.test_count} test
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1">
+                                      {hr.selected_test_types.slice(0, 6).map(t => (
+                                        <span key={t} className="px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-semibold">
+                                          {labelOf(t)}
+                                        </span>
+                                      ))}
+                                      {hr.selected_test_types.length > 6 && (
+                                        <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[10px] font-semibold">
+                                          +{hr.selected_test_types.length - 6}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-1.5">
+                                    <button
+                                      onClick={() => setViewer({
+                                        title: `${student.full_name} — Harmanlanmış Rapor (${formatDate(hr.generated_at)})`,
+                                        text: hr.text,
+                                      })}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white text-purple-700 text-[11px] font-bold border border-purple-300 hover:bg-purple-50 transition"
+                                    >
+                                      <Eye className="w-3 h-3" /> Görüntüle
+                                    </button>
+                                    <button
+                                      onClick={() => deleteHolistic(hr.id)}
+                                      disabled={busyKey === 'holistic-delete-' + hr.id}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white text-red-600 text-[11px] font-bold border border-red-200 hover:bg-red-50 disabled:opacity-60 transition"
+                                    >
+                                      {busyKey === 'holistic-delete-' + hr.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* ENTEGRE 3'LÜ RAPOR */}
@@ -860,6 +1058,79 @@ export default function StudentDetailPage() {
               )}
             </>
           )}
+        </div>
+      )}
+
+      {/* HARMANLANMIŞ RAPOR ONAY MODAL */}
+      {holisticConfirmOpen && (
+        <div
+          onClick={() => setHolisticConfirmOpen(false)}
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full"
+          >
+            <div className="px-6 py-5 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-[16px] font-extrabold text-[#0f2847]">Yeni Harmanlanmış Rapor Üretilecek</h3>
+              </div>
+            </div>
+
+            <div className="px-6 py-5 space-y-4">
+              <p className="text-[13px] text-gray-700 leading-relaxed">
+                Seçtiğiniz <strong className="text-purple-700">{holisticSelected.size} test</strong> için yeni bir harmanlanmış rapor üretilecek.
+                Daha önce üretilmiş harmanlanmış raporlar <strong>silinmez</strong>, bu yeni bir kayıt olarak eklenir ve geçmiş listede görüntülenir.
+              </p>
+
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                <div className="text-[11px] font-bold text-purple-700 mb-2">SEÇİLİ TESTLER:</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {Array.from(holisticSelected).map(t => (
+                    <span key={t} className="px-2 py-0.5 rounded-full bg-white border border-purple-300 text-purple-800 text-[11px] font-semibold">
+                      {labelOf(t)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-[12px] text-amber-800">
+                  Her harman üretimi AI API harcaması yapar. Gereksiz tekrarlardan kaçının.
+                </p>
+              </div>
+
+              {holisticHistory.length > 0 && (
+                <p className="text-[11px] text-gray-500 italic">
+                  Şu an bu öğrenci için <strong>{holisticHistory.length}</strong> harmanlanmış rapor mevcut. Yeni üretim ile {holisticHistory.length + 1}&apos;e çıkacak.
+                </p>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setHolisticConfirmOpen(false)}
+                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-[12px] font-bold hover:bg-gray-200 transition-all"
+              >
+                İptal
+              </button>
+              <button
+                onClick={generateHolistic}
+                disabled={busyKey === 'holistic'}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-[12px] font-bold shadow-md hover:shadow-lg disabled:opacity-60 transition-all"
+              >
+                {busyKey === 'holistic' ? (
+                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Üretiliyor...</>
+                ) : (
+                  <><Sparkles className="w-3.5 h-3.5" /> Devam Et ve Üret</>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
