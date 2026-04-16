@@ -144,10 +144,10 @@ export async function proxy(request: NextRequest) {
   if (role === 'teacher') {
     const isApproved = user.user_metadata?.is_approved;
     if (isApproved === false) {
-      // Oturumu kapat ve login'e yönlendir
+      // Oturumu kapat ve ÖĞRETMEN login'e yönlendir
       await supabase.auth.signOut();
       const url = request.nextUrl.clone();
-      url.pathname = '/login';
+      url.pathname = '/login/ogretmen';
       url.searchParams.set('pending', '1');
       return NextResponse.redirect(url);
     }
