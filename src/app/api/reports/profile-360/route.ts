@@ -106,7 +106,7 @@ Her yorumu parantez içinde kaynak test ve puan ile destekle.
 Abartısız, dengeli, bilimsel bir dil kullan.
 Tıbbi tanı terimi kullanma.`;
 
-    const report = await generateAIReport(prompt);
+    const report = await generateAIReport(prompt, { maxTokens: 10000 });
     return NextResponse.json({ report });
   } catch {
     return NextResponse.json(

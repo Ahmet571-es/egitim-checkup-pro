@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         testDataList,
       });
 
-      const report = await generateAIReport(prompt);
+      const report = await generateAIReport(prompt, { maxTokens: 20000 });
 
       // holistic_reports tablosuna YENİ KAYIT olarak ekle (üzerine yazmaz, geçmiş korunur)
       const { data: inserted, error: saveErr } = await admin
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
       testData: testResult.scores ?? {},
     });
 
-    const report = await generateAIReport(prompt);
+    const report = await generateAIReport(prompt, { maxTokens: 12000 });
 
     // Admin client ile raporu kaydet (RLS bypass — outer scope admin)
     const { error: updateErr } = await admin
@@ -288,7 +288,7 @@ export async function PUT(request: NextRequest) {
       testData: testResult.scores ?? {},
     });
 
-    const report = await generateAIReport(prompt);
+    const report = await generateAIReport(prompt, { maxTokens: 12000 });
 
     // Admin client ile kaydet (RLS bypass — outer scope admin)
     const { error: saveErr } = await admin
