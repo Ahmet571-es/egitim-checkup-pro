@@ -440,10 +440,8 @@ export default function TeacherRegisterPage() {
           )}
 
           <p className="text-center text-sm text-gray-500 mt-6">
-            Öğrenci misiniz?{' '}
-            <Link href="/register" className="text-emerald-600 font-semibold hover:underline">Öğrenci Kayıt</Link>
-            {' · '}
-            <Link href="/login" className="text-emerald-600 font-semibold hover:underline">Giriş Yap</Link>
+            Hesabınız var mı?{' '}
+            <Link href="/login/ogretmen" className="text-emerald-600 font-semibold hover:underline">Giriş Yap</Link>
           </p>
         </div>
       </div>
