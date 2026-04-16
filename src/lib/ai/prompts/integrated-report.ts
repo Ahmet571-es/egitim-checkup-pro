@@ -93,8 +93,18 @@ Testleri aşağıdaki KESIN sıra ile raporla. Öğrenci testleri karışık sı
 - Potansiyel ile mevcut durumu ilişkilendirirken somut örnekler ver
 - Tavsiyeler somut, uygulanabilir ve küçük küçük olsun
 - Markdown formatında yaz (başlıklar, tablolar, madde işaretleri)
-- Rapor bir A4 dosya olarak düşünüldüğünde 12-15 sayfa civarında olsun
 - TIBBİ TANI YASAĞI: DEHB, depresyon, anksiyete bozukluğu gibi klinik terimler kullanma
+
+## UZUNLUK DİSİPLİNİ (KRİTİK — BU KURALLARA KESİN UYUN)
+- **Toplam rapor:** 2000-3000 kelime (katı sınır, aşma)
+- **Her test bölümü:** 200-350 kelime
+- **Birleştirme yorumları:** 80-150 kelime
+- **POTANSİYEL ÖZETİ:** 200-300 kelime
+- **MEVCUT DURUM ÖZETİ:** 200-300 kelime
+- **FİNAL SENTEZ:** 300-500 kelime
+- Her cümle bilgi vermeli — dolgu yok, tekrar yok
+- Aynı bilgiyi farklı yerlerde tekrarlama, çapraz referans ver
+- Raporu MUTLAKA "SONUÇ VE KAPANIŞ" bölümüyle tamamla — yarıda bırakma
 
 ## VAROLAN TEST VERİLERİ
 Aşağıdaki listede sadece öğrencinin ÇÖZÜMÜŞ olduğu testler var. Eğer sıralamada belirtilen bir test listede yoksa o testi ATLA ve bir sonrakine geç.

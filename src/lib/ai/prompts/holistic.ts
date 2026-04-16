@@ -66,7 +66,14 @@ ${JSON.stringify(testDataList, null, 2)}
    - %61-80 → Güçlü alan — sürdürülebilir ve derinleştirilebilir
    - %81-100 → Çok güçlü / baskın alan — yetenek göstergesi
 
-7. **UZUNLUK:** Bu rapor yaklaşık 1200-1500 kelime olmalıdır.
+7. **UZUNLUK DİSİPLİNİ (KRİTİK):**
+   - Rapor toplamı: **1800-2500 kelime** (katı sınır)
+   - Her ana bölüm (1-9): **150-300 kelime**
+   - Her alt bölüm (1.1, 2.3 gibi): **60-120 kelime**
+   - Tablolar: en fazla belirtilen satır sayısı kadar, fazlasını yazma
+   - Tekrar etme — aynı bilgiyi farklı bölümlerde tekrar yazma, çapraz referans ver ("bkz. Bölüm 2.1")
+   - Her cümle bilgi vermeli — dolgu metni yok
+   - Raporu MUTLAKA "Kapanış Notu" ile bitir — yarıda kesme
 
 8. **BİLİMSEL TEMEL:** Bilimsel terim kullandığında parantez içinde yalın Türkçe açıklamasını ekle.
 
@@ -238,12 +245,11 @@ ${JSON.stringify(testDataList, null, 2)}
 | 2 | ... | ... | ... | ... | ⭐⭐⭐⭐⭐ |
 | 3 | ... | ... | ... | ... | ⭐⭐⭐⭐ |
 | 4 | ... | ... | ... | ... | ⭐⭐⭐⭐ |
-| 5 | ... | ... | ... | ... | ⭐⭐⭐⭐ |
+| 5 | ... | ... | ... | ... | ⭐⭐⭐ |
 | 6 | ... | ... | ... | ... | ⭐⭐⭐ |
-| 7 | ... | ... | ... | ... | ⭐⭐⭐ |
-| 8 | ... | ... | ... | ... | ⭐⭐⭐ |
-| 9 | ... | ... | ... | ... | ⭐⭐ |
-| 10 | ... | ... | ... | ... | ⭐⭐ |
+| 7 | ... | ... | ... | ... | ⭐⭐ |
+
+*(Yukarıdaki 7 satırı doldur — daha fazla yazma.)*
 
 **Lise Alan Seçimi Tavsiyesi:**
 

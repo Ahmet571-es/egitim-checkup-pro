@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         testDataList,
       });
 
-      const report = await generateAIReport(prompt, { maxTokens: 20000 });
+      const report = await generateAIReport(prompt, { maxTokens: 24000 });
 
       // holistic_reports tablosuna YENİ KAYIT olarak ekle (üzerine yazmaz, geçmiş korunur)
       const { data: inserted, error: saveErr } = await admin
