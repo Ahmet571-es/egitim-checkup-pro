@@ -25,11 +25,11 @@ const LIKERT5_LABELS = [
 ];
 
 const LIKERT4_LABELS = [
-  { value: 0, label: 'Hiç benzemez', short: '0' },
-  { value: 1, label: 'Biraz benzer', short: '1' },
-  { value: 2, label: 'Oldukça benzer', short: '2' },
-  { value: 3, label: 'Çok benzer', short: '3' },
-  { value: 4, label: 'Tamamen benzer', short: '4' },
+  { value: 0, label: 'Bana hiç uygun değil', short: '0' },
+  { value: 1, label: 'Bana az uygun', short: '1' },
+  { value: 2, label: 'Bana kısmen uygun', short: '2' },
+  { value: 3, label: 'Bana çok uygun', short: '3' },
+  { value: 4, label: 'Bana tamamen uygun', short: '4' },
 ];
 
 /** Madde 16: Interactive question card with hover lift, selection feedback, check icon slide-in */
