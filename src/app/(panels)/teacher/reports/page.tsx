@@ -407,7 +407,7 @@ export default function TeacherReportsPage() {
           <p className="text-gray-500 font-semibold">Henüz size atanmış öğrenci yok.</p>
           <p className="text-gray-400 text-sm mt-2 max-w-md mx-auto">
             Raporları görebilmek için önce sınıf oluşturulmalı ve öğrenciler sınıfınıza atanmalıdır.
-            Okul yöneticinizle iletişime geçin veya "Sınıflarım" sayfasından sınıf oluşturun.
+            Okul yöneticinizle iletişime geçin.
           </p>
         </div>
       )}

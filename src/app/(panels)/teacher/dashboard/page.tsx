@@ -3,7 +3,7 @@
  * Faz 1: Ogrenci Gelisim Takibi eklendi
  */
 import Link from 'next/link';
-import { BookOpen, Users, FileCheck2 } from 'lucide-react';
+import { Users, FileCheck2 } from 'lucide-react';
 import { getCurrentProfile } from '@/lib/actions/auth';
 import { createClient } from '@/lib/supabase/server';
 import StudentTrendSection from './StudentTrendSection';
@@ -21,7 +21,6 @@ export default async function Page() {
   const profile = await getCurrentProfile();
   const firstName = (profile?.full_name || '').split(' ')[0] || 'Öğretmenim';
 
-  let classCount = 0;
   let studentCount = 0;
   let resultCount = 0;
 
@@ -35,7 +34,6 @@ export default async function Page() {
       .eq('teacher_id', profile.id);
 
     const classIds = (classes || []).map((c) => c.id);
-    classCount = classIds.length;
 
     if (classIds.length > 0) {
       // Öğrenci sayısı
@@ -55,16 +53,9 @@ export default async function Page() {
 
   const stats = [
     {
-      label: 'Sınıflarım',
-      value: classCount,
-      href: '/teacher/my-classes',
-      icon: BookOpen,
-      gradient: 'from-emerald-500 to-teal-600',
-    },
-    {
       label: 'Öğrencilerim',
       value: studentCount,
-      href: '/teacher/my-classes',
+      href: '/teacher/results',
       icon: Users,
       gradient: 'from-sky-500 to-blue-600',
     },
@@ -88,7 +79,7 @@ export default async function Page() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {stats.map((s) => {
           const Icon = s.icon;
           return (
