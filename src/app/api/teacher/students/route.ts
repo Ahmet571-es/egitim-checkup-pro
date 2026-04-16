@@ -12,6 +12,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
+import { calculateCorrelation, identifyPatterns } from '@/lib/services/correlation';
+import { calculateRiskScore } from '@/lib/services/riskScore';
+import { matchCareers } from '@/lib/services/careerMatch';
 
 const ALL_TESTS = [
   'enneagram', 'vark', 'holland', 'coklu_zeka', 'sinav_kaygisi',
@@ -161,6 +164,45 @@ export async function POST(req: NextRequest) {
         .limit(1)
         .maybeSingle();
 
+      // ═══ İLERİ ANALİZ ═══
+      // Kural: Yapılan tüm testlerin raporu üretilmişse İleri Analiz açılır
+      // (en az 2 test gerekli — 1 testle korelasyon hesaplanamaz)
+      const allReportsReady = completedTests.length >= 2 && completedTests.every((c) => !!c.ai_report);
+      let advanced: {
+        unlocked: boolean;
+        riskScore?: ReturnType<typeof calculateRiskScore>;
+        correlation?: ReturnType<typeof calculateCorrelation>;
+        patterns?: ReturnType<typeof identifyPatterns>;
+        career?: ReturnType<typeof matchCareers>;
+      } = { unlocked: false };
+
+      if (allReportsReady) {
+        // Her test tipinden EN SON sonucu al (correlation/risk fonksiyonlarının beklediği format)
+        const latestByType = new Map<string, { test_type: string; scores: Record<string, unknown> }>();
+        for (const r of completedTests) {
+          if (!latestByType.has(r.test_type)) {
+            latestByType.set(r.test_type, {
+              test_type: r.test_type,
+              scores: r.scores as Record<string, unknown>,
+            });
+          }
+        }
+        const studentResults = Array.from(latestByType.values());
+
+        try {
+          advanced = {
+            unlocked: true,
+            riskScore: calculateRiskScore(studentResults),
+            correlation: calculateCorrelation(studentResults),
+            patterns: identifyPatterns(studentResults),
+            career: matchCareers(studentResults),
+          };
+        } catch (e) {
+          console.error('[advanced analysis]', e);
+          advanced = { unlocked: false };
+        }
+      }
+
       return NextResponse.json({
         student: {
           id: profile.id,
@@ -181,6 +223,7 @@ export async function POST(req: NextRequest) {
         activeAssignments,
         holisticReport,
         integratedReport: ir || null,
+        advanced,
       });
     }
 
