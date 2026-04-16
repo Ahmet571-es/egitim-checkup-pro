@@ -1,0 +1,208 @@
+/**
+ * /api/teacher/students
+ * - action: 'list'                  → tüm öğrencileri okul → sınıf → ad-soyad gruplaması ile getir
+ * - action: 'detail'                → tek öğrencinin yaptığı + atanan testleri getir
+ * - action: 'assign'                → seçili testleri öğrenciye ata (user_metadata.assigned_tests)
+ * - action: 'unassign'              → bir test atamasını kaldır
+ *
+ * Auth: secureFetch CSRF + login zorunlu (proxy halletti).
+ * Atamalar user_metadata.assigned_tests dizisinde tutulur — DB schema değişikliği yok.
+ * Tamamlanan testler test_results'tan gelir, otomatik filtrelenir.
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/server';
+
+const ALL_TESTS = [
+  'enneagram', 'vark', 'holland', 'coklu_zeka', 'sinav_kaygisi',
+  'calisma_davranisi', 'akademik_analiz', 'hizli_okuma', 'd2_dikkat', 'sag_sol_beyin',
+];
+
+export async function POST(req: NextRequest) {
+  try {
+    // ── Auth: kullanıcı giriş yapmış öğretmen mi? ──
+    const userClient = await createClient();
+    const { data: { user } } = await userClient.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 });
+
+    const role = user.user_metadata?.role || (await userClient.from('profiles').select('role').eq('id', user.id).maybeSingle()).data?.role;
+    if (role !== 'teacher') return NextResponse.json({ error: 'Sadece öğretmenler' }, { status: 403 });
+
+    const body = await req.json();
+    const { action } = body;
+
+    const admin = createAdminClient();
+
+    // ═══ LIST: tüm öğrenciler okul → sınıf → ad gruplandı ═══
+    if (action === 'list') {
+      // Tüm öğrenci profilleri
+      const { data: profiles } = await admin
+        .from('profiles')
+        .select('id, full_name, grade, school_id, created_at')
+        .eq('role', 'student')
+        .order('full_name');
+
+      // Tüm öğrencilerin user_metadata'sı (school_name için)
+      const { data: { users } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const metaMap = new Map<string, Record<string, unknown>>();
+      (users || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
+
+      // Okul adlarını schools tablosundan çek (school_id varsa)
+      const schoolIds = [...new Set((profiles || []).map((p) => p.school_id).filter(Boolean))];
+      const schoolNameMap: Record<string, string> = {};
+      if (schoolIds.length > 0) {
+        const { data: schools } = await admin.from('schools').select('id, name').in('id', schoolIds as string[]);
+        (schools || []).forEach((s) => { schoolNameMap[s.id] = s.name; });
+      }
+
+      // Her öğrenci için tamamlanan test sayısı
+      const studentIds = (profiles || []).map((p) => p.id);
+      const completedMap = new Map<string, Set<string>>();
+      if (studentIds.length > 0) {
+        const { data: results } = await admin
+          .from('test_results')
+          .select('student_id, test_type')
+          .in('student_id', studentIds);
+        (results || []).forEach((r) => {
+          if (!completedMap.has(r.student_id)) completedMap.set(r.student_id, new Set());
+          completedMap.get(r.student_id)!.add(r.test_type);
+        });
+      }
+
+      // Grupla: school → class(grade) → student
+      const grouped: Record<string, Record<string, Array<{
+        id: string; full_name: string; grade: string | null;
+        completed_count: number; assigned_pending_count: number;
+      }>>> = {};
+
+      (profiles || []).forEach((p) => {
+        const meta = metaMap.get(p.id) || {};
+        const schoolName = (meta.school_name as string) || schoolNameMap[p.school_id || ''] || 'Okulsuz';
+        const gradeKey = p.grade ? `${p.grade}. Sınıf` : 'Sınıfsız';
+        const completed = completedMap.get(p.id) || new Set();
+        const assigned = (meta.assigned_tests as string[]) || [];
+        const pending = assigned.filter((t) => !completed.has(t));
+
+        if (!grouped[schoolName]) grouped[schoolName] = {};
+        if (!grouped[schoolName][gradeKey]) grouped[schoolName][gradeKey] = [];
+        grouped[schoolName][gradeKey].push({
+          id: p.id,
+          full_name: p.full_name,
+          grade: p.grade,
+          completed_count: completed.size,
+          assigned_pending_count: pending.length,
+        });
+      });
+
+      return NextResponse.json({ grouped });
+    }
+
+    // ═══ DETAIL: bir öğrencinin yapılan + yapılacak testleri ═══
+    if (action === 'detail') {
+      const { studentId } = body;
+      if (!studentId) return NextResponse.json({ error: 'studentId gerekli' }, { status: 400 });
+
+      // Profil
+      const { data: profile } = await admin
+        .from('profiles')
+        .select('id, full_name, grade, school_id')
+        .eq('id', studentId)
+        .maybeSingle();
+
+      if (!profile) return NextResponse.json({ error: 'Öğrenci bulunamadı' }, { status: 404 });
+
+      // user_metadata
+      const { data: authUser } = await admin.auth.admin.getUserById(studentId);
+      const meta = (authUser?.user?.user_metadata || {}) as Record<string, unknown>;
+      const schoolName = (meta.school_name as string) || '—';
+      const assignedTests = ((meta.assigned_tests as string[]) || []);
+
+      // Tamamlanan testler
+      const { data: results } = await admin
+        .from('test_results')
+        .select('id, test_type, completed_at, ai_report, scores')
+        .eq('student_id', studentId)
+        .order('completed_at', { ascending: false });
+
+      const completedTests = results || [];
+      const completedTypes = new Set(completedTests.map((r) => r.test_type));
+
+      // Yapılacak = tüm testler − tamamlananlar
+      const pendingTypes = ALL_TESTS.filter((t) => !completedTypes.has(t));
+
+      // Atanmış ama henüz tamamlanmamış testler (uyarı için)
+      const activeAssignments = assignedTests.filter((t) => !completedTypes.has(t));
+
+      return NextResponse.json({
+        student: {
+          id: profile.id,
+          full_name: profile.full_name,
+          grade: profile.grade,
+          school_name: schoolName,
+        },
+        completedTests: completedTests.map((r) => ({
+          id: r.id,
+          test_type: r.test_type,
+          completed_at: r.completed_at,
+          has_report: !!r.ai_report,
+        })),
+        pendingTypes,
+        activeAssignments,
+      });
+    }
+
+    // ═══ ASSIGN: testleri öğrenciye ata ═══
+    if (action === 'assign') {
+      const { studentId, testTypes } = body;
+      if (!studentId || !Array.isArray(testTypes) || testTypes.length === 0) {
+        return NextResponse.json({ error: 'studentId ve testTypes gerekli' }, { status: 400 });
+      }
+
+      // Geçerli test tipleri mi?
+      const valid = testTypes.filter((t: string) => ALL_TESTS.includes(t));
+      if (valid.length === 0) return NextResponse.json({ error: 'Geçerli test yok' }, { status: 400 });
+
+      // Mevcut user_metadata'yı al
+      const { data: authUser } = await admin.auth.admin.getUserById(studentId);
+      if (!authUser?.user) return NextResponse.json({ error: 'Öğrenci bulunamadı' }, { status: 404 });
+
+      const meta = (authUser.user.user_metadata || {}) as Record<string, unknown>;
+      const existing = ((meta.assigned_tests as string[]) || []);
+      const merged = [...new Set([...existing, ...valid])];
+
+      const { error: updateErr } = await admin.auth.admin.updateUserById(studentId, {
+        user_metadata: { ...meta, assigned_tests: merged },
+      });
+      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+
+      return NextResponse.json({ success: true, assigned: merged });
+    }
+
+    // ═══ UNASSIGN: bir test atamasını kaldır ═══
+    if (action === 'unassign') {
+      const { studentId, testType } = body;
+      if (!studentId || !testType) {
+        return NextResponse.json({ error: 'studentId ve testType gerekli' }, { status: 400 });
+      }
+
+      const { data: authUser } = await admin.auth.admin.getUserById(studentId);
+      if (!authUser?.user) return NextResponse.json({ error: 'Öğrenci bulunamadı' }, { status: 404 });
+
+      const meta = (authUser.user.user_metadata || {}) as Record<string, unknown>;
+      const existing = ((meta.assigned_tests as string[]) || []);
+      const filtered = existing.filter((t) => t !== testType);
+
+      const { error: updateErr } = await admin.auth.admin.updateUserById(studentId, {
+        user_metadata: { ...meta, assigned_tests: filtered },
+      });
+      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+
+      return NextResponse.json({ success: true, assigned: filtered });
+    }
+
+    return NextResponse.json({ error: 'Geçersiz action' }, { status: 400 });
+  } catch (err) {
+    console.error('[teacher/students API]', err);
+    return NextResponse.json({ error: 'Sunucu hatası' }, { status: 500 });
+  }
+}
