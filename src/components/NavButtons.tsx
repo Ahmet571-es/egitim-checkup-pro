@@ -1,16 +1,19 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 /**
  * Geri / İleri navigasyon butonları
  * - Tarayıcı history üzerinden çalışır (router.back / router.forward)
- * - İlk sayfa açıldığında "geri" gidecek bir history yoksa buton yine
- *   görünür ama tıklanınca tarayıcı bunu kendisi yok sayar.
+ * - Dashboard sayfasında gizlenir (öğretmen klasör gezinmesi için var)
  */
 export default function NavButtons() {
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Dashboard'da gösterme
+  if (pathname === '/teacher/dashboard') return null;
 
   return (
     <div className="flex items-center gap-2 mb-4">

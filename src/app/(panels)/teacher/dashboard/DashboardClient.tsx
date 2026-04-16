@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { Users, FileCheck2, Sparkles, ArrowUpRight, TrendingUp, Shield } from 'lucide-react';
+import { Users, FileCheck2, Sparkles, ArrowUpRight, TrendingUp } from 'lucide-react';
 
 /* ════════ Count-Up sayaç ════════ */
 function CountUp({ end, duration = 1200 }: { end: number; duration?: number }) {
@@ -95,12 +95,11 @@ function TiltCard({
 
 /* ════════ Ana Dashboard ════════ */
 export default function DashboardClient({
-  firstName, studentCount, resultCount, children,
+  firstName, studentCount, resultCount,
 }: {
   firstName: string;
   studentCount: number;
   resultCount: number;
-  children: React.ReactNode;
 }) {
   return (
     <div className="relative">
@@ -136,7 +135,7 @@ export default function DashboardClient({
       </div>
 
       {/* STAT KARTLAR */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <TiltCard
           href="/teacher/students"
           label="Öğrencilerim"
@@ -153,23 +152,6 @@ export default function DashboardClient({
           Icon={FileCheck2}
           delay={200}
         />
-      </div>
-
-      {/* RİSK BÖLÜMÜ */}
-      <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border border-white/40 p-5 sm:p-6 shadow-sm card-enter" style={{ animationDelay: '300ms' }}>
-        <div className="absolute -top-px left-6 right-6 h-px bg-gradient-to-r from-transparent via-rose-300 to-transparent" />
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center shadow-md">
-            <Shield className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <h2 className="text-[15px] font-extrabold text-[#0f2847]">Risk Altındaki Öğrenciler</h2>
-            <p className="text-[11px] text-gray-400">Erken müdahale gerektiren durumlar</p>
-          </div>
-        </div>
-        <div className="mt-4">
-          {children}
-        </div>
       </div>
 
       {/* Stiller — global keyframe'ler */}

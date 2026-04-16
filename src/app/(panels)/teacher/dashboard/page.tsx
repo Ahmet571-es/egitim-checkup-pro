@@ -1,10 +1,9 @@
 /**
  * Öğretmen Dashboard — sade, animasyonlu
- * Hoş geldin + 2 stat kartı + Risk Altındaki Öğrenciler
+ * Hoş geldin + 2 stat kartı
  */
 import { getCurrentProfile } from '@/lib/actions/auth';
 import { createAdminClient } from '@/lib/supabase/admin';
-import RiskDashboardSection from './RiskDashboardSection';
 import DashboardClient from './DashboardClient';
 
 export const dynamic = 'force-dynamic';
@@ -34,8 +33,6 @@ export default async function Page() {
   }
 
   return (
-    <DashboardClient firstName={firstName} studentCount={studentCount} resultCount={resultCount}>
-      <RiskDashboardSection />
-    </DashboardClient>
+    <DashboardClient firstName={firstName} studentCount={studentCount} resultCount={resultCount} />
   );
 }
