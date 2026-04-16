@@ -26,58 +26,34 @@ export async function POST(req: NextRequest) {
 
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-      // Tüm kullanıcıların auth metadata'sını çek (öğretmen ve öğrenci okul adları için)
+      // Tüm kullanıcı metadata'sı (öğretmen okul adları için)
       const { data: { users: allUsers } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
       const metaMap = new Map<string, Record<string, unknown>>();
       (allUsers || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
 
-      // Tüm öğrencileri çek
-      const { data: allStudents } = await supabase
+      // Platform geneli toplam öğrenci sayısı
+      const { count: totalStudentCount } = await supabase
         .from('profiles')
-        .select('id, school_id')
+        .select('id', { count: 'exact', head: true })
         .eq('role', 'student');
 
-      // Okul adı bazında öğrenci ID'leri grupla
-      const studentsBySchool = new Map<string, string[]>();
-      (allStudents || []).forEach((s) => {
-        const sMeta = metaMap.get(s.id) || {};
-        const sSchool = (sMeta.school_name as string) || '';
-        if (!sSchool) return;
-        const norm = sSchool.trim().toLowerCase();
-        if (!studentsBySchool.has(norm)) studentsBySchool.set(norm, []);
-        studentsBySchool.get(norm)!.push(s.id);
+      // Platform geneli toplam rapor sayısı
+      const { count: totalReportCount } = await supabase
+        .from('test_results')
+        .select('id', { count: 'exact', head: true })
+        .not('ai_report', 'is', null);
+
+      // Her öğretmen aynı toplam sayıyı görür (Öğrencilerim ile tutarlı)
+      const enriched = (teachers || []).map((t) => {
+        const tMeta = metaMap.get(t.id) || {};
+        const teacherSchoolName = (tMeta.school_name as string) || '—';
+        return {
+          ...t,
+          schoolName: teacherSchoolName,
+          studentCount: totalStudentCount || 0,
+          reportCount: totalReportCount || 0,
+        };
       });
-
-      // Her öğretmen için okul adı eşleşmesiyle öğrenci + rapor sayısı
-      const enriched = await Promise.all(
-        (teachers || []).map(async (t) => {
-          const tMeta = metaMap.get(t.id) || {};
-          const teacherSchoolName = (tMeta.school_name as string) || '—';
-          const norm = teacherSchoolName.trim().toLowerCase();
-
-          // Okul adı eşleşen öğrenciler
-          const studentIds = studentsBySchool.get(norm) || [];
-          const studentCount = studentIds.length;
-
-          // Rapor sayısı (ai_report dolu olan test_results)
-          let reportCount = 0;
-          if (studentIds.length > 0) {
-            const { count } = await supabase
-              .from('test_results')
-              .select('id', { count: 'exact', head: true })
-              .in('student_id', studentIds)
-              .not('ai_report', 'is', null);
-            reportCount = count || 0;
-          }
-
-          return {
-            ...t,
-            schoolName: teacherSchoolName,
-            reportCount,
-            studentCount,
-          };
-        })
-      );
 
       return NextResponse.json({ teachers: enriched });
     }
@@ -112,8 +88,9 @@ export async function POST(req: NextRequest) {
         if (school) schoolName = school.name;
       }
 
-      // ── Öğrencileri okul adı eşleşmesiyle bul ──
-      // Öğretmenin user_metadata.school_name'i ile öğrencilerin user_metadata.school_name'i eşleşmeli
+      // ── TÜM öğrencileri göster (Öğrencilerim ile aynı mantık) ──
+      // Yönetici öğretmenin altında platformdaki tüm öğrencileri görmeli,
+      // tıpkı öğretmenin kendi Öğrencilerim sayfasında gördüğü gibi.
       let students: Array<{
         id: string; full_name: string; email: string; phone: string;
         grade: string | null; school_id: string | null; schoolName: string;
@@ -123,70 +100,66 @@ export async function POST(req: NextRequest) {
         tests: Array<{ id: string; test_type: string; completed_at: string; has_report: boolean }>;
       }> = [];
 
-      const teacherSchoolNorm = (authMeta.school_name || '').trim().toLowerCase();
+      // Tüm öğrencileri çek
+      const { data: allStudents } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, phone, grade, school_id, created_at')
+        .eq('role', 'student');
 
-      if (teacherSchoolNorm) {
-        // Tüm öğrencileri çek
-        const { data: allStudents } = await supabase
-          .from('profiles')
-          .select('id, full_name, email, phone, grade, school_id, created_at')
-          .eq('role', 'student');
+      // Tüm öğrenci user_metadata'larını çek
+      const { data: { users: allAuthUsers } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      const studentMetaMap = new Map<string, Record<string, string>>();
+      (allAuthUsers || []).forEach((u) => {
+        studentMetaMap.set(u.id, (u.user_metadata || {}) as Record<string, string>);
+      });
 
-        // Tüm öğrenci user_metadata'larını çek
-        const { data: { users: allAuthUsers } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
-        const studentMetaMap = new Map<string, Record<string, string>>();
-        (allAuthUsers || []).forEach((u) => {
-          studentMetaMap.set(u.id, (u.user_metadata || {}) as Record<string, string>);
-        });
-
-        // Okul adı eşleşen öğrencileri filtrele
-        const matchingStudents = (allStudents || []).filter((s) => {
-          const sMeta = studentMetaMap.get(s.id) || {};
-          const sSchool = (sMeta.school_name || '').trim().toLowerCase();
-          return sSchool === teacherSchoolNorm;
-        });
-
-        // Her öğrenci için detaylar (sınıf, testler, raporlar)
-        students = await Promise.all(
-          matchingStudents.map(async (s) => {
-            const meta = studentMetaMap.get(s.id) || {};
-            const sSchoolName = meta.school_name || '—';
-            // Sınıf: önce profiles.grade, yoksa user_metadata.grade
-            const grade = s.grade || meta.grade || '';
-            const className = grade ? `${grade}. Sınıf` : 'Sınıfsız';
-
-            // Testler
-            const { data: testResults } = await supabase
-              .from('test_results')
-              .select('id, test_type, completed_at, ai_report')
-              .eq('student_id', s.id)
-              .order('completed_at', { ascending: false });
-
-            const tests = (testResults || []).map((t) => ({
-              id: t.id,
-              test_type: t.test_type,
-              completed_at: t.completed_at,
-              has_report: !!t.ai_report,
-            }));
-
-            const reportCount = tests.filter((t) => t.has_report).length;
-
-            return {
-              ...s,
-              grade: grade || null,
-              schoolName: sSchoolName,
-              class_id: '',
-              class_name: className,
-              city: meta.city || '',
-              district: meta.district || '',
-              address: meta.address || '',
-              testCount: tests.length,
-              reportCount,
-              tests,
-            };
-          })
-        );
+      // Schools tablosu fallback
+      const sIds = [...new Set((allStudents || []).map((s) => s.school_id).filter(Boolean))];
+      const schoolNameMap: Record<string, string> = {};
+      if (sIds.length > 0) {
+        const { data: schools } = await supabase.from('schools').select('id, name').in('id', sIds as string[]);
+        (schools || []).forEach((s) => { schoolNameMap[s.id] = s.name; });
       }
+
+      // Her öğrenci için detay (sınıf, testler, raporlar)
+      students = await Promise.all(
+        (allStudents || []).map(async (s) => {
+          const meta = studentMetaMap.get(s.id) || {};
+          const sSchoolName = (meta.school_name as string) || schoolNameMap[s.school_id || ''] || 'Okulsuz';
+          const grade = s.grade || meta.grade || '';
+          const className = grade ? `${grade}. Sınıf` : 'Sınıfsız';
+
+          // Testler
+          const { data: testResults } = await supabase
+            .from('test_results')
+            .select('id, test_type, completed_at, ai_report')
+            .eq('student_id', s.id)
+            .order('completed_at', { ascending: false });
+
+          const tests = (testResults || []).map((t) => ({
+            id: t.id,
+            test_type: t.test_type,
+            completed_at: t.completed_at,
+            has_report: !!t.ai_report,
+          }));
+
+          const reportCount = tests.filter((t) => t.has_report).length;
+
+          return {
+            ...s,
+            grade: grade || null,
+            schoolName: sSchoolName,
+            class_id: '',
+            class_name: className,
+            city: meta.city || '',
+            district: meta.district || '',
+            address: meta.address || '',
+            testCount: tests.length,
+            reportCount,
+            tests,
+          };
+        })
+      );
 
       return NextResponse.json({
         teacher: {
