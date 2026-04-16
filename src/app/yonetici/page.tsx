@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import ReportRenderer from '@/components/ReportRenderer';
 import {
   GraduationCap, Shield, Lock, ArrowRight, ArrowLeft, Users, Trash2,
   Phone, MapPin, BookOpen, FileText, ChevronRight, School,
@@ -1185,9 +1186,7 @@ export default function YoneticiPage() {
                   <h2 className="text-lg font-bold text-[#0f2847] mb-4">
                     {TEST_LABELS[(selectedReport as Report).test_type] || (selectedReport as Report).test_type} — Tekil Rapor
                   </h2>
-                  <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">
-                    {(selectedReport as Report).ai_report}
-                  </div>
+                  <ReportRenderer text={(selectedReport as Report).ai_report || ''} />
                 </>
               ) : reportType === 'integrated' && 'teacher_report' in selectedReport ? (
                 <>
@@ -1195,20 +1194,20 @@ export default function YoneticiPage() {
                   <div className="space-y-6">
                     <div>
                       <h3 className="text-[14px] font-bold text-sky-600 mb-2">Öğretmen Raporu</h3>
-                      <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed bg-sky-50/50 rounded-xl p-4 border border-sky-100">
-                        {(selectedReport as IntegratedReport).teacher_report}
+                      <div className="bg-sky-50/40 rounded-xl p-4 border border-sky-100">
+                        <ReportRenderer text={(selectedReport as IntegratedReport).teacher_report || ''} />
                       </div>
                     </div>
                     <div>
                       <h3 className="text-[14px] font-bold text-violet-600 mb-2">Öğrenci Raporu</h3>
-                      <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed bg-violet-50/50 rounded-xl p-4 border border-violet-100">
-                        {(selectedReport as IntegratedReport).student_report}
+                      <div className="bg-violet-50/40 rounded-xl p-4 border border-violet-100">
+                        <ReportRenderer text={(selectedReport as IntegratedReport).student_report || ''} />
                       </div>
                     </div>
                     <div>
                       <h3 className="text-[14px] font-bold text-pink-600 mb-2">Veli Raporu</h3>
-                      <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed bg-pink-50/50 rounded-xl p-4 border border-pink-100">
-                        {(selectedReport as IntegratedReport).parent_report}
+                      <div className="bg-pink-50/40 rounded-xl p-4 border border-pink-100">
+                        <ReportRenderer text={(selectedReport as IntegratedReport).parent_report || ''} />
                       </div>
                     </div>
                   </div>

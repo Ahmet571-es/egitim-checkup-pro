@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { secureFetch } from '@/lib/csrf-client';
+import ReportRenderer from '@/components/ReportRenderer';
 import {
   ArrowLeft, GraduationCap, CheckCircle2, Circle, Bell, AlertCircle,
   FileText, BookOpen, X, Send, Loader2, Sparkles, Eye, Download, RefreshCw,
@@ -879,10 +880,8 @@ export default function StudentDetailPage() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-4">
-              <div className="prose prose-sm max-w-none whitespace-pre-wrap text-gray-700 leading-relaxed">
-                {viewer.text || 'Rapor içeriği boş.'}
-              </div>
+            <div className="flex-1 overflow-y-auto px-6 py-4 bg-gradient-to-b from-white via-violet-50/20 to-sky-50/20">
+              <ReportRenderer text={viewer.text || ''} />
             </div>
 
             {(viewer.pdfUrl || viewer.docxUrl) && (
