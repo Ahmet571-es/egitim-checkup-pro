@@ -6,7 +6,7 @@ import {
   GraduationCap, Shield, Lock, ArrowRight, ArrowLeft, Users, Trash2,
   Phone, MapPin, BookOpen, FileText, ChevronRight, School,
   AlertCircle, CheckCircle2, FolderOpen, User, BarChart3, X,
-  Mail, Calendar, Briefcase, Eye, EyeOff
+  Mail, Calendar, Briefcase, Eye, EyeOff, Home
 } from 'lucide-react';
 
 /* ═══ Types ═══ */
@@ -483,6 +483,14 @@ export default function YoneticiPage() {
                 Giriş Yap <ArrowRight className="w-4 h-4" />
               </button>
             </div>
+
+            {/* Ana Sayfaya Dön */}
+            <Link
+              href="/"
+              className="mt-5 flex items-center justify-center gap-1.5 text-[13px] text-gray-500 hover:text-amber-600 font-semibold transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Ana Sayfaya Dön
+            </Link>
           </div>
         </div>
       </div>
@@ -524,6 +532,15 @@ export default function YoneticiPage() {
             </button>
 
             <div className="w-px h-5 bg-gray-200 mx-1" />
+
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-amber-600 font-semibold transition-colors"
+              aria-label="Ana sayfaya git"
+            >
+              <Home className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Ana Sayfa</span>
+            </Link>
 
             <button onClick={() => { setAuthed(false); setPassword(''); setView('teachers'); setSelectedTeacher(null); setSelectedStudent(null); setHistory([]); setHistoryIndex(-1); }}
               className="text-[13px] text-gray-500 hover:text-red-500 font-semibold transition-colors">
