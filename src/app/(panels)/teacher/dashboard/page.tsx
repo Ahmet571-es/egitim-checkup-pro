@@ -5,7 +5,7 @@
 import Link from 'next/link';
 import { Users, FileCheck2 } from 'lucide-react';
 import { getCurrentProfile } from '@/lib/actions/auth';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import StudentTrendSection from './StudentTrendSection';
 import RiskDashboardSection from './RiskDashboardSection';
 import ClassComparisonSection from './ClassComparisonSection';
@@ -24,31 +24,24 @@ export default async function Page() {
   let studentCount = 0;
   let resultCount = 0;
 
-  if (profile?.id) {
-    const supabase = await createClient();
+  // Öğrencilerim sayfasıyla tutarlı sayım: tüm role=student profilleri
+  // ve tüm tamamlanmış test_results
+  try {
+    const admin = createAdminClient();
 
-    // RLS: teacher_id = auth.uid()
-    const { data: classes } = await supabase
-      .from('classes')
-      .select('id')
-      .eq('teacher_id', profile.id);
+    const { count: sc } = await admin
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'student');
+    studentCount = sc || 0;
 
-    const classIds = (classes || []).map((c) => c.id);
-
-    if (classIds.length > 0) {
-      // Öğrenci sayısı
-      const { count: sc } = await supabase
-        .from('class_students')
-        .select('id', { count: 'exact', head: true })
-        .in('class_id', classIds);
-      studentCount = sc || 0;
-
-      // Tamamlanan test sayısı (RLS otomatik kısıtlar)
-      const { count: rc } = await supabase
-        .from('test_results')
-        .select('id', { count: 'exact', head: true });
-      resultCount = rc || 0;
-    }
+    const { count: rc } = await admin
+      .from('test_results')
+      .select('id', { count: 'exact', head: true })
+      .not('completed_at', 'is', null);
+    resultCount = rc || 0;
+  } catch (e) {
+    console.error('[teacher dashboard count]', e);
   }
 
   const stats = [
@@ -75,7 +68,7 @@ export default async function Page() {
           Hoş geldiniz, {firstName}!
         </h1>
         <p className="text-emerald-50 text-sm">
-          Sadece kendi sınıflarınızı ve öğrencilerinizi görüyorsunuz.
+          Tüm okullardaki öğrencileri Öğrencilerim sayfasından yönetebilirsiniz.
         </p>
       </div>
 
