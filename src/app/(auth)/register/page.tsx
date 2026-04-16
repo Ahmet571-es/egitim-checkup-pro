@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { GraduationCap, User, Lock, Building, ArrowRight, AlertCircle, CheckCircle2, Phone, MapPin, AtSign, Calendar, Eye, EyeOff } from 'lucide-react';
+import { GraduationCap, User, Lock, Building, ArrowRight, AlertCircle, CheckCircle2, Phone, MapPin, AtSign, Calendar, Eye, EyeOff, BookOpen, Award } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_PATHS, STUDENT_GRADES } from '@/types';
 import type { UserRole } from '@/types';
@@ -44,15 +44,24 @@ export default function RegisterPage() {
   const [form, setForm] = useState({
     firstName: '', lastName: '', phone: '', city: '', district: '', address: '',
     gender: '', birthDate: '', username: '', password: '', role: 'student' as UserRole,
-    schoolName: '', grade: '', kvkk: false,
+    schoolName: '', grade: '', section: '', teacherId: '', isGraduated: false, kvkk: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [usernameWarning, setUsernameWarning] = useState('');
+  const [teachers, setTeachers] = useState<Array<{ id: string; full_name: string; branch: string; school_name: string }>>([]);
   const submittingRef = useRef(false);
   const router = useRouter();
+
+  // Öğretmen listesini yükle
+  useEffect(() => {
+    fetch('/api/public/teachers')
+      .then((r) => r.json())
+      .then((d) => setTeachers(d.teachers || []))
+      .catch(() => setTeachers([]));
+  }, []);
 
   // Beklenen kullanıcı adı (ad + soyad + telefon son 4 hane)
   const expectedUsername = useMemo(
@@ -150,11 +159,23 @@ export default function RegisterPage() {
       return;
     }
 
-    // Öğrenci ise sınıf zorunlu
-    if (form.role === 'student' && !form.grade) {
-      setError('Öğrenci için sınıf seçimi zorunludur.');
-      submittingRef.current = false;
-      return;
+    // Öğrenci ise sınıf + öğretmen zorunlu (mezun değilse şube de)
+    if (form.role === 'student') {
+      if (!form.isGraduated && !form.grade) {
+        setError('Sınıf seçimi zorunludur. (Mezun iseniz "Mezunum" kutucuğunu işaretleyin.)');
+        submittingRef.current = false;
+        return;
+      }
+      if (!form.isGraduated && !form.section.trim()) {
+        setError('Şube alanı zorunludur. (Örn: A, B, C)');
+        submittingRef.current = false;
+        return;
+      }
+      if (!form.teacherId) {
+        setError('Öğretmeninizi seçin.');
+        submittingRef.current = false;
+        return;
+      }
     }
 
     // Okul adı zorunlu
@@ -168,8 +189,9 @@ export default function RegisterPage() {
     const supabase = createClient();
 
     const fullName = `${form.firstName} ${form.lastName}`.trim();
-    const isGraduated = form.role === 'student' && form.grade === 'mezun';
     const autoEmail = usernameToEmail(form.username);
+    // Şube her zaman büyük harf + temiz
+    const cleanSection = form.section.trim().toUpperCase();
 
     const { error: authError } = await supabase.auth.signUp({
       email: autoEmail,
@@ -180,8 +202,10 @@ export default function RegisterPage() {
           username: form.username,
           role: form.role,
           school_name: form.schoolName.trim(),
-          grade: form.role === 'student' ? form.grade : '',
-          is_graduated: isGraduated,
+          grade: form.role === 'student' && !form.isGraduated ? form.grade : '',
+          section: form.role === 'student' && !form.isGraduated ? cleanSection : '',
+          is_graduated: form.role === 'student' && form.isGraduated,
+          assigned_teacher_id: form.role === 'student' ? form.teacherId : '',
           phone: phoneDigits,
           gender: form.gender,
           birth_date: form.birthDate,
@@ -429,25 +453,85 @@ export default function RegisterPage() {
               </select>
             </div>
 
-            {/* Sınıf (öğrenci ise) */}
+            {/* Sınıf + Şube + Öğretmen (öğrenci ise) */}
             {form.role === 'student' && (
-              <div>
-                <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Sınıf <span className="text-red-500">*</span></label>
-                <select
-                  value={form.grade}
-                  onChange={(e) => update('grade', e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
-                  required
-                >
-                  <option value="">Sınıfınızı seçin</option>
-                  {STUDENT_GRADES.map((g) => (
-                    <option key={g.value} value={g.value}>{g.label}</option>
-                  ))}
-                </select>
-                {form.grade === 'mezun' && (
-                  <p className="text-[12px] text-emerald-600 mt-1.5 font-semibold">Mezun olarak kayıt yapıyorsunuz.</p>
+              <>
+                {/* Mezun mu? */}
+                <label className="flex items-center gap-2.5 cursor-pointer p-3 rounded-xl bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={form.isGraduated}
+                    onChange={(e) => update('isGraduated', e.target.checked)}
+                    className="w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                  />
+                  <Award className="w-4 h-4 text-amber-600" />
+                  <span className="text-[13px] font-semibold text-amber-700">Mezunum</span>
+                </label>
+
+                {/* Aktif öğrenci ise sınıf + şube */}
+                {!form.isGraduated && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Sınıf <span className="text-red-500">*</span></label>
+                      <select
+                        value={form.grade}
+                        onChange={(e) => update('grade', e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
+                        required
+                      >
+                        <option value="">Seçin</option>
+                        {STUDENT_GRADES.filter(g => g.value !== 'mezun').map((g) => (
+                          <option key={g.value} value={g.value}>{g.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Şube <span className="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        value={form.section}
+                        onChange={(e) => update('section', e.target.value.toUpperCase().replace(/[^A-ZÇĞİÖŞÜ]/g, ''))}
+                        placeholder="A"
+                        maxLength={3}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
                 )}
-              </div>
+
+                {/* Sınıf + Şube önizleme */}
+                {!form.isGraduated && form.grade && form.section && (
+                  <p className="text-[12px] text-emerald-600 -mt-2 font-semibold flex items-center gap-1">
+                    <BookOpen className="w-3.5 h-3.5" /> Sınıfınız: {form.grade}/{form.section}
+                  </p>
+                )}
+
+                {/* Öğretmen seçimi */}
+                <div>
+                  <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">
+                    Öğretmeniniz <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={form.teacherId}
+                    onChange={(e) => update('teacherId', e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
+                    required
+                  >
+                    <option value="">
+                      {teachers.length === 0 ? 'Öğretmen yükleniyor...' : 'Öğretmeninizi seçin'}
+                    </option>
+                    {teachers.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.full_name}{t.branch ? ` — ${t.branch}` : ''}{t.school_name ? ` (${t.school_name})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  {teachers.length === 0 && (
+                    <p className="text-[11px] text-gray-400 mt-1">Sistemde henüz onaylı öğretmen yok. Lütfen daha sonra deneyin.</p>
+                  )}
+                </div>
+              </>
             )}
 
             {/* Okul Adı */}

@@ -73,34 +73,52 @@ export async function POST(req: NextRequest) {
 
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-      // Tüm kullanıcı metadata'sı (öğretmen okul adları için)
+      // Tüm kullanıcı metadata
       const { data: { users: allUsers } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
       const metaMap = new Map<string, Record<string, unknown>>();
       (allUsers || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
 
-      // Platform geneli toplam öğrenci sayısı
-      const { count: totalStudentCount } = await supabase
+      // Tüm öğrencileri öğretmen ID'sine göre grupla
+      const { data: allStudents } = await supabase
         .from('profiles')
-        .select('id', { count: 'exact', head: true })
+        .select('id')
         .eq('role', 'student');
 
-      // Platform geneli toplam rapor sayısı
-      const { count: totalReportCount } = await supabase
-        .from('test_results')
-        .select('id', { count: 'exact', head: true })
-        .not('ai_report', 'is', null);
-
-      // Her öğretmen aynı toplam sayıyı görür (Öğrencilerim ile tutarlı)
-      const enriched = (teachers || []).map((t) => {
-        const tMeta = metaMap.get(t.id) || {};
-        const teacherSchoolName = (tMeta.school_name as string) || '—';
-        return {
-          ...t,
-          schoolName: teacherSchoolName,
-          studentCount: totalStudentCount || 0,
-          reportCount: totalReportCount || 0,
-        };
+      const studentsByTeacher = new Map<string, string[]>();
+      (allStudents || []).forEach((s) => {
+        const sMeta = metaMap.get(s.id) || {};
+        const tId = (sMeta.assigned_teacher_id as string) || '';
+        if (!tId) return;
+        if (!studentsByTeacher.has(tId)) studentsByTeacher.set(tId, []);
+        studentsByTeacher.get(tId)!.push(s.id);
       });
+
+      // Her öğretmen için kendi öğrenci sayısı + rapor sayısı
+      const enriched = await Promise.all(
+        (teachers || []).map(async (t) => {
+          const tMeta = metaMap.get(t.id) || {};
+          const teacherSchoolName = (tMeta.school_name as string) || '—';
+          const studentIds = studentsByTeacher.get(t.id) || [];
+          const studentCount = studentIds.length;
+
+          let reportCount = 0;
+          if (studentIds.length > 0) {
+            const { count } = await supabase
+              .from('test_results')
+              .select('id', { count: 'exact', head: true })
+              .in('student_id', studentIds)
+              .not('ai_report', 'is', null);
+            reportCount = count || 0;
+          }
+
+          return {
+            ...t,
+            schoolName: teacherSchoolName,
+            studentCount,
+            reportCount,
+          };
+        })
+      );
 
       return NextResponse.json({ teachers: enriched });
     }
@@ -168,13 +186,26 @@ export async function POST(req: NextRequest) {
         (schools || []).forEach((s) => { schoolNameMap[s.id] = s.name; });
       }
 
-      // Her öğrenci için detay (sınıf, testler, raporlar)
+      // SADECE bu öğretmene atanan öğrenciler
+      const myStudents = (allStudents || []).filter((s) => {
+        const meta = studentMetaMap.get(s.id) || {};
+        return (meta.assigned_teacher_id as string) === teacherId;
+      });
+
+      // Her öğrenci için detay (sınıf, şube, mezun, testler, raporlar)
       students = await Promise.all(
-        (allStudents || []).map(async (s) => {
+        myStudents.map(async (s) => {
           const meta = studentMetaMap.get(s.id) || {};
           const sSchoolName = (meta.school_name as string) || schoolNameMap[s.school_id || ''] || 'Okulsuz';
+          const isGraduated = !!meta.is_graduated;
           const grade = s.grade || meta.grade || '';
-          const className = grade ? `${grade}. Sınıf` : 'Sınıfsız';
+          const section = meta.section || '';
+          // Sınıf adı: mezunsa 'Mezun', aktifse '9/A' formatı veya '9. Sınıf'
+          let className: string;
+          if (isGraduated) className = 'Mezun';
+          else if (grade && section) className = `${grade}/${section}`;
+          else if (grade) className = `${grade}. Sınıf`;
+          else className = 'Sınıfsız';
 
           // Testler
           const { data: testResults } = await supabase
@@ -198,6 +229,8 @@ export async function POST(req: NextRequest) {
             schoolName: sSchoolName,
             class_id: '',
             class_name: className,
+            section: section || '',
+            is_graduated: isGraduated,
             city: meta.city || '',
             district: meta.district || '',
             address: meta.address || '',

@@ -39,21 +39,24 @@ export async function POST(req: NextRequest) {
 
     const admin = createAdminClient();
 
-    // ═══ LIST: tüm öğrenciler okul → sınıf → ad gruplandı ═══
+    // ═══ LIST: SADECE bu öğretmene atanan öğrenciler ═══
+    // Yapı: { active: { Okul → Sınıf → Şube → [öğrenci] }, graduated: { Okul → [öğrenci] } }
     if (action === 'list') {
-      // Tüm öğrenci profilleri
+      const teacherId = user.id;
+
+      // Önce tüm öğrenci profillerini çek
       const { data: profiles } = await admin
         .from('profiles')
         .select('id, full_name, grade, school_id, created_at')
         .eq('role', 'student')
         .order('full_name');
 
-      // Tüm öğrencilerin user_metadata'sı (school_name için)
+      // Tüm öğrenci user_metadata
       const { data: { users } } = await admin.auth.admin.listUsers({ perPage: 1000 });
       const metaMap = new Map<string, Record<string, unknown>>();
       (users || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
 
-      // Okul adlarını schools tablosundan çek (school_id varsa)
+      // Schools tablosu fallback
       const schoolIds = [...new Set((profiles || []).map((p) => p.school_id).filter(Boolean))];
       const schoolNameMap: Record<string, string> = {};
       if (schoolIds.length > 0) {
@@ -61,8 +64,14 @@ export async function POST(req: NextRequest) {
         (schools || []).forEach((s) => { schoolNameMap[s.id] = s.name; });
       }
 
-      // Her öğrenci için tamamlanan test sayısı
-      const studentIds = (profiles || []).map((p) => p.id);
+      // SADECE bu öğretmene atanmış öğrenciler
+      const myStudents = (profiles || []).filter((p) => {
+        const meta = metaMap.get(p.id) || {};
+        return (meta.assigned_teacher_id as string) === teacherId;
+      });
+
+      // Tamamlanan testler
+      const studentIds = myStudents.map((p) => p.id);
       const completedMap = new Map<string, Set<string>>();
       if (studentIds.length > 0) {
         const { data: results } = await admin
@@ -75,34 +84,49 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // Grupla: school → class(grade) → student
-      const grouped: Record<string, Record<string, Array<{
-        id: string; full_name: string; grade: string | null;
+      type StudentRow = {
+        id: string; full_name: string; grade: string | null; section: string | null;
         completed_count: number; assigned_pending_count: number;
-      }>>> = {};
+      };
 
-      (profiles || []).forEach((p) => {
+      // Aktif: school → grade → section → [students]
+      const active: Record<string, Record<string, Record<string, StudentRow[]>>> = {};
+      // Mezunlar: school → [students]
+      const graduated: Record<string, StudentRow[]> = {};
+
+      myStudents.forEach((p) => {
         const meta = metaMap.get(p.id) || {};
         const schoolName = (meta.school_name as string) || schoolNameMap[p.school_id || ''] || 'Okulsuz';
-        // Sınıf: önce profiles.grade, yoksa user_metadata.grade
+        const isGraduated = !!meta.is_graduated;
         const grade = p.grade || (meta.grade as string) || '';
-        const gradeKey = grade ? `${grade}. Sınıf` : 'Sınıfsız';
+        const section = (meta.section as string) || '';
         const completed = completedMap.get(p.id) || new Set();
         const assigned = (meta.assigned_tests as string[]) || [];
         const pending = assigned.filter((t) => !completed.has(normalize(t)));
 
-        if (!grouped[schoolName]) grouped[schoolName] = {};
-        if (!grouped[schoolName][gradeKey]) grouped[schoolName][gradeKey] = [];
-        grouped[schoolName][gradeKey].push({
+        const row: StudentRow = {
           id: p.id,
           full_name: p.full_name,
           grade: grade || null,
+          section: section || null,
           completed_count: completed.size,
           assigned_pending_count: pending.length,
-        });
+        };
+
+        if (isGraduated) {
+          if (!graduated[schoolName]) graduated[schoolName] = [];
+          graduated[schoolName].push(row);
+        } else {
+          const gradeKey = grade ? `${grade}. Sınıf` : 'Sınıfsız';
+          const sectionKey = section ? `${grade}/${section}` : 'Şubesiz';
+          if (!active[schoolName]) active[schoolName] = {};
+          if (!active[schoolName][gradeKey]) active[schoolName][gradeKey] = {};
+          if (!active[schoolName][gradeKey][sectionKey]) active[schoolName][gradeKey][sectionKey] = [];
+          active[schoolName][gradeKey][sectionKey].push(row);
+        }
       });
 
-      return NextResponse.json({ grouped });
+      return NextResponse.json({ active, graduated });
     }
 
     // ═══ DETAIL: bir öğrencinin yapılan + yapılacak testleri + raporları ═══
