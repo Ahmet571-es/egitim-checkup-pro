@@ -231,9 +231,10 @@ export default function RegisterPage() {
     // Kayıt sonrası oturumu kapat (giriş sayfasından tekrar giriş yapması için)
     await supabase.auth.signOut();
 
-    // Kullanıcı adını localStorage'a kaydet (giriş sayfasında otomatik doldurulsun)
+    // Kullanıcı adını tek seferlik kaydet (giriş sayfasına yönlenince bir kez doldurulsun, sonra silinsin)
     if (typeof window !== 'undefined') {
-      localStorage.setItem('ecup_username', form.username);
+      localStorage.removeItem('ecup_username'); // eski kalıcı kaydı temizle
+      localStorage.setItem('ecup_just_registered', form.username);
     }
 
     setSuccess(true);

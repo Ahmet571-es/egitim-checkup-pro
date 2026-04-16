@@ -15,26 +15,34 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fromRegister, setFromRegister] = useState(false);
   const submittingRef = useRef(false);
   const router = useRouter();
 
-  // Sayfa yüklendiğinde localStorage'dan kullanıcı adını oku
+  // Sayfa yüklendiğinde: SADECE 'hatırla' aktifse localStorage'dan oku
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const savedUsername = localStorage.getItem(STORAGE_KEY_USERNAME);
+    // Eski kalıcı kaydı temizle (önceki versiyon bıraktıysa)
+    const oldStored = localStorage.getItem(STORAGE_KEY_USERNAME);
     const savedRemember = localStorage.getItem(STORAGE_KEY_REMEMBER);
-
-    if (savedUsername) {
-      setUsername(savedUsername);
-      setFromRegister(true);
+    if (savedRemember === 'true' && oldStored) {
+      setUsername(oldStored);
+      setRememberMe(true);
+    } else if (oldStored) {
+      // Hatırla aktif değil ama eski kayıt var → temizle
+      localStorage.removeItem(STORAGE_KEY_USERNAME);
     }
-    if (savedRemember !== null) {
-      setRememberMe(savedRemember === 'true');
+
+    // Kayıt sonrası tek seferlik dolum
+    const regUsername = localStorage.getItem('ecup_just_registered');
+    if (regUsername) {
+      setUsername(regUsername);
+      setFromRegister(true);
+      localStorage.removeItem('ecup_just_registered');
     }
   }, []);
 
