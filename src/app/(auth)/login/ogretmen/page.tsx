@@ -192,10 +192,6 @@ export default function TeacherLoginPage() {
             Hesabınız yok mu?{' '}
             <Link href="/register/ogretmen" className="text-emerald-600 font-semibold hover:underline">Öğretmen Kayıt</Link>
           </p>
-          <p className="text-center text-sm text-gray-500 mt-2">
-            Öğrenci misiniz?{' '}
-            <Link href="/login" className="text-emerald-600 font-semibold hover:underline">Öğrenci Girişi</Link>
-          </p>
         </div>
       </div>
     </div>
