@@ -317,6 +317,119 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, assigned: filtered });
     }
 
+    // ═══ APPROVED-TEACHERS: öğrenci aktarma modalı için onaylı öğretmen listesi ═══
+    if (action === 'approved-teachers') {
+      // Role kontrolü zaten yukarıda yapıldı (sadece öğretmen)
+      const { data: profiles } = await admin
+        .from('profiles')
+        .select('id, full_name')
+        .eq('role', 'teacher')
+        .order('full_name');
+
+      const { data: authList } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const metaMap = new Map<string, Record<string, unknown>>();
+      (authList?.users || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
+
+      const teachers = (profiles || [])
+        .map((p) => {
+          const m = metaMap.get(p.id) || {};
+          const isApproved = m.is_approved !== false;
+          return {
+            id: p.id,
+            full_name: p.full_name,
+            branch: (m.branch as string) || '',
+            school_name: (m.school_name as string) || '',
+            is_approved: isApproved,
+          };
+        })
+        // Sadece onaylı öğretmenler + kendisi hariç (kendine aktaramaz)
+        .filter((t) => t.is_approved && t.id !== user.id);
+
+      return NextResponse.json({ teachers });
+    }
+
+    // ═══ TRANSFER: öğrenciyi başka bir onaylı öğretmene aktar ═══
+    if (action === 'transfer') {
+      const { studentId, targetTeacherId } = body;
+
+      if (!studentId || !targetTeacherId) {
+        return NextResponse.json({ error: 'studentId ve targetTeacherId gerekli.' }, { status: 400 });
+      }
+
+      if (studentId === targetTeacherId) {
+        return NextResponse.json({ error: 'Geçersiz istek.' }, { status: 400 });
+      }
+
+      // ── Öğrenciyi çek ──
+      const { data: studentAuth } = await admin.auth.admin.getUserById(studentId);
+      if (!studentAuth?.user) {
+        return NextResponse.json({ error: 'Öğrenci bulunamadı.' }, { status: 404 });
+      }
+
+      const studentMeta = (studentAuth.user.user_metadata || {}) as Record<string, unknown>;
+      const currentTeacherId = studentMeta.assigned_teacher_id as string | undefined;
+
+      // ── YETKİ KONTROLÜ: sadece mevcut öğretmen aktarabilir ──
+      // (role kontrolü en başta yapıldı, sadece teacher buraya gelebilir)
+      if (!currentTeacherId) {
+        return NextResponse.json({ error: 'Bu öğrenciye atanmış bir öğretmen yok.' }, { status: 400 });
+      }
+      if (currentTeacherId !== user.id) {
+        return NextResponse.json({ error: 'Yalnızca kendi öğrencilerinizi aktarabilirsiniz.' }, { status: 403 });
+      }
+
+      // ── Hedef öğretmenin onaylı olduğunu doğrula ──
+      const { data: targetAuth } = await admin.auth.admin.getUserById(targetTeacherId);
+      if (!targetAuth?.user) {
+        return NextResponse.json({ error: 'Hedef öğretmen bulunamadı.' }, { status: 404 });
+      }
+
+      const targetMeta = (targetAuth.user.user_metadata || {}) as Record<string, unknown>;
+      const targetProfile = await admin
+        .from('profiles')
+        .select('role, full_name')
+        .eq('id', targetTeacherId)
+        .single();
+
+      if (targetProfile.data?.role !== 'teacher') {
+        return NextResponse.json({ error: 'Hedef bir öğretmen değil.' }, { status: 400 });
+      }
+
+      const targetApproved = targetMeta.is_approved !== false;
+      if (!targetApproved) {
+        return NextResponse.json({ error: 'Hedef öğretmen henüz onaylanmamış.' }, { status: 400 });
+      }
+
+      // ── TRANSFER: assigned_teacher_id güncelle ──
+      const { error: updateErr } = await admin.auth.admin.updateUserById(studentId, {
+        user_metadata: { ...studentMeta, assigned_teacher_id: targetTeacherId },
+      });
+
+      if (updateErr) {
+        console.error('[transfer] updateUserById error:', updateErr.message);
+        return NextResponse.json({ error: 'Aktarım başarısız: ' + updateErr.message }, { status: 500 });
+      }
+
+      // ── TRANSFER LOG (best-effort, tablo yoksa sessizce geç) ──
+      try {
+        await admin.from('transfer_logs').insert({
+          student_id: studentId,
+          from_teacher_id: currentTeacherId || null,
+          to_teacher_id: targetTeacherId,
+          performed_by: user.id,
+          performed_at: new Date().toISOString(),
+        });
+      } catch (e) {
+        console.warn('[transfer] log kaydedilemedi (tablo yok olabilir):', e);
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Öğrenci başarıyla ${targetProfile.data?.full_name || 'hedef öğretmen'}'e aktarıldı.`,
+        target_teacher_name: targetProfile.data?.full_name,
+      });
+    }
+
     // ═══ COMPLETED-TESTS-LOG: tüm tamamlanmış testlerin düz listesi ═══
     if (action === 'completed-tests-log') {
       // Tüm öğrencileri çek

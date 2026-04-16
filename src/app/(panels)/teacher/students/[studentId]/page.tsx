@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { secureFetch } from '@/lib/csrf-client';
 import ReportRenderer from '@/components/ReportRenderer';
@@ -9,7 +9,8 @@ import {
   ArrowLeft, GraduationCap, CheckCircle2, Circle, Bell, AlertCircle,
   FileText, BookOpen, X, Send, Loader2, Sparkles, Eye, Download, RefreshCw,
   Brain, Layers, Shield, Link2, Briefcase, Lock, TrendingUp,
-  Trash2, ChevronDown, ChevronUp, AlertTriangle, CheckSquare, Square
+  Trash2, ChevronDown, ChevronUp, AlertTriangle, CheckSquare, Square,
+  UserPlus, ArrowRightLeft, Search
 } from 'lucide-react';
 
 const TEST_LABELS: Record<string, string> = {
@@ -97,6 +98,7 @@ type ViewerMode = null | {
 
 export default function StudentDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const studentId = params.studentId as string;
 
   const [tab, setTab] = useState<'done' | 'pending'>('pending');
@@ -112,6 +114,15 @@ export default function StudentDetailPage() {
   const [holisticHistoryOpen, setHolisticHistoryOpen] = useState(false);
   const [integrated, setIntegrated] = useState<IntegratedReport | null>(null);
   const [advanced, setAdvanced] = useState<AdvancedAnalysis>({ unlocked: false });
+
+  // ═══ Öğrenci Aktarma State'leri ═══
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [transferTeachers, setTransferTeachers] = useState<Array<{ id: string; full_name: string; branch: string; school_name: string }>>([]);
+  const [transferLoading, setTransferLoading] = useState(false);
+  const [transferSearch, setTransferSearch] = useState('');
+  const [transferSelected, setTransferSelected] = useState<{ id: string; full_name: string } | null>(null);
+  const [transferConfirmOpen, setTransferConfirmOpen] = useState(false);
+  const [transferring, setTransferring] = useState(false);
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -303,6 +314,80 @@ export default function StudentDetailPage() {
     setHolisticSelected(new Set());
   };
 
+  // ═══ ÖĞRENCİ AKTARMA FONKSİYONLARI ═══
+  const openTransferModal = async () => {
+    setTransferModalOpen(true);
+    setTransferLoading(true);
+    setTransferSearch('');
+    setTransferSelected(null);
+    setError('');
+    try {
+      const res = await secureFetch('/api/teacher/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approved-teachers' }),
+      });
+      const data = await res.json();
+      if (res.ok && Array.isArray(data.teachers)) {
+        setTransferTeachers(data.teachers);
+      } else {
+        setError(data.error || 'Öğretmen listesi alınamadı.');
+        setTransferTeachers([]);
+      }
+    } catch (e: unknown) {
+      setError((e as Error).message);
+      setTransferTeachers([]);
+    }
+    setTransferLoading(false);
+  };
+
+  const confirmTransfer = (teacher: { id: string; full_name: string }) => {
+    setTransferSelected(teacher);
+    setTransferConfirmOpen(true);
+  };
+
+  const executeTransfer = async () => {
+    if (!transferSelected) return;
+    setTransferring(true);
+    setError('');
+    try {
+      const res = await secureFetch('/api/teacher/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'transfer',
+          studentId,
+          targetTeacherId: transferSelected.id,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        // Başarılı — öğrenci listesine geri dön
+        setTransferConfirmOpen(false);
+        setTransferModalOpen(false);
+        setTransferring(false);
+        // Öğrencilerim listesine yönlendir
+        router.push('/teacher/students');
+        return;
+      } else {
+        setError(data.error || 'Aktarım başarısız.');
+      }
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setTransferring(false);
+  };
+
+  const filteredTransferTeachers = transferTeachers.filter(t => {
+    if (!transferSearch.trim()) return true;
+    const q = transferSearch.trim().toLocaleLowerCase('tr-TR');
+    return (
+      t.full_name.toLocaleLowerCase('tr-TR').includes(q) ||
+      (t.branch || '').toLocaleLowerCase('tr-TR').includes(q) ||
+      (t.school_name || '').toLocaleLowerCase('tr-TR').includes(q)
+    );
+  });
+
   // ═══ Entegre 3'lü rapor üret ═══
   const generateIntegrated = async (force = false) => {
     setBusyKey('integrated');
@@ -402,6 +487,15 @@ export default function StudentDetailPage() {
               {student.school_name}{student.grade && ` · ${student.grade}. Sınıf`}
             </p>
           </div>
+          {/* Öğrenciyi Aktar Butonu */}
+          <button
+            onClick={openTransferModal}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 text-white text-[12px] font-bold shadow-md hover:shadow-lg transition-all shrink-0"
+            title="Bu öğrenciyi başka bir öğretmene aktar"
+          >
+            <ArrowRightLeft className="w-4 h-4" />
+            Öğrenciyi Aktar
+          </button>
         </div>
       </div>
 
@@ -1246,6 +1340,163 @@ export default function StudentDetailPage() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ÖĞRENCİ AKTARMA — ÖĞRETMEN SEÇİM MODAL'I */}
+      {transferModalOpen && (
+        <div
+          onClick={() => !transferring && setTransferModalOpen(false)}
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[85vh] flex flex-col"
+          >
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-cyan-500 flex items-center justify-center shadow-md shrink-0">
+                  <ArrowRightLeft className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-[16px] font-extrabold text-[#0f2847]">Öğrenciyi Aktar</h3>
+                  <p className="text-[11px] text-gray-500">{student.full_name} için hedef öğretmen seçin</p>
+                </div>
+              </div>
+              <button
+                onClick={() => !transferring && setTransferModalOpen(false)}
+                className="text-gray-400 hover:text-gray-700 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Arama kutusu */}
+            <div className="px-6 py-3 border-b border-gray-100 shrink-0">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  value={transferSearch}
+                  onChange={(e) => setTransferSearch(e.target.value)}
+                  placeholder="Öğretmen ara (isim, branş, okul)..."
+                  className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Liste */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {transferLoading ? (
+                <div className="flex items-center justify-center py-12 text-gray-400">
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                  Öğretmenler yükleniyor...
+                </div>
+              ) : filteredTransferTeachers.length === 0 ? (
+                <div className="text-center py-12 text-gray-400 text-[13px]">
+                  {transferSearch ? 'Aramanıza uygun öğretmen bulunamadı.' : 'Aktarım yapılabilecek başka onaylı öğretmen yok.'}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filteredTransferTeachers.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => confirmTransfer({ id: t.id, full_name: t.full_name })}
+                      className="w-full text-left bg-white hover:bg-sky-50 border border-gray-200 hover:border-sky-300 rounded-xl p-3 transition-all flex items-center gap-3"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-100 to-cyan-100 flex items-center justify-center shrink-0">
+                        <UserPlus className="w-5 h-5 text-sky-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-bold text-[#0f2847] truncate">{t.full_name}</p>
+                        <p className="text-[11px] text-gray-500 truncate">
+                          {t.branch && <span>{t.branch}</span>}
+                          {t.branch && t.school_name && <span> · </span>}
+                          {t.school_name && <span>{t.school_name}</span>}
+                          {!t.branch && !t.school_name && <span>Bilgi yok</span>}
+                        </p>
+                      </div>
+                      <ArrowRightLeft className="w-4 h-4 text-sky-500 shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-3 border-t border-gray-100 shrink-0">
+              <p className="text-[11px] text-gray-500 text-center">
+                Aktarım sonrası öğrencinin tüm verileri (testler, raporlar) korunur.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ÖĞRENCİ AKTARMA — ONAY MODAL'I */}
+      {transferConfirmOpen && transferSelected && (
+        <div
+          onClick={() => !transferring && setTransferConfirmOpen(false)}
+          className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full"
+          >
+            <div className="px-6 py-5 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-md shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-[16px] font-extrabold text-[#0f2847]">Aktarımı Onayla</h3>
+              </div>
+            </div>
+
+            <div className="px-6 py-5 space-y-3">
+              <p className="text-[13px] text-gray-700 leading-relaxed">
+                <strong className="text-[#0f2847]">{student.full_name}</strong> adlı öğrenciyi{' '}
+                <strong className="text-sky-700">{transferSelected.full_name}</strong> adlı öğretmene aktarmak üzeresiniz.
+              </p>
+
+              <div className="bg-sky-50 border border-sky-200 rounded-lg p-3 text-[12px] text-sky-900">
+                <p className="font-bold mb-1">✓ Aktarım sonrası:</p>
+                <ul className="space-y-1 text-[11px] list-disc list-inside ml-1">
+                  <li>Öğrencinin tüm test sonuçları korunur</li>
+                  <li>AI raporları (tekil, harman, entegre) korunur</li>
+                  <li>Okul, sınıf, şube, ad-soyad bilgileri aynı kalır</li>
+                  <li>Öğrenci yeni öğretmenin listesinde görünür</li>
+                  <li>Sizin listenizden kaybolur</li>
+                </ul>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-amber-800">
+                  Bu işlem <strong>geri alınamaz</strong>. Geri almak için yeni öğretmenin aynı süreci tersine uygulaması gerekir.
+                </p>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => !transferring && setTransferConfirmOpen(false)}
+                disabled={transferring}
+                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-[12px] font-bold hover:bg-gray-200 disabled:opacity-60 transition-all"
+              >
+                İptal
+              </button>
+              <button
+                onClick={executeTransfer}
+                disabled={transferring}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 text-white text-[12px] font-bold shadow-md hover:shadow-lg disabled:opacity-60 transition-all"
+              >
+                {transferring ? (
+                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Aktarılıyor...</>
+                ) : (
+                  <><ArrowRightLeft className="w-3.5 h-3.5" /> Evet, Aktar</>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
