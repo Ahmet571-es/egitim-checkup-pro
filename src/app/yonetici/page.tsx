@@ -6,7 +6,7 @@ import {
   GraduationCap, Shield, Lock, ArrowRight, ArrowLeft, Users, Trash2,
   Phone, MapPin, BookOpen, FileText, ChevronRight, School,
   AlertCircle, CheckCircle2, FolderOpen, User, BarChart3, X,
-  Mail, Calendar, Briefcase
+  Mail, Calendar, Briefcase, Eye, EyeOff
 } from 'lucide-react';
 
 /* ═══ Types ═══ */
@@ -94,6 +94,7 @@ function DeleteButton({ onDelete, label }: { onDelete: () => void; label: string
 /* ═══ MAIN PAGE ═══ */
 export default function YoneticiPage() {
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [authError, setAuthError] = useState('');
 
@@ -267,12 +268,20 @@ export default function YoneticiPage() {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
-                  type="password" value={password}
+                  type={showPassword ? 'text' : 'password'} value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                   placeholder="Yönetici şifresi"
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
+                  className="w-full pl-11 pr-11 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
               <button onClick={handleLogin} className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-bold shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all flex items-center justify-center gap-2">
                 Giriş Yap <ArrowRight className="w-4 h-4" />
