@@ -30,14 +30,6 @@ const STEPS = [
   { num: '03', title: 'AI Raporunu Alın', desc: 'Yapay zekâ destekli detaylı analizler ve kişiselleştirilmiş öneriler.', gradient: 'from-violet-500 to-purple-600', icon: Sparkles },
 ];
 
-const PLANS = [
-  { name: 'Başlangıç', students: '50 öğrenci', price: 4999, popular: false },
-  { name: 'Profesyonel', students: '200 öğrenci', price: 14999, popular: true },
-  { name: 'Kurumsal', students: 'Sınırsız öğrenci', price: 29999, popular: false },
-];
-
-const FEATURES_LIST = ['10 bilimsel test', 'AI analiz raporu', "3'lü entegre rapor", 'PDF/Word export', '5 kullanıcı paneli'];
-
 const HIGHLIGHTS = [
   { icon: Brain, title: 'AI Destekli Analiz', desc: 'Claude AI ile derinlemesine öğrenci profilleme', color: 'text-violet-600 bg-violet-50 border-violet-200' },
   { icon: TrendingUp, title: 'Gelişim Takibi', desc: 'Longitudinal veri ile öğrenci gelişimini izleyin', color: 'text-sky-600 bg-sky-50 border-sky-200' },
@@ -76,30 +68,6 @@ function FloatingParticles() {
       ))}
     </div>
   );
-}
-
-function StatItem({ icon: Icon, targetValue, label, colorClass, visible }: {
-  icon: React.ElementType; targetValue: string; label: string; colorClass: string; visible: boolean;
-}) {
-  const isNumeric = /^\d+$/.test(targetValue);
-  const count = useCountUp(isNumeric ? parseInt(targetValue) : 0, 1200, visible);
-  return (
-    <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-5 shadow-sm text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
-         style={{ backgroundImage: 'linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.4) 50%, transparent 75%)', backgroundSize: '200% 100%', animation: visible ? 'shimmer 3s ease-in-out infinite' : 'none' }}>
-      <div className={`w-10 h-10 rounded-xl ${colorClass} flex items-center justify-center mx-auto mb-3`}>
-        <Icon className="w-5 h-5" />
-      </div>
-      <p className="text-2xl font-extrabold bg-gradient-to-r from-[#0f2847] to-[#1a4a7a] bg-clip-text text-transparent">
-        {isNumeric ? count : targetValue}
-      </p>
-      <p className="text-[13px] text-gray-500 font-medium">{label}</p>
-    </div>
-  );
-}
-
-function PriceCountUp({ target, visible }: { target: number; visible: boolean }) {
-  const count = useCountUp(target, 1400, visible);
-  return <span className="text-4xl font-extrabold text-[#0f2847]">₺{count.toLocaleString('tr-TR')}</span>;
 }
 
 function TypingText({ words, className }: { words: string[]; className?: string }) {
@@ -145,11 +113,9 @@ export default function LandingPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const stats = useScrollReveal(0.2);
   const highlights = useScrollReveal(0.15);
   const tests = useScrollReveal(0.1);
   const steps = useScrollReveal(0.15);
-  const pricing = useScrollReveal(0.15);
   const footer = useScrollReveal(0.1);
 
   return (
@@ -239,18 +205,28 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ STATS ═══ */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10" ref={stats.ref}>
-        <div className={`grid grid-cols-2 sm:grid-cols-4 gap-4 transition-all duration-500 ${stats.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          {[
-            { icon: BookOpen, value: '10', label: 'Bilimsel Test', color: 'text-emerald-600 bg-emerald-100' },
-            { icon: Sparkles, value: 'AI', label: 'Analiz Raporu', color: 'text-violet-600 bg-violet-100' },
-            { icon: Users, value: '5', label: 'Kullanıcı Paneli', color: 'text-sky-600 bg-sky-100' },
-            { icon: FileText, value: '3', label: 'Entegre Rapor', color: 'text-amber-600 bg-amber-100' },
-          ].map((s, i) => (
-            <div key={s.label} style={{ transitionDelay: `${i * 100}ms` }}
-                 className={`transition-all duration-500 ${stats.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-              <StatItem icon={s.icon} targetValue={s.value} label={s.label} colorClass={s.color} visible={stats.visible} />
+      {/* ═══ ANIMATED MARQUEE ═══ */}
+      <section className="relative -mt-6 z-10 overflow-hidden py-6">
+        <div className="flex animate-marquee whitespace-nowrap gap-6">
+          {[...Array(2)].map((_, setIdx) => (
+            <div key={setIdx} className="flex gap-6 shrink-0">
+              {[
+                { emoji: '🧠', text: 'Enneagram Kişilik', color: 'from-violet-500 to-purple-600' },
+                { emoji: '📖', text: 'VARK Öğrenme Stili', color: 'from-sky-500 to-blue-600' },
+                { emoji: '🧭', text: 'Holland Kariyer', color: 'from-emerald-500 to-teal-600' },
+                { emoji: '🎯', text: 'Çoklu Zeka Analizi', color: 'from-amber-500 to-orange-600' },
+                { emoji: '📝', text: 'Sınav Kaygısı Ölçeği', color: 'from-rose-500 to-pink-600' },
+                { emoji: '📚', text: 'Çalışma Davranışı', color: 'from-lime-500 to-green-600' },
+                { emoji: '🔬', text: 'Akademik Analiz', color: 'from-cyan-500 to-sky-600' },
+                { emoji: '⚡', text: 'P2 Dikkat Testi', color: 'from-indigo-500 to-violet-600' },
+                { emoji: '🧩', text: 'Sağ-Sol Beyin', color: 'from-fuchsia-500 to-pink-600' },
+                { emoji: '📖', text: 'Hızlı Okuma', color: 'from-teal-500 to-emerald-600' },
+              ].map((item) => (
+                <div key={`${setIdx}-${item.text}`} className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r ${item.color} text-white text-[13px] font-bold shadow-lg hover:scale-105 transition-transform cursor-default`}>
+                  <span className="text-lg">{item.emoji}</span>
+                  {item.text}
+                </div>
+              ))}
             </div>
           ))}
         </div>
@@ -338,47 +314,30 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ PRICING ═══ */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-24" ref={pricing.ref}>
-        <div className={`text-center mb-14 transition-all duration-500 ${pricing.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847]">Fiyatlandırma</h2>
-          <p className="mt-3 text-gray-500 text-lg">Her okula uygun lisans paketleri</p>
+      {/* ═══ TRUST BADGES (Animated) ═══ */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847]">Güvenle Kullanın</h2>
+          <p className="mt-3 text-gray-500 text-lg">Eğitim psikolojisi standartlarına uygun altyapı</p>
         </div>
-        <div className="grid sm:grid-cols-3 gap-6">
-          {PLANS.map((p, pi) => (
-            <div key={p.name}
-              className={`relative bg-white/70 backdrop-blur-xl rounded-3xl border p-8 shadow-sm
-                hover:scale-[1.03] hover:shadow-xl transition-all duration-300
-                ${p.popular ? 'border-emerald-400 ring-2 ring-emerald-500/20 glow-border' : 'border-white/40 hover:border-gray-200'}
-                ${pricing.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-              style={{ transitionDelay: pricing.visible ? `${pi * 120}ms` : '0ms' }}>
-              {p.popular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-[12px] font-bold shadow-lg">
-                  En Popüler
-                </div>
-              )}
-              <h3 className="text-xl font-bold text-[#0f2847] mb-1">{p.name}</h3>
-              <p className="text-sm text-gray-500 mb-6">{p.students}</p>
-              <div className="mb-6">
-                <PriceCountUp target={p.price} visible={pricing.visible} />
-                <span className="text-sm text-gray-400 font-medium"> / yıl</span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            { icon: '🔒', title: 'KVKK Uyumlu', desc: 'Veriler güvenle saklanır', gradient: 'from-sky-500 to-blue-600' },
+            { icon: '🧪', title: 'Bilimsel Testler', desc: 'Geçerlilik-güvenirlik kanıtlı', gradient: 'from-violet-500 to-purple-600' },
+            { icon: '🤖', title: 'AI Destekli', desc: 'Claude AI ile derinlemesine analiz', gradient: 'from-emerald-500 to-teal-600' },
+            { icon: '📊', title: 'Anlık Raporlar', desc: '3 format: öğretmen · öğrenci · veli', gradient: 'from-amber-500 to-orange-600' },
+          ].map((item, i) => (
+            <div
+              key={item.title}
+              className="group relative bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-6 text-center shadow-sm hover:-translate-y-2 hover:shadow-xl transition-all duration-500 overflow-hidden"
+              style={{ animationDelay: `${i * 150}ms` }}
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
+              <div className="relative">
+                <div className="text-4xl mb-3 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">{item.icon}</div>
+                <h3 className="text-[15px] font-extrabold text-[#0f2847] mb-1">{item.title}</h3>
+                <p className="text-[12px] text-gray-500">{item.desc}</p>
               </div>
-              <ul className="space-y-3 mb-8">
-                {FEATURES_LIST.map((f, fi) => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-gray-600 group/feature">
-                    <CheckCircle2 className="w-4 h-4 text-gray-300 group-hover/feature:text-emerald-500 transition-colors duration-200 shrink-0" style={{ transitionDelay: `${fi * 50}ms` }} />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/login"
-                className={`touch-feedback block w-full py-3 rounded-xl text-center text-sm font-bold transition-all active:scale-[0.97] ${
-                  p.popular
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 pulse-glow'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}>
-                Lisans Satın Al <ChevronRight className="w-4 h-4 inline ml-1" />
-              </Link>
             </div>
           ))}
         </div>
