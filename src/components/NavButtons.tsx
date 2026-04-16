@@ -6,14 +6,14 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 /**
  * Geri / İleri navigasyon butonları
  * - Tarayıcı history üzerinden çalışır (router.back / router.forward)
- * - Dashboard sayfasında gizlenir (öğretmen klasör gezinmesi için var)
+ * - Dashboard sayfalarında gizlenir (panel içinde gezinme için)
  */
 export default function NavButtons() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Dashboard'da gösterme
-  if (pathname === '/teacher/dashboard') return null;
+  // Dashboard'larda gösterme (öğretmen + öğrenci)
+  if (pathname === '/teacher/dashboard' || pathname === '/student/dashboard') return null;
 
   return (
     <div className="flex items-center gap-2 mb-4">

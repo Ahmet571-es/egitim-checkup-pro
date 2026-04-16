@@ -172,11 +172,11 @@ export default function MyTestsPage() {
                 </div>
                 {isCompleted ? (
                   <Link
-                    href="/student/my-results"
+                    href={`/student/my-tests/${assignment.testId}`}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-100 text-emerald-700 text-sm font-semibold hover:bg-emerald-200 transition-all flex-shrink-0"
                   >
-                    <CheckCircle size={15} />
-                    Sonuç
+                    <Play size={15} />
+                    Tekrar Çöz
                   </Link>
                 ) : (
                   <Link

@@ -1,5 +1,6 @@
 'use client';
 import PanelLayout from '@/components/PanelLayout';
+import NavButtons from '@/components/NavButtons';
 import type { NavItem } from '@/types';
 
 const navItems: NavItem[] = [
@@ -9,5 +10,10 @@ const navItems: NavItem[] = [
 ];
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
-  return <PanelLayout role="student" navItems={navItems}>{children}</PanelLayout>;
+  return (
+    <PanelLayout role="student" navItems={navItems}>
+      <NavButtons />
+      {children}
+    </PanelLayout>
+  );
 }
