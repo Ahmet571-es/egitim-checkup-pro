@@ -1,7 +1,7 @@
 /**
  * /api/teacher/students
  * - action: 'list'                  → tüm öğrencileri okul → sınıf → ad-soyad gruplaması ile getir
- * - action: 'detail'                → tek öğrencinin yaptığı + atanan testleri getir
+ * - action: 'detail'                → tek öğrencinin yaptığı + atanan testleri + raporları getir
  * - action: 'assign'                → seçili testleri öğrenciye ata (user_metadata.assigned_tests)
  * - action: 'unassign'              → bir test atamasını kaldır
  *
@@ -17,6 +17,9 @@ const ALL_TESTS = [
   'enneagram', 'vark', 'holland', 'coklu_zeka', 'sinav_kaygisi',
   'calisma_davranisi', 'akademik_analiz', 'hizli_okuma', 'd2_dikkat', 'sag_sol_beyin',
 ];
+
+// DB'de hem tireli hem alt çizgili kayıt olabilir — normalize ediyoruz
+const normalize = (s: string) => (s || '').replace(/-/g, '_');
 
 export async function POST(req: NextRequest) {
   try {
@@ -65,7 +68,7 @@ export async function POST(req: NextRequest) {
           .in('student_id', studentIds);
         (results || []).forEach((r) => {
           if (!completedMap.has(r.student_id)) completedMap.set(r.student_id, new Set());
-          completedMap.get(r.student_id)!.add(r.test_type);
+          completedMap.get(r.student_id)!.add(normalize(r.test_type));
         });
       }
 
@@ -81,7 +84,7 @@ export async function POST(req: NextRequest) {
         const gradeKey = p.grade ? `${p.grade}. Sınıf` : 'Sınıfsız';
         const completed = completedMap.get(p.id) || new Set();
         const assigned = (meta.assigned_tests as string[]) || [];
-        const pending = assigned.filter((t) => !completed.has(t));
+        const pending = assigned.filter((t) => !completed.has(normalize(t)));
 
         if (!grouped[schoolName]) grouped[schoolName] = {};
         if (!grouped[schoolName][gradeKey]) grouped[schoolName][gradeKey] = [];
@@ -97,7 +100,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ grouped });
     }
 
-    // ═══ DETAIL: bir öğrencinin yapılan + yapılacak testleri ═══
+    // ═══ DETAIL: bir öğrencinin yapılan + yapılacak testleri + raporları ═══
     if (action === 'detail') {
       const { studentId } = body;
       if (!studentId) return NextResponse.json({ error: 'studentId gerekli' }, { status: 400 });
@@ -117,21 +120,46 @@ export async function POST(req: NextRequest) {
       const schoolName = (meta.school_name as string) || '—';
       const assignedTests = ((meta.assigned_tests as string[]) || []);
 
-      // Tamamlanan testler
+      // Tamamlanan testler (ai_report ve scores dahil)
       const { data: results } = await admin
         .from('test_results')
-        .select('id, test_type, completed_at, ai_report, scores')
+        .select('id, test_type, completed_at, ai_report, ai_report_generated_at, scores')
         .eq('student_id', studentId)
+        .not('completed_at', 'is', null)
         .order('completed_at', { ascending: false });
 
       const completedTests = results || [];
-      const completedTypes = new Set(completedTests.map((r) => r.test_type));
+      const completedTypes = new Set(completedTests.map((r) => normalize(r.test_type)));
 
-      // Yapılacak = tüm testler − tamamlananlar
-      const pendingTypes = ALL_TESTS.filter((t) => !completedTypes.has(t));
+      // Yapılacak = tüm testler − tamamlananlar (normalize edilmiş)
+      const pendingTypes = ALL_TESTS.filter((t) => !completedTypes.has(normalize(t)));
 
       // Atanmış ama henüz tamamlanmamış testler (uyarı için)
-      const activeAssignments = assignedTests.filter((t) => !completedTypes.has(t));
+      const activeAssignments = assignedTests.filter((t) => !completedTypes.has(normalize(t)));
+
+      // Bütüncül (Harmanlanmış) Rapor — holistic_reports tablosundan
+      let holisticReport: { text: string; generated_at: string } | null = null;
+      try {
+        const { data: hr } = await admin
+          .from('holistic_reports')
+          .select('report_text, generated_at')
+          .eq('student_id', studentId)
+          .order('generated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (hr?.report_text) {
+          holisticReport = { text: hr.report_text, generated_at: hr.generated_at };
+        }
+      } catch { /* tablo yoksa sessizce geç */ }
+
+      // Entegre 3'lü Rapor — integrated_reports tablosundan
+      const { data: ir } = await admin
+        .from('integrated_reports')
+        .select('teacher_report, student_report, parent_report, generated_at')
+        .eq('student_id', studentId)
+        .order('generated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
       return NextResponse.json({
         student: {
@@ -145,9 +173,14 @@ export async function POST(req: NextRequest) {
           test_type: r.test_type,
           completed_at: r.completed_at,
           has_report: !!r.ai_report,
+          ai_report: r.ai_report || null,
+          ai_report_generated_at: r.ai_report_generated_at,
+          scores: r.scores,
         })),
         pendingTypes,
         activeAssignments,
+        holisticReport,
+        integratedReport: ir || null,
       });
     }
 
