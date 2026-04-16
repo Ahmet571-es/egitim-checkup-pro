@@ -55,14 +55,14 @@ export default async function Page() {
     {
       label: 'Öğrencilerim',
       value: studentCount,
-      href: '/teacher/results',
+      href: '/teacher/students',
       icon: Users,
       gradient: 'from-sky-500 to-blue-600',
     },
     {
       label: 'Tamamlanan Test',
       value: resultCount,
-      href: '/teacher/results',
+      href: '/teacher/students',
       icon: FileCheck2,
       gradient: 'from-violet-500 to-purple-600',
     },
