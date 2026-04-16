@@ -84,7 +84,9 @@ export async function POST(req: NextRequest) {
       (profiles || []).forEach((p) => {
         const meta = metaMap.get(p.id) || {};
         const schoolName = (meta.school_name as string) || schoolNameMap[p.school_id || ''] || 'Okulsuz';
-        const gradeKey = p.grade ? `${p.grade}. Sınıf` : 'Sınıfsız';
+        // Sınıf: önce profiles.grade, yoksa user_metadata.grade
+        const grade = p.grade || (meta.grade as string) || '';
+        const gradeKey = grade ? `${grade}. Sınıf` : 'Sınıfsız';
         const completed = completedMap.get(p.id) || new Set();
         const assigned = (meta.assigned_tests as string[]) || [];
         const pending = assigned.filter((t) => !completed.has(normalize(t)));
@@ -94,7 +96,7 @@ export async function POST(req: NextRequest) {
         grouped[schoolName][gradeKey].push({
           id: p.id,
           full_name: p.full_name,
-          grade: p.grade,
+          grade: grade || null,
           completed_count: completed.size,
           assigned_pending_count: pending.length,
         });
@@ -121,6 +123,7 @@ export async function POST(req: NextRequest) {
       const { data: authUser } = await admin.auth.admin.getUserById(studentId);
       const meta = (authUser?.user?.user_metadata || {}) as Record<string, unknown>;
       const schoolName = (meta.school_name as string) || '—';
+      const grade = profile.grade || (meta.grade as string) || null;
       const assignedTests = ((meta.assigned_tests as string[]) || []);
 
       // Tamamlanan testler (ai_report ve scores dahil)
@@ -207,7 +210,7 @@ export async function POST(req: NextRequest) {
         student: {
           id: profile.id,
           full_name: profile.full_name,
-          grade: profile.grade,
+          grade: grade,
           school_name: schoolName,
         },
         completedTests: completedTests.map((r) => ({
