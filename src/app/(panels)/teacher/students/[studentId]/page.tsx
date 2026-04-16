@@ -268,7 +268,7 @@ export default function StudentDetailPage() {
     setError('');
     setSuccess('');
     try {
-      const res = await secureFetch(`/api/reports/holistic?id=${encodeURIComponent(id)}`, {
+      const res = await secureFetch(`/api/reports/holistic/${encodeURIComponent(id)}`, {
         method: 'DELETE',
       });
       const data = await res.json();
