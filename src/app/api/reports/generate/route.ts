@@ -19,14 +19,15 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
+    const admin = createAdminClient();
 
     // ── AUTH KONTROLÜ ──
     const { data: { user }, error: authErr } = await supabase.auth.getUser();
     if (authErr || !user) {
       return NextResponse.json({ error: 'Yetkilendirme gerekli.' }, { status: 401 });
     }
-    // Çağıran kullanıcının rolünü kontrol et
-    const { data: callerProfile } = await supabase
+    // Çağıran kullanıcının rolünü kontrol et (admin client ile RLS bypass)
+    const { data: callerProfile } = await admin
       .from('profiles')
       .select('role, school_id')
       .eq('id', user.id)
@@ -48,8 +49,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Öğrenci bilgilerini çek
-    const { data: student, error: studentErr } = await supabase
+    // Öğrenci bilgilerini çek (admin client ile RLS bypass)
+    const { data: student, error: studentErr } = await admin
       .from('profiles')
       .select('id, full_name, school_id')
       .eq('id', student_id)
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
     // --- BÜTÜNCÜL RAPOR ---
     if (report_type === 'holistic') {
       // Tüm tamamlanan test sonuçlarını çek
-      const { data: results, error: resultsErr } = await supabase
+      const { data: results, error: resultsErr } = await admin
         .from('test_results')
         .select('id, test_type, scores, completed_at')
         .eq('student_id', student_id)
@@ -97,8 +98,7 @@ export async function POST(request: NextRequest) {
 
       const report = await generateAIReport(prompt);
 
-      // Admin client ile raporu kaydet (RLS bypass)
-      const admin = createAdminClient();
+      // Admin client ile raporu kaydet (RLS bypass — outer scope admin)
       if (results[0]?.id) {
         const { error: saveErr } = await admin
           .from('test_results')
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'test_result_id zorunludur.' }, { status: 400 });
     }
 
-    const { data: testResult, error: trErr } = await supabase
+    const { data: testResult, error: trErr } = await admin
       .from('test_results')
       .select('id, test_type, scores, completed_at, ai_report, ai_report_generated_at')
       .eq('id', test_result_id)
@@ -152,8 +152,7 @@ export async function POST(request: NextRequest) {
 
     const report = await generateAIReport(prompt);
 
-    // Admin client ile raporu kaydet (RLS bypass)
-    const admin = createAdminClient();
+    // Admin client ile raporu kaydet (RLS bypass — outer scope admin)
     const { error: updateErr } = await admin
       .from('test_results')
       .update({
@@ -185,13 +184,14 @@ export async function PUT(request: NextRequest) {
     }
 
     const supabase = await createClient();
+    const admin = createAdminClient();
 
     // ── AUTH KONTROLÜ ──
     const { data: { user }, error: authErr } = await supabase.auth.getUser();
     if (authErr || !user) {
       return NextResponse.json({ error: 'Yetkilendirme gerekli.' }, { status: 401 });
     }
-    const { data: callerProfile } = await supabase
+    const { data: callerProfile } = await admin
       .from('profiles')
       .select('role, school_id')
       .eq('id', user.id)
@@ -212,7 +212,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const { data: student } = await supabase
+    const { data: student } = await admin
       .from('profiles')
       .select('id, full_name')
       .eq('id', student_id)
@@ -222,7 +222,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Öğrenci bulunamadı.' }, { status: 404 });
     }
 
-    const { data: testResult } = await supabase
+    const { data: testResult } = await admin
       .from('test_results')
       .select('id, test_type, scores')
       .eq('id', test_result_id)
@@ -242,8 +242,7 @@ export async function PUT(request: NextRequest) {
 
     const report = await generateAIReport(prompt);
 
-    // Admin client ile kaydet (RLS bypass)
-    const admin = createAdminClient();
+    // Admin client ile kaydet (RLS bypass — outer scope admin)
     const { error: saveErr } = await admin
       .from('test_results')
       .update({
