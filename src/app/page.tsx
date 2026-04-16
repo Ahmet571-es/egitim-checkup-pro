@@ -34,7 +34,6 @@ const HIGHLIGHTS = [
   { icon: Brain, title: 'Derinlemesine Analiz', desc: 'Kapsamlı öğrenci profilleme ve değerlendirme', color: 'text-violet-600 bg-violet-50 border-violet-200' },
   { icon: TrendingUp, title: 'Gelişim Takibi', desc: 'Longitudinal veri ile öğrenci gelişimini izleyin', color: 'text-sky-600 bg-sky-50 border-sky-200' },
   { icon: Award, title: 'Koçluk Sistemi', desc: 'Haftalık görevler ve gamification ile motivasyon', color: 'text-amber-600 bg-amber-50 border-amber-200' },
-  { icon: UserCheck, title: '4 Farklı Panel', desc: 'Admin, okul, öğretmen ve öğrenci panelleri', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
 ];
 
 /* ═══ SUB-COMPONENTS ═══ */
@@ -238,7 +237,7 @@ export default function LandingPage() {
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847]">Neden Eğitim Check-Up?</h2>
           <p className="mt-3 text-gray-500 text-lg max-w-xl mx-auto">Öğrencilerinizi tanımanın en kapsamlı ve akıllı yolu</p>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid sm:grid-cols-3 gap-5">
           {HIGHLIGHTS.map((h, i) => (
             <div key={h.title}
               className={`group bg-white/70 backdrop-blur-xl rounded-2xl border p-6 shadow-sm text-center
