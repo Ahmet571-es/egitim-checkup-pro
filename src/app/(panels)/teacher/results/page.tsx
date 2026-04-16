@@ -1,500 +1,247 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { BarChart2, ChevronDown, Download, FileText, Eye, CheckCircle, Clock } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import ReportRenderer from '@/components/ReportRenderer';
-
-interface TestResult {
-  id: string;
-  student_id: string;
-  test_type: string;
-  completed_at: string | null;
-  scores: Record<string, unknown>;
-  raw_answers: Record<string, unknown> | null;
-  ai_report: string | null;
-  ai_report_generated_at: string | null;
-  student_name?: string;
-  class_name?: string;
-}
-
-interface ClassInfo {
-  id: string;
-  name: string;
-  grade: number | null;
-}
+import { secureFetch } from '@/lib/csrf-client';
+import {
+  FileCheck2, Search, Filter, GraduationCap, School, Calendar,
+  CheckCircle2, AlertCircle, ChevronRight, Eye
+} from 'lucide-react';
 
 const TEST_LABELS: Record<string, string> = {
   enneagram: 'Enneagram Kişilik',
   vark: 'VARK Öğrenme Stilleri',
   holland: 'Holland RIASEC',
-  'coklu-zeka': 'Çoklu Zekâ',
-  'sinav-kaygisi': 'Sınav Kaygısı',
-  'calisma-davranisi': 'Çalışma Davranışı',
-  'akademik-analiz': 'Akademik Analiz',
-  'hizli-okuma': 'Hızlı Okuma',
-  'd2-dikkat': 'D2 Dikkat',
-  'sag-sol-beyin': 'Sağ-Sol Beyin',
+  coklu_zeka: 'Çoklu Zekâ', 'coklu-zeka': 'Çoklu Zekâ',
+  sinav_kaygisi: 'Sınav Kaygısı', 'sinav-kaygisi': 'Sınav Kaygısı',
+  calisma_davranisi: 'Çalışma Davranışı', 'calisma-davranisi': 'Çalışma Davranışı',
+  akademik_analiz: 'Akademik Analiz', 'akademik-analiz': 'Akademik Analiz',
+  hizli_okuma: 'Hızlı Okuma', 'hizli-okuma': 'Hızlı Okuma',
+  d2_dikkat: 'P2 Dikkat Testi', 'd2-dikkat': 'P2 Dikkat Testi',
+  sag_sol_beyin: 'Sağ-Sol Beyin', 'sag-sol-beyin': 'Sağ-Sol Beyin',
 };
+const labelOf = (t: string) => TEST_LABELS[t] || t;
 
-function getTestLabel(type: string): string {
-  return TEST_LABELS[type] ?? type;
+interface LogRow {
+  id: string;
+  student_id: string;
+  student_name: string;
+  school_name: string;
+  class_name: string;
+  test_type: string;
+  completed_at: string;
+  has_report: boolean;
 }
 
-function formatScoreSummary(scores: Record<string, unknown>): string {
-  const entries = Object.entries(scores ?? {}).slice(0, 4);
-  if (entries.length === 0) return '—';
-  return entries
-    .map(([k, v]) => {
-      const val = typeof v === 'number' ? `${Math.round(v)}` :
-                  typeof v === 'object' && v !== null && 'pct' in v ? `${Math.round((v as Record<string, number>).pct)}%` :
-                  String(v).slice(0, 20);
-      return `${k}: ${val}`;
-    })
-    .join(' · ');
-}
+type DateRange = 'all' | '7d' | '30d' | '90d';
 
-export default function TeacherResultsPage() {
-  const supabase = createClient();
+export default function CompletedTestsPage() {
+  const [logs, setLogs] = useState<LogRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const [teacherId, setTeacherId] = useState<string | null>(null);
-  const [myStudentIds, setMyStudentIds] = useState<string[]>([]);
-  const [classes, setClasses] = useState<ClassInfo[]>([]);
-  const [selectedClass, setSelectedClass] = useState<string>('all');
-  const [results, setResults] = useState<TestResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedAnswers, setSelectedAnswers] = useState<TestResult | null>(null);
-  const [viewingReport, setViewingReport] = useState<TestResult | null>(null);
+  const [search, setSearch] = useState('');
+  const [schoolFilter, setSchoolFilter] = useState<string>('all');
+  const [testFilter, setTestFilter] = useState<string>('all');
+  const [dateRange, setDateRange] = useState<DateRange>('all');
+  const [reportFilter, setReportFilter] = useState<'all' | 'with' | 'without'>('all');
 
-  // 1. Giriş yapan öğretmeni bul + sadece kendi sınıflarını ve öğrencilerini al
   useEffect(() => {
-    async function initTeacherScope() {
-      // Öğretmenin kimliğini al
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.id) return;
-      setTeacherId(user.id);
-
-      // Sadece bu öğretmene ait sınıflar (teacher_id = auth.uid())
-      const { data: myClasses } = await supabase
-        .from('classes')
-        .select('id, name, grade')
-        .eq('teacher_id', user.id)
-        .order('name');
-      setClasses(myClasses ?? []);
-
-      // Bu sınıflardaki öğrenci ID'leri
-      const classIds = (myClasses ?? []).map(c => c.id);
-      if (classIds.length === 0) {
-        setMyStudentIds([]);
-        return;
-      }
-
-      const { data: csRows } = await supabase
-        .from('class_students')
-        .select('student_id')
-        .in('class_id', classIds);
-      const ids = [...new Set((csRows ?? []).map(r => r.student_id))];
-      setMyStudentIds(ids);
-    }
-    initTeacherScope();
-  }, [supabase]);
-
-  // 2. Sonuçları yükle — sadece öğretmenin kendi öğrencileri
-  useEffect(() => {
-    async function loadResults() {
-      if (!teacherId) return;
+    (async () => {
       setLoading(true);
-
-      // Hangi öğrenci ID'lerini sorgulayacağız?
-      let studentIds = myStudentIds;
-
-      if (selectedClass !== 'all') {
-        // Seçili sınıftaki öğrencilere daralt
-        const { data: classStudents } = await supabase
-          .from('class_students')
-          .select('student_id')
-          .eq('class_id', selectedClass);
-        const classStudentIds = (classStudents ?? []).map(cs => cs.student_id);
-        // Hem sınıfa ait hem de öğretmenin öğrencisi olanlar (kesişim)
-        studentIds = classStudentIds.filter(id => myStudentIds.includes(id));
+      try {
+        const res = await secureFetch('/api/teacher/students', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'completed-tests-log' }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Sunucu hatası');
+        setLogs(data.logs || []);
+      } catch (e: unknown) {
+        setError((e as Error).message);
       }
-
-      if (studentIds.length === 0) {
-        setResults([]);
-        setLoading(false);
-        return;
-      }
-
-      const { data: rawResults } = await supabase
-        .from('test_results')
-        .select(`
-          id, student_id, test_type, completed_at, scores, raw_answers,
-          ai_report, ai_report_generated_at,
-          profiles!test_results_student_id_fkey(full_name)
-        `)
-        .in('student_id', studentIds)
-        .not('completed_at', 'is', null)
-        .order('completed_at', { ascending: false })
-        .limit(200);
-
-      const mapped = (rawResults ?? []).map(r => ({
-        ...r,
-        scores: r.scores as Record<string, unknown>,
-        raw_answers: r.raw_answers as Record<string, unknown> | null,
-        student_name: (r.profiles as unknown as { full_name: string } | null)?.full_name ?? '—',
-      }));
-      setResults(mapped);
       setLoading(false);
-    }
-    loadResults();
-  }, [selectedClass, teacherId, myStudentIds, supabase]);
+    })();
+  }, []);
 
-  const filtered = results.filter(r =>
-    !searchQuery ||
-    r.student_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    getTestLabel(r.test_type).toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // ── Filtre seçenekleri (logs'dan dinamik üret) ──
+  const schools = useMemo(() => [...new Set(logs.map(l => l.school_name))].sort(), [logs]);
+  const testTypes = useMemo(() => [...new Set(logs.map(l => l.test_type))].sort(), [logs]);
 
-  const exportClassExcel = () => {
-    if (selectedClass !== 'all') {
-      window.open(`/api/export/excel?class_id=${selectedClass}`);
-    }
-  };
+  // ── Filtreleme ──
+  const filtered = useMemo(() => {
+    const now = Date.now();
+    const ranges: Record<DateRange, number> = {
+      all: Infinity,
+      '7d': 7 * 24 * 60 * 60 * 1000,
+      '30d': 30 * 24 * 60 * 60 * 1000,
+      '90d': 90 * 24 * 60 * 60 * 1000,
+    };
+    const rangeMs = ranges[dateRange];
+
+    return logs.filter((l) => {
+      if (search && !l.student_name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (schoolFilter !== 'all' && l.school_name !== schoolFilter) return false;
+      if (testFilter !== 'all' && l.test_type !== testFilter) return false;
+      if (reportFilter === 'with' && !l.has_report) return false;
+      if (reportFilter === 'without' && l.has_report) return false;
+      if (rangeMs !== Infinity) {
+        const age = now - new Date(l.completed_at).getTime();
+        if (age > rangeMs) return false;
+      }
+      return true;
+    });
+  }, [logs, search, schoolFilter, testFilter, dateRange, reportFilter]);
+
+  const formatDate = (d: string) => d
+    ? new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : '—';
 
   return (
     <div>
-      {/* Başlık */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold text-[#0f2847] mb-1">Test Sonuçları</h1>
-          <p className="text-gray-500 text-sm">
-            Tamamlanan testler, skorlar ve rapor durumları.
-          </p>
-        </div>
-        {selectedClass !== 'all' && (
-          <button
-            onClick={exportClassExcel}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-all shadow"
-          >
-            <Download size={15} />
-            Sınıf Excel&apos;i İndir
-          </button>
-        )}
+      {/* Header */}
+      <div className="mb-6 bg-gradient-to-br from-violet-500 to-purple-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg shadow-violet-500/20">
+        <h1 className="text-2xl sm:text-3xl font-extrabold mb-1 flex items-center gap-3">
+          <FileCheck2 className="w-8 h-8" /> Tamamlanan Testler
+        </h1>
+        <p className="text-violet-50 text-sm">
+          Hangi öğrencinin, hangi okulda, hangi sınıfta, hangi testi, ne zaman tamamladığını görün.
+        </p>
       </div>
 
-      {/* İstatistikler */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        {[
-          { label: 'Toplam Sonuç', value: results.length, icon: <BarChart2 size={18} className="text-sky-500" />, color: 'text-sky-600' },
-          { label: 'Filtrelenmiş', value: filtered.length, icon: <FileText size={18} className="text-violet-500" />, color: 'text-violet-600' },
-          { label: 'Raporu Olan', value: results.filter(r => r.ai_report).length, icon: <Eye size={18} className="text-emerald-500" />, color: 'text-emerald-600' },
-        ].map(({ label, value, icon, color }) => (
-          <div key={label} className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 flex items-center gap-3 shadow-sm">
-            {icon}
-            <div>
-              <p className={`font-extrabold text-xl ${color}`}>{value}</p>
-              <p className="text-gray-400 text-xs">{label}</p>
-            </div>
+      {/* Toplam */}
+      {!loading && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
+            <p className="text-[11px] text-gray-400 font-medium uppercase">Toplam Test</p>
+            <p className="text-xl font-extrabold text-[#0f2847]">{logs.length}</p>
           </div>
-        ))}
-      </div>
+          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
+            <p className="text-[11px] text-gray-400 font-medium uppercase">Filtreli</p>
+            <p className="text-xl font-extrabold text-violet-600">{filtered.length}</p>
+          </div>
+          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
+            <p className="text-[11px] text-gray-400 font-medium uppercase">Raporlu</p>
+            <p className="text-xl font-extrabold text-emerald-600">{logs.filter(l => l.has_report).length}</p>
+          </div>
+          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
+            <p className="text-[11px] text-gray-400 font-medium uppercase">Rapor Bekliyor</p>
+            <p className="text-xl font-extrabold text-amber-600">{logs.filter(l => !l.has_report).length}</p>
+          </div>
+        </div>
+      )}
 
       {/* Filtreler */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-        <div className="relative">
+      <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm mb-4">
+        <div className="flex items-center gap-2 mb-3 text-[12px] font-bold text-gray-500 uppercase">
+          <Filter className="w-3.5 h-3.5" /> Filtreler
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+          {/* Arama */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Öğrenci ara..."
+              className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+            />
+          </div>
+
+          {/* Okul */}
           <select
-            value={selectedClass}
-            onChange={e => setSelectedClass(e.target.value)}
-            className="w-full appearance-none bg-white/70 backdrop-blur-xl border border-white/40 rounded-xl px-4 py-2.5 text-sm font-medium text-[#0f2847] focus:outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer shadow-sm"
+            value={schoolFilter}
+            onChange={(e) => setSchoolFilter(e.target.value)}
+            className="px-3 py-2 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
           >
-            <option value="all">Tüm Sınıflar</option>
-            {classes.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.name} {c.grade ? `(${c.grade}. Sınıf)` : ''}
-              </option>
-            ))}
+            <option value="all">Tüm okullar</option>
+            {schools.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-          <ChevronDown size={16} className="absolute right-3 top-3 text-gray-400 pointer-events-none" />
-        </div>
 
-        <input
-          type="search"
-          placeholder="Öğrenci adı veya test ara..."
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          className="bg-white/70 backdrop-blur-xl border border-white/40 rounded-xl px-4 py-2.5 text-sm text-[#0f2847] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm"
-        />
-      </div>
-
-      {/* Tablo */}
-      <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-[#0f2847] text-white">
-                <th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wide">Öğrenci</th>
-                <th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wide">Test</th>
-                <th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wide">Tarih</th>
-                <th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wide">Skor Özeti</th>
-                <th className="px-4 py-3 text-center font-semibold text-xs uppercase tracking-wide">Rapor</th>
-                <th className="px-4 py-3 text-center font-semibold text-xs uppercase tracking-wide">İşlem</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-12 text-gray-400">
-                    Yükleniyor...
-                  </td>
-                </tr>
-              ) : filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-12 text-gray-400">
-                    Sonuç bulunamadı.
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((r, idx) => (
-                  <tr
-                    key={r.id}
-                    className={`border-b border-gray-50 hover:bg-emerald-50/30 transition-colors ${idx % 2 === 0 ? '' : 'bg-gray-50/50'}`}
-                  >
-                    <td className="px-4 py-3 font-semibold text-[#0f2847]">{r.student_name}</td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold">
-                        {getTestLabel(r.test_type)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">
-                      {r.completed_at
-                        ? new Date(r.completed_at).toLocaleDateString('tr-TR')
-                        : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs max-w-[200px] truncate">
-                      {formatScoreSummary(r.scores)}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {r.ai_report ? (
-                        <div className="flex flex-col items-center gap-0.5">
-                          <span className="inline-flex items-center gap-1 text-emerald-600 text-xs font-semibold">
-                            <CheckCircle size={12} /> Üretildi
-                          </span>
-                          {r.ai_report_generated_at && (
-                            <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
-                              <Clock size={9} />
-                              {new Date(r.ai_report_generated_at).toLocaleDateString('tr-TR')}
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-gray-300 text-xs">Üretilmedi</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                        {r.ai_report && (
-                          <>
-                            <button
-                              onClick={() => setViewingReport(r)}
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[11px] font-semibold hover:bg-emerald-100 transition-all border border-emerald-200"
-                            >
-                              <Eye size={11} />
-                              Rapor
-                            </button>
-                            <a
-                              href={`/api/export/pdf?test_result_id=${r.id}&report_type=${encodeURIComponent(getTestLabel(r.test_type))}`}
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-red-50 text-red-700 text-[11px] font-semibold hover:bg-red-100 transition-all border border-red-200"
-                            >
-                              <Download size={11} />
-                              PDF
-                            </a>
-                            <a
-                              href={`/api/export/docx?test_result_id=${r.id}&report_type=${encodeURIComponent(getTestLabel(r.test_type))}`}
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-700 text-[11px] font-semibold hover:bg-blue-100 transition-all border border-blue-200"
-                            >
-                              <Download size={11} />
-                              Word
-                            </a>
-                          </>
-                        )}
-                        {r.raw_answers && Object.keys(r.raw_answers).length > 0 && (
-                          <button
-                            onClick={() => setSelectedAnswers(r)}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-50 text-amber-700 text-[11px] font-semibold hover:bg-amber-100 transition-all border border-amber-200"
-                          >
-                            <Eye size={11} />
-                            Cevaplar
-                          </button>
-                        )}
-                        {!r.ai_report && (
-                          <Link
-                            href={`/teacher/reports?student_id=${r.student_id}`}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[#0f2847] text-white text-[11px] font-semibold hover:bg-[#1a3d6e] transition-all"
-                          >
-                            <FileText size={11} />
-                            Rapor Üret
-                          </Link>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {!loading && filtered.length > 0 && (
-        <p className="text-center text-gray-400 text-xs mt-3">
-          {filtered.length} sonuç gösteriliyor (sadece size ait öğrenciler)
-        </p>
-      )}
-
-      {/* RAPOR GÖRÜNTÜLEME MODAL */}
-      {viewingReport && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-          onClick={() => setViewingReport(null)}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
-            onClick={e => e.stopPropagation()}
+          {/* Test türü */}
+          <select
+            value={testFilter}
+            onChange={(e) => setTestFilter(e.target.value)}
+            className="px-3 py-2 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
           >
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-[#0f2847] to-[#1a3d6e]">
-              <div>
-                <h3 className="text-white font-bold text-lg">
-                  {viewingReport.student_name} — {getTestLabel(viewingReport.test_type)}
-                </h3>
-                {viewingReport.ai_report_generated_at && (
-                  <p className="text-white/60 text-xs mt-0.5">
-                    Rapor üretim tarihi: {new Date(viewingReport.ai_report_generated_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })}
-                  </p>
-                )}
-              </div>
-              <button
-                onClick={() => setViewingReport(null)}
-                className="text-white/70 hover:text-white text-2xl leading-none px-2"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-6">
-              <ReportRenderer
-                text={viewingReport.ai_report!}
-                scores={viewingReport.scores}
-                testType={getTestLabel(viewingReport.test_type)}
-              />
-            </div>
-            <div className="px-6 py-3 border-t border-gray-100 flex flex-wrap gap-2">
-              <a
-                href={`/api/export/pdf?test_result_id=${viewingReport.id}&report_type=${encodeURIComponent(getTestLabel(viewingReport.test_type))}`}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-50 text-red-700 text-sm font-semibold hover:bg-red-100 transition-all border border-red-200"
-              >
-                <Download size={14} />
-                PDF İndir
-              </a>
-              <a
-                href={`/api/export/docx?test_result_id=${viewingReport.id}&report_type=${encodeURIComponent(getTestLabel(viewingReport.test_type))}`}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100 transition-all border border-blue-200"
-              >
-                <Download size={14} />
-                Word İndir
-              </a>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(viewingReport.ai_report!);
-                }}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-all"
-              >
-                📋 Kopyala
-              </button>
-              <button
-                onClick={() => setViewingReport(null)}
-                className="ml-auto px-4 py-2 rounded-xl bg-[#0f2847] text-white text-sm font-semibold hover:bg-[#1a3d6e] transition-all"
-              >
-                Kapat
-              </button>
-            </div>
-          </div>
+            <option value="all">Tüm testler</option>
+            {testTypes.map((t) => <option key={t} value={t}>{labelOf(t)}</option>)}
+          </select>
+
+          {/* Tarih aralığı */}
+          <select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value as DateRange)}
+            className="px-3 py-2 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+          >
+            <option value="all">Tüm tarihler</option>
+            <option value="7d">Son 7 gün</option>
+            <option value="30d">Son 30 gün</option>
+            <option value="90d">Son 90 gün</option>
+          </select>
+
+          {/* Rapor durumu */}
+          <select
+            value={reportFilter}
+            onChange={(e) => setReportFilter(e.target.value as 'all' | 'with' | 'without')}
+            className="px-3 py-2 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+          >
+            <option value="all">Tüm raporlar</option>
+            <option value="with">Raporlu</option>
+            <option value="without">Raporsuz</option>
+          </select>
+        </div>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2 text-sm text-red-600">
+          <AlertCircle className="w-4 h-4 shrink-0" />{error}
         </div>
       )}
 
-      {/* İŞARETLEMELER MODAL */}
-      {selectedAnswers && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-[#0f2847] to-[#1a3d6e]">
-              <div>
-                <h3 className="text-white font-bold text-lg">📝 Öğrenci İşaretlemeleri</h3>
-                <p className="text-white/70 text-sm">
-                  {selectedAnswers.student_name} — {getTestLabel(selectedAnswers.test_type)}
-                </p>
+      {/* Liste */}
+      {loading ? (
+        <div className="text-center py-20 text-gray-400">Yükleniyor...</div>
+      ) : filtered.length === 0 ? (
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-12 text-center shadow-sm">
+          <p className="text-5xl mb-3">📭</p>
+          <p className="text-gray-500 font-semibold">
+            {logs.length === 0 ? 'Henüz tamamlanmış test yok.' : 'Filtreye uygun test bulunamadı.'}
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
+          {filtered.map((l) => (
+            <Link
+              key={l.id}
+              href={`/teacher/students/${l.student_id}`}
+              className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-b-0 hover:bg-violet-50/40 transition-colors"
+            >
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${l.has_report ? 'bg-emerald-100' : 'bg-amber-100'}`}>
+                <CheckCircle2 className={`w-4 h-4 ${l.has_report ? 'text-emerald-600' : 'text-amber-600'}`} />
               </div>
-              <button
-                onClick={() => setSelectedAnswers(null)}
-                className="text-white/70 hover:text-white text-2xl leading-none px-2"
-              >
-                ✕
-              </button>
-            </div>
 
-            {/* Body */}
-            <div className="overflow-y-auto flex-1 p-6">
-              {selectedAnswers.raw_answers && Object.keys(selectedAnswers.raw_answers).length > 0 ? (
-                <div className="space-y-2">
-                  <p className="text-gray-500 text-xs mb-4">
-                    Toplam {Object.keys(selectedAnswers.raw_answers).length} soru cevaplanmış.
-                  </p>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase w-1/3">Soru</th>
-                        <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Öğrencinin Cevabı</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Object.entries(selectedAnswers.raw_answers)
-                        .sort(([a], [b]) => {
-                          const na = parseInt(a.replace(/\D/g, ''));
-                          const nb = parseInt(b.replace(/\D/g, ''));
-                          return (isNaN(na) || isNaN(nb)) ? a.localeCompare(b) : na - nb;
-                        })
-                        .map(([questionId, answer], idx) => (
-                        <tr key={questionId} className={idx % 2 === 0 ? '' : 'bg-gray-50/50'}>
-                          <td className="px-3 py-2 text-gray-600 font-medium border-b border-gray-50">
-                            {questionId}
-                          </td>
-                          <td className="px-3 py-2 text-[#0f2847] font-semibold border-b border-gray-50">
-                            <span className="inline-block px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-xs">
-                              {String(answer)}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[14px] font-bold text-[#0f2847] truncate">{l.student_name}</span>
+                  <span className="text-[11px] text-violet-600 font-semibold bg-violet-50 px-2 py-0.5 rounded-full">{labelOf(l.test_type)}</span>
+                  {l.has_report && (
+                    <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">Rapor var</span>
+                  )}
                 </div>
-              ) : (
-                <p className="text-gray-400 text-center py-8">
-                  Bu test için işaretleme verisi bulunamadı.
-                </p>
-              )}
-            </div>
+                <div className="flex items-center gap-3 mt-1 text-[11px] text-gray-500 flex-wrap">
+                  <span className="flex items-center gap-1"><School className="w-3 h-3" /> {l.school_name}</span>
+                  <span className="flex items-center gap-1"><GraduationCap className="w-3 h-3" /> {l.class_name}</span>
+                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {formatDate(l.completed_at)}</span>
+                </div>
+              </div>
 
-            {/* Footer */}
-            <div className="px-6 py-3 border-t border-gray-100 flex justify-end">
-              <button
-                onClick={() => setSelectedAnswers(null)}
-                className="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-all"
-              >
-                Kapat
-              </button>
-            </div>
-          </div>
+              <Eye className="w-4 h-4 text-gray-300 shrink-0" />
+              <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+            </Link>
+          ))}
         </div>
       )}
     </div>

@@ -55,7 +55,7 @@ export default async function Page() {
     {
       label: 'Tamamlanan Test',
       value: resultCount,
-      href: '/teacher/students',
+      href: '/teacher/results',
       icon: FileCheck2,
       gradient: 'from-violet-500 to-purple-600',
     },

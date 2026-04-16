@@ -279,6 +279,76 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, assigned: filtered });
     }
 
+    // ═══ COMPLETED-TESTS-LOG: tüm tamamlanmış testlerin düz listesi ═══
+    if (action === 'completed-tests-log') {
+      // Tüm öğrencileri çek
+      const { data: profiles } = await admin
+        .from('profiles')
+        .select('id, full_name, grade, school_id')
+        .eq('role', 'student');
+
+      const profileMap = new Map<string, { full_name: string; grade: string | null; school_id: string | null }>();
+      (profiles || []).forEach((p) => profileMap.set(p.id, p));
+
+      // Auth metadata (school_name + grade fallback için)
+      const { data: { users } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const metaMap = new Map<string, Record<string, unknown>>();
+      (users || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
+
+      // Schools tablosu (school_id eşleşmesi için)
+      const schoolIds = [...new Set((profiles || []).map((p) => p.school_id).filter(Boolean))];
+      const schoolNameMap: Record<string, string> = {};
+      if (schoolIds.length > 0) {
+        const { data: schools } = await admin.from('schools').select('id, name').in('id', schoolIds as string[]);
+        (schools || []).forEach((s) => { schoolNameMap[s.id] = s.name; });
+      }
+
+      // Tüm tamamlanmış test_results
+      const studentIds = Array.from(profileMap.keys());
+      let logs: Array<{
+        id: string;
+        student_id: string;
+        student_name: string;
+        school_name: string;
+        class_name: string;
+        test_type: string;
+        completed_at: string;
+        has_report: boolean;
+      }> = [];
+
+      if (studentIds.length > 0) {
+        const { data: results } = await admin
+          .from('test_results')
+          .select('id, student_id, test_type, completed_at, ai_report')
+          .in('student_id', studentIds)
+          .not('completed_at', 'is', null)
+          .order('completed_at', { ascending: false });
+
+        logs = (results || []).map((r) => {
+          const p = profileMap.get(r.student_id);
+          const meta = metaMap.get(r.student_id) || {};
+          const schoolName = (meta.school_name as string)
+            || schoolNameMap[p?.school_id || '']
+            || 'Okulsuz';
+          const grade = p?.grade || (meta.grade as string) || '';
+          const className = grade ? `${grade}. Sınıf` : 'Sınıfsız';
+
+          return {
+            id: r.id,
+            student_id: r.student_id,
+            student_name: p?.full_name || '—',
+            school_name: schoolName,
+            class_name: className,
+            test_type: r.test_type,
+            completed_at: r.completed_at,
+            has_report: !!r.ai_report,
+          };
+        });
+      }
+
+      return NextResponse.json({ logs });
+    }
+
     return NextResponse.json({ error: 'Geçersiz action' }, { status: 400 });
   } catch (err) {
     console.error('[teacher/students API]', err);
