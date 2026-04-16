@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { secureFetch } from '@/lib/csrf-client';
@@ -345,6 +345,45 @@ export default function StudentDetailPage() {
 
   const integratedExists = !!(integrated?.teacher_report && integrated?.student_report && integrated?.parent_report);
 
+  // ═══ Aynı testten çoklu deneme etiketleri ═══
+  // completed dizisi zaten completed_at DESC (yeni üstte) sıralı
+  // Her kayıt için: deneme numarası (en eski = 1) ve toplam deneme sayısı
+  const attemptInfo = useMemo(() => {
+    const norm = (s: string) => (s || '').replace(/-/g, '_').toLowerCase();
+
+    // Her test_type için toplam sayı
+    const totalByType = new Map<string, number>();
+    for (const c of completed) {
+      const key = norm(c.test_type);
+      totalByType.set(key, (totalByType.get(key) || 0) + 1);
+    }
+
+    // Her kaydın deneme numarası (en eski = 1, en yeni = total)
+    // completed DESC sıralı olduğu için sondan başa sayarak ata
+    const numberByRecordId = new Map<string, number>();
+    const counterByType = new Map<string, number>();
+    // Önce DESC dizisini tersine çevir (eskiden yeniye) ki 1. deneme en eski olsun
+    const asc = [...completed].reverse();
+    for (const c of asc) {
+      const key = norm(c.test_type);
+      const n = (counterByType.get(key) || 0) + 1;
+      counterByType.set(key, n);
+      numberByRecordId.set(c.id, n);
+    }
+
+    return {
+      /** Bu kaydın toplam test denemesi içindeki sıra numarası (1, 2, 3...) */
+      numberFor: (recordId: string) => numberByRecordId.get(recordId) || 1,
+      /** Bu test_type'ın toplam kaç denemesi var */
+      totalFor: (testType: string) => totalByType.get(norm(testType)) || 1,
+      /** Bu kayıt bu test_type için en güncel olan mı */
+      isLatest: (recordId: string, testType: string) => {
+        const total = totalByType.get(norm(testType)) || 1;
+        return numberByRecordId.get(recordId) === total;
+      },
+    };
+  }, [completed]);
+
   return (
     <div className="pb-8">
       <Link href="/teacher/students" className="flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-[#0f2847] mb-4 transition-colors">
@@ -508,14 +547,31 @@ export default function StudentDetailPage() {
 
                 {completed.map((c) => {
                   const isBusy = busyKey === `single-${c.id}`;
+                  const totalAttempts = attemptInfo.totalFor(c.test_type);
+                  const attemptNo = attemptInfo.numberFor(c.id);
+                  const isLatest = attemptInfo.isLatest(c.id, c.test_type);
+                  const showAttemptBadge = totalAttempts > 1;
                   return (
-                    <div key={c.id} className="px-4 py-3.5 border-b border-gray-50 last:border-b-0">
+                    <div key={c.id} className={`px-4 py-3.5 border-b border-gray-50 last:border-b-0 ${showAttemptBadge && !isLatest ? 'bg-gray-50/50' : ''}`}>
                       <div className="flex items-center gap-3 mb-2">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${c.has_report ? 'bg-emerald-100' : 'bg-gray-100'}`}>
                           <CheckCircle2 className={`w-4 h-4 ${c.has_report ? 'text-emerald-600' : 'text-gray-400'}`} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[14px] font-semibold text-[#0f2847] truncate">{labelOf(c.test_type)}</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-[14px] font-semibold text-[#0f2847] truncate">{labelOf(c.test_type)}</p>
+                            {showAttemptBadge && (
+                              isLatest ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-sm">
+                                  ✓ En Güncel
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-200 text-gray-600">
+                                  {attemptNo}. Deneme
+                                </span>
+                              )
+                            )}
+                          </div>
                           <p className="text-[11px] text-gray-400">
                             Tamamlandı: {formatDate(c.completed_at)}
                             {c.ai_report_generated_at && ` · Rapor: ${formatDate(c.ai_report_generated_at)}`}
