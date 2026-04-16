@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { GraduationCap, User, Lock, Building, Phone, Mail, ArrowRight, ArrowLeft, AlertCircle, CheckCircle2, Eye, EyeOff, ShieldCheck, BookOpen } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
@@ -45,6 +45,15 @@ export default function TeacherRegisterPage() {
   const [sendingCode, setSendingCode] = useState(false);
   const [fallbackCode, setFallbackCode] = useState('');
   const submittingRef = useRef(false);
+
+  // Kayıt başarılı → 3 saniye sonra öğretmen giriş sayfasına yönlendir
+  useEffect(() => {
+    if (step !== 4) return;
+    const t = setTimeout(() => {
+      window.location.href = '/login/ogretmen';
+    }, 3000);
+    return () => clearTimeout(t);
+  }, [step]);
 
   const update = (key: string, val: string) => setForm(f => ({ ...f, [key]: val }));
   const pwResult = validatePassword(form.password);
@@ -198,9 +207,8 @@ export default function TeacherRegisterPage() {
             <p className="text-sm text-amber-700 font-semibold">Yönetici onayı bekleniyor</p>
             <p className="text-xs text-amber-600 mt-1">Başvurunuz onaylandıktan sonra sisteme giriş yapabileceksiniz.</p>
           </div>
-          <p className="text-sm text-gray-500 mb-4">Giriş sayfasına yönlendiriliyorsunuz...</p>
+          <p className="text-sm text-gray-500 mb-4">Öğretmen giriş sayfasına yönlendiriliyorsunuz...</p>
         </div>
-        {typeof window !== 'undefined' && setTimeout(() => { window.location.href = '/login'; }, 3000) && null}
       </div>
     );
   }
