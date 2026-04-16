@@ -50,7 +50,7 @@ const TEST_LABELS: Record<string, string> = {
 };
 
 /* ═══ API helper ═══ */
-async function apiCall(password: string, action: string, extra: Record<string, string> = {}) {
+async function apiCall(password: string, action: string, extra: Record<string, unknown> = {}) {
   const res = await fetch('/api/yonetici', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -117,6 +117,18 @@ export default function YoneticiPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  // ═══ Toplu Seçim ═══
+  const [selectedTeacherIds, setSelectedTeacherIds] = useState<Set<string>>(new Set());
+  const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set());
+
+  // Tehlikeli işlem onay modalı
+  const [confirmAction, setConfirmAction] = useState<{
+    title: string;
+    message: string;
+    danger: boolean;
+    onConfirm: () => void | Promise<void>;
+  } | null>(null);
 
   // ═══ View History (Geri/İleri için) ═══
   type Snapshot = {
@@ -306,6 +318,112 @@ export default function YoneticiPage() {
       }
     } catch (e: unknown) {
       setError((e as Error).message);
+    }
+  };
+
+  // ═══ Toplu silme: seçili öğretmenleri sil ═══
+  const handleBulkDeleteTeachers = async () => {
+    const ids = Array.from(selectedTeacherIds);
+    if (ids.length === 0) return;
+    setLoading(true);
+    setError('');
+    try {
+      const res = await apiCall(storedPw(), 'bulk-delete', { userIds: ids });
+      setSuccessMsg(`${res.deleted} öğretmen silindi.`);
+      setTimeout(() => setSuccessMsg(''), 3000);
+      setTeachers((prev) => prev.filter((t) => !selectedTeacherIds.has(t.id)));
+      setSelectedTeacherIds(new Set());
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+    setConfirmAction(null);
+  };
+
+  // ═══ Tüm öğretmenleri sil ═══
+  const handleDeleteAllTeachers = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await apiCall(storedPw(), 'delete-all', { role: 'teacher' });
+      setSuccessMsg(`${res.deleted}/${res.total} öğretmen silindi.`);
+      setTimeout(() => setSuccessMsg(''), 4000);
+      setTeachers([]);
+      setSelectedTeacherIds(new Set());
+      setView('teachers');
+      setSelectedTeacher(null);
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+    setConfirmAction(null);
+  };
+
+  // ═══ Toplu silme: seçili öğrencileri sil ═══
+  const handleBulkDeleteStudents = async () => {
+    const ids = Array.from(selectedStudentIds);
+    if (ids.length === 0) return;
+    setLoading(true);
+    setError('');
+    try {
+      const res = await apiCall(storedPw(), 'bulk-delete', { userIds: ids });
+      setSuccessMsg(`${res.deleted} öğrenci silindi.`);
+      setTimeout(() => setSuccessMsg(''), 3000);
+      setStudents((prev) => prev.filter((s) => !selectedStudentIds.has(s.id)));
+      setSelectedStudentIds(new Set());
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+    setConfirmAction(null);
+  };
+
+  // ═══ Tüm öğrencileri sil ═══
+  const handleDeleteAllStudents = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await apiCall(storedPw(), 'delete-all', { role: 'student' });
+      setSuccessMsg(`${res.deleted}/${res.total} öğrenci silindi.`);
+      setTimeout(() => setSuccessMsg(''), 4000);
+      setStudents([]);
+      setSelectedStudentIds(new Set());
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+    setConfirmAction(null);
+  };
+
+  const toggleTeacherSelect = (id: string) => {
+    setSelectedTeacherIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAllTeachersSelect = () => {
+    if (selectedTeacherIds.size === teachers.length) {
+      setSelectedTeacherIds(new Set());
+    } else {
+      setSelectedTeacherIds(new Set(teachers.map((t) => t.id)));
+    }
+  };
+
+  const toggleStudentSelect = (id: string) => {
+    setSelectedStudentIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAllStudentsSelect = () => {
+    if (selectedStudentIds.size === students.length) {
+      setSelectedStudentIds(new Set());
+    } else {
+      setSelectedStudentIds(new Set(students.map((s) => s.id)));
     }
   };
 
@@ -545,10 +663,59 @@ export default function YoneticiPage() {
         {/* ═══ VIEW: Teachers List ═══ */}
         {view === 'teachers' && (
           <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-extrabold text-[#0f2847]">Kayıtlı Öğretmenler</h2>
               <span className="text-sm text-gray-400 font-medium">{teachers.length} öğretmen</span>
             </div>
+
+            {/* Toplu işlem çubuğu */}
+            {teachers.length > 0 && (
+              <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-3 shadow-sm mb-4 flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer text-[12px] font-semibold text-[#0f2847]">
+                    <input
+                      type="checkbox"
+                      checked={selectedTeacherIds.size === teachers.length && teachers.length > 0}
+                      onChange={toggleAllTeachersSelect}
+                      className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500/30 cursor-pointer"
+                    />
+                    Tümünü Seç
+                  </label>
+                  {selectedTeacherIds.size > 0 && (
+                    <span className="text-[12px] text-amber-600 font-bold">
+                      {selectedTeacherIds.size} seçili
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setConfirmAction({
+                      title: 'Seçili Öğretmenleri Sil',
+                      message: `${selectedTeacherIds.size} öğretmen kalıcı olarak silinecek. Devam edilsin mi?`,
+                      danger: true,
+                      onConfirm: handleBulkDeleteTeachers,
+                    })}
+                    disabled={selectedTeacherIds.size === 0 || loading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500 text-white text-[12px] font-bold hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Seçilenleri Sil
+                  </button>
+                  <button
+                    onClick={() => setConfirmAction({
+                      title: 'TÜM ÖĞRETMENLERİ SİL',
+                      message: `Sistemdeki ${teachers.length} öğretmen ve hesapları KALICI olarak silinecek. Bu işlem geri alınamaz! Devam edilsin mi?`,
+                      danger: true,
+                      onConfirm: handleDeleteAllTeachers,
+                    })}
+                    disabled={loading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-red-600 to-rose-700 text-white text-[12px] font-extrabold hover:from-red-700 hover:to-rose-800 shadow-md hover:shadow-lg disabled:opacity-40 transition-all"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Tümünü Sil
+                  </button>
+                </div>
+              </div>
+            )}
+
             {loading ? (
               <div className="text-center py-20 text-gray-400">Yükleniyor...</div>
             ) : teachers.length === 0 ? (
@@ -556,8 +723,15 @@ export default function YoneticiPage() {
             ) : (
               <div className="grid gap-3">
                 {teachers.map((t) => (
-                  <div key={t.id} className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                    <div className="flex items-center justify-between">
+                  <div key={t.id} className={`bg-white/70 backdrop-blur-xl rounded-2xl border p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${selectedTeacherIds.has(t.id) ? 'border-amber-400 ring-2 ring-amber-200' : 'border-white/40'}`}>
+                    <div className="flex items-center justify-between gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedTeacherIds.has(t.id)}
+                        onChange={(e) => { e.stopPropagation(); toggleTeacherSelect(t.id); }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500/30 cursor-pointer shrink-0"
+                      />
                       <button onClick={() => loadTeacherDetail(t)} className="flex items-center gap-4 text-left flex-1 min-w-0">
                         <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shrink-0">
                           <User className="w-5 h-5 text-white" />
@@ -572,7 +746,7 @@ export default function YoneticiPage() {
                         </div>
                         <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
                       </button>
-                      <div className="ml-3 shrink-0">
+                      <div className="ml-1 shrink-0">
                         <DeleteButton onDelete={() => handleDeleteUser(t.id, 'teacher')} label="Sil" />
                       </div>
                     </div>
@@ -621,6 +795,54 @@ export default function YoneticiPage() {
               </h3>
               <span className="text-sm text-gray-400">{students.length} öğrenci</span>
             </div>
+
+            {/* Toplu işlem çubuğu */}
+            {students.length > 0 && (
+              <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-3 shadow-sm mb-4 flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer text-[12px] font-semibold text-[#0f2847]">
+                    <input
+                      type="checkbox"
+                      checked={selectedStudentIds.size === students.length && students.length > 0}
+                      onChange={toggleAllStudentsSelect}
+                      className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500/30 cursor-pointer"
+                    />
+                    Tümünü Seç
+                  </label>
+                  {selectedStudentIds.size > 0 && (
+                    <span className="text-[12px] text-amber-600 font-bold">
+                      {selectedStudentIds.size} seçili
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setConfirmAction({
+                      title: 'Seçili Öğrencileri Sil',
+                      message: `${selectedStudentIds.size} öğrenci kalıcı olarak silinecek. Devam edilsin mi?`,
+                      danger: true,
+                      onConfirm: handleBulkDeleteStudents,
+                    })}
+                    disabled={selectedStudentIds.size === 0 || loading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500 text-white text-[12px] font-bold hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Seçilenleri Sil
+                  </button>
+                  <button
+                    onClick={() => setConfirmAction({
+                      title: 'TÜM ÖĞRENCİLERİ SİL',
+                      message: `Sistemdeki ${students.length} öğrenci ve hesapları KALICI olarak silinecek. Bu işlem geri alınamaz! Devam edilsin mi?`,
+                      danger: true,
+                      onConfirm: handleDeleteAllStudents,
+                    })}
+                    disabled={loading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-red-600 to-rose-700 text-white text-[12px] font-extrabold hover:from-red-700 hover:to-rose-800 shadow-md hover:shadow-lg disabled:opacity-40 transition-all"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Tümünü Sil
+                  </button>
+                </div>
+              </div>
+            )}
 
             {loading ? (
               <div className="text-center py-12 text-gray-400">Yükleniyor...</div>
@@ -677,7 +899,14 @@ export default function YoneticiPage() {
                                 {openClass === classKey && (
                                   <div className="bg-white/40 divide-y divide-gray-50">
                                     {classStudents.map((s) => (
-                                      <div key={s.id} className="flex items-center justify-between px-4 py-3 pl-14 hover:bg-violet-50/40 transition-colors">
+                                      <div key={s.id} className={`flex items-center justify-between px-4 py-3 pl-14 hover:bg-violet-50/40 transition-colors gap-2 ${selectedStudentIds.has(s.id) ? 'bg-amber-50/60' : ''}`}>
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedStudentIds.has(s.id)}
+                                          onChange={() => toggleStudentSelect(s.id)}
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500/30 cursor-pointer shrink-0"
+                                        />
                                         <button onClick={() => loadStudentReports(s)} className="flex items-center gap-3 text-left flex-1 min-w-0">
                                           <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
                                             <GraduationCap className="w-4 h-4 text-violet-600" />
@@ -844,6 +1073,55 @@ export default function YoneticiPage() {
           </div>
         )}
       </div>
+
+      {/* ═══ ONAY MODAL ═══ */}
+      {confirmAction && (
+        <div
+          onClick={() => setConfirmAction(null)}
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-modal-in"
+          >
+            <div className="flex items-start gap-3 mb-4">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${confirmAction.danger ? 'bg-gradient-to-br from-red-500 to-rose-700' : 'bg-gradient-to-br from-amber-500 to-orange-600'}`}>
+                <AlertCircle className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-[16px] font-extrabold text-[#0f2847]">{confirmAction.title}</h3>
+                <p className="text-[13px] text-gray-600 mt-1">{confirmAction.message}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 mt-5">
+              <button
+                onClick={() => setConfirmAction(null)}
+                disabled={loading}
+                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-[13px] font-bold hover:bg-gray-200 disabled:opacity-60 transition-all"
+              >
+                Vazgeç
+              </button>
+              <button
+                onClick={() => confirmAction.onConfirm()}
+                disabled={loading}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-white text-[13px] font-extrabold shadow-md hover:shadow-lg disabled:opacity-60 transition-all ${confirmAction.danger ? 'bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800' : 'bg-gradient-to-r from-amber-500 to-orange-600'}`}
+              >
+                <Trash2 className="w-4 h-4" /> {loading ? 'Siliniyor...' : 'Evet, Sil'}
+              </button>
+            </div>
+          </div>
+
+          <style jsx>{`
+            @keyframes modal-in {
+              0% { opacity: 0; transform: scale(0.92) translateY(10px); }
+              100% { opacity: 1; transform: scale(1) translateY(0); }
+            }
+            :global(.animate-modal-in) {
+              animation: modal-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
+            }
+          `}</style>
+        </div>
+      )}
     </div>
   );
 }

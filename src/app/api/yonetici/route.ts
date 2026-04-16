@@ -210,6 +210,61 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
+    // ═══ TOPLU SİL: Seçilen kullanıcıları sil ═══
+    if (action === 'bulk-delete') {
+      const { userIds } = body;
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return NextResponse.json({ error: 'userIds dizisi gerekli' }, { status: 400 });
+      }
+
+      let deleted = 0;
+      const errors: string[] = [];
+
+      for (const uid of userIds) {
+        try {
+          const { error: authErr } = await supabase.auth.admin.deleteUser(uid);
+          if (authErr) { errors.push(`${uid}: ${authErr.message}`); continue; }
+          await supabase.from('profiles').delete().eq('id', uid);
+          deleted++;
+        } catch (e: unknown) {
+          errors.push(`${uid}: ${(e as Error).message}`);
+        }
+      }
+
+      return NextResponse.json({ success: true, deleted, errors });
+    }
+
+    // ═══ TÜMÜNÜ SİL: Belirli rol için tüm kullanıcıları sil ═══
+    if (action === 'delete-all') {
+      const { role: targetRole } = body;
+      if (targetRole !== 'teacher' && targetRole !== 'student') {
+        return NextResponse.json({ error: 'role: teacher veya student olmalı' }, { status: 400 });
+      }
+
+      // O role sahip tüm profilleri çek
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('role', targetRole);
+
+      const userIds = (profiles || []).map((p) => p.id);
+      let deleted = 0;
+      const errors: string[] = [];
+
+      for (const uid of userIds) {
+        try {
+          const { error: authErr } = await supabase.auth.admin.deleteUser(uid);
+          if (authErr) { errors.push(`${uid}: ${authErr.message}`); continue; }
+          await supabase.from('profiles').delete().eq('id', uid);
+          deleted++;
+        } catch (e: unknown) {
+          errors.push(`${uid}: ${(e as Error).message}`);
+        }
+      }
+
+      return NextResponse.json({ success: true, deleted, total: userIds.length, errors });
+    }
+
     // ═══ Onay Bekleyen Öğretmenler ═══
     if (action === 'list-pending-teachers') {
       // Auth admin API ile tüm kullanıcıları çek, is_approved=false olanları filtrele
