@@ -7,6 +7,53 @@ function unauthorized() {
   return NextResponse.json({ error: 'Yetkisiz erişim' }, { status: 401 });
 }
 
+/**
+ * Bir kullanıcının (öğrenci VEYA öğretmen) tüm izlerini sistemden temizler.
+ * - Auth user (giriş bilgileri, oturumlar) → silindikten sonra giriş YAPAMAZLAR
+ * - profiles tablosu
+ * - İlişkili veri tabloları (test sonuçları, raporlar, atamalar, koçluk vb.)
+ *
+ * Tablo yoksa veya sütun yoksa sessizce geçer (uygulamanın evrimi sırasında
+ * bazı tablolar kaldırılmış olabilir).
+ */
+async function purgeUser(
+  admin: ReturnType<typeof createAdminClient>,
+  userId: string
+): Promise<{ ok: boolean; error?: string }> {
+  // 1) Öğrenci tarafı tabloları
+  const studentTables = [
+    'test_results',
+    'holistic_reports',
+    'integrated_reports',
+    'coaching_tasks',
+    'coaching_streaks',
+    'ai_chat_usage',
+    'guidance_plans',
+    'class_students',
+    'student_test_history',
+  ];
+  for (const tbl of studentTables) {
+    try { await admin.from(tbl).delete().eq('student_id', userId); } catch { /* tablo yok */ }
+    try { await admin.from(tbl).delete().eq('user_id', userId); } catch { /* alternatif */ }
+  }
+
+  // 2) Öğretmen tarafı tabloları
+  const teacherTables = ['classes', 'verification_codes', 'teacher_parent_notes'];
+  for (const tbl of teacherTables) {
+    try { await admin.from(tbl).delete().eq('teacher_id', userId); } catch { /* geç */ }
+    try { await admin.from(tbl).delete().eq('user_id', userId); } catch { /* geç */ }
+  }
+
+  // 3) profiles tablosu
+  try { await admin.from('profiles').delete().eq('id', userId); } catch { /* geç */ }
+
+  // 4) En son auth.users — bu silindikten sonra giriş yapılamaz
+  const { error: authErr } = await admin.auth.admin.deleteUser(userId);
+  if (authErr) return { ok: false, error: authErr.message };
+
+  return { ok: true };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -202,10 +249,8 @@ export async function POST(req: NextRequest) {
       const { userId } = body;
       if (!userId) return NextResponse.json({ error: 'userId gerekli' }, { status: 400 });
 
-      const { error: authErr } = await supabase.auth.admin.deleteUser(userId);
-      if (authErr) return NextResponse.json({ error: authErr.message }, { status: 500 });
-
-      await supabase.from('profiles').delete().eq('id', userId);
+      const result = await purgeUser(supabase, userId);
+      if (!result.ok) return NextResponse.json({ error: result.error }, { status: 500 });
 
       return NextResponse.json({ success: true });
     }
@@ -221,14 +266,9 @@ export async function POST(req: NextRequest) {
       const errors: string[] = [];
 
       for (const uid of userIds) {
-        try {
-          const { error: authErr } = await supabase.auth.admin.deleteUser(uid);
-          if (authErr) { errors.push(`${uid}: ${authErr.message}`); continue; }
-          await supabase.from('profiles').delete().eq('id', uid);
-          deleted++;
-        } catch (e: unknown) {
-          errors.push(`${uid}: ${(e as Error).message}`);
-        }
+        const result = await purgeUser(supabase, uid);
+        if (result.ok) deleted++;
+        else errors.push(`${uid}: ${result.error}`);
       }
 
       return NextResponse.json({ success: true, deleted, errors });
@@ -241,7 +281,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'role: teacher veya student olmalı' }, { status: 400 });
       }
 
-      // O role sahip tüm profilleri çek
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id')
@@ -252,14 +291,9 @@ export async function POST(req: NextRequest) {
       const errors: string[] = [];
 
       for (const uid of userIds) {
-        try {
-          const { error: authErr } = await supabase.auth.admin.deleteUser(uid);
-          if (authErr) { errors.push(`${uid}: ${authErr.message}`); continue; }
-          await supabase.from('profiles').delete().eq('id', uid);
-          deleted++;
-        } catch (e: unknown) {
-          errors.push(`${uid}: ${(e as Error).message}`);
-        }
+        const result = await purgeUser(supabase, uid);
+        if (result.ok) deleted++;
+        else errors.push(`${uid}: ${result.error}`);
       }
 
       return NextResponse.json({ success: true, deleted, total: userIds.length, errors });
@@ -311,12 +345,8 @@ export async function POST(req: NextRequest) {
       const { userId } = body;
       if (!userId) return NextResponse.json({ error: 'userId gerekli' }, { status: 400 });
 
-      // Auth'dan sil
-      const { error: authErr } = await supabase.auth.admin.deleteUser(userId);
-      if (authErr) return NextResponse.json({ error: authErr.message }, { status: 500 });
-
-      // Profili sil
-      await supabase.from('profiles').delete().eq('id', userId);
+      const result = await purgeUser(supabase, userId);
+      if (!result.ok) return NextResponse.json({ error: result.error }, { status: 500 });
 
       return NextResponse.json({ success: true });
     }
