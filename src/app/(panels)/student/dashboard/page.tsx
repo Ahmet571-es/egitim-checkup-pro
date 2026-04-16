@@ -42,19 +42,6 @@ export default function Page() {
         </Link>
 
         <Link
-          href="/student/my-results"
-          className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-5 shadow-sm hover:shadow-md transition-all flex items-center gap-3"
-        >
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-            <Award size={20} className="text-emerald-600" />
-          </div>
-          <div>
-            <p className="font-bold text-[#0f2847] text-sm">Sonuçlarım</p>
-            <p className="text-xs text-gray-400">Tamamlanan testler</p>
-          </div>
-        </Link>
-
-        <Link
           href="/student/profile"
           className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-5 shadow-sm hover:shadow-md transition-all flex items-center gap-3"
         >
