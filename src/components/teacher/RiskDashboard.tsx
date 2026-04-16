@@ -25,7 +25,7 @@ export default function RiskDashboard() {
   const loadClasses = useCallback(async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) { setLoading(false); return; }
 
     const { data } = await supabase
       .from('classes')
@@ -36,6 +36,9 @@ export default function RiskDashboard() {
     if (data && data.length > 0) {
       setClasses(data);
       setSelectedClass(data[0].id);
+    } else {
+      // Sınıf yoksa loading'i kapat — yoksa spinner sonsuza dek döner
+      setLoading(false);
     }
   }, []);
 
