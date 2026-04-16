@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import {
   GraduationCap, Shield, Lock, ArrowRight, ArrowLeft, Users, Trash2,
@@ -117,6 +117,79 @@ export default function YoneticiPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  // ═══ View History (Geri/İleri için) ═══
+  type Snapshot = {
+    view: string;
+    selectedTeacher: typeof selectedTeacher;
+    selectedStudent: typeof selectedStudent;
+    selectedReport: typeof selectedReport;
+    reportType: 'single' | 'integrated';
+    openSchool: string | null;
+    openClass: string | null;
+  };
+  const [history, setHistory] = useState<Snapshot[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const isNavigatingRef = useRef(false);
+
+  // Yeni view'a geçince history'ye ekle
+  const pushHistory = useCallback((snap: Snapshot) => {
+    if (isNavigatingRef.current) return; // back/forward sırasında ekleme
+    setHistory((prev) => {
+      const truncated = prev.slice(0, historyIndex + 1);
+      return [...truncated, snap];
+    });
+    setHistoryIndex((i) => i + 1);
+  }, [historyIndex]);
+
+  // View değiştiğinde otomatik snapshot al
+  useEffect(() => {
+    if (!authed) return;
+    if (isNavigatingRef.current) {
+      isNavigatingRef.current = false;
+      return;
+    }
+    pushHistory({
+      view, selectedTeacher, selectedStudent, selectedReport,
+      reportType, openSchool, openClass,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, selectedTeacher?.id, selectedStudent?.id, selectedReport, reportType, authed]);
+
+  const goBack = () => {
+    if (historyIndex <= 0) return;
+    const newIndex = historyIndex - 1;
+    const snap = history[newIndex];
+    if (!snap) return;
+    isNavigatingRef.current = true;
+    setView(snap.view);
+    setSelectedTeacher(snap.selectedTeacher);
+    setSelectedStudent(snap.selectedStudent);
+    setSelectedReport(snap.selectedReport);
+    setReportType(snap.reportType);
+    setOpenSchool(snap.openSchool);
+    setOpenClass(snap.openClass);
+    setHistoryIndex(newIndex);
+  };
+
+  const goForward = () => {
+    if (historyIndex >= history.length - 1) return;
+    const newIndex = historyIndex + 1;
+    const snap = history[newIndex];
+    if (!snap) return;
+    isNavigatingRef.current = true;
+    setView(snap.view);
+    setSelectedTeacher(snap.selectedTeacher);
+    setSelectedStudent(snap.selectedStudent);
+    setSelectedReport(snap.selectedReport);
+    setReportType(snap.reportType);
+    setOpenSchool(snap.openSchool);
+    setOpenClass(snap.openClass);
+    setHistoryIndex(newIndex);
+  };
+
+  const canGoBack = historyIndex > 0;
+  const canGoForward = historyIndex < history.length - 1;
 
   const storedPw = () => password;
 
@@ -303,17 +376,42 @@ export default function YoneticiPage() {
     <div className="min-h-screen bg-gradient-to-b from-[#f0f5ff] via-[#f8fafc] to-[#f0fdf8]">
       {/* Header */}
       <nav className="sticky top-0 z-50 bg-white/92 backdrop-blur-2xl border-b border-gray-200/50 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-md">
               <Shield className="w-4 h-4 text-white" />
             </div>
             <span className="text-[14px] font-extrabold text-[#0f2847]">Yönetici Paneli</span>
           </div>
-          <button onClick={() => { setAuthed(false); setPassword(''); setView('teachers'); setSelectedTeacher(null); setSelectedStudent(null); }}
-            className="text-[13px] text-gray-500 hover:text-red-500 font-semibold transition-colors">
-            Çıkış Yap
-          </button>
+
+          <div className="flex items-center gap-2">
+            {/* Geri / İleri */}
+            <button
+              onClick={goBack}
+              disabled={!canGoBack}
+              aria-label="Bir adım geri"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-[12px] font-semibold text-[#0f2847] hover:bg-white hover:border-amber-300 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Geri</span>
+            </button>
+            <button
+              onClick={goForward}
+              disabled={!canGoForward}
+              aria-label="Bir adım ileri"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-[12px] font-semibold text-[#0f2847] hover:bg-white hover:border-amber-300 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              <span className="hidden sm:inline">İleri</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+
+            <div className="w-px h-5 bg-gray-200 mx-1" />
+
+            <button onClick={() => { setAuthed(false); setPassword(''); setView('teachers'); setSelectedTeacher(null); setSelectedStudent(null); setHistory([]); setHistoryIndex(-1); }}
+              className="text-[13px] text-gray-500 hover:text-red-500 font-semibold transition-colors">
+              Çıkış Yap
+            </button>
+          </div>
         </div>
       </nav>
 
