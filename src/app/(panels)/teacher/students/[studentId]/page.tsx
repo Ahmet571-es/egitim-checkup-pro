@@ -413,6 +413,38 @@ export default function StudentDetailPage() {
     setBusyKey(null);
   };
 
+  // ═══ Aynı testten çoklu deneme etiketleri ═══
+  // completed dizisi zaten completed_at DESC (yeni üstte) sıralı
+  // HOOK KURALLARI: erken return'lerden ÖNCE tanımlanmalı
+  const attemptInfo = useMemo(() => {
+    const norm = (s: string) => (s || '').replace(/-/g, '_').toLowerCase();
+
+    const totalByType = new Map<string, number>();
+    for (const c of completed) {
+      const key = norm(c.test_type);
+      totalByType.set(key, (totalByType.get(key) || 0) + 1);
+    }
+
+    const numberByRecordId = new Map<string, number>();
+    const counterByType = new Map<string, number>();
+    const asc = [...completed].reverse();
+    for (const c of asc) {
+      const key = norm(c.test_type);
+      const n = (counterByType.get(key) || 0) + 1;
+      counterByType.set(key, n);
+      numberByRecordId.set(c.id, n);
+    }
+
+    return {
+      numberFor: (recordId: string) => numberByRecordId.get(recordId) || 1,
+      totalFor: (testType: string) => totalByType.get(norm(testType)) || 1,
+      isLatest: (recordId: string, testType: string) => {
+        const total = totalByType.get(norm(testType)) || 1;
+        return numberByRecordId.get(recordId) === total;
+      },
+    };
+  }, [completed]);
+
   const formatDate = (d: string) => d ? new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
 
   if (loading) {
@@ -429,45 +461,6 @@ export default function StudentDetailPage() {
   }
 
   const integratedExists = !!(integrated?.teacher_report && integrated?.student_report && integrated?.parent_report);
-
-  // ═══ Aynı testten çoklu deneme etiketleri ═══
-  // completed dizisi zaten completed_at DESC (yeni üstte) sıralı
-  // Her kayıt için: deneme numarası (en eski = 1) ve toplam deneme sayısı
-  const attemptInfo = useMemo(() => {
-    const norm = (s: string) => (s || '').replace(/-/g, '_').toLowerCase();
-
-    // Her test_type için toplam sayı
-    const totalByType = new Map<string, number>();
-    for (const c of completed) {
-      const key = norm(c.test_type);
-      totalByType.set(key, (totalByType.get(key) || 0) + 1);
-    }
-
-    // Her kaydın deneme numarası (en eski = 1, en yeni = total)
-    // completed DESC sıralı olduğu için sondan başa sayarak ata
-    const numberByRecordId = new Map<string, number>();
-    const counterByType = new Map<string, number>();
-    // Önce DESC dizisini tersine çevir (eskiden yeniye) ki 1. deneme en eski olsun
-    const asc = [...completed].reverse();
-    for (const c of asc) {
-      const key = norm(c.test_type);
-      const n = (counterByType.get(key) || 0) + 1;
-      counterByType.set(key, n);
-      numberByRecordId.set(c.id, n);
-    }
-
-    return {
-      /** Bu kaydın toplam test denemesi içindeki sıra numarası (1, 2, 3...) */
-      numberFor: (recordId: string) => numberByRecordId.get(recordId) || 1,
-      /** Bu test_type'ın toplam kaç denemesi var */
-      totalFor: (testType: string) => totalByType.get(norm(testType)) || 1,
-      /** Bu kayıt bu test_type için en güncel olan mı */
-      isLatest: (recordId: string, testType: string) => {
-        const total = totalByType.get(norm(testType)) || 1;
-        return numberByRecordId.get(recordId) === total;
-      },
-    };
-  }, [completed]);
 
   return (
     <div className="pb-8">
