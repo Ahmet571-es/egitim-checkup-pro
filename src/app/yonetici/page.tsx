@@ -24,6 +24,7 @@ interface Student {
   id: string; full_name: string; email: string; phone: string;
   grade: string | null; school_id: string | null; schoolName: string;
   class_id: string; class_name: string;
+  section?: string; is_graduated?: boolean;
   created_at: string; city?: string; district?: string; address?: string;
   testCount: number; reportCount: number; tests: StudentTest[];
 }
@@ -111,6 +112,9 @@ export default function YoneticiPage() {
   const [integratedReports, setIntegratedReports] = useState<IntegratedReport[]>([]);
   const [openSchool, setOpenSchool] = useState<string | null>(null);
   const [openClass, setOpenClass] = useState<string | null>(null);
+  const [openSection, setOpenSection] = useState<string | null>(null);
+  const [openGradSchool, setOpenGradSchool] = useState<string | null>(null);
+  const [showGraduatesSection, setShowGraduatesSection] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | IntegratedReport | null>(null);
   const [reportType, setReportType] = useState<'single' | 'integrated'>('single');
 
@@ -427,13 +431,30 @@ export default function YoneticiPage() {
     }
   };
 
-  // ═══ School -> Class -> Students grouping ═══
-  const studentsBySchoolThenClass = students.reduce<Record<string, Record<string, Student[]>>>((acc, s) => {
+  // ═══ Aktif öğrenciler: Okul → Sınıf → Şube → öğrenciler ═══
+  // ═══ Mezunlar: Okul → öğrenciler ═══
+  const activeStudents = students.filter((s) => !s.is_graduated);
+  const graduatedStudents = students.filter((s) => s.is_graduated);
+
+  // Aktif: 4 katmanlı yapı
+  const activeTree = activeStudents.reduce<Record<string, Record<string, Record<string, Student[]>>>>((acc, s) => {
     const schoolKey = s.schoolName || 'Okulsuz';
-    const classKey = s.class_name || 'Sınıfsız';
+    const grade = s.grade || '';
+    const sect = s.section || '';
+    const gradeKey = grade ? `${grade}. Sınıf` : 'Sınıfsız';
+    const sectionKey = grade && sect ? `${grade}/${sect}` : 'Şubesiz';
     if (!acc[schoolKey]) acc[schoolKey] = {};
-    if (!acc[schoolKey][classKey]) acc[schoolKey][classKey] = [];
-    acc[schoolKey][classKey].push(s);
+    if (!acc[schoolKey][gradeKey]) acc[schoolKey][gradeKey] = {};
+    if (!acc[schoolKey][gradeKey][sectionKey]) acc[schoolKey][gradeKey][sectionKey] = [];
+    acc[schoolKey][gradeKey][sectionKey].push(s);
+    return acc;
+  }, {});
+
+  // Mezunlar: school → öğrenciler
+  const graduatedTree = graduatedStudents.reduce<Record<string, Student[]>>((acc, s) => {
+    const schoolKey = s.schoolName || 'Okulsuz';
+    if (!acc[schoolKey]) acc[schoolKey] = [];
+    acc[schoolKey].push(s);
     return acc;
   }, {});
 
@@ -863,18 +884,21 @@ export default function YoneticiPage() {
 
             {loading ? (
               <div className="text-center py-12 text-gray-400">Yükleniyor...</div>
-            ) : Object.keys(studentsBySchoolThenClass).length === 0 ? (
-              <div className="text-center py-12 text-gray-400">Kayıtlı öğrenci bulunmuyor.</div>
+            ) : students.length === 0 ? (
+              <div className="text-center py-12 text-gray-400">Bu öğretmene atanmış öğrenci yok.</div>
             ) : (
               <div className="grid gap-3">
-                {Object.entries(studentsBySchoolThenClass).map(([schoolName, classMap]) => {
-                  const schoolStudentCount = Object.values(classMap).reduce((sum, arr) => sum + arr.length, 0);
-                  const classCount = Object.keys(classMap).length;
+                {/* ═══ AKTİF: Okul → Sınıf → Şube → Öğrenci ═══ */}
+                {Object.entries(activeTree).map(([schoolName, gradeMap]) => {
+                  const schoolStudentCount = Object.values(gradeMap).reduce(
+                    (s, secMap) => s + Object.values(secMap).reduce((s2, arr) => s2 + arr.length, 0), 0
+                  );
+                  const gradeCount = Object.keys(gradeMap).length;
                   return (
                     <div key={schoolName} className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
-                      {/* ── OKUL KLASÖRÜ ── */}
+                      {/* OKUL */}
                       <button
-                        onClick={() => { setOpenSchool(openSchool === schoolName ? null : schoolName); setOpenClass(null); }}
+                        onClick={() => { setOpenSchool(openSchool === schoolName ? null : schoolName); setOpenClass(null); setOpenSection(null); }}
                         className="w-full flex items-center justify-between p-4 hover:bg-amber-50/50 transition-colors"
                       >
                         <div className="flex items-center gap-3">
@@ -883,21 +907,23 @@ export default function YoneticiPage() {
                           </div>
                           <div className="text-left">
                             <h4 className="text-[14px] font-bold text-[#0f2847]">{schoolName}</h4>
-                            <p className="text-[12px] text-gray-400">{classCount} sınıf · {schoolStudentCount} öğrenci</p>
+                            <p className="text-[12px] text-gray-400">{gradeCount} sınıf · {schoolStudentCount} öğrenci</p>
                           </div>
                         </div>
                         <ChevronRight className={`w-5 h-5 text-gray-300 transition-transform duration-200 ${openSchool === schoolName ? 'rotate-90' : ''}`} />
                       </button>
 
-                      {/* ── SINIF KLASÖRLERİ ── */}
+                      {/* SINIFLAR */}
                       {openSchool === schoolName && (
                         <div className="border-t border-gray-100 bg-gray-50/30">
-                          {Object.entries(classMap).map(([className, classStudents]) => {
-                            const classKey = `${schoolName}::${className}`;
+                          {Object.entries(gradeMap).map(([gradeKey, secMap]) => {
+                            const gKey = `${schoolName}::${gradeKey}`;
+                            const gradeStudentCount = Object.values(secMap).reduce((s, arr) => s + arr.length, 0);
+                            const sectionCount = Object.keys(secMap).length;
                             return (
-                              <div key={classKey} className="border-b border-gray-100 last:border-b-0">
+                              <div key={gKey} className="border-b border-gray-100 last:border-b-0">
                                 <button
-                                  onClick={() => setOpenClass(openClass === classKey ? null : classKey)}
+                                  onClick={() => { setOpenClass(openClass === gKey ? null : gKey); setOpenSection(null); }}
                                   className="w-full flex items-center justify-between px-4 py-3 pl-8 hover:bg-sky-50/40 transition-colors"
                                 >
                                   <div className="flex items-center gap-3">
@@ -905,40 +931,68 @@ export default function YoneticiPage() {
                                       <FolderOpen className="w-4 h-4 text-sky-600" />
                                     </div>
                                     <div className="text-left">
-                                      <h5 className="text-[13px] font-bold text-[#0f2847]">{className}</h5>
-                                      <p className="text-[11px] text-gray-400">{classStudents.length} öğrenci</p>
+                                      <h5 className="text-[13px] font-bold text-[#0f2847]">{gradeKey}</h5>
+                                      <p className="text-[11px] text-gray-400">{sectionCount} şube · {gradeStudentCount} öğrenci</p>
                                     </div>
                                   </div>
-                                  <ChevronRight className={`w-4 h-4 text-gray-300 transition-transform duration-200 ${openClass === classKey ? 'rotate-90' : ''}`} />
+                                  <ChevronRight className={`w-4 h-4 text-gray-300 transition-transform duration-200 ${openClass === gKey ? 'rotate-90' : ''}`} />
                                 </button>
 
-                                {/* ── ÖĞRENCİLER ── */}
-                                {openClass === classKey && (
-                                  <div className="bg-white/40 divide-y divide-gray-50">
-                                    {classStudents.map((s) => (
-                                      <div key={s.id} className={`flex items-center justify-between px-4 py-3 pl-14 hover:bg-violet-50/40 transition-colors gap-2 ${selectedStudentIds.has(s.id) ? 'bg-amber-50/60' : ''}`}>
-                                        <input
-                                          type="checkbox"
-                                          checked={selectedStudentIds.has(s.id)}
-                                          onChange={() => toggleStudentSelect(s.id)}
-                                          onClick={(e) => e.stopPropagation()}
-                                          className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500/30 cursor-pointer shrink-0"
-                                        />
-                                        <button onClick={() => loadStudentReports(s)} className="flex items-center gap-3 text-left flex-1 min-w-0">
-                                          <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
-                                            <GraduationCap className="w-4 h-4 text-violet-600" />
-                                          </div>
-                                          <div className="flex-1 min-w-0">
-                                            <p className="text-[13px] font-semibold text-[#0f2847] truncate">{s.full_name}</p>
-                                            <p className="text-[11px] text-gray-400">{s.grade ? `${s.grade}. Sınıf` : ''} · {s.testCount} test · {s.reportCount} rapor</p>
-                                          </div>
-                                          <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
-                                        </button>
-                                        <div className="ml-2 shrink-0">
-                                          <DeleteButton onDelete={() => handleDeleteUser(s.id, 'student')} label="Sil" />
+                                {/* ŞUBELER */}
+                                {openClass === gKey && (
+                                  <div className="bg-white/40">
+                                    {Object.entries(secMap).map(([secKey, secStudents]) => {
+                                      const sKey = `${gKey}::${secKey}`;
+                                      return (
+                                        <div key={sKey} className="border-b border-gray-50 last:border-b-0">
+                                          <button
+                                            onClick={() => setOpenSection(openSection === sKey ? null : sKey)}
+                                            className="w-full flex items-center justify-between px-4 py-2.5 pl-12 hover:bg-violet-50/30 transition-colors"
+                                          >
+                                            <div className="flex items-center gap-3">
+                                              <div className="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center">
+                                                <FolderOpen className="w-3.5 h-3.5 text-violet-600" />
+                                              </div>
+                                              <div className="text-left">
+                                                <h6 className="text-[12px] font-bold text-[#0f2847]">{secKey}</h6>
+                                                <p className="text-[10px] text-gray-400">{secStudents.length} öğrenci</p>
+                                              </div>
+                                            </div>
+                                            <ChevronRight className={`w-4 h-4 text-gray-300 transition-transform duration-200 ${openSection === sKey ? 'rotate-90' : ''}`} />
+                                          </button>
+
+                                          {/* ÖĞRENCİLER */}
+                                          {openSection === sKey && (
+                                            <div className="divide-y divide-gray-50">
+                                              {secStudents.map((s) => (
+                                                <div key={s.id} className={`flex items-center justify-between px-4 py-3 pl-20 hover:bg-violet-50/40 transition-colors gap-2 ${selectedStudentIds.has(s.id) ? 'bg-amber-50/60' : ''}`}>
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={selectedStudentIds.has(s.id)}
+                                                    onChange={() => toggleStudentSelect(s.id)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500/30 cursor-pointer shrink-0"
+                                                  />
+                                                  <button onClick={() => loadStudentReports(s)} className="flex items-center gap-3 text-left flex-1 min-w-0">
+                                                    <div className="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
+                                                      <GraduationCap className="w-3.5 h-3.5 text-violet-600" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                      <p className="text-[13px] font-semibold text-[#0f2847] truncate">{s.full_name}</p>
+                                                      <p className="text-[11px] text-gray-400">{s.testCount} test · {s.reportCount} rapor</p>
+                                                    </div>
+                                                    <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+                                                  </button>
+                                                  <div className="ml-2 shrink-0">
+                                                    <DeleteButton onDelete={() => handleDeleteUser(s.id, 'student')} label="Sil" />
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
                                         </div>
-                                      </div>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                 )}
                               </div>
@@ -949,6 +1003,80 @@ export default function YoneticiPage() {
                     </div>
                   );
                 })}
+
+                {/* ═══ MEZUNLAR (ayrı ana klasör) ═══ */}
+                {graduatedStudents.length > 0 && (
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl shadow-sm overflow-hidden">
+                    <button
+                      onClick={() => setShowGraduatesSection(!showGraduatesSection)}
+                      className="w-full flex items-center justify-between p-4 hover:bg-amber-100/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-md">
+                          <Briefcase className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="text-left">
+                          <h4 className="text-[14px] font-extrabold text-[#0f2847]">🎓 Mezunlar</h4>
+                          <p className="text-[12px] text-amber-700">{Object.keys(graduatedTree).length} okul · {graduatedStudents.length} mezun</p>
+                        </div>
+                      </div>
+                      <ChevronRight className={`w-5 h-5 text-amber-400 transition-transform duration-200 ${showGraduatesSection ? 'rotate-90' : ''}`} />
+                    </button>
+
+                    {showGraduatesSection && (
+                      <div className="border-t border-amber-200 bg-white/40">
+                        {Object.entries(graduatedTree).map(([schoolName, gradStudents]) => (
+                          <div key={schoolName} className="border-b border-amber-100 last:border-b-0">
+                            <button
+                              onClick={() => setOpenGradSchool(openGradSchool === schoolName ? null : schoolName)}
+                              className="w-full flex items-center justify-between px-4 py-3 pl-8 hover:bg-amber-50/40 transition-colors"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-amber-200 flex items-center justify-center">
+                                  <FolderOpen className="w-4 h-4 text-amber-700" />
+                                </div>
+                                <div className="text-left">
+                                  <h5 className="text-[13px] font-bold text-[#0f2847]">{schoolName}</h5>
+                                  <p className="text-[11px] text-amber-600">{gradStudents.length} mezun</p>
+                                </div>
+                              </div>
+                              <ChevronRight className={`w-4 h-4 text-amber-400 transition-transform duration-200 ${openGradSchool === schoolName ? 'rotate-90' : ''}`} />
+                            </button>
+
+                            {openGradSchool === schoolName && (
+                              <div className="divide-y divide-amber-100/50">
+                                {gradStudents.map((s) => (
+                                  <div key={s.id} className={`flex items-center justify-between px-4 py-3 pl-14 hover:bg-amber-50/40 transition-colors gap-2 ${selectedStudentIds.has(s.id) ? 'bg-amber-100/60' : ''}`}>
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedStudentIds.has(s.id)}
+                                      onChange={() => toggleStudentSelect(s.id)}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500/30 cursor-pointer shrink-0"
+                                    />
+                                    <button onClick={() => loadStudentReports(s)} className="flex items-center gap-3 text-left flex-1 min-w-0">
+                                      <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                                        <Briefcase className="w-3.5 h-3.5 text-amber-600" />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-[13px] font-semibold text-[#0f2847] truncate">{s.full_name}</p>
+                                        <p className="text-[11px] text-amber-600">Mezun · {s.testCount} test · {s.reportCount} rapor</p>
+                                      </div>
+                                      <ChevronRight className="w-4 h-4 text-amber-300 shrink-0" />
+                                    </button>
+                                    <div className="ml-2 shrink-0">
+                                      <DeleteButton onDelete={() => handleDeleteUser(s.id, 'student')} label="Sil" />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
