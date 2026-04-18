@@ -81,12 +81,29 @@ export async function getStudentTrend(
 ): Promise<StudentTrend> {
   const supabase = createClient();
 
+  // Güvenli default (hata veya veri yoksa dönecek değer)
+  const emptyTrend: StudentTrend = {
+    studentId,
+    testType,
+    attempts: [],
+    direction: 'stable',
+    averageChange: 0,
+    latestScore: 0,
+    firstScore: 0,
+  };
+
   const { data, error } = await supabase
     .from('student_test_history')
     .select('id, test_type, attempt_number, score, sub_scores, created_at')
     .eq('student_id', studentId)
     .eq('test_type', testType)
     .order('attempt_number', { ascending: true });
+
+  // Tablo veya kolon yoksa sessizce boş trend dön
+  if (error) {
+    console.warn('[longitudinal.getStudentTrend] sorgu başarısız, boş trend dönülüyor:', error.message);
+    return emptyTrend;
+  }
 
   const attempts: TestAttempt[] = (data ?? []).map((d) => ({
     id: d.id,
@@ -134,12 +151,18 @@ export async function getStudentAllTrends(
 ): Promise<StudentTrend[]> {
   const supabase = createClient();
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('student_test_history')
     .select('id, test_type, attempt_number, score, sub_scores, created_at')
     .eq('student_id', studentId)
     .order('test_type')
     .order('attempt_number', { ascending: true });
+
+  // Tablo/kolon yoksa boş dizi dön
+  if (error) {
+    console.warn('[longitudinal.getStudentAllTrends] sorgu başarısız, boş dönülüyor:', error.message);
+    return [];
+  }
 
   const byType: Record<string, TestAttempt[]> = {};
   for (const d of data ?? []) {
@@ -263,7 +286,7 @@ export async function getPreviousTestResult(
 ): Promise<{ score: number; attemptNumber: number; completedAt: string } | null> {
   const supabase = createClient();
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('test_results')
     .select('scores, attempt_number, completed_at')
     .eq('student_id', studentId)
@@ -272,6 +295,12 @@ export async function getPreviousTestResult(
     .order('completed_at', { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  // Kolon yoksa sessiz dön
+  if (error) {
+    console.warn('[longitudinal.getPreviousTestResult] sorgu başarısız:', error.message);
+    return null;
+  }
 
   if (!data) return null;
 
@@ -308,11 +337,18 @@ export async function recordTestHistory(
 ): Promise<void> {
   const supabase = createClient();
 
-  await supabase.from('student_test_history').insert({
-    student_id: studentId,
-    test_type: testType,
-    attempt_number: attemptNumber,
-    score,
-    sub_scores: subScores,
-  });
+  try {
+    const { error } = await supabase.from('student_test_history').insert({
+      student_id: studentId,
+      test_type: testType,
+      attempt_number: attemptNumber,
+      score,
+      sub_scores: subScores,
+    });
+    if (error) {
+      console.warn('[longitudinal.recordTestHistory] insert başarısız:', error.message);
+    }
+  } catch (e) {
+    console.warn('[longitudinal.recordTestHistory] beklenmedik hata:', e);
+  }
 }
