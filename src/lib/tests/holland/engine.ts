@@ -1,8 +1,8 @@
 import { HOLLAND_QUESTIONS, HOLLAND_TYPES } from './data';
 import type { HollandScores } from '../types';
 
-// Her tipten 14 soru, max puan 4 × 14 = 56
-const MAX_PER_TYPE = 56;
+// Her tipten 14 soru, Likert5 (1-5) → max puan 5 × 14 = 70
+const MAX_PER_TYPE = 70;
 
 export function calculateHolland(answers: Record<string | number, number>): HollandScores {
   const norm: Record<number, number> = {};
@@ -32,8 +32,11 @@ export function calculateHolland(answers: Record<string | number, number>): Holl
 export function generateHollandReport(scores: HollandScores): string {
   const { top3, hollandCode, sortedTypes } = scores;
   const bar = (pct: number) => {
-    const n = Math.round(pct / 10);
-    return '█'.repeat(n) + '░'.repeat(10 - n);
+    // Defansif: pct değeri 0-100 aralığına zorla (NaN, negatif, 100 üstü hepsini yakalar)
+    const safePct = Math.max(0, Math.min(100, Number.isFinite(pct) ? pct : 0));
+    const n = Math.round(safePct / 10);
+    const filled = Math.max(0, Math.min(10, n));
+    return '█'.repeat(filled) + '░'.repeat(10 - filled);
   };
 
   let report = `# 🧭 HOLLAND MESLEKİ İLGİ ENVANTERİ RAPORU\n\n**Senin Holland Kodun: ${hollandCode}**\n\n---\n\n## 📊 İlgi Profil Tablon\n\n| Tip | İsim | Puan | Yüzde | Grafik |\n|---|---|---|---|---|\n`;

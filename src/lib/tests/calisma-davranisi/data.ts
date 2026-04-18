@@ -250,7 +250,7 @@ export function generateCalismaDavranisiReport(scores: CalismaDavranisiScores): 
   const { categories: categoryScores, categoriesPositive: positive, maxTotal, totalPositive, positivePct, level, levelEmoji, combinations } = scores;
 
   const bar = (pct: number) => {
-    const n = Math.round(pct / 10);
+    const n = Math.max(0, Math.min(10, Math.round(pct / 10)));
     return '█'.repeat(n) + '░'.repeat(10 - n);
   };
 
