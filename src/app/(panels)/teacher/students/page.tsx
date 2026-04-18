@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { secureFetch } from '@/lib/csrf-client';
 import {
-  FolderOpen, ChevronRight, GraduationCap, AlertCircle, Users, Bell, Award
+  FolderOpen, ChevronRight, GraduationCap, AlertCircle, Users, Bell, Award, Search, X
 } from 'lucide-react';
 
 interface StudentRow {
@@ -35,6 +35,111 @@ export default function StudentsPage() {
   // Mezunlar bölümü ayrı state'ler
   const [openGradSchool, setOpenGradSchool] = useState<string | null>(null);
   const [showGraduatesSection, setShowGraduatesSection] = useState(false);
+
+  // ═══ Arama ve Highlight ═══
+  const [searchQuery, setSearchQuery] = useState('');
+  const [highlightedStudentId, setHighlightedStudentId] = useState<string | null>(null);
+  const studentRefs = useRef<Map<string, HTMLAnchorElement>>(new Map());
+
+  // Tüm öğrencileri tek bir düz listede topla (arama için) — her öğrencinin tam yolu ile
+  interface FlatStudent {
+    student: StudentRow;
+    schoolName: string;
+    gradeKey: string | null; // "9. Sınıf"
+    sectionKey: string | null; // "9/A"
+    isGraduated: boolean;
+    // Tıklayınca açılması gereken klasör yolu
+    pathKeys: {
+      school: string;
+      grade?: string;
+      section?: string;
+    };
+  }
+
+  const allStudentsFlat = useMemo<FlatStudent[]>(() => {
+    const list: FlatStudent[] = [];
+
+    // Aktif öğrenciler
+    for (const [schoolName, gradeMap] of Object.entries(active)) {
+      for (const [gradeKey, secMap] of Object.entries(gradeMap)) {
+        for (const [secKey, students] of Object.entries(secMap)) {
+          for (const s of students) {
+            list.push({
+              student: s,
+              schoolName,
+              gradeKey,
+              sectionKey: secKey,
+              isGraduated: false,
+              pathKeys: {
+                school: schoolName,
+                grade: `${schoolName}::${gradeKey}`,
+                section: `${schoolName}::${gradeKey}::${secKey}`,
+              },
+            });
+          }
+        }
+      }
+    }
+
+    // Mezunlar
+    for (const [schoolName, students] of Object.entries(graduated)) {
+      for (const s of students) {
+        list.push({
+          student: s,
+          schoolName,
+          gradeKey: null,
+          sectionKey: null,
+          isGraduated: true,
+          pathKeys: { school: schoolName },
+        });
+      }
+    }
+
+    return list;
+  }, [active, graduated]);
+
+  // Arama sonuçları (Türkçe karakter duyarsız)
+  const searchResults = useMemo<FlatStudent[]>(() => {
+    const q = searchQuery.trim();
+    if (q.length < 1) return [];
+    const qNorm = q.toLocaleLowerCase('tr-TR');
+    return allStudentsFlat.filter((fs) =>
+      fs.student.full_name.toLocaleLowerCase('tr-TR').includes(qNorm)
+    );
+  }, [searchQuery, allStudentsFlat]);
+
+  const isSearching = searchQuery.trim().length > 0;
+
+  // Arama sonucundan öğrenciye tıklayınca: klasörleri aç, scroll et, highlight et
+  const openStudentPath = (fs: FlatStudent) => {
+    setSearchQuery(''); // arama kutusunu temizle → normal hiyerarşi geri gelir
+
+    // Klasörleri aç
+    if (fs.isGraduated) {
+      setShowGraduatesSection(true);
+      setOpenGradSchool(fs.schoolName);
+    } else {
+      setOpenSchool(fs.schoolName);
+      if (fs.pathKeys.grade) setOpenGrade(fs.pathKeys.grade);
+      if (fs.pathKeys.section) setOpenSection(fs.pathKeys.section);
+    }
+
+    // Highlight state'i ayarla
+    setHighlightedStudentId(fs.student.id);
+
+    // Sonraki render'da scroll et
+    setTimeout(() => {
+      const el = studentRefs.current.get(fs.student.id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 150);
+
+    // 3 saniye sonra highlight'ı kaldır
+    setTimeout(() => {
+      setHighlightedStudentId(null);
+    }, 3500);
+  };
 
   useEffect(() => {
     (async () => {
@@ -102,6 +207,79 @@ export default function StudentsPage() {
         </div>
       )}
 
+      {/* ═══ ARAMA KUTUSU ═══ */}
+      {!loading && totalStudents > 0 && (
+        <div className="mb-4">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Öğrenci ara (ad veya soyad)..."
+              className="w-full pl-12 pr-11 py-3 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/40 shadow-sm text-[14px] focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 transition"
+                title="Aramayı temizle"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            )}
+          </div>
+          {isSearching && (
+            <p className="text-[12px] text-gray-500 mt-2 ml-1">
+              {searchResults.length === 0
+                ? '🔍 Eşleşen öğrenci bulunamadı.'
+                : `🔍 ${searchResults.length} öğrenci bulundu.`}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* ═══ ARAMA SONUÇLARI ═══ */}
+      {isSearching && !loading && (
+        <div className="space-y-2 mb-6">
+          {searchResults.map((fs) => {
+            const s = fs.student;
+            const breadcrumb = fs.isGraduated
+              ? `🎓 Mezunlar → ${fs.schoolName}`
+              : `${fs.schoolName} → ${fs.gradeKey} → ${fs.sectionKey}`;
+            return (
+              <button
+                key={s.id}
+                onClick={() => openStudentPath(fs)}
+                className="w-full text-left bg-white/80 backdrop-blur-xl border border-sky-200 hover:border-sky-400 hover:bg-sky-50/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex items-center gap-3"
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${fs.isGraduated ? 'bg-amber-100' : 'bg-violet-100'}`}>
+                  {fs.isGraduated ? (
+                    <Award className="w-5 h-5 text-amber-600" />
+                  ) : (
+                    <GraduationCap className="w-5 h-5 text-violet-600" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[14px] font-bold text-[#0f2847] truncate">{s.full_name}</p>
+                  <p className="text-[11px] text-gray-500 truncate">{breadcrumb}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">
+                    {s.completed_count} test tamamlandı
+                    {s.assigned_pending_count > 0 && ` · ${s.assigned_pending_count} bekliyor`}
+                  </p>
+                </div>
+                {s.assigned_pending_count > 0 && (
+                  <span className="text-[10px] bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Bell className="w-3 h-3" /> {s.assigned_pending_count}
+                  </span>
+                )}
+                <ChevronRight className="w-5 h-5 text-sky-400 shrink-0" />
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {loading ? (
         <div className="text-center py-20 text-gray-400">Yükleniyor...</div>
       ) : totalStudents === 0 ? (
@@ -113,7 +291,7 @@ export default function StudentsPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className={`space-y-3 ${isSearching ? 'hidden' : ''}`}>
           {/* ═══ AKTİF ÖĞRENCİLER (Okul → Sınıf → Şube → Öğrenci) ═══ */}
           {Object.entries(active).map(([schoolName, gradeMap]) => {
             const schoolStudentCount = Object.values(gradeMap).reduce(
@@ -201,30 +379,41 @@ export default function StudentsPage() {
                                     {/* ÖĞRENCİLER */}
                                     {openSection === sKey && (
                                       <div className="divide-y divide-gray-50">
-                                        {students.map((s) => (
-                                          <Link
-                                            key={s.id}
-                                            href={`/teacher/students/${s.id}`}
-                                            className="flex items-center gap-3 px-4 py-3 pl-20 hover:bg-violet-50/40 transition-colors"
-                                          >
-                                            <div className="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
-                                              <GraduationCap className="w-3.5 h-3.5 text-violet-600" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                              <p className="text-[13px] font-semibold text-[#0f2847] truncate">{s.full_name}</p>
-                                              <p className="text-[11px] text-gray-400">
-                                                {s.completed_count} test tamamlandı
-                                                {s.assigned_pending_count > 0 && ` · ${s.assigned_pending_count} bekliyor`}
-                                              </p>
-                                            </div>
-                                            {s.assigned_pending_count > 0 && (
-                                              <span className="text-[10px] bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                                                <Bell className="w-3 h-3" /> {s.assigned_pending_count}
-                                              </span>
-                                            )}
-                                            <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
-                                          </Link>
-                                        ))}
+                                        {students.map((s) => {
+                                          const isHighlighted = highlightedStudentId === s.id;
+                                          return (
+                                            <Link
+                                              key={s.id}
+                                              href={`/teacher/students/${s.id}`}
+                                              ref={(el) => {
+                                                if (el) studentRefs.current.set(s.id, el);
+                                                else studentRefs.current.delete(s.id);
+                                              }}
+                                              className={`flex items-center gap-3 px-4 py-3 pl-20 transition-all ${
+                                                isHighlighted
+                                                  ? 'bg-gradient-to-r from-yellow-100 via-amber-100 to-yellow-100 ring-2 ring-amber-400 animate-pulse'
+                                                  : 'hover:bg-violet-50/40'
+                                              }`}
+                                            >
+                                              <div className="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
+                                                <GraduationCap className="w-3.5 h-3.5 text-violet-600" />
+                                              </div>
+                                              <div className="flex-1 min-w-0">
+                                                <p className="text-[13px] font-semibold text-[#0f2847] truncate">{s.full_name}</p>
+                                                <p className="text-[11px] text-gray-400">
+                                                  {s.completed_count} test tamamlandı
+                                                  {s.assigned_pending_count > 0 && ` · ${s.assigned_pending_count} bekliyor`}
+                                                </p>
+                                              </div>
+                                              {s.assigned_pending_count > 0 && (
+                                                <span className="text-[10px] bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                  <Bell className="w-3 h-3" /> {s.assigned_pending_count}
+                                                </span>
+                                              )}
+                                              <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+                                            </Link>
+                                          );
+                                        })}
                                       </div>
                                     )}
                                   </div>
@@ -283,24 +472,35 @@ export default function StudentsPage() {
 
                         {openGradSchool === schoolName && (
                           <div className="divide-y divide-amber-100/50">
-                            {students.map((s) => (
-                              <Link
-                                key={s.id}
-                                href={`/teacher/students/${s.id}`}
-                                className="flex items-center gap-3 px-4 py-3 pl-14 hover:bg-amber-50/40 transition-colors"
-                              >
-                                <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
-                                  <Award className="w-3.5 h-3.5 text-amber-600" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-[13px] font-semibold text-[#0f2847] truncate">{s.full_name}</p>
-                                  <p className="text-[11px] text-amber-600">
-                                    Mezun · {s.completed_count} test tamamlandı
-                                  </p>
-                                </div>
-                                <ChevronRight className="w-4 h-4 text-amber-300 shrink-0" />
-                              </Link>
-                            ))}
+                            {students.map((s) => {
+                              const isHighlighted = highlightedStudentId === s.id;
+                              return (
+                                <Link
+                                  key={s.id}
+                                  href={`/teacher/students/${s.id}`}
+                                  ref={(el) => {
+                                    if (el) studentRefs.current.set(s.id, el);
+                                    else studentRefs.current.delete(s.id);
+                                  }}
+                                  className={`flex items-center gap-3 px-4 py-3 pl-14 transition-all ${
+                                    isHighlighted
+                                      ? 'bg-gradient-to-r from-yellow-200 via-amber-200 to-yellow-200 ring-2 ring-amber-500 animate-pulse'
+                                      : 'hover:bg-amber-50/40'
+                                  }`}
+                                >
+                                  <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                                    <Award className="w-3.5 h-3.5 text-amber-600" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[13px] font-semibold text-[#0f2847] truncate">{s.full_name}</p>
+                                    <p className="text-[11px] text-amber-600">
+                                      Mezun · {s.completed_count} test tamamlandı
+                                    </p>
+                                  </div>
+                                  <ChevronRight className="w-4 h-4 text-amber-300 shrink-0" />
+                                </Link>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
