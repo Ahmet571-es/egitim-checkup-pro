@@ -10,6 +10,7 @@ import {
   Download, RefreshCw, ChevronDown, CheckCircle,
   AlertCircle, Clock, Eye, BookOpen, Layers
 } from 'lucide-react';
+import PageHeader from '@/components/ui/PageHeader';
 
 interface Student {
   id: string;
@@ -330,24 +331,31 @@ export default function TeacherReportsPage() {
 
   return (
     <div className="min-h-screen pb-10">
-      {/* Başlık */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-[#0f2847] mb-1">AI Analiz Raporları</h1>
-        <p className="text-gray-500 text-sm">Öğrenci seçin, AI destekli psikometrik raporlar üretin ve dışa aktarın.</p>
-      </div>
+      <PageHeader
+        role="teacher"
+        icon={Brain}
+        title="AI Analiz Raporları"
+        subtitle="Öğrenci seçin, AI destekli psikometrik raporlar üretin ve dışa aktarın — PDF/Word"
+      />
 
       {/* Filtreler */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {/* Sınıf Filtresi */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
-          <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
-            Sınıf Filtresi
-          </label>
+        <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-5 shadow-sm overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-600" />
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm">
+              <Users className="w-3.5 h-3.5 text-white" />
+            </div>
+            <label className="text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">
+              Sınıf Filtresi
+            </label>
+          </div>
           <div className="relative">
             <select
               value={selectedClass}
               onChange={e => setSelectedClass(e.target.value)}
-              className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium text-[#0f2847] focus:outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer"
+              className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-[#0f2847] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 cursor-pointer transition-all"
             >
               <option value="all">Tüm Öğrenciler</option>
               {classes.map(c => (
@@ -356,15 +364,21 @@ export default function TeacherReportsPage() {
                 </option>
               ))}
             </select>
-            <ChevronDown size={16} className="absolute right-3 top-3 text-gray-400 pointer-events-none" />
+            <ChevronDown size={16} className="absolute right-3 top-3.5 text-gray-400 pointer-events-none" />
           </div>
         </div>
 
         {/* Öğrenci Seçimi */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
-          <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
-            Öğrenci Seçimi
-          </label>
+        <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-5 shadow-sm overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-sky-600" />
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 to-sky-600 flex items-center justify-center shadow-sm">
+              <BookOpen className="w-3.5 h-3.5 text-white" />
+            </div>
+            <label className="text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">
+              Öğrenci Seçimi
+            </label>
+          </div>
           <div className="relative">
             <select
               value={selectedStudent?.id ?? ''}
@@ -372,7 +386,7 @@ export default function TeacherReportsPage() {
                 const s = students.find(st => st.id === e.target.value);
                 if (s) loadStudentData(s);
               }}
-              className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium text-[#0f2847] focus:outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer"
+              className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-[#0f2847] focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-400 cursor-pointer transition-all disabled:opacity-60"
               disabled={loading}
             >
               <option value="">— Öğrenci Seçin —</option>
@@ -380,7 +394,7 @@ export default function TeacherReportsPage() {
                 <option key={s.id} value={s.id}>{s.full_name}</option>
               ))}
             </select>
-            <ChevronDown size={16} className="absolute right-3 top-3 text-gray-400 pointer-events-none" />
+            <ChevronDown size={16} className="absolute right-3 top-3.5 text-gray-400 pointer-events-none" />
           </div>
         </div>
       </div>
@@ -423,29 +437,41 @@ export default function TeacherReportsPage() {
       {selectedStudent && (
         <>
           {/* Öğrenci Bilgi Kartı */}
-          <div className="bg-gradient-to-r from-[#0f2847] to-[#1a3d6e] rounded-2xl p-5 mb-6 text-white shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/60 text-xs font-semibold uppercase tracking-wide mb-1">Seçili Öğrenci</p>
-                <h2 className="text-2xl font-extrabold">{selectedStudent.full_name}</h2>
-                <div className="flex items-center gap-4 mt-2">
-                  <span className="flex items-center gap-1.5 text-sm text-white/80">
-                    <BookOpen size={14} />
+          <div className="relative bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 rounded-3xl p-6 mb-6 text-white shadow-xl shadow-emerald-500/30 overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 rep-aurora-1" />
+            <div className="absolute bottom-0 left-1/3 w-48 h-48 bg-cyan-200/20 rounded-full blur-3xl rep-aurora-2" />
+            <div
+              className="pointer-events-none absolute inset-0 opacity-[0.06]"
+              style={{
+                backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
+                backgroundSize: '32px 32px',
+              }}
+            />
+            <div className="relative flex items-center justify-between flex-wrap gap-4">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  <p className="text-white/80 text-[10.5px] font-extrabold uppercase tracking-wider">Seçili Öğrenci</p>
+                </div>
+                <h2 className="text-[26px] font-extrabold drop-shadow-sm tracking-tight">{selectedStudent.full_name}</h2>
+                <div className="flex items-center gap-3 mt-3 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5 text-[12.5px] font-bold bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
+                    <BookOpen size={13} />
                     {testResults.length} test tamamlandı
                   </span>
-                  <span className="flex items-center gap-1.5 text-sm text-emerald-300">
-                    <FileText size={14} />
+                  <span className="inline-flex items-center gap-1.5 text-[12.5px] font-bold bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
+                    <FileText size={13} className="text-emerald-100" />
                     {testResults.filter(t => t.ai_report).length} tekil rapor
                   </span>
                   {holisticReport && (
-                    <span className="flex items-center gap-1.5 text-sm text-violet-300">
-                      <Brain size={14} />
+                    <span className="inline-flex items-center gap-1.5 text-[12.5px] font-bold bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
+                      <Brain size={13} className="text-violet-200" />
                       Bütüncül rapor
                     </span>
                   )}
                   {integratedReport && (
-                    <span className="flex items-center gap-1.5 text-sm text-pink-300">
-                      <Layers size={14} />
+                    <span className="inline-flex items-center gap-1.5 text-[12.5px] font-bold bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
+                      <Layers size={13} className="text-pink-200" />
                       Entegre 3&apos;lü rapor
                     </span>
                   )}
@@ -474,25 +500,37 @@ export default function TeacherReportsPage() {
               <div className="flex gap-2">
                 <a
                   href={exportUrl('excel', { student_id: selectedStudent.id })}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white text-emerald-700 text-[12.5px] font-extrabold hover:bg-emerald-50 transition-all shadow-md active:scale-[0.97]"
                 >
                   <Download size={14} />
                   Excel
                 </a>
               </div>
             </div>
+            <style jsx>{`
+              .rep-aurora-1 { animation: rep-aurora-1 9s ease-in-out infinite; }
+              .rep-aurora-2 { animation: rep-aurora-2 11s ease-in-out infinite 1s; }
+              @keyframes rep-aurora-1 {
+                0%, 100% { transform: translate(0, 0) scale(1); }
+                50% { transform: translate(-15px, 15px) scale(1.08); }
+              }
+              @keyframes rep-aurora-2 {
+                0%, 100% { transform: translate(0, 0) scale(1); }
+                50% { transform: translate(15px, -10px) scale(1.05); }
+              }
+            `}</style>
           </div>
 
           {/* Sekmeler */}
-          <div className="flex gap-1 mb-4 bg-white/50 backdrop-blur-xl rounded-2xl border border-white/40 p-1.5 shadow-sm">
+          <div className="flex gap-1 mb-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 p-1.5 shadow-sm overflow-x-auto">
             {tabs.map(tab => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                className={`flex-1 min-w-fit flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-extrabold transition-all active:scale-[0.97] ${
                   activeTab === tab.key
-                    ? 'bg-[#0f2847] text-white shadow-md'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-white/60'
+                    ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 text-white shadow-lg shadow-emerald-500/30'
+                    : 'text-gray-500 hover:text-gray-800 hover:bg-white'
                 }`}
               >
                 {tab.icon}
