@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   Menu, X, LogOut, LayoutDashboard, School, Key, Users, Settings,
   BookOpen, GraduationCap, UserCheck, Heart, ClipboardList, FileText,
@@ -25,12 +25,48 @@ const ICON_MAP: Record<string, React.ElementType> = {
   'guidance-plan': FileText,
 };
 
-const ACCENT: Record<UserRole, { gradient: string; activeBg: string; text: string; border: string }> = {
-  admin:        { gradient: 'from-amber-500 to-orange-500',   activeBg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-500' },
-  school_admin: { gradient: 'from-sky-500 to-blue-500',       activeBg: 'bg-sky-50',     text: 'text-sky-700',     border: 'border-sky-500' },
-  teacher:      { gradient: 'from-emerald-500 to-teal-500',   activeBg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-500' },
-  student:      { gradient: 'from-violet-500 to-purple-500',  activeBg: 'bg-violet-50',  text: 'text-violet-700',  border: 'border-violet-500' },
-  parent:       { gradient: 'from-pink-500 to-rose-500',      activeBg: 'bg-pink-50',    text: 'text-pink-700',    border: 'border-pink-500' },
+const ACCENT: Record<UserRole, {
+  gradient: string;
+  activeGrad: string;
+  activeText: string;
+  dot: string;
+  glow: string;
+}> = {
+  admin: {
+    gradient: 'from-amber-500 via-orange-500 to-rose-500',
+    activeGrad: 'from-amber-50 via-orange-50 to-rose-50',
+    activeText: 'text-amber-700',
+    dot: 'bg-amber-500',
+    glow: 'shadow-amber-400/50',
+  },
+  school_admin: {
+    gradient: 'from-sky-500 via-blue-500 to-indigo-600',
+    activeGrad: 'from-sky-50 via-blue-50 to-indigo-50',
+    activeText: 'text-blue-700',
+    dot: 'bg-blue-500',
+    glow: 'shadow-blue-400/50',
+  },
+  teacher: {
+    gradient: 'from-emerald-500 via-teal-500 to-cyan-600',
+    activeGrad: 'from-emerald-50 via-teal-50 to-cyan-50',
+    activeText: 'text-emerald-700',
+    dot: 'bg-emerald-500',
+    glow: 'shadow-emerald-400/50',
+  },
+  student: {
+    gradient: 'from-violet-500 via-purple-500 to-fuchsia-600',
+    activeGrad: 'from-violet-50 via-purple-50 to-fuchsia-50',
+    activeText: 'text-violet-700',
+    dot: 'bg-violet-500',
+    glow: 'shadow-violet-400/50',
+  },
+  parent: {
+    gradient: 'from-pink-500 via-rose-500 to-red-500',
+    activeGrad: 'from-pink-50 via-rose-50 to-red-50',
+    activeText: 'text-rose-700',
+    dot: 'bg-rose-500',
+    glow: 'shadow-rose-400/50',
+  },
 };
 
 interface SidebarProps {
@@ -39,11 +75,10 @@ interface SidebarProps {
   userName?: string;
 }
 
-/** Madde 10: Premium Sidebar with animated active state, hover translate, online indicator */
+/** Premium Sidebar — glass bg, gradient active state, avatar with online pulse */
 export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: SidebarProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
   const accent = ACCENT[role];
 
   const handleLogout = async () => {
@@ -53,23 +88,30 @@ export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: Si
   };
 
   const nav = (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      {/* Top gradient strip */}
+      <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${accent.gradient}`} />
+      {/* Subtle bg blob */}
+      <div className={`pointer-events-none absolute -top-10 -left-10 w-40 h-40 rounded-full bg-gradient-to-br ${accent.gradient} opacity-[0.06] blur-2xl`} />
+
       {/* Logo */}
-      <div className="px-5 py-6 border-b border-gray-100">
+      <div className="relative px-5 py-6 border-b border-gray-100/80">
         <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${accent.gradient} flex items-center justify-center shadow-lg`}>
-            <GraduationCap className="w-5 h-5 text-white" />
+          <div className={`relative w-11 h-11 rounded-2xl bg-gradient-to-br ${accent.gradient} flex items-center justify-center shadow-lg ${accent.glow}`}>
+            <GraduationCap className="w-6 h-6 text-white relative z-10" />
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 to-transparent" />
+            <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${accent.gradient} opacity-70 blur-lg -z-10`} />
           </div>
           <div>
-            <h1 className="text-[15px] font-extrabold text-[#0f2847] tracking-tight">Eğitim Check-Up</h1>
-            <p className="text-[11px] text-gray-400 font-medium">{ROLE_LABELS[role]}</p>
+            <h1 className="text-[16px] font-extrabold text-[#0f2847] tracking-tight">Eğitim Check-Up</h1>
+            <p className="text-[10.5px] text-gray-400 font-semibold tracking-wider uppercase mt-0.5">{ROLE_LABELS[role]}</p>
           </div>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto relative">
+        {navItems.map((item, idx) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           const iconKey = item.href.split('/').pop() || 'dashboard';
           const Icon = ICON_MAP[iconKey] || LayoutDashboard;
@@ -78,49 +120,73 @@ export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: Si
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
-              className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold transition-all duration-200 relative overflow-hidden ${
+              className={`nav-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold transition-all duration-200 relative overflow-hidden ${
                 isActive
-                  ? `${accent.activeBg} ${accent.text}`
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700 hover:translate-x-1'
+                  ? `bg-gradient-to-r ${accent.activeGrad} ${accent.activeText} shadow-sm`
+                  : 'text-gray-500 hover:bg-gray-50/80 hover:text-gray-800 hover:translate-x-1'
               }`}
+              style={{ animationDelay: `${idx * 40}ms` }}
             >
-              {/* Animated left border for active item */}
-              <div className={`absolute left-0 top-0 w-[3px] rounded-r-full transition-all duration-300 ${
-                isActive ? `h-full ${accent.border.replace('border-', 'bg-')}` : 'h-0 bg-transparent'
+              <div className={`absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full transition-all duration-300 ${
+                isActive ? `bg-gradient-to-b ${accent.gradient} opacity-100` : 'opacity-0'
               }`} />
 
-              <Icon className="w-[18px] h-[18px] shrink-0" />
-              <span className="flex-1">{item.label}</span>
-              {isActive && <ChevronRight className="w-3.5 h-3.5 opacity-50" />}
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-300 shrink-0 ${
+                isActive
+                  ? `bg-gradient-to-br ${accent.gradient} text-white shadow-md ${accent.glow}`
+                  : 'bg-gray-50 text-gray-500 group-hover:bg-white group-hover:shadow-sm'
+              }`}>
+                <Icon className="w-[15px] h-[15px]" />
+              </div>
+
+              <span className="flex-1 truncate">{item.label}</span>
+              {isActive && <ChevronRight className={`w-3.5 h-3.5 ${accent.activeText} opacity-70`} />}
             </Link>
           );
         })}
       </nav>
 
-      {/* User + Güvenli Çıkış */}
-      <div className="px-4 py-4 border-t border-gray-100 space-y-3">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${accent.gradient} flex items-center justify-center text-white text-xs font-bold`}>
+      {/* User + Logout */}
+      <div className="relative px-4 py-4 border-t border-gray-100/80 space-y-3">
+        <div className="flex items-center gap-3 p-2.5 rounded-xl bg-gradient-to-br from-gray-50/80 to-white/60 border border-gray-100/60">
+          <div className="relative shrink-0">
+            <div className={`relative w-10 h-10 rounded-xl bg-gradient-to-br ${accent.gradient} flex items-center justify-center text-white text-sm font-bold shadow-md ${accent.glow}`}>
               {userName.charAt(0).toUpperCase()}
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/30 to-transparent" />
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white">
-              <div className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-white flex items-center justify-center">
+              <div className={`relative w-2.5 h-2.5 rounded-full ${accent.dot}`}>
+                <div className={`absolute inset-0 rounded-full ${accent.dot} animate-ping opacity-75`} />
+              </div>
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-semibold text-gray-700 truncate">{userName}</p>
-            <p className="text-[11px] text-gray-400">{ROLE_LABELS[role]}</p>
+            <p className="text-[13px] font-bold text-gray-800 truncate">{userName}</p>
+            <div className="flex items-center gap-1 mt-0.5">
+              <div className={`w-1 h-1 rounded-full ${accent.dot}`} />
+              <p className="text-[10.5px] text-gray-500 font-medium">Çevrimiçi</p>
+            </div>
           </div>
         </div>
+
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-[13px] font-semibold transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-[13px] font-bold transition-colors border border-red-100/60 hover:border-red-200 active:scale-[0.98]"
         >
           <LogOut className="w-4 h-4" />
           Güvenli Çıkış
         </button>
       </div>
+
+      <style jsx>{`
+        .nav-link {
+          animation: nav-enter 300ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+        }
+        @keyframes nav-enter {
+          0% { opacity: 0; transform: translateX(-8px); }
+          100% { opacity: 1; transform: translateX(0); }
+        }
+      `}</style>
     </div>
   );
 
@@ -129,33 +195,46 @@ export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: Si
       {/* Mobile toggle */}
       <button
         onClick={() => setOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-white/80 backdrop-blur-lg shadow-lg border border-gray-200/50 active:scale-95 transition-transform"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white/90 backdrop-blur-xl shadow-lg border border-gray-200/60 active:scale-95 transition-transform"
+        aria-label="Menüyü Aç"
       >
         <Menu className="w-5 h-5 text-gray-700" />
       </button>
 
-      {/* Madde 10: Mobile overlay with backdrop blur + slide-in */}
+      {/* Mobile overlay */}
       {open && (
         <div className="lg:hidden fixed inset-0 z-40" onClick={() => setOpen(false)}>
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-               style={{ animation: 'backdrop-enter 0.2s ease-out forwards' }} />
-          {/* Drawer */}
-          <div className="relative w-[280px] h-full bg-white shadow-2xl"
-               onClick={(e) => e.stopPropagation()}
-               style={{ animation: 'fade-in-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards', animationName: 'none' }}>
-            <div style={{ animation: 'modal-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards' }} className="h-full">
-              <button onClick={() => setOpen(false)} className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100 z-10">
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-              {nav}
-            </div>
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm mobile-backdrop" />
+          <div
+            className="relative w-[280px] h-full bg-white shadow-2xl mobile-drawer"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button onClick={() => setOpen(false)} className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100 z-10">
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+            {nav}
           </div>
+          <style jsx>{`
+            .mobile-backdrop {
+              animation: fadeIn 0.2s ease-out forwards;
+            }
+            .mobile-drawer {
+              animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes slideIn {
+              from { transform: translateX(-100%); }
+              to { transform: translateX(0); }
+            }
+          `}</style>
         </div>
       )}
 
       {/* Desktop */}
-      <aside className="hidden lg:block w-[260px] h-screen sticky top-0 bg-white/80 backdrop-blur-xl border-r border-gray-200/50 shrink-0">
+      <aside className="hidden lg:block w-[270px] h-screen sticky top-0 bg-white/75 backdrop-blur-2xl border-r border-gray-200/60 shrink-0 shadow-[1px_0_20px_rgba(15,40,71,0.04)]">
         {nav}
       </aside>
     </>

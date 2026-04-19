@@ -1,13 +1,15 @@
 /**
- * Okul Dashboard — Faz 5: Lisans durumu + hızlı özet
+ * Okul Dashboard — Premium
+ * WelcomeBanner + License Banner + Premium Stats + Analytics
  */
-import Link from 'next/link';
 import { BookOpen, Users, GraduationCap, Heart } from 'lucide-react';
 import { getCurrentProfile } from '@/lib/actions/auth';
 import { checkLicense } from '@/lib/license/check';
 import LicenseBanner from '@/components/LicenseBanner';
 import { createClient } from '@/lib/supabase/server';
 import AnalyticsSection from './AnalyticsSection';
+import WelcomeBanner from '@/components/ui/WelcomeBanner';
+import TiltStatCard from '@/components/ui/TiltStatCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,6 +46,9 @@ export default async function Page() {
     parentCount = p.count || 0;
   }
 
+  const firstName = (profile?.full_name || 'Yönetici').split(' ')[0];
+  const schoolName = state.school?.name || 'Okulunuz';
+
   const stats = [
     {
       label: 'Sınıflar',
@@ -51,6 +56,7 @@ export default async function Page() {
       href: '/school/classes',
       icon: BookOpen,
       gradient: 'from-sky-500 to-blue-600',
+      helperText: 'Sınıfları yönet',
     },
     {
       label: 'Öğretmenler',
@@ -58,6 +64,7 @@ export default async function Page() {
       href: '/school/teachers',
       icon: GraduationCap,
       gradient: 'from-emerald-500 to-teal-600',
+      helperText: 'Öğretmen paneli',
     },
     {
       label: 'Öğrenciler',
@@ -65,6 +72,8 @@ export default async function Page() {
       href: '/school/students',
       icon: Users,
       gradient: 'from-violet-500 to-purple-600',
+      helperText: 'Öğrencileri gör',
+      disableCountUp: true,
     },
     {
       label: 'Veliler',
@@ -72,15 +81,19 @@ export default async function Page() {
       href: '/school/parents',
       icon: Heart,
       gradient: 'from-pink-500 to-rose-600',
+      helperText: 'Veli hesapları',
     },
   ];
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold text-[#0f2847] mb-1">Okul Dashboard</h1>
-      <p className="text-gray-500 text-sm mb-5">
-        {state.school?.name || 'Okulunuz'} — genel bakış
-      </p>
+      <WelcomeBanner
+        role="school_admin"
+        title={`Hoş geldiniz, ${firstName}!`}
+        subtitle={`${schoolName} — okulunuzun tüm verilerini, sınıflarını ve kullanıcılarını buradan yönetebilirsiniz.`}
+        badge="Okul Yönetimi"
+        emoji="🏫"
+      />
 
       <LicenseBanner
         status={state.status}
@@ -89,30 +102,23 @@ export default async function Page() {
         maxStudents={state.maxStudents}
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((s) => {
-          const Icon = s.icon;
-          return (
-            <Link
-              key={s.label}
-              href={s.href}
-              className="group bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all"
-            >
-              <div
-                className={`w-11 h-11 rounded-xl bg-gradient-to-br ${s.gradient} text-white flex items-center justify-center shadow-lg mb-3`}
-              >
-                <Icon className="w-5 h-5" />
-              </div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                {s.label}
-              </p>
-              <p className="text-2xl font-extrabold text-[#0f2847] mt-1">{s.value}</p>
-            </Link>
-          );
-        })}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {stats.map((s, idx) => (
+          <TiltStatCard
+            key={s.label}
+            href={s.href}
+            label={s.label}
+            value={s.value}
+            gradient={s.gradient}
+            icon={s.icon}
+            delay={100 + idx * 80}
+            helperText={s.helperText}
+            disableCountUp={s.disableCountUp}
+          />
+        ))}
       </div>
 
-      {/* FAZ 3: Okul Analitik Dashboard */}
+      {/* Analytics */}
       <div className="mt-6">
         <AnalyticsSection />
       </div>
