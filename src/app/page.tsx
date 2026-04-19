@@ -20,7 +20,7 @@ const TESTS = [
   { name: 'Çalışma Davranışı', desc: '7 alt kategori, verimlilik analizi', count: '73 soru', icon: BookOpen, color: 'from-indigo-500 to-blue-600', border: 'border-l-indigo-500' },
   { name: 'Akademik Analiz', desc: 'Akademik güçlü yönler ve gelişim alanları', count: '54 soru', icon: BarChart3, color: 'from-cyan-500 to-teal-600', border: 'border-l-cyan-500' },
   { name: 'Hızlı Okuma', desc: 'WPM ölçümü + okuduğunu anlama testi', count: 'Zamanlı', icon: BookOpen, color: 'from-lime-500 to-green-600', border: 'border-l-lime-500' },
-  { name: 'D2 Dikkat Testi', desc: 'Orijinal Brickenkamp 14×47 formatı', count: '658 sembol', icon: Focus, color: 'from-pink-500 to-rose-600', border: 'border-l-pink-500' },
+  { name: 'P2 Dikkat Testi', desc: 'Orijinal Brickenkamp 14×47 formatı', count: '658 sembol', icon: Focus, color: 'from-pink-500 to-rose-600', border: 'border-l-pink-500' },
   { name: 'Sağ-Sol Beyin Dominansı', desc: 'Analitik mi yaratıcı mı analizi', count: '30 soru', icon: SplitSquareHorizontal, color: 'from-fuchsia-500 to-purple-600', border: 'border-l-fuchsia-500' },
 ];
 
@@ -151,9 +151,12 @@ export default function LandingPage() {
         <FloatingParticles />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-28 text-center">
-          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/70 backdrop-blur-lg border border-white/50 shadow-sm mb-8">
-            <Sparkles className="w-4 h-4 text-emerald-500" />
-            <span className="text-[13px] font-semibold text-gray-600">10 Bilimsel Test · Detaylı Analiz · 4 Panel</span>
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/80 backdrop-blur-xl border border-white/60 shadow-md mb-8 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/10 to-emerald-500/0 -skew-x-12 group-hover:translate-x-full transition-transform duration-700" style={{ transform: 'translateX(-100%)' }} />
+            <div className="relative w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
+              <Sparkles className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="text-[13px] font-bold text-[#0f2847] tracking-tight">10 Bilimsel Test · Detaylı Analiz · 4 Panel</span>
           </div>
 
           <h1 data-testid="hero-title" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#0f2847] leading-tight tracking-tight max-w-4xl mx-auto">
@@ -175,22 +178,30 @@ export default function LandingPage() {
           {/* Giriş Butonları */}
           <div className="hero-cta mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/login"
-              className="touch-feedback group px-10 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-[1.04] active:scale-[0.97] transition-all flex items-center gap-3 text-[16px] pulse-glow">
-              <GraduationCap className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
-              ÖĞRENCİ GİRİŞİ
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
+              className="touch-feedback group relative px-8 py-4 rounded-2xl bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-600 text-white font-extrabold shadow-xl shadow-violet-500/40 hover:shadow-2xl hover:shadow-violet-500/50 hover:scale-[1.05] hover:-translate-y-0.5 active:scale-[0.97] transition-all flex items-center gap-2.5 text-[14.5px] tracking-wide overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none" />
+              <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl pointer-events-none group-hover:bg-white/30 transition" />
+              <GraduationCap className="w-5 h-5 relative z-10 group-hover:rotate-12 transition-transform duration-300" />
+              <span className="relative z-10">ÖĞRENCİ GİRİŞİ</span>
+              <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
             </Link>
+
             <Link href="/login/ogretmen"
-              className="touch-feedback group px-10 py-4 rounded-2xl bg-white/60 backdrop-blur-lg border border-white/50 text-[#0f2847] font-bold shadow-sm hover:shadow-lg hover:bg-white/80 hover:scale-[1.04] active:scale-[0.97] transition-all text-[16px] inline-flex items-center gap-3">
-              <School className="w-5 h-5 text-gray-400 group-hover:text-emerald-500 transition-colors duration-300" />
-              ÖĞRETMEN GİRİŞİ
-              <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all duration-200" />
+              className="touch-feedback group relative px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 text-white font-extrabold shadow-xl shadow-emerald-500/40 hover:shadow-2xl hover:shadow-emerald-500/50 hover:scale-[1.05] hover:-translate-y-0.5 active:scale-[0.97] transition-all flex items-center gap-2.5 text-[14.5px] tracking-wide overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none" />
+              <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl pointer-events-none group-hover:bg-white/30 transition" />
+              <School className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-300" />
+              <span className="relative z-10">ÖĞRETMEN GİRİŞİ</span>
+              <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
             </Link>
+
             <Link href="/yonetici"
-              className="touch-feedback group px-10 py-4 rounded-2xl bg-[#0f2847]/90 backdrop-blur-lg border border-[#0f2847]/20 text-white font-bold shadow-sm hover:shadow-lg hover:bg-[#0f2847] hover:scale-[1.04] active:scale-[0.97] transition-all text-[16px] inline-flex items-center gap-3">
-              <Shield className="w-5 h-5 text-amber-400 group-hover:text-amber-300 transition-colors duration-300" />
-              YÖNETİCİ GİRİŞİ
-              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all duration-200" />
+              className="touch-feedback group relative px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-extrabold shadow-xl shadow-amber-500/40 hover:shadow-2xl hover:shadow-amber-500/50 hover:scale-[1.05] hover:-translate-y-0.5 active:scale-[0.97] transition-all flex items-center gap-2.5 text-[14.5px] tracking-wide overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none" />
+              <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl pointer-events-none group-hover:bg-white/30 transition" />
+              <Shield className="w-5 h-5 relative z-10 group-hover:rotate-12 transition-transform duration-300" />
+              <span className="relative z-10">YÖNETİCİ GİRİŞİ</span>
+              <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
