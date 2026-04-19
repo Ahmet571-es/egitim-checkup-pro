@@ -2,9 +2,17 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Plus, Trash2, X, Search, UserCheck, Upload, Download, AlertCircle, CheckCircle2 } from 'lucide-react';
+import {
+  Plus, Trash2, UserCheck, Upload, Download, AlertCircle, CheckCircle2, Users,
+  Mail, Calendar, School as SchoolIcon
+} from 'lucide-react';
 import type { Profile, LicenseStatus } from '@/types';
 import LicenseBanner from '@/components/LicenseBanner';
+import PageHeader from '@/components/ui/PageHeader';
+import SearchBar from '@/components/ui/SearchBar';
+import EmptyState from '@/components/ui/EmptyState';
+import PremiumModal from '@/components/ui/PremiumModal';
+import ActionButton from '@/components/ui/ActionButton';
 
 interface LicenseLite {
   status: LicenseStatus;
@@ -41,19 +49,13 @@ export default function SchoolStudentsPage() {
     setStudents(studs || []);
     setClasses(cls || []);
 
-    // Lisans durumu
     const { data: school } = await supabase.from('schools').select('license_status,license_end_date,max_students').eq('id', profile.school_id).single();
     if (school) {
       const end = school.license_end_date as string | null;
       const daysLeft = end ? Math.max(0, Math.ceil((new Date(end).getTime() - Date.now()) / 86400000)) : 0;
       let status = (school.license_status as LicenseStatus) || 'trial';
       if (end && daysLeft <= 0) status = 'expired';
-      setLicense({
-        status,
-        endDate: end,
-        daysLeft,
-        maxStudents: school.max_students || 0,
-      });
+      setLicense({ status, endDate: end, daysLeft, maxStudents: school.max_students || 0 });
     }
 
     setLoading(false);
@@ -63,7 +65,6 @@ export default function SchoolStudentsPage() {
 
   const addStudent = async () => {
     if (!schoolId || !newStudent.full_name || !newStudent.email) return;
-    // Faz 5: lisans kontrolü
     if (license?.status === 'expired') {
       alert('Lisansınız sona ermiş. Lütfen Faturalandırma sayfasından planınızı yenileyin.');
       return;
@@ -74,7 +75,6 @@ export default function SchoolStudentsPage() {
     }
     setSaving(true);
 
-    // Create auth user via admin (in production use service_role, here we use signUp)
     const tempPass = 'Ogrenci123!';
     const { data: authData, error: authErr } = await supabase.auth.signUp({
       email: newStudent.email,
@@ -88,7 +88,6 @@ export default function SchoolStudentsPage() {
       return;
     }
 
-    // Add to class if selected
     if (newStudent.class_id && authData.user) {
       await supabase.from('class_students').insert({ class_id: newStudent.class_id, student_id: authData.user.id });
     }
@@ -119,7 +118,6 @@ export default function SchoolStudentsPage() {
     const lines = text.split('\n').filter((l) => l.trim());
     const header = lines[0].toLowerCase();
 
-    // Expect: ad soyad, email, sınıf (optional)
     const hasHeader = header.includes('ad') || header.includes('email') || header.includes('name');
     const dataLines = hasHeader ? lines.slice(1) : lines;
 
@@ -148,7 +146,6 @@ export default function SchoolStudentsPage() {
 
       if (authErr) { errors.push(`${email}: ${authErr.message}`); continue; }
 
-      // Assign to class if provided
       if (className && authData.user) {
         const cls = classes.find((c) => c.name.toLowerCase() === className.toLowerCase());
         if (cls) {
@@ -175,7 +172,10 @@ export default function SchoolStudentsPage() {
     URL.revokeObjectURL(url);
   };
 
-  const filtered = students.filter((s) => s.full_name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase()));
+  const filtered = students.filter((s) =>
+    s.full_name.toLocaleLowerCase('tr-TR').includes(search.toLocaleLowerCase('tr-TR')) ||
+    s.email.toLocaleLowerCase('tr-TR').includes(search.toLocaleLowerCase('tr-TR'))
+  );
 
   const overCap = !!license && students.length >= license.maxStudents;
   const expired = license?.status === 'expired';
@@ -191,160 +191,256 @@ export default function SchoolStudentsPage() {
           maxStudents={license.maxStudents}
         />
       )}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-extrabold text-[#0f2847]">Öğrenciler</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {students.length}{license ? `/${license.maxStudents}` : ''} öğrenci
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => { if (disabledAdd) return; setImportResult(null); setModal('import'); }}
-            disabled={disabledAdd}
-            data-test="students-import-btn"
-            className="px-4 py-2.5 rounded-xl bg-white/70 border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Upload className="w-4 h-4" /> CSV İçe Aktar
-          </button>
-          <button
-            onClick={() => { if (disabledAdd) return; setModal('add'); }}
-            disabled={disabledAdd}
-            data-test="students-add-btn"
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 text-white text-sm font-bold shadow-lg shadow-sky-500/25 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-          >
-            <Plus className="w-4 h-4" /> Yeni Öğrenci
-          </button>
-        </div>
-      </div>
 
-      <div className="relative mb-4">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Öğrenci ara..." className="w-full sm:w-80 pl-11 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 transition-all" />
+      <PageHeader
+        role="school_admin"
+        icon={UserCheck}
+        title="Öğrenciler"
+        subtitle={license ? `${students.length}/${license.maxStudents} kapasite kullanımı` : 'Okulunuzun öğrencilerini yönetin'}
+        count={students.length}
+        countLabel="öğrenci"
+        action={
+          <div className="flex gap-2">
+            <ActionButton
+              variant="secondary"
+              icon={Upload}
+              onClick={() => { if (disabledAdd) return; setImportResult(null); setModal('import'); }}
+              disabled={disabledAdd}
+            >
+              CSV İçe Aktar
+            </ActionButton>
+            <ActionButton
+              variant="primary"
+              icon={Plus}
+              onClick={() => { if (disabledAdd) return; setModal('add'); }}
+              disabled={disabledAdd}
+            >
+              Yeni Öğrenci
+            </ActionButton>
+          </div>
+        }
+      />
+
+      <div className="mb-5 max-w-md">
+        <SearchBar role="school_admin" value={search} onChange={setSearch} placeholder="Öğrenci ara (ad, e-posta)..." />
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400 text-sm">Yükleniyor...</div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-12 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40">
-          <UserCheck className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-400 text-sm">Henüz öğrenci bulunmuyor.</p>
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center animate-pulse shadow-lg">
+            <Users className="w-6 h-6 text-white" />
+          </div>
+          <p className="text-gray-500 text-sm font-medium">Yükleniyor...</p>
         </div>
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          role="school_admin"
+          icon={UserCheck}
+          title={search ? 'Eşleşen öğrenci bulunamadı' : 'Henüz öğrenci bulunmuyor'}
+          subtitle={search ? 'Arama terimlerini değiştirmeyi deneyin.' : 'İlk öğrencinizi eklemek için "Yeni Öğrenci" veya "CSV İçe Aktar" butonlarını kullanın.'}
+        />
       ) : (
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-5 py-3 text-[13px] font-semibold text-gray-500">Ad Soyad</th>
-                  <th className="text-left px-5 py-3 text-[13px] font-semibold text-gray-500">E-posta</th>
-                  <th className="text-left px-5 py-3 text-[13px] font-semibold text-gray-500">Durum</th>
-                  <th className="text-left px-5 py-3 text-[13px] font-semibold text-gray-500">Kayıt</th>
-                  <th className="text-right px-5 py-3 text-[13px] font-semibold text-gray-500">İşlem</th>
+              <thead className="bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50 border-b border-sky-100">
+                <tr>
+                  <th className="text-left px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">Ad Soyad</th>
+                  <th className="text-left px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">E-posta</th>
+                  <th className="text-left px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">Durum</th>
+                  <th className="text-left px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">Kayıt</th>
+                  <th className="text-right px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">İşlem</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((s) => (
-                  <tr key={s.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td className="px-5 py-3.5 font-semibold text-[#0f2847]">{s.full_name}</td>
-                    <td className="px-5 py-3.5 text-gray-500">{s.email}</td>
-                    <td className="px-5 py-3.5">
-                      <span className={`px-2.5 py-1 rounded-full text-[12px] font-semibold ${s.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                {filtered.map((s, idx) => (
+                  <tr
+                    key={s.id}
+                    className="border-b border-gray-50 hover:bg-sky-50/30 transition-colors row-enter"
+                    style={{ animationDelay: `${idx * 20}ms` }}
+                  >
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white flex items-center justify-center shadow-md text-[12px] font-extrabold shrink-0">
+                          {s.full_name.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="font-bold text-[#0f2847]">{s.full_name}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 text-gray-600">
+                      <div className="flex items-center gap-1.5">
+                        <Mail className="w-3 h-3 text-gray-400" />
+                        {s.email}
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-bold ${
+                        s.is_active
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-gray-100 text-gray-500 border border-gray-200'
+                      }`}>
+                        {s.is_active ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
                         {s.is_active ? 'Aktif' : 'Pasif'}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-gray-400 text-xs">{new Date(s.created_at).toLocaleDateString('tr-TR')}</td>
-                    <td className="px-5 py-3.5 text-right">
-                      <button onClick={() => removeStudent(s.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                    <td className="px-5 py-4 text-gray-500 text-[12.5px]">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3 h-3 text-gray-400" />
+                        {new Date(s.created_at).toLocaleDateString('tr-TR')}
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <button
+                        onClick={() => removeStudent(s.id)}
+                        className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition active:scale-95"
+                        title="Pasife Al"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          <style jsx>{`
+            .row-enter {
+              animation: row-enter 300ms ease-out backwards;
+            }
+            @keyframes row-enter {
+              from { opacity: 0; transform: translateY(6px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+          `}</style>
         </div>
       )}
 
-      {/* Add Student Modal */}
-      {modal === 'add' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-4" onClick={() => setModal(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-[#0f2847]">Yeni Öğrenci</h3>
-              <button onClick={() => setModal(null)}><X className="w-5 h-5 text-gray-400" /></button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-[13px] font-semibold text-gray-700 mb-1">Ad Soyad *</label>
-                <input type="text" value={newStudent.full_name} onChange={(e) => setNewStudent({ ...newStudent, full_name: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30" />
-              </div>
-              <div>
-                <label className="block text-[13px] font-semibold text-gray-700 mb-1">E-posta *</label>
-                <input type="email" value={newStudent.email} onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30" />
-              </div>
-              <div>
-                <label className="block text-[13px] font-semibold text-gray-700 mb-1">Sınıf</label>
-                <select value={newStudent.class_id} onChange={(e) => setNewStudent({ ...newStudent, class_id: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30">
-                  <option value="">Seçiniz</option>
-                  {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <p className="text-[12px] text-gray-400">Varsayılan şifre: Ogrenci123!</p>
-            </div>
-            <div className="flex justify-end gap-3 mt-6">
-              <button onClick={() => setModal(null)} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100">İptal</button>
-              <button onClick={addStudent} disabled={saving || !newStudent.full_name || !newStudent.email} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 text-white text-sm font-bold shadow-lg disabled:opacity-50">
-                {saving ? 'Ekleniyor...' : 'Ekle'}
-              </button>
-            </div>
+      {/* Add Modal */}
+      <PremiumModal
+        open={modal === 'add'}
+        onClose={() => setModal(null)}
+        title="Yeni Öğrenci"
+        subtitle="Yeni öğrenci hesabı oluşturun"
+        footer={
+          <div className="flex justify-end gap-3">
+            <ActionButton variant="ghost" onClick={() => setModal(null)}>İptal</ActionButton>
+            <button
+              onClick={addStudent}
+              disabled={saving || !newStudent.full_name || !newStudent.email}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white text-[13.5px] font-bold shadow-lg shadow-sky-500/30 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none transition-all active:scale-[0.97]"
+            >
+              {saving ? 'Ekleniyor...' : 'Ekle'}
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Ad Soyad *</label>
+            <input
+              type="text"
+              value={newStudent.full_name}
+              onChange={(e) => setNewStudent({ ...newStudent, full_name: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+            />
+          </div>
+          <div>
+            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">E-posta *</label>
+            <input
+              type="email"
+              value={newStudent.email}
+              onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+            />
+          </div>
+          <div>
+            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Sınıf</label>
+            <select
+              value={newStudent.class_id}
+              onChange={(e) => setNewStudent({ ...newStudent, class_id: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+            >
+              <option value="">Seçiniz</option>
+              {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <div className="p-3 rounded-xl bg-sky-50 border border-sky-200 text-[12px] text-sky-700 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <p>Varsayılan şifre: <strong>Ogrenci123!</strong> — Öğrenciyle paylaşmayı unutmayın.</p>
           </div>
         </div>
-      )}
+      </PremiumModal>
 
       {/* CSV Import Modal */}
-      {modal === 'import' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-4" onClick={() => setModal(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-[#0f2847]">CSV ile Toplu Öğrenci Ekle</h3>
-              <button onClick={() => setModal(null)}><X className="w-5 h-5 text-gray-400" /></button>
-            </div>
-
-            <div className="mb-4 p-4 rounded-xl bg-sky-50 border border-sky-200 text-sm text-sky-800">
-              <p className="font-semibold mb-1">CSV Formatı:</p>
-              <p>Ad Soyad, Email, Sınıf (opsiyonel)</p>
-              <p className="text-sky-600 mt-1">Ayraç: virgül, noktalı virgül veya tab</p>
-            </div>
-
-            <button onClick={downloadTemplate} className="mb-4 px-4 py-2 rounded-xl bg-gray-100 text-sm font-semibold text-gray-700 hover:bg-gray-200 flex items-center gap-2">
-              <Download className="w-4 h-4" /> Şablon İndir
-            </button>
-
-            <input ref={fileRef} type="file" accept=".csv,.txt" onChange={handleCSV} className="hidden" />
-            <button onClick={() => fileRef.current?.click()} disabled={saving} className="w-full py-3 rounded-xl border-2 border-dashed border-gray-300 text-sm font-semibold text-gray-500 hover:border-sky-400 hover:text-sky-600 transition-colors flex items-center justify-center gap-2">
-              {saving ? 'İçe aktarılıyor...' : <><Upload className="w-4 h-4" /> CSV Dosyası Seç</>}
-            </button>
-
-            {importResult && (
-              <div className="mt-4 space-y-2">
-                {importResult.success > 0 && (
-                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-sm text-emerald-700">
-                    <CheckCircle2 className="w-4 h-4" />{importResult.success} öğrenci başarıyla eklendi.
-                  </div>
-                )}
-                {importResult.errors.length > 0 && (
-                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
-                    <div className="flex items-center gap-2 mb-1"><AlertCircle className="w-4 h-4" />{importResult.errors.length} hata:</div>
-                    <ul className="ml-6 list-disc space-y-0.5 text-xs max-h-32 overflow-y-auto">
-                      {importResult.errors.map((err, i) => <li key={i}>{err}</li>)}
-                    </ul>
-                  </div>
-                )}
+      <PremiumModal
+        open={modal === 'import'}
+        onClose={() => setModal(null)}
+        title="CSV ile Toplu Öğrenci Ekle"
+        subtitle="Birden fazla öğrenciyi tek seferde ekleyin"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div className="p-4 rounded-xl bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-200 text-sm text-sky-900">
+            <div className="flex items-start gap-2">
+              <div className="w-6 h-6 rounded-lg bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <SchoolIcon className="w-3.5 h-3.5" />
               </div>
-            )}
+              <div>
+                <p className="font-bold mb-1">CSV Formatı</p>
+                <p className="text-[12.5px] text-sky-800">Ad Soyad, Email, Sınıf (opsiyonel)</p>
+                <p className="text-[11.5px] text-sky-600 mt-1">Ayraç: virgül, noktalı virgül veya tab</p>
+              </div>
+            </div>
           </div>
+
+          <ActionButton variant="ghost" icon={Download} onClick={downloadTemplate}>
+            Şablon İndir
+          </ActionButton>
+
+          <input ref={fileRef} type="file" accept=".csv,.txt" onChange={handleCSV} className="hidden" />
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={saving}
+            className="w-full py-8 rounded-2xl border-2 border-dashed border-sky-300 bg-sky-50/30 text-sm font-bold text-sky-700 hover:border-sky-500 hover:bg-sky-50 transition-all flex flex-col items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {saving ? (
+              <>
+                <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+                İçe aktarılıyor...
+              </>
+            ) : (
+              <>
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-white flex items-center justify-center shadow-md">
+                  <Upload className="w-5 h-5" />
+                </div>
+                CSV Dosyası Seç
+              </>
+            )}
+          </button>
+
+          {importResult && (
+            <div className="space-y-2">
+              {importResult.success > 0 && (
+                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-sm text-emerald-700 font-medium">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span><strong>{importResult.success}</strong> öğrenci başarıyla eklendi.</span>
+                </div>
+              )}
+              {importResult.errors.length > 0 && (
+                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+                  <div className="flex items-center gap-2 mb-1 font-bold">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{importResult.errors.length} hata:</span>
+                  </div>
+                  <ul className="ml-6 list-disc space-y-0.5 text-xs max-h-32 overflow-y-auto">
+                    {importResult.errors.map((err, i) => <li key={i}>{err}</li>)}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      )}
+      </PremiumModal>
     </div>
   );
 }
