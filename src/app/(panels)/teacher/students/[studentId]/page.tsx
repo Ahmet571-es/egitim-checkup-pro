@@ -448,14 +448,33 @@ export default function StudentDetailPage() {
   const formatDate = (d: string) => d ? new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
 
   if (loading) {
-    return <div className="text-center py-20 text-gray-400">Yükleniyor...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/40 animate-pulse">
+          <GraduationCap className="w-7 h-7 text-white" />
+        </div>
+        <p className="text-gray-500 text-sm font-medium">Öğrenci yükleniyor...</p>
+      </div>
+    );
   }
 
   if (!student) {
     return (
-      <div className="text-center py-20">
-        <p className="text-gray-500">Öğrenci bulunamadı.</p>
-        <Link href="/teacher/students" className="text-sky-600 text-sm font-semibold mt-2 inline-block">← Listeye dön</Link>
+      <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border border-white/50 p-12 text-center shadow-sm overflow-hidden my-10">
+        <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-gradient-to-br from-red-200 to-rose-200 opacity-30 blur-3xl" />
+        <div className="relative">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg">
+            <X className="w-10 h-10 text-white" />
+          </div>
+          <p className="text-[17px] text-[#0f2847] font-extrabold mb-2">Öğrenci bulunamadı</p>
+          <p className="text-gray-500 text-sm mb-5">Bu ID ile eşleşen öğrenci yok ya da erişiminiz yok.</p>
+          <Link
+            href="/teacher/students"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 text-white text-[13.5px] font-extrabold shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-[0.97]"
+          >
+            <ArrowLeft className="w-4 h-4" /> Listeye dön
+          </Link>
+        </div>
       </div>
     );
   }
@@ -464,55 +483,112 @@ export default function StudentDetailPage() {
 
   return (
     <div className="pb-8">
-      <Link href="/teacher/students" className="flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-[#0f2847] mb-4 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Öğrencilere dön
+      <Link
+        href="/teacher/students"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/80 backdrop-blur-md border border-white/60 text-[12.5px] text-gray-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 font-bold transition-all mb-4 shadow-sm active:scale-95"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" /> Öğrencilere dön
       </Link>
 
-      {/* Öğrenci Kartı */}
-      <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm mb-4">
-        <div className="flex items-start gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shrink-0">
-            <GraduationCap className="w-7 h-7 text-white" />
+      {/* Premium Öğrenci Kartı */}
+      <div className="relative mb-5 rounded-3xl overflow-hidden shadow-xl shadow-emerald-500/20 stud-enter">
+        <div className="relative bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 p-6 sm:p-7">
+          <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl stud-aurora-1" />
+          <div className="absolute bottom-0 left-1/3 w-56 h-56 bg-cyan-200/20 rounded-full blur-3xl stud-aurora-2" />
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.06]"
+            style={{
+              backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
+              backgroundSize: '32px 32px',
+            }}
+          />
+
+          <div className="relative flex items-start gap-4 flex-wrap">
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              <div className="w-16 h-16 rounded-2xl bg-white/25 backdrop-blur-md border-2 border-white/40 flex items-center justify-center shadow-xl overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent" />
+                <GraduationCap className="w-8 h-8 text-white relative drop-shadow-md" />
+              </div>
+              {/* Online dot */}
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-md">
+                <div className="relative w-3 h-3 rounded-full bg-emerald-500">
+                  <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 min-w-0 text-white">
+              <div className="flex items-center gap-1.5 mb-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                <p className="text-white/80 text-[10.5px] font-extrabold uppercase tracking-wider">Öğrenci Profili</p>
+              </div>
+              <h2 className="text-2xl sm:text-[26px] font-extrabold drop-shadow-sm tracking-tight truncate">{student.full_name}</h2>
+              <p className="text-[13px] text-white/85 mt-0.5">
+                {student.school_name}{student.grade && ` · ${student.grade}. Sınıf`}
+              </p>
+            </div>
+
+            {/* Transfer button */}
+            <button
+              onClick={openTransferModal}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white text-[#0f2847] text-[12.5px] font-extrabold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all shrink-0 active:scale-[0.97]"
+              title="Bu öğrenciyi başka bir öğretmene aktar"
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Öğrenciyi Aktar</span>
+              <span className="sm:hidden">Aktar</span>
+            </button>
           </div>
-          <div className="flex-1">
-            <h2 className="text-xl font-extrabold text-[#0f2847]">{student.full_name}</h2>
-            <p className="text-sm text-gray-400">
-              {student.school_name}{student.grade && ` · ${student.grade}. Sınıf`}
-            </p>
-          </div>
-          {/* Öğrenciyi Aktar Butonu */}
-          <button
-            onClick={openTransferModal}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 text-white text-[12px] font-bold shadow-md hover:shadow-lg transition-all shrink-0"
-            title="Bu öğrenciyi başka bir öğretmene aktar"
-          >
-            <ArrowRightLeft className="w-4 h-4" />
-            Öğrenciyi Aktar
-          </button>
         </div>
+
+        <style jsx>{`
+          @keyframes stud-enter {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .stud-enter { animation: stud-enter 400ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+          @keyframes stud-aurora-1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-15px, 15px) scale(1.08); }
+          }
+          @keyframes stud-aurora-2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(15px, -10px) scale(1.05); }
+          }
+          .stud-aurora-1 { animation: stud-aurora-1 9s ease-in-out infinite; }
+          .stud-aurora-2 { animation: stud-aurora-2 11s ease-in-out infinite 1s; }
+        `}</style>
       </div>
 
       {/* ATANAN TESTLER UYARISI */}
       {activeAssignments.length > 0 && (
-        <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl p-5 mb-4 shadow-sm">
-          <div className="flex items-start gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center shadow-md shrink-0">
+        <div className="relative bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-300 rounded-2xl p-5 mb-4 shadow-md overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-amber-400 opacity-20 blur-2xl pointer-events-none" />
+          <div className="relative flex items-start gap-3 mb-3">
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-md shrink-0">
               <Bell className="w-5 h-5 text-white" />
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/30 to-transparent" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h3 className="text-[15px] font-extrabold text-[#0f2847]">
                 Öğrencinin çözmesi gereken {activeAssignments.length === 1 ? 'test' : 'testler'}:
               </h3>
-              <p className="text-[12px] text-amber-700 mt-0.5">
+              <p className="text-[12px] text-amber-700 mt-0.5 font-medium">
                 Öğrenci tamamladığında bu uyarı otomatik kaybolacak.
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2" style={{ paddingLeft: '52px' }}>
+          <div className="relative flex flex-wrap gap-2" style={{ paddingLeft: '52px' }}>
             {activeAssignments.map((t) => (
-              <span key={t} className="inline-flex items-center gap-1.5 bg-white border border-amber-300 text-amber-800 text-[12px] font-semibold px-3 py-1.5 rounded-full shadow-sm">
+              <span key={t} className="inline-flex items-center gap-1.5 bg-white border-2 border-amber-300 text-amber-900 text-[12px] font-extrabold px-3 py-1.5 rounded-full shadow-sm hover:border-amber-400 hover:shadow-md transition-all">
                 {labelOf(t)}
-                <button onClick={() => handleUnassign(t)} disabled={saving} className="hover:bg-amber-100 rounded-full p-0.5 transition-colors" aria-label="Atamayı kaldır">
+                <button
+                  onClick={() => handleUnassign(t)}
+                  disabled={saving}
+                  className="hover:bg-amber-100 rounded-full p-0.5 transition-colors"
+                  aria-label="Atamayı kaldır"
+                >
                   <X className="w-3 h-3" />
                 </button>
               </span>
