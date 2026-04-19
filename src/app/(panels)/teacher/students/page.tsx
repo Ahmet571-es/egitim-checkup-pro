@@ -8,6 +8,7 @@ import {
   School, Layers, Inbox
 } from 'lucide-react';
 import WelcomeBanner from '@/components/ui/WelcomeBanner';
+import { CardGridSkeleton, StatCardsGrid } from '@/components/ui/Skeleton';
 
 interface StudentRow {
   id: string;
@@ -291,12 +292,7 @@ export default function StudentsPage() {
       )}
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center animate-pulse shadow-lg">
-            <Users className="w-6 h-6 text-white" />
-          </div>
-          <p className="text-gray-500 text-sm font-medium">Öğrenciler yükleniyor...</p>
-        </div>
+        <CardGridSkeleton count={6} cols={3} />
       ) : totalStudents === 0 ? (
         <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border border-white/50 p-12 text-center shadow-sm overflow-hidden">
           <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-gradient-to-br from-emerald-200 to-teal-200 opacity-20 blur-3xl" />

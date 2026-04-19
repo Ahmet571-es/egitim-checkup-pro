@@ -13,6 +13,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import PremiumModal from '@/components/ui/PremiumModal';
 import ActionButton from '@/components/ui/ActionButton';
 import { useToast } from '@/components/ui/Toast';
+import { CardGridSkeleton } from '@/components/ui/Skeleton';
 
 type ModalKind = null | 'add' | 'reset' | 'assign';
 
@@ -193,12 +194,7 @@ export default function SchoolTeachersPage() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center animate-pulse shadow-lg">
-            <GraduationCap className="w-6 h-6 text-white" />
-          </div>
-          <p className="text-gray-500 text-sm font-medium">Yükleniyor...</p>
-        </div>
+        <CardGridSkeleton count={6} cols={3} />
       ) : filtered.length === 0 ? (
         <EmptyState
           role="school_admin"

@@ -9,6 +9,7 @@ import SearchBar from '@/components/ui/SearchBar';
 import EmptyState from '@/components/ui/EmptyState';
 import PremiumModal from '@/components/ui/PremiumModal';
 import ActionButton from '@/components/ui/ActionButton';
+import { CardGridSkeleton } from '@/components/ui/Skeleton';
 
 const EMPTY: Partial<SchoolType> = { name: '', code: '', city: '', phone: '', email: '', max_students: 50 };
 
@@ -92,12 +93,7 @@ export default function AdminSchoolsPage() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center animate-pulse shadow-lg">
-            <Building className="w-6 h-6 text-white" />
-          </div>
-          <p className="text-gray-500 text-sm font-medium">Yükleniyor...</p>
-        </div>
+        <CardGridSkeleton count={6} cols={3} />
       ) : filtered.length === 0 ? (
         <EmptyState
           role="admin"

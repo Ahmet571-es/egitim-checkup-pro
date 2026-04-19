@@ -7,6 +7,7 @@ import { ALL_TESTS } from '@/lib/tests/index';
 import type { RegisteredTest } from '@/lib/tests/types';
 import { createClient } from '@/lib/supabase/client';
 import PageHeader from '@/components/ui/PageHeader';
+import { ListSkeleton } from '@/components/ui/Skeleton';
 
 const CATEGORY_LABELS: Record<string, string> = {
   kisilik: 'Kişilik',
@@ -288,12 +289,7 @@ export default function MyTestsPage() {
       </div>
 
       {loading && (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center animate-pulse shadow-lg">
-            <ListChecks className="w-6 h-6 text-white" />
-          </div>
-          <p className="text-gray-500 text-sm font-medium">Yükleniyor...</p>
-        </div>
+        <ListSkeleton count={5} />
       )}
 
       {/* ÖDEV LİSTESİ */}
