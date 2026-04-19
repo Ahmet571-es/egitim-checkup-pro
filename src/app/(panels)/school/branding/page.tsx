@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Palette, Save, Loader2, CheckCircle2, Image } from 'lucide-react';
+import { Palette, Save, Loader2, CheckCircle2, Image as ImageIcon, Eye, Building } from 'lucide-react';
+import PageHeader from '@/components/ui/PageHeader';
+import SectionCard from '@/components/ui/SectionCard';
 
 export default function BrandingPage() {
   const [loading, setLoading] = useState(true);
@@ -14,9 +16,7 @@ export default function BrandingPage() {
   const [displayName, setDisplayName] = useState('');
   const [customFooter, setCustomFooter] = useState('');
 
-  useEffect(() => {
-    loadBranding();
-  }, []);
+  useEffect(() => { loadBranding(); }, []);
 
   async function loadBranding() {
     try {
@@ -101,150 +101,208 @@ export default function BrandingPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-6 h-6 animate-spin text-violet-500" />
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center animate-pulse shadow-lg">
+          <Palette className="w-6 h-6 text-white" />
+        </div>
+        <p className="text-gray-500 text-sm font-medium">Yükleniyor...</p>
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold text-[#0f2847] mb-2">Okul Markalaması</h1>
-      <p className="text-gray-500 text-sm mb-6">Platformu okulunuzun renkleri ve logosuyla özelleştirin</p>
+      <PageHeader
+        role="school_admin"
+        icon={Palette}
+        title="Okul Markalaması"
+        subtitle="Platformu okulunuzun renkleri ve logosuyla özelleştirin"
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Ayarlar */}
-        <div className="space-y-6">
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm p-6">
-            <h3 className="text-sm font-bold text-[#0f2847] mb-4 flex items-center gap-2">
-              <Image className="w-4 h-4" /> Logo & İsim
-            </h3>
-
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Sol: Ayarlar */}
+        <div className="space-y-5">
+          <SectionCard
+            icon={ImageIcon}
+            title="Logo & İsim"
+            subtitle="Okulunuzun kimlik bilgileri"
+            gradient="from-sky-500 to-blue-600"
+          >
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">Okul Görünen Adı</label>
+                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Okul Görünen Adı</label>
                 <input
                   type="text"
                   value={displayName}
                   onChange={e => setDisplayName(e.target.value)}
                   placeholder="Örn: Ankara Fen Lisesi"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">Logo URL</label>
+                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Logo URL</label>
                 <input
                   type="url"
                   value={logoUrl}
                   onChange={e => setLogoUrl(e.target.value)}
                   placeholder="https://example.com/logo.png"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
                 />
-                <p className="text-xs text-gray-400 mt-1">PNG veya SVG, önerilen boyut: 200x60px</p>
+                <p className="text-[11.5px] text-gray-500 mt-1.5">PNG veya SVG, önerilen boyut: 200×60px</p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">Alt Bilgi Metni</label>
+                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Alt Bilgi Metni</label>
                 <input
                   type="text"
                   value={customFooter}
                   onChange={e => setCustomFooter(e.target.value)}
                   placeholder="© 2026 Okulunuzun Adı"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
                 />
               </div>
             </div>
-          </div>
+          </SectionCard>
 
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm p-6">
-            <h3 className="text-sm font-bold text-[#0f2847] mb-4 flex items-center gap-2">
-              <Palette className="w-4 h-4" /> Renkler
-            </h3>
-
+          <SectionCard
+            icon={Palette}
+            title="Renkler"
+            subtitle="Marka paletinizi belirleyin"
+            gradient="from-violet-500 via-purple-500 to-fuchsia-600"
+            delay={80}
+          >
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">Ana Renk</label>
+                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Ana Renk</label>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={primaryColor}
-                    onChange={e => setPrimaryColor(e.target.value)}
-                    className="w-10 h-10 rounded-lg border-0 cursor-pointer"
-                  />
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden shadow-md border-2 border-white ring-1 ring-gray-200">
+                    <input
+                      type="color"
+                      value={primaryColor}
+                      onChange={e => setPrimaryColor(e.target.value)}
+                      className="absolute inset-[-2px] w-14 h-14 cursor-pointer border-0"
+                    />
+                  </div>
                   <input
                     type="text"
                     value={primaryColor}
                     onChange={e => setPrimaryColor(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-mono"
+                    className="flex-1 px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">İkincil Renk</label>
+                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">İkincil Renk</label>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={secondaryColor}
-                    onChange={e => setSecondaryColor(e.target.value)}
-                    className="w-10 h-10 rounded-lg border-0 cursor-pointer"
-                  />
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden shadow-md border-2 border-white ring-1 ring-gray-200">
+                    <input
+                      type="color"
+                      value={secondaryColor}
+                      onChange={e => setSecondaryColor(e.target.value)}
+                      className="absolute inset-[-2px] w-14 h-14 cursor-pointer border-0"
+                    />
+                  </div>
                   <input
                     type="text"
                     value={secondaryColor}
                     onChange={e => setSecondaryColor(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-mono"
+                    className="flex-1 px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
                   />
                 </div>
               </div>
             </div>
-          </div>
+          </SectionCard>
 
           <button
             onClick={saveBranding}
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 bg-violet-600 text-white font-semibold rounded-xl hover:bg-violet-700 disabled:opacity-50 transition-colors"
+            className="w-full sm:w-auto inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-600 text-white font-extrabold text-[13.5px] shadow-lg shadow-violet-500/40 hover:shadow-xl hover:shadow-violet-500/50 hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none transition-all active:scale-[0.97]"
           >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-            {saved ? 'Kaydedildi!' : 'Kaydet'}
+            {saving ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Kaydediliyor...</>
+            ) : saved ? (
+              <><CheckCircle2 className="w-4 h-4" /> Kaydedildi!</>
+            ) : (
+              <><Save className="w-4 h-4" /> Kaydet</>
+            )}
           </button>
         </div>
 
-        {/* Önizleme */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm p-6">
-          <h3 className="text-sm font-bold text-[#0f2847] mb-4">Önizleme</h3>
-
-          <div className="border border-gray-200 rounded-xl overflow-hidden">
-            <div className="p-4 text-white" style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}>
-              <div className="flex items-center gap-3">
+        {/* Sağ: Önizleme */}
+        <SectionCard
+          icon={Eye}
+          title="Canlı Önizleme"
+          subtitle="Değişiklikleriniz gerçek zamanlı görünür"
+          gradient="from-emerald-500 to-teal-600"
+          delay={160}
+        >
+          <div className="relative border-2 border-gray-200 rounded-2xl overflow-hidden shadow-lg">
+            {/* Header preview */}
+            <div
+              className="relative p-5 text-white overflow-hidden"
+              style={{
+                background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+              }}
+            >
+              <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/10 blur-2xl" />
+              <div className="relative flex items-center gap-3">
                 {logoUrl ? (
-                  <img src={logoUrl} alt="Logo" className="h-8 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  <img
+                    src={logoUrl}
+                    alt="Logo"
+                    className="h-10 object-contain"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
                 ) : (
-                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-lg">🎓</div>
+                  <div className="w-10 h-10 bg-white/25 backdrop-blur-md rounded-xl flex items-center justify-center text-xl shadow-md border border-white/20">
+                    🎓
+                  </div>
                 )}
                 <div>
-                  <p className="font-bold text-sm">{displayName || 'Eğitim Check-Up'}</p>
-                  <p className="text-xs opacity-75">Psikometrik Test Platformu</p>
+                  <p className="font-extrabold text-[15px] drop-shadow-sm">{displayName || 'Eğitim Check-Up'}</p>
+                  <p className="text-[11.5px] opacity-85">Psikometrik Test Platformu</p>
                 </div>
               </div>
             </div>
 
-            <div className="p-4">
-              <div className="flex gap-2 mb-3">
-                <div className="h-2 rounded-full flex-1" style={{ backgroundColor: primaryColor }} />
-                <div className="h-2 rounded-full flex-1" style={{ backgroundColor: secondaryColor }} />
-                <div className="h-2 rounded-full flex-1 bg-gray-200" />
+            {/* Body preview */}
+            <div className="p-5">
+              <div className="flex gap-2 mb-4">
+                <div className="h-2.5 rounded-full flex-1 shadow-sm" style={{ backgroundColor: primaryColor }} />
+                <div className="h-2.5 rounded-full flex-1 shadow-sm" style={{ backgroundColor: secondaryColor }} />
+                <div className="h-2.5 rounded-full flex-1 bg-gray-200" />
               </div>
-              <div className="h-20 bg-gray-50 rounded-lg mb-3 flex items-center justify-center text-xs text-gray-400">
+              <div className="h-24 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl mb-3 flex items-center justify-center text-[12px] text-gray-400 font-semibold border border-gray-100">
                 İçerik Alanı
               </div>
-              <p className="text-xs text-gray-400 text-center">
+              <div className="flex gap-2">
+                <button
+                  className="flex-1 py-2 rounded-lg text-white text-[11px] font-bold shadow-sm"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  Ana Buton
+                </button>
+                <button
+                  className="flex-1 py-2 rounded-lg text-white text-[11px] font-bold shadow-sm"
+                  style={{ backgroundColor: secondaryColor }}
+                >
+                  İkincil
+                </button>
+              </div>
+              <p className="text-[11px] text-gray-400 text-center mt-3 font-medium">
                 {customFooter || '© 2026 Eğitim Check-Up'}
               </p>
             </div>
           </div>
-        </div>
+
+          {/* Info card */}
+          <div className="mt-4 p-3 rounded-xl bg-sky-50 border border-sky-200 text-[12px] text-sky-700 flex items-center gap-2">
+            <Building className="w-4 h-4 shrink-0" />
+            <p>Değişiklikler kaydedildikten sonra tüm okul kullanıcılarında görünür.</p>
+          </div>
+        </SectionCard>
       </div>
     </div>
   );

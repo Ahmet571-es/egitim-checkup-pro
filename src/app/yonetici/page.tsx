@@ -464,81 +464,157 @@ export default function YoneticiPage() {
   // ═══ PASSWORD GATE ═══
   if (!authed) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#f0f5ff] via-[#f8fafc] to-[#f0fdf8] px-4">
-        <div className="fixed top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-amber-200/20 to-orange-200/10 blur-3xl" />
-        <div className="fixed bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-blue-200/20 to-indigo-200/10 blur-3xl" />
-        <div className="relative w-full max-w-sm">
-          <Link href="/" className="flex items-center justify-center gap-3 mb-8">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/25">
-              <Shield className="w-6 h-6 text-white" />
+      <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-gradient-to-br from-slate-50 via-white to-slate-50 relative overflow-hidden">
+        {/* Aurora */}
+        <div className="pointer-events-none fixed top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-amber-200/40 to-orange-200/30 blur-3xl yonetici-blob-1" />
+        <div className="pointer-events-none fixed bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-rose-200/30 to-red-200/20 blur-3xl yonetici-blob-2" />
+        {/* Grid */}
+        <div
+          className="pointer-events-none fixed inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(15,40,71,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(15,40,71,0.5) 1px, transparent 1px)`,
+            backgroundSize: '48px 48px',
+          }}
+        />
+
+        <div className="relative w-full max-w-md yonetici-enter">
+          <Link href="/" className="flex items-center justify-center gap-3 mb-7 group">
+            <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all">
+              <Shield className="w-6 h-6 text-white relative z-10" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 to-transparent" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 opacity-50 blur-xl -z-10" />
             </div>
-            <h1 className="text-xl font-extrabold text-[#0f2847]">Yönetici Paneli</h1>
+            <div>
+              <h1 className="text-xl font-extrabold text-[#0f2847] tracking-tight">Yönetici Paneli</h1>
+              <p className="text-[10.5px] text-gray-500 font-bold tracking-wider uppercase -mt-0.5">Güvenli Giriş</p>
+            </div>
           </Link>
-          <div className="bg-white/72 backdrop-blur-[20px] rounded-3xl border border-white/40 shadow-xl p-8">
-            <h2 className="text-2xl font-extrabold text-[#0f2847] text-center mb-1">Yönetici Girişi</h2>
-            <p className="text-sm text-gray-500 text-center mb-8">Yönetici şifresini girin</p>
-            {authError && (
-              <div className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2 text-sm text-red-600">
-                <AlertCircle className="w-4 h-4 shrink-0" />{authError}
+
+          <div className="relative bg-white/85 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-2xl overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500" />
+            <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 opacity-[0.08] blur-3xl pointer-events-none" />
+
+            <div className="relative p-8">
+              <div className="inline-flex items-center gap-1.5 mb-4 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white text-[10.5px] font-extrabold tracking-wider shadow-md">
+                <Shield className="w-3 h-3" />
+                Yetkili Erişim
               </div>
-            )}
-            <div className="space-y-4">
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type={showPassword ? 'text' : 'password'} value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                  placeholder="Yönetici şifresi"
-                  className="w-full pl-11 pr-11 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
-                />
+
+              <h2 className="text-[26px] font-extrabold text-[#0f2847] mb-1.5 tracking-tight">Yönetici Girişi</h2>
+              <p className="text-[13.5px] text-gray-500 mb-6 leading-relaxed">Yönetici şifresini girerek platformu yönetebilirsiniz</p>
+
+              {authError && (
+                <div className="mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 flex items-center gap-2 text-sm text-red-700">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span className="font-medium">{authError}</span>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Yönetici Şifresi</label>
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-md pointer-events-none">
+                      <Lock className="w-4 h-4 text-white" />
+                    </div>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                      placeholder="Şifrenizi girin"
+                      className="w-full pl-14 pr-12 py-3.5 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                      aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
                 <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
+                  onClick={handleLogin}
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white text-[14px] font-extrabold shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  Giriş Yap <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
-              <button onClick={handleLogin} className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-bold shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all flex items-center justify-center gap-2">
-                Giriş Yap <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
 
-            {/* Ana Sayfaya Dön */}
-            <Link
-              href="/"
-              className="mt-5 flex items-center justify-center gap-1.5 text-[13px] text-gray-500 hover:text-amber-600 font-semibold transition-colors"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" /> Ana Sayfaya Dön
-            </Link>
+              <Link
+                href="/"
+                className="mt-6 flex items-center justify-center gap-1.5 text-[13px] text-gray-500 hover:text-amber-600 font-bold transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Ana Sayfaya Dön
+              </Link>
+            </div>
           </div>
         </div>
+
+        <style jsx>{`
+          @keyframes yonetici-enter {
+            from { opacity: 0; transform: translateY(16px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+          }
+          .yonetici-enter {
+            animation: yonetici-enter 500ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+          }
+          @keyframes yonetici-blob-drift-1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-30px, 30px) scale(1.08); }
+          }
+          @keyframes yonetici-blob-drift-2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -30px) scale(1.1); }
+          }
+          .yonetici-blob-1 { animation: yonetici-blob-drift-1 20s ease-in-out infinite; }
+          .yonetici-blob-2 { animation: yonetici-blob-drift-2 25s ease-in-out infinite 3s; }
+        `}</style>
       </div>
     );
   }
 
   // ═══ ADMIN PANEL ═══
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f0f5ff] via-[#f8fafc] to-[#f0fdf8]">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 relative">
+      {/* Ambient background */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-[-20%] right-[-15%] w-[700px] h-[700px] rounded-full bg-gradient-to-br from-amber-200/40 to-orange-200/30 blur-3xl" />
+        <div className="absolute bottom-[-25%] left-[-15%] w-[650px] h-[650px] rounded-full bg-gradient-to-br from-rose-200/30 to-pink-200/20 blur-3xl" />
+        <div className="absolute top-[30%] left-[30%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-yellow-100/30 to-amber-100/20 blur-3xl" />
+        <div
+          className="absolute inset-0 opacity-[0.018]"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(15,40,71,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(15,40,71,0.5) 1px, transparent 1px)',
+            backgroundSize: '48px 48px',
+          }}
+        />
+      </div>
+
       {/* Header */}
-      <nav className="sticky top-0 z-50 bg-white/92 backdrop-blur-2xl border-b border-gray-200/50 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-md">
-              <Shield className="w-4 h-4 text-white" />
+      <nav className="sticky top-0 z-50 bg-white/85 backdrop-blur-2xl border-b border-gray-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 flex items-center justify-center shadow-lg shadow-amber-400/50">
+              <Shield className="w-5 h-5 text-white relative z-10" />
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/30 to-transparent" />
             </div>
-            <span className="text-[14px] font-extrabold text-[#0f2847]">Yönetici Paneli</span>
+            <div>
+              <span className="text-[14.5px] font-extrabold text-[#0f2847] tracking-tight block leading-tight">Yönetici Paneli</span>
+              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Yetkili Erişim</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Geri / İleri */}
             <button
               onClick={goBack}
               disabled={!canGoBack}
               aria-label="Bir adım geri"
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-[12px] font-semibold text-[#0f2847] hover:bg-white hover:border-amber-300 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-[12px] font-bold text-[#0f2847] hover:bg-amber-50 hover:border-amber-300 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Geri</span>
@@ -547,25 +623,27 @@ export default function YoneticiPage() {
               onClick={goForward}
               disabled={!canGoForward}
               aria-label="Bir adım ileri"
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-[12px] font-semibold text-[#0f2847] hover:bg-white hover:border-amber-300 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-[12px] font-bold text-[#0f2847] hover:bg-amber-50 hover:border-amber-300 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
             >
               <span className="hidden sm:inline">İleri</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
 
-            <div className="w-px h-5 bg-gray-200 mx-1" />
+            <div className="w-px h-6 bg-gray-200 mx-1" />
 
             <Link
               href="/"
-              className="flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-amber-600 font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] text-gray-600 hover:text-amber-600 hover:bg-amber-50 font-bold transition-colors"
               aria-label="Ana sayfaya git"
             >
               <Home className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Ana Sayfa</span>
             </Link>
 
-            <button onClick={() => { setAuthed(false); setPassword(''); setView('teachers'); setSelectedTeacher(null); setSelectedStudent(null); setHistory([]); setHistoryIndex(-1); }}
-              className="text-[13px] text-gray-500 hover:text-red-500 font-semibold transition-colors">
+            <button
+              onClick={() => { setAuthed(false); setPassword(''); setView('teachers'); setSelectedTeacher(null); setSelectedStudent(null); setHistory([]); setHistoryIndex(-1); }}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] text-gray-600 hover:text-red-500 hover:bg-red-50 font-bold transition-colors"
+            >
               Çıkış Yap
             </button>
           </div>
