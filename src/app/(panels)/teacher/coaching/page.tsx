@@ -339,22 +339,31 @@ export default function TeacherCoachingPage() {
 
   return (
     <div className="min-h-screen pb-10">
-      {/* ── HERO ── */}
-      <div className="relative mb-8 bg-gradient-to-br from-[#0f2847] via-[#1a3d6e] to-emerald-700 rounded-3xl p-7 sm:p-10 text-white shadow-2xl overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/10 rounded-full translate-y-1/3 -translate-x-1/4" />
+      {/* ── PREMIUM HERO ── */}
+      <div className="relative mb-8 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 rounded-3xl p-7 sm:p-10 text-white shadow-xl shadow-emerald-500/30 overflow-hidden">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl coach-aurora-1" />
+        <div className="absolute bottom-0 left-1/3 w-56 h-56 bg-cyan-200/20 rounded-full blur-3xl coach-aurora-2" />
+        <div className="pointer-events-none absolute -top-1/2 -left-1/4 w-full h-full rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent coach-shimmer" />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
+            backgroundSize: '32px 32px',
+          }}
+        />
+
         <div className="relative">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-              <Sparkles className="w-7 h-7 text-white" />
+            <div className="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg">
+              <Sparkles className="w-7 h-7 text-white drop-shadow coach-sparkle" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">AI Koçluk Merkezi</h1>
-              <p className="text-white/60 text-sm font-medium mt-0.5">Yapay zeka destekli öğrenci koçluk ve takip sistemi</p>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-sm">AI Koçluk Merkezi</h1>
+              <p className="text-white/85 text-sm font-medium mt-0.5">Yapay zeka destekli öğrenci koçluk ve takip sistemi</p>
             </div>
           </div>
 
-          <p className="text-white/80 text-sm leading-relaxed max-w-2xl mb-6">
+          <p className="text-white/90 text-sm leading-relaxed max-w-2xl mb-6">
             Eğitim Check-Up Pro&apos;nun AI Koçluk sistemi, her öğrencinin test sonuçlarına göre
             kişiselleştirilmiş haftalık görevler oluşturur, gelişimini takip eder ve size
             stratejik öneriler sunar. Aşağıdaki rehberi adım adım takip ederek sistemi en verimli şekilde kullanın.
@@ -363,21 +372,51 @@ export default function TeacherCoachingPage() {
           {/* Hızlı İstatistikler */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: 'Toplam Öğrenci', value: stats.totalStudents, icon: <Users className="w-4 h-4" />, color: 'bg-white/10' },
-              { label: 'Tamamlanan Test', value: stats.completedTests, icon: <BookOpen className="w-4 h-4" />, color: 'bg-white/10' },
-              { label: 'Aktif Seri', value: stats.activeStreaks, icon: <Flame className="w-4 h-4 text-orange-400" />, color: 'bg-orange-500/20' },
-              { label: 'Risk Altında', value: stats.atRiskCount, icon: <AlertCircle className="w-4 h-4 text-red-400" />, color: 'bg-red-500/20' },
+              { label: 'Toplam Öğrenci', value: stats.totalStudents, icon: <Users className="w-4 h-4" />, color: 'bg-white/15 border-white/20' },
+              { label: 'Tamamlanan Test', value: stats.completedTests, icon: <BookOpen className="w-4 h-4" />, color: 'bg-white/15 border-white/20' },
+              { label: 'Aktif Seri', value: stats.activeStreaks, icon: <Flame className="w-4 h-4 text-orange-200" />, color: 'bg-orange-500/25 border-orange-300/30' },
+              { label: 'Risk Altında', value: stats.atRiskCount, icon: <AlertCircle className="w-4 h-4 text-red-200" />, color: 'bg-red-500/25 border-red-300/30' },
             ].map(s => (
-              <div key={s.label} className={`rounded-xl ${s.color} backdrop-blur-sm p-3.5`}>
+              <div key={s.label} className={`rounded-xl ${s.color} backdrop-blur-md border p-3.5 transition hover:scale-[1.02]`}>
                 <div className="flex items-center gap-2 mb-1.5">
                   {s.icon}
-                  <span className="text-white/60 text-[11px] font-semibold uppercase tracking-wide">{s.label}</span>
+                  <span className="text-white/70 text-[11px] font-semibold uppercase tracking-wide">{s.label}</span>
                 </div>
-                <p className="text-2xl font-extrabold">{loading ? '—' : s.value}</p>
+                <p className="text-2xl font-extrabold tabular-nums drop-shadow">{loading ? '—' : s.value}</p>
               </div>
             ))}
           </div>
         </div>
+
+        <style jsx>{`
+          .coach-aurora-1 {
+            animation: coach-drift-1 9s ease-in-out infinite;
+          }
+          .coach-aurora-2 {
+            animation: coach-drift-2 11s ease-in-out infinite 1s;
+          }
+          @keyframes coach-drift-1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-20px, 20px) scale(1.1); }
+          }
+          @keyframes coach-drift-2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(20px, -15px) scale(1.08); }
+          }
+          .coach-shimmer {
+            animation: coach-shimmer 7s ease-in-out infinite;
+          }
+          @keyframes coach-shimmer {
+            0% { transform: translateX(-120%) rotate(12deg); }
+            100% { transform: translateX(220%) rotate(12deg); }
+          }
+          .coach-sparkle {
+            animation: coach-sparkle 4s linear infinite;
+          }
+          @keyframes coach-sparkle {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
 
       {/* ── ADIM ADIM REHBER ── */}

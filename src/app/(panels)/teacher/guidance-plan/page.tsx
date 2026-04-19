@@ -4,6 +4,7 @@ import { secureFetch } from '@/lib/csrf-client';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { FileText, Loader2, Sparkles, Download, Calendar } from 'lucide-react';
+import PageHeader from '@/components/ui/PageHeader';
 
 interface GuidancePlan {
   id: string;
@@ -193,22 +194,26 @@ ${months.map((month, i) => `### ${month}
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-extrabold text-[#0f2847]">Rehberlik Planı</h1>
-          <p className="text-gray-500 text-sm">AI destekli yıllık rehberlik planı oluşturun</p>
-        </div>
-        <button
-          onClick={generatePlan}
-          disabled={generating}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl hover:shadow-lg disabled:opacity-50 transition-all"
-        >
-          {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-          Yeni Plan Oluştur
-        </button>
-      </div>
+      <PageHeader
+        role="teacher"
+        icon={FileText}
+        title="Rehberlik Planı"
+        subtitle="AI destekli yıllık rehberlik planı oluşturun — öğrencilerinize ve sınıfınıza özel"
+        count={plans.length}
+        countLabel="plan"
+        action={
+          <button
+            onClick={generatePlan}
+            disabled={generating}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-emerald-700 font-bold text-[13.5px] rounded-xl hover:bg-emerald-50 shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none transition-all active:scale-[0.97] border border-white/80"
+          >
+            {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            Yeni Plan Oluştur
+          </button>
+        }
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
         {/* Plan Listesi */}
         <div className="space-y-2">
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Planlarım</h3>

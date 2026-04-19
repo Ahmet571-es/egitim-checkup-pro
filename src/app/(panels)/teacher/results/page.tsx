@@ -4,9 +4,12 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { secureFetch } from '@/lib/csrf-client';
 import {
-  FileCheck2, Search, Filter, GraduationCap, School, Calendar,
-  CheckCircle2, AlertCircle, ChevronRight, Eye
+  FileCheck2, Filter, GraduationCap, School, Calendar,
+  CheckCircle2, AlertCircle, ChevronRight, Eye, FileText, Clock
 } from 'lucide-react';
+import PageHeader from '@/components/ui/PageHeader';
+import SearchBar from '@/components/ui/SearchBar';
+import EmptyState from '@/components/ui/EmptyState';
 
 const TEST_LABELS: Record<string, string> = {
   enneagram: 'Enneagram Kişilik',
@@ -65,11 +68,9 @@ export default function CompletedTestsPage() {
     })();
   }, []);
 
-  // ── Filtre seçenekleri (logs'dan dinamik üret) ──
   const schools = useMemo(() => [...new Set(logs.map(l => l.school_name))].sort(), [logs]);
   const testTypes = useMemo(() => [...new Set(logs.map(l => l.test_type))].sort(), [logs]);
 
-  // ── Filtreleme ──
   const filtered = useMemo(() => {
     const now = Date.now();
     const ranges: Record<DateRange, number> = {
@@ -81,7 +82,7 @@ export default function CompletedTestsPage() {
     const rangeMs = ranges[dateRange];
 
     return logs.filter((l) => {
-      if (search && !l.student_name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (search && !l.student_name.toLocaleLowerCase('tr-TR').includes(search.toLocaleLowerCase('tr-TR'))) return false;
       if (schoolFilter !== 'all' && l.school_name !== schoolFilter) return false;
       if (testFilter !== 'all' && l.test_type !== testFilter) return false;
       if (reportFilter === 'with' && !l.has_report) return false;
@@ -98,83 +99,83 @@ export default function CompletedTestsPage() {
     ? new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     : '—';
 
+  const stats = [
+    { label: 'Toplam', value: logs.length, gradient: 'from-violet-500 to-purple-600', icon: FileCheck2 },
+    { label: 'Filtreli', value: filtered.length, gradient: 'from-indigo-500 to-violet-600', icon: Filter },
+    { label: 'Raporlu', value: logs.filter(l => l.has_report).length, gradient: 'from-emerald-500 to-teal-600', icon: FileText },
+    { label: 'Bekliyor', value: logs.filter(l => !l.has_report).length, gradient: 'from-amber-500 to-orange-600', icon: Clock },
+  ];
+
   return (
     <div>
-      {/* Header */}
-      <div className="mb-6 bg-gradient-to-br from-violet-500 to-purple-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg shadow-violet-500/20">
-        <h1 className="text-2xl sm:text-3xl font-extrabold mb-1 flex items-center gap-3">
-          <FileCheck2 className="w-8 h-8" /> Tamamlanan Testler
-        </h1>
-        <p className="text-violet-50 text-sm">
-          Hangi öğrencinin, hangi okulda, hangi sınıfta, hangi testi, ne zaman tamamladığını görün.
-        </p>
-      </div>
+      <PageHeader
+        role="teacher"
+        icon={FileCheck2}
+        title="Tamamlanan Testler"
+        subtitle="Hangi öğrencinin, hangi okulda, hangi sınıfta, hangi testi, ne zaman tamamladığını görün"
+        count={logs.length}
+        countLabel="test"
+      />
 
-      {/* Toplam */}
+      {/* Stats */}
       {!loading && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
-            <p className="text-[11px] text-gray-400 font-medium uppercase">Toplam Test</p>
-            <p className="text-xl font-extrabold text-[#0f2847]">{logs.length}</p>
-          </div>
-          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
-            <p className="text-[11px] text-gray-400 font-medium uppercase">Filtreli</p>
-            <p className="text-xl font-extrabold text-violet-600">{filtered.length}</p>
-          </div>
-          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
-            <p className="text-[11px] text-gray-400 font-medium uppercase">Raporlu</p>
-            <p className="text-xl font-extrabold text-emerald-600">{logs.filter(l => l.has_report).length}</p>
-          </div>
-          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
-            <p className="text-[11px] text-gray-400 font-medium uppercase">Rapor Bekliyor</p>
-            <p className="text-xl font-extrabold text-amber-600">{logs.filter(l => !l.has_report).length}</p>
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-5 grid-stagger">
+          {stats.map((s) => {
+            const Icon = s.icon;
+            return (
+              <div
+                key={s.label}
+                className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-4 shadow-sm overflow-hidden group hover:shadow-lg transition-all"
+              >
+                <div className={`absolute -top-8 -right-8 w-28 h-28 rounded-full bg-gradient-to-br ${s.gradient} opacity-10 blur-2xl group-hover:opacity-25 transition-opacity`} />
+                <div className="relative flex items-center gap-2.5">
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.gradient} text-white flex items-center justify-center shadow-md shrink-0`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{s.label}</p>
+                    <p className="text-xl sm:text-2xl font-extrabold text-[#0f2847] tabular-nums">{s.value}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {/* Filtreler */}
-      <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm mb-4">
-        <div className="flex items-center gap-2 mb-3 text-[12px] font-bold text-gray-500 uppercase">
-          <Filter className="w-3.5 h-3.5" /> Filtreler
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
-          {/* Arama */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Öğrenci ara..."
-              className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
-            />
+      {/* Filters */}
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-4 shadow-sm mb-4">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
+            <Filter className="w-3.5 h-3.5 text-white" />
           </div>
+          <span className="text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">Filtreler</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+          <SearchBar role="teacher" value={search} onChange={setSearch} placeholder="Öğrenci ara..." />
 
-          {/* Okul */}
           <select
             value={schoolFilter}
             onChange={(e) => setSchoolFilter(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+            className="px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
           >
             <option value="all">Tüm okullar</option>
             {schools.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
 
-          {/* Test türü */}
           <select
             value={testFilter}
             onChange={(e) => setTestFilter(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+            className="px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
           >
             <option value="all">Tüm testler</option>
             {testTypes.map((t) => <option key={t} value={t}>{labelOf(t)}</option>)}
           </select>
 
-          {/* Tarih aralığı */}
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value as DateRange)}
-            className="px-3 py-2 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+            className="px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
           >
             <option value="all">Tüm tarihler</option>
             <option value="7d">Son 7 gün</option>
@@ -182,11 +183,10 @@ export default function CompletedTestsPage() {
             <option value="90d">Son 90 gün</option>
           </select>
 
-          {/* Rapor durumu */}
           <select
             value={reportFilter}
             onChange={(e) => setReportFilter(e.target.value as 'all' | 'with' | 'without')}
-            className="px-3 py-2 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+            className="px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
           >
             <option value="all">Tüm raporlar</option>
             <option value="with">Raporlu</option>
@@ -196,54 +196,78 @@ export default function CompletedTestsPage() {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2 text-sm text-red-600">
-          <AlertCircle className="w-4 h-4 shrink-0" />{error}
+        <div className="mb-4 p-4 rounded-2xl bg-red-50 border border-red-200 flex items-center gap-2.5 text-sm text-red-700">
+          <AlertCircle className="w-5 h-5 shrink-0" />
+          <span className="font-medium">{error}</span>
         </div>
       )}
 
-      {/* Liste */}
       {loading ? (
-        <div className="text-center py-20 text-gray-400">Yükleniyor...</div>
-      ) : filtered.length === 0 ? (
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-12 text-center shadow-sm">
-          <p className="text-5xl mb-3">📭</p>
-          <p className="text-gray-500 font-semibold">
-            {logs.length === 0 ? 'Henüz tamamlanmış test yok.' : 'Filtreye uygun test bulunamadı.'}
-          </p>
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center animate-pulse shadow-lg">
+            <FileCheck2 className="w-6 h-6 text-white" />
+          </div>
+          <p className="text-gray-500 text-sm font-medium">Yükleniyor...</p>
         </div>
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          role="teacher"
+          icon={FileCheck2}
+          title={logs.length === 0 ? 'Henüz tamamlanmış test yok' : 'Filtreye uygun test bulunamadı'}
+          subtitle={logs.length === 0 ? 'Öğrencilerin test çözdükçe burada görüneceksin.' : 'Farklı filtre seçmeyi dene.'}
+        />
       ) : (
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
-          {filtered.map((l) => (
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm overflow-hidden">
+          {filtered.map((l, idx) => (
             <Link
               key={l.id}
               href={`/teacher/students/${l.student_id}`}
-              className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-b-0 hover:bg-violet-50/40 transition-colors"
+              className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-50 last:border-b-0 hover:bg-violet-50/40 transition-colors group row-enter"
+              style={{ animationDelay: `${idx * 15}ms` }}
             >
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${l.has_report ? 'bg-emerald-100' : 'bg-amber-100'}`}>
-                <CheckCircle2 className={`w-4 h-4 ${l.has_report ? 'text-emerald-600' : 'text-amber-600'}`} />
+              <div className={`relative w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md ${
+                l.has_report
+                  ? 'bg-gradient-to-br from-emerald-500 to-teal-600'
+                  : 'bg-gradient-to-br from-amber-500 to-orange-600'
+              } group-hover:scale-110 group-hover:rotate-6 transition-transform`}>
+                <CheckCircle2 className="w-4 h-4 text-white" />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/30 to-transparent" />
               </div>
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[14px] font-bold text-[#0f2847] truncate">{l.student_name}</span>
-                  <span className="text-[11px] text-violet-600 font-semibold bg-violet-50 px-2 py-0.5 rounded-full">{labelOf(l.test_type)}</span>
+                  <span className="text-[14px] font-extrabold text-[#0f2847] truncate">{l.student_name}</span>
+                  <span className="text-[10.5px] text-violet-700 font-bold bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200">{labelOf(l.test_type)}</span>
                   {l.has_report && (
-                    <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">Rapor var</span>
+                    <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                      <FileText className="w-2.5 h-2.5" />
+                      Rapor
+                    </span>
                   )}
                 </div>
-                <div className="flex items-center gap-3 mt-1 text-[11px] text-gray-500 flex-wrap">
-                  <span className="flex items-center gap-1"><School className="w-3 h-3" /> {l.school_name}</span>
-                  <span className="flex items-center gap-1"><GraduationCap className="w-3 h-3" /> {l.class_name}</span>
-                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {formatDate(l.completed_at)}</span>
+                <div className="flex items-center gap-2.5 mt-1 text-[11px] text-gray-500 flex-wrap font-medium">
+                  <span className="flex items-center gap-1"><School className="w-3 h-3 text-gray-400" /> {l.school_name}</span>
+                  <span className="flex items-center gap-1"><GraduationCap className="w-3 h-3 text-gray-400" /> {l.class_name}</span>
+                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3 text-gray-400" /> {formatDate(l.completed_at)}</span>
                 </div>
               </div>
 
-              <Eye className="w-4 h-4 text-gray-300 shrink-0" />
-              <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+              <Eye className="w-4 h-4 text-gray-300 shrink-0 group-hover:text-violet-500 transition" />
+              <ChevronRight className="w-4 h-4 text-gray-300 shrink-0 group-hover:translate-x-0.5 group-hover:text-violet-500 transition-all" />
             </Link>
           ))}
         </div>
       )}
+
+      <style>{`
+        @keyframes row-enter {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .row-enter {
+          animation: row-enter 300ms ease-out backwards;
+        }
+      `}</style>
     </div>
   );
 }
