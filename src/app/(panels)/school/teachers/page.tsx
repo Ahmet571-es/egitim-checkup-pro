@@ -12,10 +12,12 @@ import SearchBar from '@/components/ui/SearchBar';
 import EmptyState from '@/components/ui/EmptyState';
 import PremiumModal from '@/components/ui/PremiumModal';
 import ActionButton from '@/components/ui/ActionButton';
+import { useToast } from '@/components/ui/Toast';
 
 type ModalKind = null | 'add' | 'reset' | 'assign';
 
 export default function SchoolTeachersPage() {
+  const toast = useToast();
   const [teachers, setTeachers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -108,7 +110,7 @@ export default function SchoolTeachersPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Hata');
       setModal(null);
-      alert('Şifre güncellendi.');
+      toast.success('Şifre güncellendi', 'Öğretmenin yeni şifresi aktif edildi.');
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : 'Hata');
     } finally {

@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { FileText, Loader2, Sparkles, Download, Calendar } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
+import { useToast } from '@/components/ui/Toast';
 
 interface GuidancePlan {
   id: string;
@@ -15,6 +16,7 @@ interface GuidancePlan {
 }
 
 export default function GuidancePlanPage() {
+  const toast = useToast();
   const [plans, setPlans] = useState<GuidancePlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -165,10 +167,11 @@ ${months.map((month, i) => `### ${month}
       if (!error && newPlan) {
         setPlans(prev => [newPlan, ...prev]);
         setSelectedPlan(newPlan);
+        toast.success('Plan oluşturuldu', 'Yıllık rehberlik planınız hazır.');
       }
     } catch (err) {
       console.error('Plan oluşturma hatası:', err);
-      alert('Plan oluşturulurken hata oluştu.');
+      toast.error('Plan oluşturulamadı', 'Lütfen tekrar deneyin.');
     } finally {
       setGenerating(false);
     }

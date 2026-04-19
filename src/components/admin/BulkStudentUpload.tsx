@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { Upload, Download, AlertCircle, CheckCircle2, Loader2, FileSpreadsheet } from 'lucide-react';
+import { useToast } from '@/components/ui/Toast';
 
 interface ParsedStudent {
   full_name: string;
@@ -12,6 +13,7 @@ interface ParsedStudent {
 }
 
 export default function BulkStudentUpload() {
+  const toast = useToast();
   const [students, setStudents] = useState<ParsedStudent[]>([]);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<{ success: number; failed: number } | null>(null);
@@ -84,13 +86,16 @@ export default function BulkStudentUpload() {
       const data = await res.json();
       if (data.success !== undefined) {
         setResult({ success: data.success, failed: data.failed });
+        if (data.success > 0) {
+          toast.success(`${data.success} öğrenci eklendi`, data.failed > 0 ? `${data.failed} kayıt başarısız oldu.` : undefined);
+        }
       } else {
         setResult({ success: 0, failed: validStudents.length });
-        alert(data.error || 'Yükleme başarısız');
+        toast.error('Yükleme başarısız', data.error || 'Sunucu hata döndürdü.');
       }
     } catch {
       setResult({ success: 0, failed: validStudents.length });
-      alert('Bağlantı hatası');
+      toast.error('Bağlantı hatası', 'İnternet bağlantınızı kontrol edin.');
     }
 
     setUploading(false);

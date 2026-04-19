@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { useToast } from '@/components/ui/Toast';
 
 const KPIDashboard = dynamic(() => import('@/components/admin/KPIDashboard'), { ssr: false });
 const SchoolHeatmap = dynamic(() => import('@/components/admin/SchoolHeatmap'), { ssr: false });
@@ -9,10 +10,12 @@ const RiskDistribution = dynamic(() => import('@/components/admin/RiskDistributi
 const GenderAgeBreakdown = dynamic(() => import('@/components/admin/GenderAgeBreakdown'), { ssr: false });
 
 export default function AnalyticsSection() {
+  const toast = useToast();
   const [reportLoading, setReportLoading] = useState(false);
 
   const handleDownloadReport = async () => {
     setReportLoading(true);
+    const loadingId = toast.loading('Rapor hazırlanıyor...', 'Bu birkaç saniye sürebilir.');
     try {
       const res = await fetch('/api/reports/guidance');
       if (!res.ok) throw new Error('Rapor oluşturulamadı');
@@ -26,8 +29,11 @@ export default function AnalyticsSection() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (err) {
-      alert('Rapor indirilemedi. Lütfen tekrar deneyin.');
+      toast.dismiss(loadingId);
+      toast.success('Rapor indirildi', 'Rehberlik raporu başarıyla oluşturuldu.');
+    } catch {
+      toast.dismiss(loadingId);
+      toast.error('İndirilemedi', 'Rapor indirilemedi. Lütfen tekrar deneyin.');
     }
     setReportLoading(false);
   };

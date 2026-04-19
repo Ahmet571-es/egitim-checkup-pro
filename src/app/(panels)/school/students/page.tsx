@@ -13,6 +13,7 @@ import SearchBar from '@/components/ui/SearchBar';
 import EmptyState from '@/components/ui/EmptyState';
 import PremiumModal from '@/components/ui/PremiumModal';
 import ActionButton from '@/components/ui/ActionButton';
+import { useToast } from '@/components/ui/Toast';
 
 interface LicenseLite {
   status: LicenseStatus;
@@ -22,6 +23,7 @@ interface LicenseLite {
 }
 
 export default function SchoolStudentsPage() {
+  const toast = useToast();
   const [students, setStudents] = useState<(Profile & { classes?: string[] })[]>([]);
   const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,11 +68,11 @@ export default function SchoolStudentsPage() {
   const addStudent = async () => {
     if (!schoolId || !newStudent.full_name || !newStudent.email) return;
     if (license?.status === 'expired') {
-      alert('Lisansınız sona ermiş. Lütfen Faturalandırma sayfasından planınızı yenileyin.');
+      toast.error('Lisansınız sona ermiş', 'Lütfen Faturalandırma sayfasından planınızı yenileyin.');
       return;
     }
     if (license && students.length >= license.maxStudents) {
-      alert(`Öğrenci kapasiteniz doldu (${students.length}/${license.maxStudents}). Planınızı yükseltin.`);
+      toast.warning('Kapasite doldu', `Öğrenci kapasiteniz ${students.length}/${license.maxStudents}. Planınızı yükseltin.`);
       return;
     }
     setSaving(true);
@@ -83,7 +85,7 @@ export default function SchoolStudentsPage() {
     });
 
     if (authErr) {
-      alert('Hata: ' + authErr.message);
+      toast.error('Hata', authErr.message);
       setSaving(false);
       return;
     }
@@ -92,6 +94,7 @@ export default function SchoolStudentsPage() {
       await supabase.from('class_students').insert({ class_id: newStudent.class_id, student_id: authData.user.id });
     }
 
+    toast.success('Öğrenci eklendi', `${newStudent.full_name} başarıyla sisteme eklendi.`);
     setSaving(false);
     setModal(null);
     setNewStudent({ full_name: '', email: '', class_id: '' });
@@ -101,6 +104,7 @@ export default function SchoolStudentsPage() {
   const removeStudent = async (id: string) => {
     if (!confirm('Bu öğrenciyi silmek istediğinize emin misiniz?')) return;
     await supabase.from('profiles').update({ is_active: false }).eq('id', id);
+    toast.success('Öğrenci silindi');
     load();
   };
 
@@ -108,7 +112,7 @@ export default function SchoolStudentsPage() {
     const file = e.target.files?.[0];
     if (!file || !schoolId) return;
     if (license?.status === 'expired') {
-      alert('Lisansınız sona ermiş. CSV içe aktarma devre dışı.');
+      toast.error('Lisansınız sona ermiş', 'CSV içe aktarma devre dışı.');
       return;
     }
     setSaving(true);

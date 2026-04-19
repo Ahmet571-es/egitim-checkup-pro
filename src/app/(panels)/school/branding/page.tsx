@@ -5,8 +5,10 @@ import { createClient } from '@/lib/supabase/client';
 import { Palette, Save, Loader2, CheckCircle2, Image as ImageIcon, Eye, Building } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
 import SectionCard from '@/components/ui/SectionCard';
+import { useToast } from '@/components/ui/Toast';
 
 export default function BrandingPage() {
+  const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -90,10 +92,11 @@ export default function BrandingPage() {
       }
 
       setSaved(true);
+      toast.success('Kaydedildi!', 'Markalama ayarları başarıyla güncellendi.');
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error('Kaydetme hatası:', err);
-      alert('Kaydedilirken hata oluştu.');
+      toast.error('Kaydedilemedi', 'Lütfen tekrar deneyin.');
     } finally {
       setSaving(false);
     }

@@ -7,8 +7,10 @@ import {
   type CoachingTask, type CoachingStreak,
 } from '@/lib/services/coaching';
 import { CheckCircle2, Circle, Flame, Trophy, Loader2, Sparkles, RefreshCw } from 'lucide-react';
+import { useToast } from '@/components/ui/Toast';
 
 export default function CoachingDashboard() {
+  const toast = useToast();
   const [tasks, setTasks] = useState<CoachingTask[]>([]);
   const [streak, setStreak] = useState<CoachingStreak | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,11 +60,12 @@ export default function CoachingDashboard() {
       const data = await res.json();
       if (data.tasks) {
         setTasks(data.tasks);
+        toast.success('Görevler güncellendi', 'Yeni haftalık görevlerin hazır.');
       } else {
-        alert(data.error || 'Görevler oluşturulamadı');
+        toast.error('Oluşturulamadı', data.error || 'Görevler oluşturulamadı.');
       }
     } catch {
-      alert('Bağlantı hatası');
+      toast.error('Bağlantı hatası', 'İnternet bağlantınızı kontrol edin.');
     }
     setGenerating(false);
   }

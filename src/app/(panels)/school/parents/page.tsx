@@ -9,12 +9,14 @@ import SearchBar from '@/components/ui/SearchBar';
 import EmptyState from '@/components/ui/EmptyState';
 import PremiumModal from '@/components/ui/PremiumModal';
 import ActionButton from '@/components/ui/ActionButton';
+import { useToast } from '@/components/ui/Toast';
 
 interface ParentWithChildren extends Profile {
   children: Profile[];
 }
 
 export default function SchoolParentsPage() {
+  const toast = useToast();
   const [parents, setParents] = useState<ParentWithChildren[]>([]);
   const [students, setStudents] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,13 +61,14 @@ export default function SchoolParentsPage() {
       password: 'Veli123!',
       options: { data: { full_name: form.full_name, role: 'parent', school_id: schoolId } },
     });
-    if (error) { alert('Hata: ' + error.message); setSaving(false); return; }
+    if (error) { toast.error('Hata', error.message); setSaving(false); return; }
 
     if (authData.user && form.student_ids.length > 0) {
       const links = form.student_ids.map((sid) => ({ parent_id: authData.user!.id, student_id: sid }));
       await supabase.from('parent_students').insert(links);
     }
 
+    toast.success('Veli eklendi', `${form.full_name} başarıyla sisteme eklendi.`);
     setSaving(false);
     setModal(false);
     setForm({ full_name: '', email: '', student_ids: [] });
