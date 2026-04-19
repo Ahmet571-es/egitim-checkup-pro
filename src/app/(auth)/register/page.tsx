@@ -7,6 +7,7 @@ import { GraduationCap, User, Lock, Building, ArrowRight, AlertCircle, CheckCirc
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_PATHS, STUDENT_GRADES } from '@/types';
 import type { UserRole } from '@/types';
+import AuthLayout from '@/components/ui/AuthLayout';
 
 // Türkçe karakterleri ASCII'ye çevir
 function turkishToAscii(str: string): string {
@@ -245,45 +246,64 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#f0f5ff] via-[#f8fafc] to-[#f0fdf8] px-4">
-        <div className="bg-white/72 backdrop-blur-[20px] rounded-3xl border border-white/40 shadow-xl p-8 text-center max-w-md">
-          <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-[#0f2847] mb-2">Kayıt Başarılı!</h2>
-          <p className="text-sm text-gray-500 mb-1">Kullanıcı adınız: <span className="font-bold text-emerald-600">{form.username}</span></p>
-          <p className="text-[12px] text-gray-400 mb-3">Bu kullanıcı adını unutmayın, giriş yaparken kullanacaksınız.</p>
-          <p className="text-sm text-gray-500">Giriş sayfasına yönlendiriliyorsunuz...</p>
+      <AuthLayout
+        role="student"
+        title="Kayıt Başarılı!"
+        subtitle="Giriş sayfasına yönlendiriliyorsunuz..."
+      >
+        <div className="text-center py-4">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/40 reg-success-bounce">
+            <CheckCircle2 className="w-10 h-10 text-white" />
+          </div>
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 mb-3">
+            <p className="text-[12px] text-gray-500 mb-1 font-semibold uppercase tracking-wider">Kullanıcı adınız</p>
+            <p className="text-xl font-extrabold text-violet-600 font-mono">{form.username}</p>
+          </div>
+          <p className="text-[12.5px] text-gray-600 flex items-center justify-center gap-1.5">
+            <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+            <span>Bu kullanıcı adını unutmayın, giriş yaparken kullanacaksınız.</span>
+          </p>
         </div>
-      </div>
+        <style>{`
+          @keyframes reg-success-bounce {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            50% { transform: scale(1.15) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+          }
+          .reg-success-bounce {
+            animation: reg-success-bounce 700ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+          }
+        `}</style>
+      </AuthLayout>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#f0f5ff] via-[#f8fafc] to-[#f0fdf8] px-4 py-12">
-      <div className="fixed top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-emerald-200/30 to-teal-200/20 blur-3xl" />
-      <div className="fixed bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-blue-200/30 to-indigo-200/20 blur-3xl" />
+    <AuthLayout
+      role="student"
+      title="Kayıt Ol"
+      subtitle="Yeni bir öğrenci hesabı oluşturun"
+      wide
+      footer={
+        <p className="text-[13px] text-gray-500">
+          Zaten hesabınız var mı?{' '}
+          <Link href="/login" className="text-violet-600 font-extrabold hover:text-violet-700 hover:underline transition">
+            Giriş Yapın →
+          </Link>
+        </p>
+      }
+    >
+      {error && (
+        <div className="mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 flex items-center gap-2 text-sm text-red-700">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span className="font-medium">{error}</span>
+        </div>
+      )}
 
-      <div className="relative w-full max-w-md">
-        <Link href="/" className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-            <GraduationCap className="w-6 h-6 text-white" />
-          </div>
-          <h1 className="text-xl font-extrabold text-[#0f2847]">Eğitim Check-Up</h1>
-        </Link>
-
-        <div className="bg-white/72 backdrop-blur-[20px] rounded-3xl border border-white/40 shadow-xl p-8">
-          <h2 className="text-2xl font-extrabold text-[#0f2847] text-center mb-1">Kayıt Ol</h2>
-          <p className="text-sm text-gray-500 text-center mb-8">Yeni hesap oluşturun</p>
-
-          {error && (
-            <div className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2 text-sm text-red-600">
-              <AlertCircle className="w-4 h-4 shrink-0" />{error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-            {/* Tarayıcı autofill tuzağı */}
-            <input type="text" name="prevent_autofill_user" style={{ display: 'none' }} tabIndex={-1} />
-            <input type="password" name="prevent_autofill_pass" style={{ display: 'none' }} tabIndex={-1} />
+      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+        {/* Tarayıcı autofill tuzağı */}
+        <input type="text" name="prevent_autofill_user" style={{ display: 'none' }} tabIndex={-1} />
+        <input type="password" name="prevent_autofill_pass" style={{ display: 'none' }} tabIndex={-1} />
 
             {/* Ad Soyad */}
             <div className="grid grid-cols-2 gap-3">
@@ -544,17 +564,17 @@ export default function RegisterPage() {
               </span>
             </label>
 
-            <button type="submit" disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all flex items-center justify-center gap-2 disabled:opacity-60">
-              {loading ? 'Kayıt yapılıyor...' : <>Kayıt Ol <ArrowRight className="w-4 h-4" /></>}
-            </button>
-          </form>
-
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Zaten hesabınız var mı?{' '}
-            <Link href="/login" className="text-emerald-600 font-semibold hover:underline">Giriş Yapın</Link>
-          </p>
-        </div>
-      </div>
-    </div>
+        <button type="submit" disabled={loading} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-600 text-white text-[14px] font-extrabold shadow-lg shadow-violet-500/40 hover:shadow-xl hover:shadow-violet-500/50 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]">
+          {loading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Kayıt yapılıyor...
+            </>
+          ) : (
+            <>Kayıt Ol <ArrowRight className="w-4 h-4" /></>
+          )}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }

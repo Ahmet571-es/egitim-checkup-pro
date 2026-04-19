@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { GraduationCap, User, Lock, Building, Phone, Mail, ArrowRight, ArrowLeft, AlertCircle, CheckCircle2, Eye, EyeOff, ShieldCheck, BookOpen } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import AuthLayout from '@/components/ui/AuthLayout';
 
 const BRANCHES = [
   'Türkçe', 'Matematik', 'Fen Bilimleri', 'Sosyal Bilgiler', 'İngilizce',
@@ -198,40 +199,55 @@ export default function TeacherRegisterPage() {
   // Başarılı ekranı
   if (step === 4) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#f0f5ff] via-[#f8fafc] to-[#f0fdf8] px-4">
-        <div className="bg-white/72 backdrop-blur-[20px] rounded-3xl border border-white/40 shadow-xl p-8 text-center max-w-md">
-          <CheckCircle2 className="w-14 h-14 text-emerald-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-[#0f2847] mb-2">Başvurunuz Alındı!</h2>
-          <p className="text-sm text-gray-500 mb-2">Kayıt işleminiz başarıyla tamamlandı.</p>
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
-            <p className="text-sm text-amber-700 font-semibold">Yönetici onayı bekleniyor</p>
-            <p className="text-xs text-amber-600 mt-1">Başvurunuz onaylandıktan sonra sisteme giriş yapabileceksiniz.</p>
+      <AuthLayout
+        role="teacher"
+        title="Başvurunuz Alındı!"
+        subtitle="Öğretmen giriş sayfasına yönlendiriliyorsunuz..."
+      >
+        <div className="text-center py-4">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/40 reg-success-bounce">
+            <CheckCircle2 className="w-10 h-10 text-white" />
           </div>
-          <p className="text-sm text-gray-500 mb-4">Öğretmen giriş sayfasına yönlendiriliyorsunuz...</p>
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 mb-3">
+            <p className="text-[13px] font-extrabold text-amber-800 flex items-center justify-center gap-1.5">
+              <AlertCircle className="w-4 h-4" />
+              Yönetici onayı bekleniyor
+            </p>
+            <p className="text-[12px] text-amber-700 mt-1">Başvurunuz onaylandıktan sonra sisteme giriş yapabileceksiniz.</p>
+          </div>
+          <p className="text-[12.5px] text-gray-600">Kayıt işleminiz başarıyla tamamlandı.</p>
         </div>
-      </div>
+        <style>{`
+          @keyframes reg-success-bounce {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            50% { transform: scale(1.15) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+          }
+          .reg-success-bounce {
+            animation: reg-success-bounce 700ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+          }
+        `}</style>
+      </AuthLayout>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#f0f5ff] via-[#f8fafc] to-[#f0fdf8] px-4 py-12">
-      <div className="fixed top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-emerald-200/30 to-teal-200/20 blur-3xl" />
-      <div className="fixed bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-blue-200/30 to-indigo-200/20 blur-3xl" />
-
-      <div className="relative w-full max-w-md">
-        <Link href="/" className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-            <GraduationCap className="w-6 h-6 text-white" />
-          </div>
-          <h1 className="text-xl font-extrabold text-[#0f2847]">Eğitim Check-Up</h1>
-        </Link>
-
-        <div className="bg-white/72 backdrop-blur-[20px] rounded-3xl border border-white/40 shadow-xl p-8">
-          <h2 className="text-2xl font-extrabold text-[#0f2847] text-center mb-1">Öğretmen Kayıt</h2>
-          <p className="text-sm text-gray-500 text-center mb-2">Öğretmen hesabı oluşturun</p>
-
-          {/* İlerleme */}
-          <div className="flex gap-1.5 mb-6">
+    <AuthLayout
+      role="teacher"
+      title="Öğretmen Kayıt"
+      subtitle="Yeni bir öğretmen hesabı oluşturun"
+      wide
+      footer={
+        <p className="text-[13px] text-gray-500">
+          Zaten hesabınız var mı?{' '}
+          <Link href="/login/ogretmen" className="text-emerald-600 font-extrabold hover:text-emerald-700 hover:underline transition">
+            Giriş Yapın →
+          </Link>
+        </p>
+      }
+    >
+      {/* İlerleme */}
+      <div className="flex gap-1.5 mb-6">
             {[1, 2, 3].map(s => (
               <div key={s} className={`h-1 flex-1 rounded-full transition-all ${s <= step ? 'bg-emerald-500' : 'bg-gray-200'}`} />
             ))}
@@ -446,13 +462,6 @@ export default function TeacherRegisterPage() {
               </div>
             </div>
           )}
-
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Hesabınız var mı?{' '}
-            <Link href="/login/ogretmen" className="text-emerald-600 font-semibold hover:underline">Giriş Yap</Link>
-          </p>
-        </div>
-      </div>
-    </div>
+    </AuthLayout>
   );
 }
