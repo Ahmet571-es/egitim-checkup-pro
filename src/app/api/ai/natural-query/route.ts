@@ -3,6 +3,9 @@ import { createClient } from '@/lib/supabase/server';
 import { generateAIReport } from '@/lib/ai/claude-client';
 
 
+
+export const runtime = "nodejs";
+export const maxDuration = 300;
 function sanitizeInput(text: string): string {
   return text
     .replace(/`/g, '')

@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
     const reports: Record<string, string> = {};
     const genPromises = (report_types as IntegratedReportType[]).map(async (reportType) => {
       const prompt = buildIntegratedReportPrompt({ ...baseParams, reportType });
-      const text = await generateAIReport(prompt, { maxTokens: 12000 });
+      const text = await generateAIReport(prompt, { maxTokens: 16000 });
       reports[reportType] = text;
     });
     await Promise.all(genPromises);
@@ -272,7 +272,7 @@ export async function PUT(request: NextRequest) {
     const reports: Record<string, string> = {};
     await Promise.all(reportTypes.map(async (reportType) => {
       const prompt = buildIntegratedReportPrompt({ ...baseParams, reportType });
-      reports[reportType] = await generateAIReport(prompt, { maxTokens: 12000 });
+      reports[reportType] = await generateAIReport(prompt, { maxTokens: 16000 });
     }));
 
     // Admin client ile kaydet (RLS bypass)

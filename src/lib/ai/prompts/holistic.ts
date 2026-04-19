@@ -67,19 +67,28 @@ ${JSON.stringify(testDataList, null, 2)}
    - %81-100 → Çok güçlü / baskın alan — yetenek göstergesi
 
 7. **UZUNLUK DİSİPLİNİ (KRİTİK):**
-   - Rapor toplamı: **1800-2500 kelime** (katı sınır)
-   - Her ana bölüm (1-9): **150-300 kelime**
-   - Her alt bölüm (1.1, 2.3 gibi): **60-120 kelime**
+   - Rapor toplamı: **2500-3500 kelime** (Sonnet 4.6 için genişletilmiş)
+   - Her ana bölüm (1-9): **200-400 kelime**
+   - Her alt bölüm (1.1, 2.3 gibi): **80-150 kelime**
    - Tablolar: en fazla belirtilen satır sayısı kadar, fazlasını yazma
    - Tekrar etme — aynı bilgiyi farklı bölümlerde tekrar yazma, çapraz referans ver ("bkz. Bölüm 2.1")
    - Her cümle bilgi vermeli — dolgu metni yok
    - Raporu MUTLAKA "Kapanış Notu" ile bitir — yarıda kesme
 
-8. **BİLİMSEL TEMEL:** Bilimsel terim kullandığında parantez içinde yalın Türkçe açıklamasını ekle.
+8. **BİLİMSEL TEMEL + YALIN TÜRKÇE (KRİTİK):**
+   - Analizin altyapısı bilimsel ve akademik olmalı
+   - ANCAK ifade tarzın **yalın ve basit Türkçe** olsun — okuyan veli/öğrenci de anlasın
+   - Bilimsel bir terim kullandığında hemen parantez içinde gündelik Türkçeyle karşılığını ver
+   - "Kognitif yük" yerine "zihinsel yorgunluk"; "ekstravert" yerine "dışa dönük" gibi
+   - Uzun Osmanlıca/yabancı kökenli kelimeler yerine güncel Türkçe tercih et
 
-9. **DENGELİ TON:** Abartılı motivasyon ifadelerinden kaçın. "Bu alanda güçlü bir profil ortaya koyuyor" gibi veriye dayalı, ölçülü ifadeler tercih et.
+9. **TAVSİYE EDİCİ ve YOL GÖSTERİCİ TON (KRİTİK):**
+   - Her bölümde analizin ardından **"O halde şunu yapabilirsin / deneyebilirsin"** çizgisinde somut adımlar öner
+   - Emir kipi yerine **yumuşak tavsiye**: "...yapmanı öneririm", "...denemen faydalı olabilir", "...tercih etmen yerinde olur"
+   - Boş motivasyon yerine **uygulanabilir eylem**: hangi kitabı, hangi çalışma saatini, hangi ortamı, hangi yöntemi
+   - Her somut tavsiye **neden** sorusuna cevap vermeli: "Çünkü ${studentName}'in X puanı bu yaklaşımı destekliyor"
 
-10. **YALIN TÜRKÇE:** Teknik terimler kullanıldığında mutlaka parantez içinde açıklama ekle.
+10. **DENGELİ TON:** Abartılı motivasyon ifadelerinden kaçın. "Bu alanda güçlü bir profil ortaya koyuyor" gibi veriye dayalı, ölçülü ifadeler tercih et. Hiçbir zaman olumsuz özellik etiketleme yapma — gelişim alanı olarak çerçevele.
 
 ---
 

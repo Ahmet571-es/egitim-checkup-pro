@@ -4,6 +4,9 @@ import { generateAIReport } from '@/lib/ai/claude-client';
 import { buildCoachingChatPrompt } from '@/lib/ai/prompts/coaching';
 
 
+
+export const runtime = "nodejs";
+export const maxDuration = 300;
 function sanitizeInput(text: string): string {
   return text
     .replace(/`/g, '')

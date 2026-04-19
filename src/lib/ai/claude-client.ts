@@ -1,15 +1,15 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-// Claude API modeli — Haiku 4.5: hızlı, 200k context, 64k max output
-const CLAUDE_MODEL = 'claude-haiku-4-5-20251001';
+// Claude API modeli — Sonnet 4.6: en iyi Türkçe akademik/bilimsel çıktı kalitesi, 200k context, 64k max output
+const CLAUDE_MODEL = 'claude-sonnet-4-6';
 
 // Varsayılan token limiti — uzun psikometrik raporlar için yeterli
-// Haiku 4.5'in teorik max'ı 64000, Vercel 60s timeout için makul değer 16000
-const DEFAULT_MAX_TOKENS = 16000;
+// Sonnet 4.6'nın teorik max'ı 64000, Vercel Pro 300s timeout ile makul değer 24000
+const DEFAULT_MAX_TOKENS = 24000;
 
 const MAX_RETRIES = 2;
 // Continuation için ek token bütçesi (devam çağrısında ayrılacak)
-const CONTINUATION_MAX_TOKENS = 8000;
+const CONTINUATION_MAX_TOKENS = 12000;
 // Son N karakter continuation context'i olarak kullanılır (bağlantı için)
 const CONTINUATION_CONTEXT_CHARS = 1500;
 
@@ -93,7 +93,7 @@ ${tail}
 
 /**
  * Claude API ile rapor üret.
- * Haiku 4.5 tek yanıtta 64k token destekler.
+ * Sonnet 4.6 tek yanıtta 64k token destekler. Vercel Pro 300s timeout ile büyük raporlar rahat yetişir.
  *
  * HİBRİT STRATEJİ:
  * - İlk çağrı max_tokens ile sınırlı

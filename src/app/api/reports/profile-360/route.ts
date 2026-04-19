@@ -6,6 +6,9 @@ import type { PatternInsight } from '@/lib/services/correlation';
 import type { RiskResult } from '@/lib/services/riskScore';
 import type { CareerMatchResult } from '@/lib/services/careerMatch';
 
+export const runtime = 'nodejs';
+export const maxDuration = 300;
+
 interface RequestBody {
   results: Array<{ test_type: string; scores: Record<string, unknown> }>;
   patterns: PatternInsight[];
@@ -106,7 +109,7 @@ Her yorumu parantez içinde kaynak test ve puan ile destekle.
 Abartısız, dengeli, bilimsel bir dil kullan.
 Tıbbi tanı terimi kullanma.`;
 
-    const report = await generateAIReport(prompt, { maxTokens: 10000 });
+    const report = await generateAIReport(prompt, { maxTokens: 14000 });
     return NextResponse.json({ report });
   } catch {
     return NextResponse.json(

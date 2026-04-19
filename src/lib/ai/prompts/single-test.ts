@@ -62,13 +62,21 @@ ${JSON.stringify(testData, null, 2)}
 
 5. **GELİŞİMSEL BAĞLAM:** ${studentAge} yaşında, ${gradeText} düzeyinde bir bireyin gelişimsel özelliklerini referans al.
 
-6. **UZUNLUK:** Bu rapor yaklaşık 900-1200 kelime olmalıdır.
+6. **UZUNLUK:** Bu rapor yaklaşık 1200-1800 kelime olmalıdır (Sonnet 4.6 için genişletildi).
 
-7. **BİLİMSEL TEMEL ZORUNLULUĞU:** Bilimsel terim kullandığında hemen ardından parantez içinde lise öğrencisinin anlayabileceği yalın Türkçe açıklama ekle.
+7. **BİLİMSEL TEMEL + YALIN TÜRKÇE (KRİTİK):**
+   - Analizin altyapısı bilimsel ve akademik olmalı
+   - İfade tarzın **yalın ve basit Türkçe** olsun — okuyan veli/öğrenci de anlasın
+   - Bilimsel bir terim kullandığında hemen parantez içinde gündelik Türkçeyle karşılığını ver
+   - Uzun, Osmanlıca veya yabancı kökenli kelimeler yerine güncel Türkçe tercih et
 
-8. **DENGELİ ve GERÇEKÇİ MOTİVASYON TONU:** "Muhteşem", "olağanüstü", "inanılmaz potansiyel" gibi abartılı ifadeler YASAK. Gerçekçi, dengeli ve yapıcı bir ton kullan.
+8. **TAVSİYE EDİCİ ve YOL GÖSTERİCİ TON (KRİTİK):**
+   - Her analiz bölümünün ardından **somut eylem önerileri** gelmeli
+   - Emir kipi yerine **yumuşak tavsiye**: "...yapmanı öneririm", "...denemen faydalı olabilir", "...tercih etmen yerinde olur"
+   - Boş motivasyon yerine **uygulanabilir eylem**: hangi yöntem, hangi ortam, hangi saat, hangi sıklık
+   - Her tavsiye **neden** sorusuna cevap vermeli: "Çünkü ${studentName}'in X puanı bu yaklaşımı destekliyor"
 
-9. **YALIN TÜRKÇE ZORUNLULUĞU:** Rapor, okuryazar bir lise öğrencisinin anlayabileceği düzeyde yazılmalı.
+9. **DENGELİ ve GERÇEKÇİ MOTİVASYON TONU:** "Muhteşem", "olağanüstü", "inanılmaz potansiyel" gibi abartılı ifadeler YASAK. Gerçekçi, dengeli ve yapıcı bir ton kullan. Olumsuz özellik etiketleme yapma — "gelişim alanı" olarak çerçevele.
 
 ---
 ${testGuidance}
