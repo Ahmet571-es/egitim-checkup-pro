@@ -113,8 +113,8 @@ export default function Page() {
           {/* Pulse ring animasyonu */}
           <div className="absolute top-4 left-4">
             <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-white" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white dark:bg-slate-800 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-white dark:bg-slate-800" />
             </span>
           </div>
 
@@ -126,7 +126,7 @@ export default function Page() {
             <div className="flex-1 text-white min-w-0">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <h2 className="text-[18px] font-extrabold drop-shadow-sm">Öğretmeninden Ödev Var!</h2>
-                <span className="px-2.5 py-0.5 rounded-full bg-white text-orange-600 text-[12px] font-extrabold shadow-sm">
+                <span className="px-2.5 py-0.5 rounded-full bg-white dark:bg-slate-800 text-orange-600 text-[12px] font-extrabold shadow-sm">
                   {homework.length}
                 </span>
               </div>
@@ -149,7 +149,7 @@ export default function Page() {
               </div>
             </div>
 
-            <div className="shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white text-orange-600 text-[13px] font-extrabold shadow-md group-hover:bg-orange-50 group-hover:scale-105 transition-all">
+            <div className="shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 text-orange-600 text-[13px] font-extrabold shadow-md group-hover:bg-orange-50 group-hover:scale-105 transition-all">
               Hemen Çöz
               <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
             </div>
@@ -203,7 +203,7 @@ export default function Page() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <Link
           href="/student/achievements"
-          className="group relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/50 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all overflow-hidden"
+          className="group relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-slate-700/60 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all overflow-hidden"
         >
           <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 opacity-10 blur-2xl group-hover:opacity-25 transition-opacity" />
           <div className="relative flex items-center gap-3">
@@ -211,15 +211,15 @@ export default function Page() {
               <Trophy size={20} />
             </div>
             <div>
-              <p className="font-extrabold text-[#0f2847] text-sm">Başarılarım</p>
-              <p className="text-xs text-gray-500">Rozetlerimi gör</p>
+              <p className="font-extrabold text-[#0f2847] dark:text-slate-100 text-sm">Başarılarım</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400">Rozetlerimi gör</p>
             </div>
           </div>
         </Link>
 
         <Link
           href="/student/coaching"
-          className="group relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/50 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all overflow-hidden"
+          className="group relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-slate-700/60 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all overflow-hidden"
         >
           <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br from-cyan-400 to-sky-500 opacity-10 blur-2xl group-hover:opacity-25 transition-opacity" />
           <div className="relative flex items-center gap-3">
@@ -227,15 +227,15 @@ export default function Page() {
               <Sparkles size={20} />
             </div>
             <div>
-              <p className="font-extrabold text-[#0f2847] text-sm">AI Koçluk</p>
-              <p className="text-xs text-gray-500">Kişiselleştirilmiş rehber</p>
+              <p className="font-extrabold text-[#0f2847] dark:text-slate-100 text-sm">AI Koçluk</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400">Kişiselleştirilmiş rehber</p>
             </div>
           </div>
         </Link>
 
         <Link
           href="/student/profile-360"
-          className="group relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/50 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all overflow-hidden"
+          className="group relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-slate-700/60 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all overflow-hidden"
         >
           <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 opacity-10 blur-2xl group-hover:opacity-25 transition-opacity" />
           <div className="relative flex items-center gap-3">
@@ -243,8 +243,8 @@ export default function Page() {
               <TrendingUp size={20} />
             </div>
             <div>
-              <p className="font-extrabold text-[#0f2847] text-sm">360° Profil</p>
-              <p className="text-xs text-gray-500">Tüm analizler bir arada</p>
+              <p className="font-extrabold text-[#0f2847] dark:text-slate-100 text-sm">360° Profil</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400">Tüm analizler bir arada</p>
             </div>
           </div>
         </Link>

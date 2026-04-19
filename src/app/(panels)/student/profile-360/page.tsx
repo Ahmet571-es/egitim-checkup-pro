@@ -107,7 +107,7 @@ export default function Profile360Page() {
         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg animate-pulse">
           <Radar className="w-7 h-7 text-white" />
         </div>
-        <p className="text-gray-500 text-sm font-medium">360° Profil yükleniyor...</p>
+        <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">360° Profil yükleniyor...</p>
       </div>
     );
   }
@@ -165,19 +165,19 @@ export default function Profile360Page() {
         {/* Risk */}
         {risk && (
           <div className={`relative rounded-3xl border-2 p-6 shadow-sm overflow-hidden ${risk.bgColor} ${risk.borderColor}`}>
-            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white opacity-40 blur-3xl pointer-events-none" />
+            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white dark:bg-slate-800 opacity-40 blur-3xl pointer-events-none" />
             <div className="relative">
               <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-md shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-md shrink-0">
                   <Shield className={`w-5 h-5 ${risk.color}`} />
                 </div>
                 <div>
-                  <h2 className="text-[15px] font-extrabold text-[#0f2847]">Risk Durumu</h2>
-                  <p className="text-[12px] text-gray-600">Genel risk skoru (0-100, düşük = riskli)</p>
+                  <h2 className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100">Risk Durumu</h2>
+                  <p className="text-[12px] text-gray-600 dark:text-slate-300">Genel risk skoru (0-100, düşük = riskli)</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-5 mb-5 p-5 rounded-2xl bg-white/60 backdrop-blur-sm">
+              <div className="flex items-center gap-5 mb-5 p-5 rounded-2xl bg-white/60 dark:bg-slate-800/40 backdrop-blur-sm">
                 <div className={`text-5xl font-extrabold ${risk.color} tabular-nums`}>
                   {risk.overallScore}
                 </div>
@@ -192,12 +192,12 @@ export default function Profile360Page() {
               {/* Boyutlar */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                 {risk.dimensions.map(dim => (
-                  <div key={dim.key} className="bg-white/80 backdrop-blur-sm rounded-xl p-3 text-center border border-white/60 shadow-sm">
-                    <p className="text-[10.5px] text-gray-500 font-bold uppercase tracking-wider mb-1">{dim.name}</p>
-                    <p className="text-2xl font-extrabold text-[#0f2847] tabular-nums">
+                  <div key={dim.key} className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-sm rounded-xl p-3 text-center border border-white/60 dark:border-slate-700/60 shadow-sm">
+                    <p className="text-[10.5px] text-gray-500 dark:text-slate-400 font-bold uppercase tracking-wider mb-1">{dim.name}</p>
+                    <p className="text-2xl font-extrabold text-[#0f2847] dark:text-slate-100 tabular-nums">
                       {dim.available ? dim.score : '—'}
                     </p>
-                    <p className="text-[10px] text-gray-400 font-medium">Ağırlık: %{Math.round(dim.weight * 100)}</p>
+                    <p className="text-[10px] text-gray-400 dark:text-slate-500 font-medium">Ağırlık: %{Math.round(dim.weight * 100)}</p>
                   </div>
                 ))}
               </div>
@@ -213,7 +213,7 @@ export default function Profile360Page() {
                       }`}
                     >
                       <AlertTriangle size={16} className={flag.severity === 'kritik' ? 'text-red-600 shrink-0 mt-0.5' : 'text-amber-600 shrink-0 mt-0.5'} />
-                      <p className="text-[13px] font-semibold text-gray-800">{flag.icon} {flag.message}</p>
+                      <p className="text-[13px] font-semibold text-gray-800 dark:text-slate-200">{flag.icon} {flag.message}</p>
                     </div>
                   ))}
                 </div>
@@ -244,7 +244,7 @@ export default function Profile360Page() {
                 >
                   <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                     <span className="text-xl">{p.icon}</span>
-                    <h3 className="font-extrabold text-[#0f2847]">{p.title}</h3>
+                    <h3 className="font-extrabold text-[#0f2847] dark:text-slate-100">{p.title}</h3>
                     <span className={`text-[10.5px] px-2 py-0.5 rounded-full font-bold ${
                       p.severity === 'kritik'
                         ? 'bg-red-200 text-red-800'
@@ -255,10 +255,10 @@ export default function Profile360Page() {
                       {p.severity === 'kritik' ? 'Kritik' : p.severity === 'uyarı' ? 'Uyarı' : 'Bilgi'}
                     </span>
                   </div>
-                  <p className="text-[13px] text-gray-700 leading-relaxed">{p.description}</p>
+                  <p className="text-[13px] text-gray-700 dark:text-slate-300 leading-relaxed">{p.description}</p>
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     {p.relatedTests.map(t => (
-                      <span key={t} className="text-[11px] bg-gray-200/80 text-gray-700 px-2 py-0.5 rounded-full font-semibold">
+                      <span key={t} className="text-[11px] bg-gray-200/80 text-gray-700 dark:text-slate-300 px-2 py-0.5 rounded-full font-semibold">
                         {TEST_LABELS[t] || t}
                       </span>
                     ))}
@@ -303,8 +303,8 @@ export default function Profile360Page() {
                   <div className="text-3xl shrink-0">{c.icon}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-extrabold text-[#0f2847] text-[14.5px]">{c.career}</span>
-                      <span className="text-[11.5px] text-gray-500">({c.field})</span>
+                      <span className="font-extrabold text-[#0f2847] dark:text-slate-100 text-[14.5px]">{c.career}</span>
+                      <span className="text-[11.5px] text-gray-500 dark:text-slate-400">({c.field})</span>
                     </div>
                     <div className="flex flex-wrap gap-1 mt-1.5">
                       {c.reasons.map((r, i) => (
@@ -316,7 +316,7 @@ export default function Profile360Page() {
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-xl font-extrabold text-emerald-600 tabular-nums">%{c.matchScore}</span>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Uyum</p>
+                    <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider">Uyum</p>
                   </div>
                 </div>
               ))}
@@ -342,9 +342,9 @@ export default function Profile360Page() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-fuchsia-500 via-purple-500 to-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
                 <Sparkles className="w-8 h-8 text-white animate-pulse" />
               </div>
-              <p className="text-gray-600 text-sm mb-5 max-w-md mx-auto leading-relaxed">
+              <p className="text-gray-600 dark:text-slate-300 text-sm mb-5 max-w-md mx-auto leading-relaxed">
                 Claude AI ile tüm test sonuçlarınızın bütüncül analizini oluşturun.<br/>
-                <span className="text-[12px] text-gray-400">Bu işlem ~10-20 saniye sürebilir.</span>
+                <span className="text-[12px] text-gray-400 dark:text-slate-500">Bu işlem ~10-20 saniye sürebilir.</span>
               </p>
               <button
                 onClick={generateAIReport}
@@ -370,7 +370,7 @@ export default function Profile360Page() {
                 <FileText className="w-4 h-4 text-violet-600" />
                 <span className="text-[11.5px] font-extrabold text-violet-700 uppercase tracking-wider">AI Tarafından Oluşturuldu</span>
               </div>
-              <div className="whitespace-pre-wrap text-[13.5px] text-gray-700 leading-relaxed">
+              <div className="whitespace-pre-wrap text-[13.5px] text-gray-700 dark:text-slate-300 leading-relaxed">
                 {aiReport}
               </div>
             </div>

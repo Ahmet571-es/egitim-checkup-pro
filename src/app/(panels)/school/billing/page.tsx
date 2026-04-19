@@ -42,32 +42,32 @@ export default async function Page() {
       {/* Mevcut plan */}
       <div
         data-test="current-plan-card"
-        className="relative mb-6 bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 shadow-sm p-6 overflow-hidden"
+        className="relative mb-6 bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-3xl border border-white/60 dark:border-slate-700/60 shadow-sm p-6 overflow-hidden"
       >
         <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${statusGradient}`} />
         <div className={`absolute -top-20 -right-20 w-60 h-60 rounded-full bg-gradient-to-br ${statusGradient} opacity-[0.08] blur-3xl pointer-events-none`} />
 
         <div className="relative flex items-start justify-between flex-wrap gap-5">
           <div className="min-w-0">
-            <p className="text-[10.5px] font-extrabold uppercase tracking-wider text-gray-400 mb-1">Mevcut Plan</p>
+            <p className="text-[10.5px] font-extrabold uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-1">Mevcut Plan</p>
             <div className="flex items-center gap-3 mb-3">
               <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${statusGradient} text-white flex items-center justify-center shadow-md shrink-0`}>
                 <Shield className="w-5 h-5" />
               </div>
-              <h2 className="text-xl font-extrabold text-[#0f2847] truncate">{state.school?.name || 'Okulunuz'}</h2>
+              <h2 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100 truncate">{state.school?.name || 'Okulunuz'}</h2>
             </div>
 
             {/* Capacity */}
             <div className="flex items-center gap-2 mb-2">
-              <Users className="w-4 h-4 text-gray-400" />
-              <p className="text-sm text-gray-600">
-                Kapasite: <b className="text-[#0f2847]">{state.studentCount}/{state.maxStudents}</b> öğrenci
+              <Users className="w-4 h-4 text-gray-400 dark:text-slate-500" />
+              <p className="text-sm text-gray-600 dark:text-slate-300">
+                Kapasite: <b className="text-[#0f2847] dark:text-slate-100">{state.studentCount}/{state.maxStudents}</b> öğrenci
               </p>
             </div>
-            <div className="h-2 w-60 max-w-full bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 w-60 max-w-full bg-gray-100 dark:bg-slate-700/60 rounded-full overflow-hidden">
               <div className={`h-full ${capacityColor} rounded-full transition-all duration-500`} style={{ width: `${capacityPct}%` }} />
             </div>
-            <p className="text-[11px] text-gray-400 mt-1">%{capacityPct.toFixed(0)} dolulukta</p>
+            <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1">%{capacityPct.toFixed(0)} dolulukta</p>
           </div>
 
           <div className="flex flex-col items-end gap-2 shrink-0">
@@ -77,12 +77,12 @@ export default async function Page() {
             </span>
             {state.status !== 'expired' && state.endDate && (
               <div className="text-right">
-                <p className="text-[11px] text-gray-400 flex items-center gap-1 justify-end">
+                <p className="text-[11px] text-gray-400 dark:text-slate-500 flex items-center gap-1 justify-end">
                   <Calendar className="w-3 h-3" />
                   Bitiş: {new Date(state.endDate).toLocaleDateString('tr-TR')}
                 </p>
-                <p className="text-[13px] text-[#0f2847] font-extrabold">
-                  <b className={state.daysLeft <= 7 ? 'text-red-600' : state.daysLeft <= 30 ? 'text-amber-600' : 'text-[#0f2847]'}>{state.daysLeft}</b> gün kaldı
+                <p className="text-[13px] text-[#0f2847] dark:text-slate-100 font-extrabold">
+                  <b className={state.daysLeft <= 7 ? 'text-red-600' : state.daysLeft <= 30 ? 'text-amber-600' : 'text-[#0f2847] dark:text-slate-100'}>{state.daysLeft}</b> gün kaldı
                 </p>
               </div>
             )}
@@ -96,8 +96,8 @@ export default async function Page() {
           <Sparkles className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h3 className="text-[17px] font-extrabold text-[#0f2847]">Planlar</h3>
-          <p className="text-[12px] text-gray-500">İhtiyacınıza uygun planı seçin</p>
+          <h3 className="text-[17px] font-extrabold text-[#0f2847] dark:text-slate-100">Planlar</h3>
+          <p className="text-[12px] text-gray-500 dark:text-slate-400">İhtiyacınıza uygun planı seçin</p>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 grid-stagger">
@@ -119,7 +119,7 @@ export default async function Page() {
             <Lock className="w-5 h-5" />
           </div>
           <div>
-            <p className="font-extrabold text-[#0f2847] mb-1 flex items-center gap-1.5">
+            <p className="font-extrabold text-[#0f2847] dark:text-slate-100 mb-1 flex items-center gap-1.5">
               <Crown className="w-4 h-4 text-amber-500" /> Güvenli Ödeme
             </p>
             <p className="text-sky-900 text-[13px] leading-relaxed">

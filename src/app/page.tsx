@@ -122,15 +122,15 @@ export default function LandingPage() {
       {/* ═══ NAVBAR ═══ */}
       <nav className={`sticky top-0 z-50 border-b transition-all duration-300 ${
         navScrolled
-          ? 'bg-white/92 backdrop-blur-2xl border-gray-200/50 shadow-[0_1px_3px_rgba(0,0,0,0.06)]'
-          : 'bg-white/60 backdrop-blur-xl border-white/40'
+          ? 'bg-white/92 backdrop-blur-2xl border-gray-200 dark:border-slate-700/50 shadow-[0_1px_3px_rgba(0,0,0,0.06)]'
+          : 'bg-white/60 dark:bg-slate-800/40 backdrop-blur-xl border-white/40 dark:border-slate-700/60'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" aria-label="Ana sayfaya git" className="flex items-center gap-2.5 hover:scale-[1.03] transition-transform duration-200">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
-            <span className="text-[15px] font-extrabold text-[#0f2847] tracking-tight">Eğitim Check-Up</span>
+            <span className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100 tracking-tight">Eğitim Check-Up</span>
           </Link>
 
         </div>
@@ -151,15 +151,15 @@ export default function LandingPage() {
         <FloatingParticles />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-28 text-center">
-          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/80 backdrop-blur-xl border border-white/60 shadow-md mb-8 relative overflow-hidden group">
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-md mb-8 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/10 to-emerald-500/0 -skew-x-12 group-hover:translate-x-full transition-transform duration-700" style={{ transform: 'translateX(-100%)' }} />
             <div className="relative w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
               <Sparkles className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-[13px] font-bold text-[#0f2847] tracking-tight">10 Bilimsel Test · Detaylı Analiz · 4 Panel</span>
+            <span className="text-[13px] font-bold text-[#0f2847] dark:text-slate-100 tracking-tight">10 Bilimsel Test · Detaylı Analiz · 4 Panel</span>
           </div>
 
-          <h1 data-testid="hero-title" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#0f2847] leading-tight tracking-tight max-w-4xl mx-auto">
+          <h1 data-testid="hero-title" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#0f2847] dark:text-slate-100 leading-tight tracking-tight max-w-4xl mx-auto">
             <span className="hero-word-1 inline-block animate-[float-text_3s_ease-in-out_infinite]">Öğrencilerinizi </span>
             <br className="hidden sm:block" />
             <span className="hero-word-2 hero-word-3 inline-block bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_4s_ease-in-out_infinite] hover:scale-[1.05] transition-transform duration-500 cursor-default">
@@ -167,7 +167,7 @@ export default function LandingPage() {
             </span>
           </h1>
 
-          <div className="hero-subtitle mt-6 text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed min-h-[56px] flex flex-wrap items-center justify-center gap-x-1.5">
+          <div className="hero-subtitle mt-6 text-lg sm:text-xl text-gray-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed min-h-[56px] flex flex-wrap items-center justify-center gap-x-1.5">
             <span>Psikometrik testler ile öğrencilerinizin</span>
             <TypingText
               words={['potansiyeli keşfedin', 'kariyer yolunu çizin', 'gelişimi takip edin', 'öğrenme stilini belirleyin']}
@@ -205,7 +205,7 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="hero-trust mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-gray-400">
+          <div className="hero-trust mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-gray-400 dark:text-slate-500">
             <span className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /> KVKK Uyumlu</span>
             <span className="hidden sm:inline w-1 h-1 rounded-full bg-gray-300" />
             <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Detaylı Analiz Raporları</span>
@@ -245,21 +245,21 @@ export default function LandingPage() {
       {/* ═══ HIGHLIGHTS ═══ */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24" ref={highlights.ref}>
         <div className={`text-center mb-14 transition-all duration-500 ${highlights.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847]">Neden Eğitim Check-Up?</h2>
-          <p className="mt-3 text-gray-500 text-lg max-w-xl mx-auto">Öğrencilerinizi tanımanın en kapsamlı ve akıllı yolu</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847] dark:text-slate-100">Neden Eğitim Check-Up?</h2>
+          <p className="mt-3 text-gray-500 dark:text-slate-400 text-lg max-w-xl mx-auto">Öğrencilerinizi tanımanın en kapsamlı ve akıllı yolu</p>
         </div>
         <div className="grid sm:grid-cols-3 gap-5">
           {HIGHLIGHTS.map((h, i) => (
             <div key={h.title}
-              className={`group bg-white/70 backdrop-blur-xl rounded-2xl border p-6 shadow-sm text-center
+              className={`group bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border p-6 shadow-sm text-center
                 hover:-translate-y-2 hover:shadow-xl transition-all duration-300 ${h.color}
                 ${highlights.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               style={{ transitionDelay: highlights.visible ? `${i * 100}ms` : '0ms' }}>
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white to-gray-50 border border-gray-100 flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white to-gray-50 border border-gray-100 dark:border-slate-700/60 flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
                 <h.icon className="w-7 h-7" />
               </div>
-              <h3 className="text-[15px] font-bold text-[#0f2847] mb-2">{h.title}</h3>
-              <p className="text-[13px] text-gray-500 leading-relaxed">{h.desc}</p>
+              <h3 className="text-[15px] font-bold text-[#0f2847] dark:text-slate-100 mb-2">{h.title}</h3>
+              <p className="text-[13px] text-gray-500 dark:text-slate-400 leading-relaxed">{h.desc}</p>
             </div>
           ))}
         </div>
@@ -268,13 +268,13 @@ export default function LandingPage() {
       {/* ═══ TESTS ═══ */}
       <section id="testler" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 scroll-mt-20" ref={tests.ref}>
         <div className={`text-center mb-14 transition-all duration-500 ${tests.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847]">Testlerimiz</h2>
-          <p className="mt-3 text-gray-500 text-lg max-w-xl mx-auto">Bilimsel temelli 10 farklı psikometrik test ile kapsamlı öğrenci profili</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847] dark:text-slate-100">Testlerimiz</h2>
+          <p className="mt-3 text-gray-500 dark:text-slate-400 text-lg max-w-xl mx-auto">Bilimsel temelli 10 farklı psikometrik test ile kapsamlı öğrenci profili</p>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           {TESTS.map((t, i) => (
             <div key={t.name}
-              className={`test-card group bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 border-l-[3px] ${t.border} p-5 shadow-sm
+              className={`test-card group bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 border-l-[3px] ${t.border} p-5 shadow-sm
                 hover:-translate-y-1.5 hover:shadow-lg hover:border-l-[5px] transition-all duration-300
                 ${tests.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               style={{ transitionDelay: tests.visible ? `${i * 80}ms` : '0ms' }}>
@@ -284,10 +284,10 @@ export default function LandingPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-[15px] font-bold text-[#0f2847]">{t.name}</h3>
-                    <span className="text-[12px] text-gray-400 font-semibold bg-gray-50 px-2.5 py-1 rounded-full shrink-0 ml-2">{t.count}</span>
+                    <h3 className="text-[15px] font-bold text-[#0f2847] dark:text-slate-100">{t.name}</h3>
+                    <span className="text-[12px] text-gray-400 dark:text-slate-500 font-semibold bg-gray-50 dark:bg-slate-800/60 px-2.5 py-1 rounded-full shrink-0 ml-2">{t.count}</span>
                   </div>
-                  <p className="text-[13px] text-gray-500 mt-1 group-hover:text-gray-700 transition-colors duration-200">{t.desc}</p>
+                  <p className="text-[13px] text-gray-500 dark:text-slate-400 mt-1 group-hover:text-gray-700 dark:text-slate-300 transition-colors duration-200">{t.desc}</p>
                 </div>
               </div>
             </div>
@@ -298,8 +298,8 @@ export default function LandingPage() {
       {/* ═══ HOW IT WORKS ═══ */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-24" ref={steps.ref}>
         <div className={`text-center mb-14 transition-all duration-500 ${steps.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847]">Nasıl Çalışır?</h2>
-          <p className="mt-3 text-gray-500 text-lg">3 adımda profesyonel öğrenci analizi</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847] dark:text-slate-100">Nasıl Çalışır?</h2>
+          <p className="mt-3 text-gray-500 dark:text-slate-400 text-lg">3 adımda profesyonel öğrenci analizi</p>
         </div>
         <div className="grid sm:grid-cols-3 gap-6 relative">
           <div className="hidden sm:block absolute top-[56px] left-[16.7%] right-[16.7%] h-[2px] overflow-hidden z-0">
@@ -308,7 +308,7 @@ export default function LandingPage() {
           </div>
           {STEPS.map((s, i) => (
             <div key={s.num}
-              className={`relative z-10 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-7 shadow-sm text-center
+              className={`relative z-10 bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-7 shadow-sm text-center
                 hover:shadow-lg hover:-translate-y-1 transition-all duration-300
                 ${steps.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               style={{ transitionDelay: steps.visible ? `${i * 150}ms` : '0ms' }}>
@@ -317,8 +317,8 @@ export default function LandingPage() {
                 <s.icon className="w-6 h-6 text-white" />
               </div>
               <div className="text-[12px] font-bold text-gray-300 mb-2 tracking-wider">ADIM {s.num}</div>
-              <h3 className="text-lg font-bold text-[#0f2847] mb-2">{s.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{s.desc}</p>
+              <h3 className="text-lg font-bold text-[#0f2847] dark:text-slate-100 mb-2">{s.title}</h3>
+              <p className="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">{s.desc}</p>
             </div>
           ))}
         </div>
@@ -327,8 +327,8 @@ export default function LandingPage() {
       {/* ═══ TRUST BADGES (Animated) ═══ */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
         <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847]">Güvenle Kullanın</h2>
-          <p className="mt-3 text-gray-500 text-lg">Eğitim psikolojisi standartlarına uygun altyapı</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847] dark:text-slate-100">Güvenle Kullanın</h2>
+          <p className="mt-3 text-gray-500 dark:text-slate-400 text-lg">Eğitim psikolojisi standartlarına uygun altyapı</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
@@ -338,14 +338,14 @@ export default function LandingPage() {
           ].map((item, i) => (
             <div
               key={item.title}
-              className="group relative bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-6 text-center shadow-sm hover:-translate-y-2 hover:shadow-xl transition-all duration-500 overflow-hidden"
+              className="group relative bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 text-center shadow-sm hover:-translate-y-2 hover:shadow-xl transition-all duration-500 overflow-hidden"
               style={{ animationDelay: `${i * 150}ms` }}
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
               <div className="relative">
                 <div className="text-4xl mb-3 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">{item.icon}</div>
-                <h3 className="text-[15px] font-extrabold text-[#0f2847] mb-1">{item.title}</h3>
-                <p className="text-[12px] text-gray-500">{item.desc}</p>
+                <h3 className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100 mb-1">{item.title}</h3>
+                <p className="text-[12px] text-gray-500 dark:text-slate-400">{item.desc}</p>
               </div>
             </div>
           ))}
@@ -363,24 +363,24 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ FOOTER ═══ */}
-      <footer className="border-t border-gray-200/50 bg-white/40 backdrop-blur-lg" ref={footer.ref}>
+      <footer className="border-t border-gray-200 dark:border-slate-700/50 bg-white/40 backdrop-blur-lg" ref={footer.ref}>
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 transition-all duration-500 ${footer.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                 <GraduationCap className="w-4 h-4 text-white" />
               </div>
-              <span className="text-sm font-bold text-[#0f2847]">Eğitim Check-Up</span>
+              <span className="text-sm font-bold text-[#0f2847] dark:text-slate-100">Eğitim Check-Up</span>
             </div>
-            <div className="flex items-center gap-6 text-sm text-gray-500">
-              <Link href="/kvkk" className="footer-link hover:text-[#0f2847] transition-colors flex items-center gap-1">
+            <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-slate-400">
+              <Link href="/kvkk" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors flex items-center gap-1">
                 <Shield className="w-3.5 h-3.5" /> KVKK
               </Link>
-              <a href="mailto:info@egitimcheckup.com" className="footer-link hover:text-[#0f2847] transition-colors flex items-center gap-1">
+              <a href="mailto:info@egitimcheckup.com" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors flex items-center gap-1">
                 <Mail className="w-3.5 h-3.5" /> info@egitimcheckup.com
               </a>
             </div>
-            <p className="text-xs text-gray-400">© 2026 Eğitim Check-Up. Tüm hakları saklıdır.</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500">© 2026 Eğitim Check-Up. Tüm hakları saklıdır.</p>
           </div>
         </div>
       </footer>

@@ -119,7 +119,7 @@ export default function AdminSchoolsPage() {
             return (
               <div
                 key={s.id}
-                className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all group overflow-hidden"
+                className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all group overflow-hidden"
               >
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500" />
                 <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 opacity-10 blur-2xl group-hover:opacity-25 transition-opacity" />
@@ -132,23 +132,23 @@ export default function AdminSchoolsPage() {
                       <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/30 to-transparent" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-[14.5px] font-extrabold text-[#0f2847] truncate">{s.name}</h3>
+                      <h3 className="text-[14.5px] font-extrabold text-[#0f2847] dark:text-slate-100 truncate">{s.name}</h3>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <Hash className="w-3 h-3 text-gray-400" />
-                        <p className="text-[11px] font-mono text-gray-500">{s.code}</p>
+                        <Hash className="w-3 h-3 text-gray-400 dark:text-slate-500" />
+                        <p className="text-[11px] font-mono text-gray-500 dark:text-slate-400">{s.code}</p>
                       </div>
                     </div>
                     <div className="flex gap-1 shrink-0">
                       <button
                         onClick={() => openEdit(s)}
-                        className="p-1.5 rounded-lg hover:bg-amber-50 text-gray-400 hover:text-amber-600 transition active:scale-95"
+                        className="p-1.5 rounded-lg hover:bg-amber-50 text-gray-400 dark:text-slate-500 hover:text-amber-600 transition active:scale-95"
                         title="Düzenle"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => remove(s.id, s.name)}
-                        className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition active:scale-95"
+                        className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 dark:text-slate-500 hover:text-red-500 transition active:scale-95"
                         title="Sil"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -157,29 +157,29 @@ export default function AdminSchoolsPage() {
                   </div>
 
                   {/* Info rows */}
-                  <div className="space-y-1.5 pt-3 border-t border-gray-100">
+                  <div className="space-y-1.5 pt-3 border-t border-gray-100 dark:border-slate-700/60">
                     {s.city && (
-                      <div className="flex items-center gap-1.5 text-[12px] text-gray-600">
-                        <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                      <div className="flex items-center gap-1.5 text-[12px] text-gray-600 dark:text-slate-300">
+                        <MapPin className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 shrink-0" />
                         <span className="truncate">{s.city}</span>
                       </div>
                     )}
                     {s.phone && (
-                      <div className="flex items-center gap-1.5 text-[12px] text-gray-600">
-                        <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                      <div className="flex items-center gap-1.5 text-[12px] text-gray-600 dark:text-slate-300">
+                        <Phone className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 shrink-0" />
                         <span className="truncate">{s.phone}</span>
                       </div>
                     )}
                     {s.email && (
-                      <div className="flex items-center gap-1.5 text-[12px] text-gray-600">
-                        <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                      <div className="flex items-center gap-1.5 text-[12px] text-gray-600 dark:text-slate-300">
+                        <Mail className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 shrink-0" />
                         <span className="truncate">{s.email}</span>
                       </div>
                     )}
                   </div>
 
                   {/* Status + Capacity */}
-                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 flex-wrap">
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-slate-700/60 flex-wrap">
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${cfg.bg} ${cfg.text} border ${cfg.border}`}>
                       <StatusIcon className="w-3 h-3" />
                       {cfg.label}
@@ -218,61 +218,61 @@ export default function AdminSchoolsPage() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Okul Adı *</label>
+            <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Okul Adı *</label>
             <input
               type="text"
               value={editing.name || ''}
               onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Okul Kodu *</label>
+              <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Okul Kodu *</label>
               <input
                 type="text"
                 value={editing.code || ''}
                 onChange={(e) => setEditing({ ...editing, code: e.target.value.toUpperCase() })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
               />
             </div>
             <div>
-              <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Şehir</label>
+              <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Şehir</label>
               <input
                 type="text"
                 value={editing.city || ''}
                 onChange={(e) => setEditing({ ...editing, city: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
               />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Telefon</label>
+              <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Telefon</label>
               <input
                 type="text"
                 value={editing.phone || ''}
                 onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
               />
             </div>
             <div>
-              <label className="block text-[13px] font-bold text-gray-700 mb-1.5">E-posta</label>
+              <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">E-posta</label>
               <input
                 type="email"
                 value={editing.email || ''}
                 onChange={(e) => setEditing({ ...editing, email: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
               />
             </div>
           </div>
           <div>
-            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Maks. Öğrenci</label>
+            <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Maks. Öğrenci</label>
             <input
               type="number"
               value={editing.max_students || 50}
               onChange={(e) => setEditing({ ...editing, max_students: parseInt(e.target.value) })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
             />
           </div>
         </div>

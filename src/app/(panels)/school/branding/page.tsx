@@ -108,7 +108,7 @@ export default function BrandingPage() {
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center animate-pulse shadow-lg">
           <Palette className="w-6 h-6 text-white" />
         </div>
-        <p className="text-gray-500 text-sm font-medium">Yükleniyor...</p>
+        <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">Yükleniyor...</p>
       </div>
     );
   }
@@ -133,36 +133,36 @@ export default function BrandingPage() {
           >
             <div className="space-y-4">
               <div>
-                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Okul Görünen Adı</label>
+                <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Okul Görünen Adı</label>
                 <input
                   type="text"
                   value={displayName}
                   onChange={e => setDisplayName(e.target.value)}
                   placeholder="Örn: Ankara Fen Lisesi"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Logo URL</label>
+                <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Logo URL</label>
                 <input
                   type="url"
                   value={logoUrl}
                   onChange={e => setLogoUrl(e.target.value)}
                   placeholder="https://example.com/logo.png"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
                 />
-                <p className="text-[11.5px] text-gray-500 mt-1.5">PNG veya SVG, önerilen boyut: 200×60px</p>
+                <p className="text-[11.5px] text-gray-500 dark:text-slate-400 mt-1.5">PNG veya SVG, önerilen boyut: 200×60px</p>
               </div>
 
               <div>
-                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Alt Bilgi Metni</label>
+                <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Alt Bilgi Metni</label>
                 <input
                   type="text"
                   value={customFooter}
                   onChange={e => setCustomFooter(e.target.value)}
                   placeholder="© 2026 Okulunuzun Adı"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
                 />
               </div>
             </div>
@@ -177,7 +177,7 @@ export default function BrandingPage() {
           >
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Ana Renk</label>
+                <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Ana Renk</label>
                 <div className="flex items-center gap-2">
                   <div className="relative w-12 h-12 rounded-xl overflow-hidden shadow-md border-2 border-white ring-1 ring-gray-200">
                     <input
@@ -191,13 +191,13 @@ export default function BrandingPage() {
                     type="text"
                     value={primaryColor}
                     onChange={e => setPrimaryColor(e.target.value)}
-                    className="flex-1 px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+                    className="flex-1 px-3 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">İkincil Renk</label>
+                <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">İkincil Renk</label>
                 <div className="flex items-center gap-2">
                   <div className="relative w-12 h-12 rounded-xl overflow-hidden shadow-md border-2 border-white ring-1 ring-gray-200">
                     <input
@@ -211,7 +211,7 @@ export default function BrandingPage() {
                     type="text"
                     value={secondaryColor}
                     onChange={e => setSecondaryColor(e.target.value)}
-                    className="flex-1 px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+                    className="flex-1 px-3 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
                   />
                 </div>
               </div>
@@ -241,7 +241,7 @@ export default function BrandingPage() {
           gradient="from-emerald-500 to-teal-600"
           delay={160}
         >
-          <div className="relative border-2 border-gray-200 rounded-2xl overflow-hidden shadow-lg">
+          <div className="relative border-2 border-gray-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-lg">
             {/* Header preview */}
             <div
               className="relative p-5 text-white overflow-hidden"
@@ -277,7 +277,7 @@ export default function BrandingPage() {
                 <div className="h-2.5 rounded-full flex-1 shadow-sm" style={{ backgroundColor: secondaryColor }} />
                 <div className="h-2.5 rounded-full flex-1 bg-gray-200" />
               </div>
-              <div className="h-24 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl mb-3 flex items-center justify-center text-[12px] text-gray-400 font-semibold border border-gray-100">
+              <div className="h-24 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl mb-3 flex items-center justify-center text-[12px] text-gray-400 dark:text-slate-500 font-semibold border border-gray-100 dark:border-slate-700/60">
                 İçerik Alanı
               </div>
               <div className="flex gap-2">
@@ -294,7 +294,7 @@ export default function BrandingPage() {
                   İkincil
                 </button>
               </div>
-              <p className="text-[11px] text-gray-400 text-center mt-3 font-medium">
+              <p className="text-[11px] text-gray-400 dark:text-slate-500 text-center mt-3 font-medium">
                 {customFooter || '© 2026 Eğitim Check-Up'}
               </p>
             </div>

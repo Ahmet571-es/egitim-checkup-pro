@@ -54,10 +54,10 @@ export default function BillingPlanCard({ plan, currentMaxStudents, disabled }: 
   return (
     <div
       data-test={`plan-card-${plan.key}`}
-      className={`relative bg-white/80 backdrop-blur-xl rounded-2xl border shadow-sm p-6 flex flex-col ${
+      className={`relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border shadow-sm p-6 flex flex-col ${
         plan.popular
           ? 'border-sky-400 ring-2 ring-sky-300/50'
-          : 'border-white/40'
+          : 'border-white/40 dark:border-slate-700/60'
       }`}
     >
       {plan.popular && (
@@ -66,23 +66,23 @@ export default function BillingPlanCard({ plan, currentMaxStudents, disabled }: 
         </span>
       )}
 
-      <h3 className="text-xl font-extrabold text-[#0f2847] mb-1">{plan.name}</h3>
-      <p className="text-xs text-gray-400 mb-4">
+      <h3 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100 mb-1">{plan.name}</h3>
+      <p className="text-xs text-gray-400 dark:text-slate-500 mb-4">
         {plan.maxStudents === null
           ? 'Sınırsız öğrenci'
           : `Yıllık · ${plan.maxStudents} öğrenci`}
       </p>
 
       <div className="mb-5">
-        <span className="text-3xl font-black text-[#0f2847]">
+        <span className="text-3xl font-black text-[#0f2847] dark:text-slate-100">
           {formatTRY(plan.price)}
         </span>
-        <span className="text-sm text-gray-400 font-semibold"> / yıl</span>
+        <span className="text-sm text-gray-400 dark:text-slate-500 font-semibold"> / yıl</span>
       </div>
 
       <ul className="space-y-2 mb-6 flex-1">
         {plan.features.map((f) => (
-          <li key={f} className="flex items-start gap-2 text-[13px] text-gray-700">
+          <li key={f} className="flex items-start gap-2 text-[13px] text-gray-700 dark:text-slate-300">
             <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
             <span>{f}</span>
           </li>
@@ -95,7 +95,7 @@ export default function BillingPlanCard({ plan, currentMaxStudents, disabled }: 
         data-test={`plan-buy-${plan.key}`}
         className={`w-full px-4 py-3 rounded-xl font-bold text-[14px] transition-all flex items-center justify-center gap-2 ${
           isCurrent
-            ? 'bg-gray-100 text-gray-400 cursor-default'
+            ? 'bg-gray-100 dark:bg-slate-700/60 text-gray-400 dark:text-slate-500 cursor-default'
             : plan.popular
             ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:opacity-90 shadow-lg'
             : 'bg-[#0f2847] text-white hover:bg-[#1a3a5f]'

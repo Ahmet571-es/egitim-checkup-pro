@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 export default async function Page() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return <p className="text-gray-500 p-8">Oturum bulunamadı.</p>;
+  if (!user) return <p className="text-gray-500 dark:text-slate-400 p-8">Oturum bulunamadı.</p>;
 
   const meta = user.user_metadata || {};
 
@@ -92,12 +92,12 @@ export default async function Page() {
           <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6">
             {/* Avatar */}
             <div className="relative shrink-0">
-              <div className="w-28 h-28 rounded-3xl bg-white/25 backdrop-blur-md border-2 border-white/40 flex items-center justify-center text-white text-[36px] font-extrabold shadow-2xl relative overflow-hidden">
+              <div className="w-28 h-28 rounded-3xl bg-white/25 backdrop-blur-md border-2 border-white/40 dark:border-slate-700/60 flex items-center justify-center text-white text-[36px] font-extrabold shadow-2xl relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent" />
                 <span className="relative drop-shadow-md">{initials}</span>
               </div>
               {/* Online dot */}
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-md">
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-md">
                 <div className="relative w-4 h-4 rounded-full bg-emerald-500">
                   <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75" />
                 </div>
@@ -199,7 +199,7 @@ function InfoCard({
   className?: string;
 }) {
   return (
-    <div className={`relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm p-5 overflow-hidden ${className}`}>
+    <div className={`relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-sm p-5 overflow-hidden ${className}`}>
       <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient}`} />
       <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${gradient} opacity-[0.07] blur-2xl pointer-events-none`} />
 
@@ -208,7 +208,7 @@ function InfoCard({
           <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}>
             <Icon className="w-4 h-4 text-white" />
           </div>
-          <h3 className="text-[13px] font-extrabold text-[#0f2847] uppercase tracking-wider">{title}</h3>
+          <h3 className="text-[13px] font-extrabold text-[#0f2847] dark:text-slate-100 uppercase tracking-wider">{title}</h3>
         </div>
         <div className="space-y-2.5">{children}</div>
       </div>
@@ -234,13 +234,13 @@ function InfoRow({
   }[accentColor];
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-gray-50/80 to-white border border-gray-100 hover:border-gray-200 transition-colors">
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-gray-50/80 to-white border border-gray-100 dark:border-slate-700/60 hover:border-gray-200 dark:border-slate-700 transition-colors">
       <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${iconBg}`}>
         <Icon className="w-4 h-4" />
       </div>
       <div className="min-w-0">
-        <p className="text-[10.5px] font-bold uppercase tracking-wider text-gray-400">{label}</p>
-        <p className="text-[13.5px] font-bold text-[#0f2847] truncate">{value}</p>
+        <p className="text-[10.5px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">{label}</p>
+        <p className="text-[13.5px] font-bold text-[#0f2847] dark:text-slate-100 truncate">{value}</p>
       </div>
     </div>
   );

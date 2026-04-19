@@ -91,7 +91,7 @@ export default function DashboardClient({
             <Link
               key={link.href}
               href={link.href}
-              className="ql-card group relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/50 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all overflow-hidden"
+              className="ql-card group relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-slate-700/60 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all overflow-hidden"
               style={{ animationDelay: `${260 + idx * 60}ms` }}
             >
               <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${link.gradient} opacity-10 blur-2xl group-hover:opacity-25 transition-opacity`} />
@@ -99,8 +99,8 @@ export default function DashboardClient({
                 <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${link.gradient} text-white flex items-center justify-center shadow-md mb-3 group-hover:scale-110 group-hover:rotate-6 transition-all`}>
                   <Icon size={20} />
                 </div>
-                <p className="font-extrabold text-[#0f2847] text-[14px]">{link.title}</p>
-                <p className="text-[12px] text-gray-500 mt-0.5">{link.subtitle}</p>
+                <p className="font-extrabold text-[#0f2847] dark:text-slate-100 text-[14px]">{link.title}</p>
+                <p className="text-[12px] text-gray-500 dark:text-slate-400 mt-0.5">{link.subtitle}</p>
               </div>
             </Link>
           );

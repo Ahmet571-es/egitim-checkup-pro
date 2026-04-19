@@ -218,7 +218,7 @@ export default function SchoolTeachersPage() {
             return (
               <div
                 key={t.id}
-                className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all group overflow-hidden"
+                className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all group overflow-hidden"
               >
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600" />
                 <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 opacity-10 blur-2xl group-hover:opacity-25 transition-opacity" />
@@ -231,10 +231,10 @@ export default function SchoolTeachersPage() {
                       <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/30 to-transparent" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-[14.5px] font-extrabold text-[#0f2847] truncate">{t.full_name}</h3>
+                      <h3 className="text-[14.5px] font-extrabold text-[#0f2847] dark:text-slate-100 truncate">{t.full_name}</h3>
                       <div className="flex items-center gap-1 mt-0.5">
-                        <Mail className="w-3 h-3 text-gray-400" />
-                        <p className="text-[11.5px] text-gray-500 truncate">{t.email}</p>
+                        <Mail className="w-3 h-3 text-gray-400 dark:text-slate-500" />
+                        <p className="text-[11.5px] text-gray-500 dark:text-slate-400 truncate">{t.email}</p>
                       </div>
                     </div>
                   </div>
@@ -244,7 +244,7 @@ export default function SchoolTeachersPage() {
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${
                       t.is_active
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'bg-gray-100 text-gray-500 border border-gray-200'
+                        : 'bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-700'
                     }`}>
                       {t.is_active ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
                       {t.is_active ? 'Aktif' : 'Pasif'}
@@ -258,11 +258,11 @@ export default function SchoolTeachersPage() {
                   </div>
 
                   {/* Sınıf isimleri */}
-                  <div className="pt-3 border-t border-gray-100">
+                  <div className="pt-3 border-t border-gray-100 dark:border-slate-700/60">
                     {tClasses.length === 0 ? (
-                      <p className="text-[11.5px] text-gray-400 italic">Henüz sınıf atanmadı</p>
+                      <p className="text-[11.5px] text-gray-400 dark:text-slate-500 italic">Henüz sınıf atanmadı</p>
                     ) : (
-                      <p className="text-[11.5px] text-gray-600 truncate" title={tClasses.map((c) => c.name).join(', ')}>
+                      <p className="text-[11.5px] text-gray-600 dark:text-slate-300 truncate" title={tClasses.map((c) => c.name).join(', ')}>
                         <span className="font-semibold">Sınıflar:</span> {tClasses.map((c) => c.name).join(', ')}
                       </p>
                     )}
@@ -326,7 +326,7 @@ export default function SchoolTeachersPage() {
               type="text"
               value={addForm.full_name}
               onChange={(e) => setAddForm({ ...addForm, full_name: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
             />
           </Field>
           <Field label="E-posta *">
@@ -334,7 +334,7 @@ export default function SchoolTeachersPage() {
               type="email"
               value={addForm.email}
               onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
             />
           </Field>
           <Field label="Şifre *">
@@ -343,9 +343,9 @@ export default function SchoolTeachersPage() {
               value={addForm.password}
               onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
               placeholder="En az 6 karakter"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
             />
-            <p className="text-[11.5px] text-gray-500 mt-1.5 flex items-center gap-1">
+            <p className="text-[11.5px] text-gray-500 dark:text-slate-400 mt-1.5 flex items-center gap-1">
               <AlertCircle className="w-3 h-3 text-amber-500" />
               Bu şifreyi öğretmen ile paylaşmayı unutmayın.
             </p>
@@ -380,7 +380,7 @@ export default function SchoolTeachersPage() {
               value={resetForm.password}
               onChange={(e) => setResetForm({ password: e.target.value })}
               placeholder="En az 6 karakter"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
             />
           </Field>
         </div>
@@ -407,12 +407,12 @@ export default function SchoolTeachersPage() {
         }
       >
         {err && <ErrBox msg={err} />}
-        <p className="text-[12.5px] text-gray-500 mb-4 leading-relaxed">
+        <p className="text-[12.5px] text-gray-500 dark:text-slate-400 mb-4 leading-relaxed">
           Öğretmenin görmesi gereken sınıfları seçin. Seçilmeyen sınıflar üzerindeki atamalar kaldırılacak.
         </p>
         <div className="max-h-80 overflow-auto space-y-2 pr-1 -mr-1">
           {classes.length === 0 && (
-            <p className="text-gray-400 text-sm text-center py-8">Hiç sınıf yok.</p>
+            <p className="text-gray-400 dark:text-slate-500 text-sm text-center py-8">Hiç sınıf yok.</p>
           )}
           {classes.map((c) => {
             const checked = selectedClassIds.has(c.id);
@@ -423,7 +423,7 @@ export default function SchoolTeachersPage() {
                 className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                   checked
                     ? 'border-sky-400 bg-gradient-to-r from-sky-50 to-blue-50 shadow-sm'
-                    : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                    : 'border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:bg-slate-800/60 hover:border-gray-300'
                 }`}
               >
                 <input
@@ -433,7 +433,7 @@ export default function SchoolTeachersPage() {
                   className="w-4 h-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-[#0f2847] truncate">{c.name}</p>
+                  <p className="text-sm font-bold text-[#0f2847] dark:text-slate-100 truncate">{c.name}</p>
                   {ownedByOther && (
                     <p className="text-[11.5px] text-amber-600 mt-0.5 flex items-center gap-1">
                       <AlertCircle className="w-3 h-3 shrink-0" />
@@ -448,7 +448,7 @@ export default function SchoolTeachersPage() {
       </PremiumModal>
 
       {!schoolId && !loading && (
-        <p className="text-[12px] text-gray-400 mt-3">Okul bulunamadı.</p>
+        <p className="text-[12px] text-gray-400 dark:text-slate-500 mt-3">Okul bulunamadı.</p>
       )}
     </div>
   );
@@ -458,7 +458,7 @@ export default function SchoolTeachersPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-[13px] font-bold text-gray-700 mb-1.5">{label}</label>
+      <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">{label}</label>
       {children}
     </div>
   );

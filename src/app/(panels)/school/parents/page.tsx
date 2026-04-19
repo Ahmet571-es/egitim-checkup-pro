@@ -127,7 +127,7 @@ export default function SchoolParentsPage() {
           {filtered.map((p) => (
             <div
               key={p.id}
-              className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all group overflow-hidden"
+              className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all group overflow-hidden"
             >
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-rose-500 to-red-500" />
               <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 opacity-10 blur-2xl group-hover:opacity-25 transition-opacity" />
@@ -140,15 +140,15 @@ export default function SchoolParentsPage() {
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/30 to-transparent" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-[14.5px] font-extrabold text-[#0f2847] truncate">{p.full_name}</h3>
+                    <h3 className="text-[14.5px] font-extrabold text-[#0f2847] dark:text-slate-100 truncate">{p.full_name}</h3>
                     <div className="flex items-center gap-1 mt-0.5">
-                      <Mail className="w-3 h-3 text-gray-400" />
-                      <p className="text-[11.5px] text-gray-500 truncate">{p.email}</p>
+                      <Mail className="w-3 h-3 text-gray-400 dark:text-slate-500" />
+                      <p className="text-[11.5px] text-gray-500 dark:text-slate-400 truncate">{p.email}</p>
                     </div>
                   </div>
                   <button
                     onClick={() => remove(p.id, p.full_name)}
-                    className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition active:scale-95 shrink-0"
+                    className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 dark:text-slate-500 hover:text-red-500 transition active:scale-95 shrink-0"
                     title="Pasife Al"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -156,15 +156,15 @@ export default function SchoolParentsPage() {
                 </div>
 
                 {/* Children */}
-                <div className="pt-3 border-t border-gray-100">
+                <div className="pt-3 border-t border-gray-100 dark:border-slate-700/60">
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <Baby className="w-3.5 h-3.5 text-rose-500" />
-                    <span className="text-[11.5px] font-bold text-gray-700">
+                    <span className="text-[11.5px] font-bold text-gray-700 dark:text-slate-300">
                       Çocukları ({p.children.length})
                     </span>
                   </div>
                   {p.children.length === 0 ? (
-                    <p className="text-[11.5px] text-gray-400 italic">Henüz çocuk eşleştirilmedi</p>
+                    <p className="text-[11.5px] text-gray-400 dark:text-slate-500 italic">Henüz çocuk eşleştirilmedi</p>
                   ) : (
                     <div className="flex flex-wrap gap-1">
                       {p.children.map((c) => (
@@ -202,33 +202,33 @@ export default function SchoolParentsPage() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Ad Soyad *</label>
+            <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Ad Soyad *</label>
             <input
               type="text"
               value={form.full_name}
               onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-400 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-400 transition-all"
             />
           </div>
           <div>
-            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">E-posta *</label>
+            <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">E-posta *</label>
             <input
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-400 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-400 transition-all"
             />
           </div>
           <div>
-            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Çocukları</label>
-            <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-xl p-2 space-y-1 bg-gray-50/50">
+            <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Çocukları</label>
+            <div className="max-h-48 overflow-y-auto border border-gray-200 dark:border-slate-700 rounded-xl p-2 space-y-1 bg-gray-50 dark:bg-slate-800/60/50">
               {students.map((s) => {
                 const checked = form.student_ids.includes(s.id);
                 return (
                   <label
                     key={s.id}
                     className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition ${
-                      checked ? 'bg-rose-50 border border-rose-200' : 'hover:bg-white border border-transparent'
+                      checked ? 'bg-rose-50 border border-rose-200' : 'hover:bg-white dark:bg-slate-800 border border-transparent'
                     }`}
                   >
                     <input
@@ -244,11 +244,11 @@ export default function SchoolParentsPage() {
                       }}
                       className="w-4 h-4 rounded border-gray-300 text-rose-600 focus:ring-rose-500"
                     />
-                    <span className="text-sm text-gray-700 font-medium">{s.full_name}</span>
+                    <span className="text-sm text-gray-700 dark:text-slate-300 font-medium">{s.full_name}</span>
                   </label>
                 );
               })}
-              {students.length === 0 && <p className="text-xs text-gray-400 text-center py-4">Önce öğrenci ekleyin.</p>}
+              {students.length === 0 && <p className="text-xs text-gray-400 dark:text-slate-500 text-center py-4">Önce öğrenci ekleyin.</p>}
             </div>
           </div>
           <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-[12px] text-rose-700 flex items-start gap-2">

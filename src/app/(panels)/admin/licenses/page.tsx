@@ -96,7 +96,7 @@ export default async function Page() {
           return (
             <div
               key={s.label}
-              className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-4 sm:p-5 shadow-sm overflow-hidden group hover:shadow-lg transition-all"
+              className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-4 sm:p-5 shadow-sm overflow-hidden group hover:shadow-lg transition-all"
             >
               <div className={`absolute -top-8 -right-8 w-28 h-28 rounded-full bg-gradient-to-br ${s.gradient} opacity-10 blur-2xl group-hover:opacity-25 transition-opacity`} />
               <div className="relative flex items-center gap-3">
@@ -104,8 +104,8 @@ export default async function Page() {
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] sm:text-[11px] text-gray-400 font-bold uppercase tracking-wider">{s.label}</p>
-                  <p className="text-xl sm:text-2xl font-extrabold text-[#0f2847] tabular-nums">{s.value}</p>
+                  <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider">{s.label}</p>
+                  <p className="text-xl sm:text-2xl font-extrabold text-[#0f2847] dark:text-slate-100 tabular-nums">{s.value}</p>
                 </div>
               </div>
             </div>
@@ -114,12 +114,12 @@ export default async function Page() {
       </div>
 
       {/* Table */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2 text-sm bg-gradient-to-r from-amber-50/50 to-orange-50/30">
+      <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-700/60 flex items-center gap-2 text-sm bg-gradient-to-r from-amber-50/50 to-orange-50/30">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-sm">
             <TrendingUp className="w-3.5 h-3.5" />
           </div>
-          <span className="font-bold text-[#0f2847]">{total} okul listeleniyor</span>
+          <span className="font-bold text-[#0f2847] dark:text-slate-100">{total} okul listeleniyor</span>
         </div>
 
         {error && (
@@ -141,7 +141,7 @@ export default async function Page() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gradient-to-r from-amber-50 via-orange-50 to-rose-50 border-b border-amber-100">
-                <tr className="text-left text-[11px] font-extrabold uppercase tracking-wider text-[#0f2847]">
+                <tr className="text-left text-[11px] font-extrabold uppercase tracking-wider text-[#0f2847] dark:text-slate-100">
                   <th className="px-5 py-3.5">Okul</th>
                   <th className="px-3 py-3.5">Kod</th>
                   <th className="px-3 py-3.5">Durum</th>
@@ -170,12 +170,12 @@ export default async function Page() {
                           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md shrink-0">
                             <Building className="w-4 h-4" />
                           </div>
-                          <span className="font-bold text-[#0f2847]">{s.name}</span>
+                          <span className="font-bold text-[#0f2847] dark:text-slate-100">{s.name}</span>
                         </div>
                       </td>
-                      <td className="px-3 py-4 text-gray-500 font-mono text-[12px]">
+                      <td className="px-3 py-4 text-gray-500 dark:text-slate-400 font-mono text-[12px]">
                         <div className="flex items-center gap-1">
-                          <Hash className="w-3 h-3 text-gray-400" />
+                          <Hash className="w-3 h-3 text-gray-400 dark:text-slate-500" />
                           {s.code}
                         </div>
                       </td>
@@ -185,10 +185,10 @@ export default async function Page() {
                           {cfg.label}
                         </span>
                       </td>
-                      <td className="px-3 py-4 text-gray-600 text-[12.5px]">
+                      <td className="px-3 py-4 text-gray-600 dark:text-slate-300 text-[12.5px]">
                         {s.license_end_date ? (
                           <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-gray-400" />
+                            <Calendar className="w-3 h-3 text-gray-400 dark:text-slate-500" />
                             {new Date(s.license_end_date).toLocaleDateString('tr-TR')}
                           </div>
                         ) : (
@@ -197,7 +197,7 @@ export default async function Page() {
                       </td>
                       <td className="px-3 py-4 text-[12.5px]">
                         {d > 0 ? (
-                          <span className={`font-bold ${d <= 7 ? 'text-red-600' : d <= 30 ? 'text-amber-600' : 'text-gray-700'}`}>
+                          <span className={`font-bold ${d <= 7 ? 'text-red-600' : d <= 30 ? 'text-amber-600' : 'text-gray-700 dark:text-slate-300'}`}>
                             {d} gün
                           </span>
                         ) : (
@@ -206,16 +206,16 @@ export default async function Page() {
                       </td>
                       <td className="px-3 py-4 text-[12.5px]">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1 text-gray-600">
-                            <Users className="w-3 h-3 text-gray-400" />
+                          <div className="flex items-center gap-1 text-gray-600 dark:text-slate-300">
+                            <Users className="w-3 h-3 text-gray-400 dark:text-slate-500" />
                             <span className="font-semibold">{s.student_count ?? 0}/{s.max_students}</span>
                           </div>
-                          <div className="h-1 w-20 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-1 w-20 bg-gray-100 dark:bg-slate-700/60 rounded-full overflow-hidden">
                             <div className={`h-full ${capColor} rounded-full transition-all`} style={{ width: `${capPct}%` }} />
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-gray-500 text-[12px]">
+                      <td className="px-5 py-4 text-gray-500 dark:text-slate-400 text-[12px]">
                         {s.email || '—'}
                       </td>
                     </tr>

@@ -126,7 +126,7 @@ export default function CompletedTestsPage() {
             return (
               <div
                 key={s.label}
-                className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-4 shadow-sm overflow-hidden group hover:shadow-lg transition-all"
+                className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-4 shadow-sm overflow-hidden group hover:shadow-lg transition-all"
               >
                 <div className={`absolute -top-8 -right-8 w-28 h-28 rounded-full bg-gradient-to-br ${s.gradient} opacity-10 blur-2xl group-hover:opacity-25 transition-opacity`} />
                 <div className="relative flex items-center gap-2.5">
@@ -134,8 +134,8 @@ export default function CompletedTestsPage() {
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{s.label}</p>
-                    <p className="text-xl sm:text-2xl font-extrabold text-[#0f2847] tabular-nums">{s.value}</p>
+                    <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider">{s.label}</p>
+                    <p className="text-xl sm:text-2xl font-extrabold text-[#0f2847] dark:text-slate-100 tabular-nums">{s.value}</p>
                   </div>
                 </div>
               </div>
@@ -145,12 +145,12 @@ export default function CompletedTestsPage() {
       )}
 
       {/* Filters */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-4 shadow-sm mb-4">
+      <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-4 shadow-sm mb-4">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
             <Filter className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">Filtreler</span>
+          <span className="text-[12px] font-extrabold text-[#0f2847] dark:text-slate-100 uppercase tracking-wider">Filtreler</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
           <SearchBar role="teacher" value={search} onChange={setSearch} placeholder="Öğrenci ara..." />
@@ -158,7 +158,7 @@ export default function CompletedTestsPage() {
           <select
             value={schoolFilter}
             onChange={(e) => setSchoolFilter(e.target.value)}
-            className="px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+            className="px-3.5 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
           >
             <option value="all">Tüm okullar</option>
             {schools.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -167,7 +167,7 @@ export default function CompletedTestsPage() {
           <select
             value={testFilter}
             onChange={(e) => setTestFilter(e.target.value)}
-            className="px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+            className="px-3.5 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
           >
             <option value="all">Tüm testler</option>
             {testTypes.map((t) => <option key={t} value={t}>{labelOf(t)}</option>)}
@@ -176,7 +176,7 @@ export default function CompletedTestsPage() {
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value as DateRange)}
-            className="px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+            className="px-3.5 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
           >
             <option value="all">Tüm tarihler</option>
             <option value="7d">Son 7 gün</option>
@@ -187,7 +187,7 @@ export default function CompletedTestsPage() {
           <select
             value={reportFilter}
             onChange={(e) => setReportFilter(e.target.value as 'all' | 'with' | 'without')}
-            className="px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+            className="px-3.5 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
           >
             <option value="all">Tüm raporlar</option>
             <option value="with">Raporlu</option>
@@ -213,7 +213,7 @@ export default function CompletedTestsPage() {
           subtitle={logs.length === 0 ? 'Öğrencilerin test çözdükçe burada görüneceksin.' : 'Farklı filtre seçmeyi dene.'}
         />
       ) : (
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm overflow-hidden">
+        <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-sm overflow-hidden">
           {filtered.map((l, idx) => (
             <Link
               key={l.id}
@@ -232,7 +232,7 @@ export default function CompletedTestsPage() {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[14px] font-extrabold text-[#0f2847] truncate">{l.student_name}</span>
+                  <span className="text-[14px] font-extrabold text-[#0f2847] dark:text-slate-100 truncate">{l.student_name}</span>
                   <span className="text-[10.5px] text-violet-700 font-bold bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200">{labelOf(l.test_type)}</span>
                   {l.has_report && (
                     <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
@@ -241,10 +241,10 @@ export default function CompletedTestsPage() {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2.5 mt-1 text-[11px] text-gray-500 flex-wrap font-medium">
-                  <span className="flex items-center gap-1"><School className="w-3 h-3 text-gray-400" /> {l.school_name}</span>
-                  <span className="flex items-center gap-1"><GraduationCap className="w-3 h-3 text-gray-400" /> {l.class_name}</span>
-                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3 text-gray-400" /> {formatDate(l.completed_at)}</span>
+                <div className="flex items-center gap-2.5 mt-1 text-[11px] text-gray-500 dark:text-slate-400 flex-wrap font-medium">
+                  <span className="flex items-center gap-1"><School className="w-3 h-3 text-gray-400 dark:text-slate-500" /> {l.school_name}</span>
+                  <span className="flex items-center gap-1"><GraduationCap className="w-3 h-3 text-gray-400 dark:text-slate-500" /> {l.class_name}</span>
+                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3 text-gray-400 dark:text-slate-500" /> {formatDate(l.completed_at)}</span>
                 </div>
               </div>
 

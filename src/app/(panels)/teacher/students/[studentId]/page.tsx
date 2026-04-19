@@ -461,21 +461,21 @@ export default function StudentDetailPage() {
         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/40 animate-pulse">
           <GraduationCap className="w-7 h-7 text-white" />
         </div>
-        <p className="text-gray-500 text-sm font-medium">Öğrenci yükleniyor...</p>
+        <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">Öğrenci yükleniyor...</p>
       </div>
     );
   }
 
   if (!student) {
     return (
-      <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border border-white/50 p-12 text-center shadow-sm overflow-hidden my-10">
+      <div className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-3xl border border-white/50 dark:border-slate-700/60 p-12 text-center shadow-sm overflow-hidden my-10">
         <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-gradient-to-br from-red-200 to-rose-200 opacity-30 blur-3xl" />
         <div className="relative">
           <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg">
             <X className="w-10 h-10 text-white" />
           </div>
-          <p className="text-[17px] text-[#0f2847] font-extrabold mb-2">Öğrenci bulunamadı</p>
-          <p className="text-gray-500 text-sm mb-5">Bu ID ile eşleşen öğrenci yok ya da erişiminiz yok.</p>
+          <p className="text-[17px] text-[#0f2847] dark:text-slate-100 font-extrabold mb-2">Öğrenci bulunamadı</p>
+          <p className="text-gray-500 dark:text-slate-400 text-sm mb-5">Bu ID ile eşleşen öğrenci yok ya da erişiminiz yok.</p>
           <Link
             href="/teacher/students"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 text-white text-[13.5px] font-extrabold shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-[0.97]"
@@ -493,7 +493,7 @@ export default function StudentDetailPage() {
     <div className="pb-8">
       <Link
         href="/teacher/students"
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/80 backdrop-blur-md border border-white/60 text-[12.5px] text-gray-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 font-bold transition-all mb-4 shadow-sm active:scale-95"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/80 dark:bg-slate-800/60 backdrop-blur-md border border-white/60 dark:border-slate-700/60 text-[12.5px] text-gray-600 dark:text-slate-300 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 font-bold transition-all mb-4 shadow-sm active:scale-95"
       >
         <ArrowLeft className="w-3.5 h-3.5" /> Öğrencilere dön
       </Link>
@@ -514,12 +514,12 @@ export default function StudentDetailPage() {
           <div className="relative flex items-start gap-4 flex-wrap">
             {/* Avatar */}
             <div className="relative shrink-0">
-              <div className="w-16 h-16 rounded-2xl bg-white/25 backdrop-blur-md border-2 border-white/40 flex items-center justify-center shadow-xl overflow-hidden">
+              <div className="w-16 h-16 rounded-2xl bg-white/25 backdrop-blur-md border-2 border-white/40 dark:border-slate-700/60 flex items-center justify-center shadow-xl overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent" />
                 <GraduationCap className="w-8 h-8 text-white relative drop-shadow-md" />
               </div>
               {/* Online dot */}
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-md">
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-md">
                 <div className="relative w-3 h-3 rounded-full bg-emerald-500">
                   <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75" />
                 </div>
@@ -528,7 +528,7 @@ export default function StudentDetailPage() {
 
             <div className="flex-1 min-w-0 text-white">
               <div className="flex items-center gap-1.5 mb-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-white dark:bg-slate-800 animate-pulse" />
                 <p className="text-white/80 text-[10.5px] font-extrabold uppercase tracking-wider">Öğrenci Profili</p>
               </div>
               <h2 className="text-2xl sm:text-[26px] font-extrabold drop-shadow-sm tracking-tight truncate">{student.full_name}</h2>
@@ -540,7 +540,7 @@ export default function StudentDetailPage() {
             {/* Transfer button */}
             <button
               onClick={openTransferModal}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white text-[#0f2847] text-[12.5px] font-extrabold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all shrink-0 active:scale-[0.97]"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 text-[#0f2847] dark:text-slate-100 text-[12.5px] font-extrabold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all shrink-0 active:scale-[0.97]"
               title="Bu öğrenciyi başka bir öğretmene aktar"
             >
               <ArrowRightLeft className="w-3.5 h-3.5" />
@@ -579,7 +579,7 @@ export default function StudentDetailPage() {
               <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/30 to-transparent" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[15px] font-extrabold text-[#0f2847]">
+              <h3 className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100">
                 Öğrencinin çözmesi gereken {activeAssignments.length === 1 ? 'test' : 'testler'}:
               </h3>
               <p className="text-[12px] text-amber-700 mt-0.5 font-medium">
@@ -589,7 +589,7 @@ export default function StudentDetailPage() {
           </div>
           <div className="relative flex flex-wrap gap-2" style={{ paddingLeft: '52px' }}>
             {activeAssignments.map((t) => (
-              <span key={t} className="inline-flex items-center gap-1.5 bg-white border-2 border-amber-300 text-amber-900 text-[12px] font-extrabold px-3 py-1.5 rounded-full shadow-sm hover:border-amber-400 hover:shadow-md transition-all">
+              <span key={t} className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 border-2 border-amber-300 text-amber-900 text-[12px] font-extrabold px-3 py-1.5 rounded-full shadow-sm hover:border-amber-400 hover:shadow-md transition-all">
                 {labelOf(t)}
                 <button
                   onClick={() => handleUnassign(t)}
@@ -619,13 +619,13 @@ export default function StudentDetailPage() {
       )}
 
       {/* Sekmeler */}
-      <div className="flex gap-2 mb-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-1.5 shadow-sm">
+      <div className="flex gap-2 mb-4 bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-1.5 shadow-sm">
         <button
           onClick={() => setTab('pending')}
           className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
             tab === 'pending'
               ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md'
-              : 'text-gray-500 hover:bg-gray-50'
+              : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:bg-slate-800/60'
           }`}
         >
           <BookOpen className="w-4 h-4" /> Yapılacak Testler ({pending.length})
@@ -635,7 +635,7 @@ export default function StudentDetailPage() {
           className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
             tab === 'done'
               ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md'
-              : 'text-gray-500 hover:bg-gray-50'
+              : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:bg-slate-800/60'
           }`}
         >
           <CheckCircle2 className="w-4 h-4" /> Yapılan Testler ({completed.length})
@@ -646,14 +646,14 @@ export default function StudentDetailPage() {
       {tab === 'pending' && (
         <div>
           {pending.length === 0 ? (
-            <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-12 text-center shadow-sm">
+            <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-12 text-center shadow-sm">
               <p className="text-5xl mb-3">🎉</p>
-              <p className="text-gray-600 font-semibold">Tüm testler tamamlandı!</p>
-              <p className="text-gray-400 text-sm mt-2">Öğrenci 10 testin hepsini bitirdi.</p>
+              <p className="text-gray-600 dark:text-slate-300 font-semibold">Tüm testler tamamlandı!</p>
+              <p className="text-gray-400 dark:text-slate-500 text-sm mt-2">Öğrenci 10 testin hepsini bitirdi.</p>
             </div>
           ) : (
             <>
-              <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden mb-4">
+              <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm overflow-hidden mb-4">
                 {pending.map((t) => {
                   const isSelected = selected.has(t);
                   const isAlreadyAssigned = activeAssignments.includes(t);
@@ -667,7 +667,7 @@ export default function StudentDetailPage() {
                     >
                       {isSelected ? <CheckCircle2 className="w-5 h-5 text-sky-600 shrink-0" /> : <Circle className="w-5 h-5 text-gray-300 shrink-0" />}
                       <div className="flex-1">
-                        <p className="text-[14px] font-semibold text-[#0f2847]">{labelOf(t)}</p>
+                        <p className="text-[14px] font-semibold text-[#0f2847] dark:text-slate-100">{labelOf(t)}</p>
                         {isAlreadyAssigned && (
                           <p className="text-[11px] text-amber-600 font-medium mt-0.5">⚡ Daha önce atandı, henüz çözülmedi</p>
                         )}
@@ -701,19 +701,19 @@ export default function StudentDetailPage() {
       {tab === 'done' && (
         <div>
           {completed.length === 0 ? (
-            <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-12 text-center shadow-sm">
+            <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-12 text-center shadow-sm">
               <p className="text-5xl mb-3">📭</p>
-              <p className="text-gray-500 font-semibold">Henüz tamamlanan test yok.</p>
+              <p className="text-gray-500 dark:text-slate-400 font-semibold">Henüz tamamlanan test yok.</p>
             </div>
           ) : (
             <>
               {/* Test bazlı tekil raporlar */}
-              <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden mb-6">
+              <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm overflow-hidden mb-6">
                 <div className="px-4 py-3 bg-gradient-to-r from-sky-50 to-blue-50 border-b border-sky-100">
-                  <h3 className="text-[14px] font-extrabold text-[#0f2847] flex items-center gap-2">
+                  <h3 className="text-[14px] font-extrabold text-[#0f2847] dark:text-slate-100 flex items-center gap-2">
                     <FileText className="w-4 h-4 text-sky-600" /> Tekil Raporlar
                   </h3>
-                  <p className="text-[11px] text-gray-500 mt-0.5">Her test için ayrı AI analiz raporu.</p>
+                  <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">Her test için ayrı AI analiz raporu.</p>
                 </div>
 
                 {completed.map((c) => {
@@ -723,27 +723,27 @@ export default function StudentDetailPage() {
                   const isLatest = attemptInfo.isLatest(c.id, c.test_type);
                   const showAttemptBadge = totalAttempts > 1;
                   return (
-                    <div key={c.id} className={`px-4 py-3.5 border-b border-gray-50 last:border-b-0 ${showAttemptBadge && !isLatest ? 'bg-gray-50/50' : ''}`}>
+                    <div key={c.id} className={`px-4 py-3.5 border-b border-gray-50 last:border-b-0 ${showAttemptBadge && !isLatest ? 'bg-gray-50 dark:bg-slate-800/60/50' : ''}`}>
                       <div className="flex items-center gap-3 mb-2">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${c.has_report ? 'bg-emerald-100' : 'bg-gray-100'}`}>
-                          <CheckCircle2 className={`w-4 h-4 ${c.has_report ? 'text-emerald-600' : 'text-gray-400'}`} />
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${c.has_report ? 'bg-emerald-100' : 'bg-gray-100 dark:bg-slate-700/60'}`}>
+                          <CheckCircle2 className={`w-4 h-4 ${c.has_report ? 'text-emerald-600' : 'text-gray-400 dark:text-slate-500'}`} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="text-[14px] font-semibold text-[#0f2847] truncate">{labelOf(c.test_type)}</p>
+                            <p className="text-[14px] font-semibold text-[#0f2847] dark:text-slate-100 truncate">{labelOf(c.test_type)}</p>
                             {showAttemptBadge && (
                               isLatest ? (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-sm">
                                   ✓ En Güncel
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-200 text-gray-600">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-200 text-gray-600 dark:text-slate-300">
                                   {attemptNo}. Deneme
                                 </span>
                               )
                             )}
                           </div>
-                          <p className="text-[11px] text-gray-400">
+                          <p className="text-[11px] text-gray-400 dark:text-slate-500">
                             Tamamlandı: {formatDate(c.completed_at)}
                             {c.ai_report_generated_at && ` · Rapor: ${formatDate(c.ai_report_generated_at)}`}
                           </p>
@@ -787,7 +787,7 @@ export default function StudentDetailPage() {
                             <button
                               onClick={() => generateSingle(c, true)}
                               disabled={isBusy}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-[12px] font-bold hover:bg-gray-200 disabled:opacity-60 transition-all"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-slate-700/60 text-gray-600 dark:text-slate-300 text-[12px] font-bold hover:bg-gray-200 disabled:opacity-60 transition-all"
                             >
                               {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Yenile
                             </button>
@@ -809,7 +809,7 @@ export default function StudentDetailPage() {
                         <Brain className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-[15px] font-extrabold text-[#0f2847]">Harmanlanmış (Bütüncül) Rapor</h3>
+                        <h3 className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100">Harmanlanmış (Bütüncül) Rapor</h3>
                         <p className="text-[12px] text-purple-700 mt-0.5">Seçtiğiniz testleri birleştiren bütüncül analiz. İstediğiniz test kombinasyonu için ayrı rapor üretebilirsiniz.</p>
                       </div>
                     </div>
@@ -818,7 +818,7 @@ export default function StudentDetailPage() {
                     <div style={{ paddingLeft: '52px' }}>
                       <button
                         onClick={() => setHolisticExpanded(v => !v)}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white text-purple-700 text-[12px] font-bold border border-purple-300 hover:bg-purple-50 transition-all"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white dark:bg-slate-800 text-purple-700 text-[12px] font-bold border border-purple-300 hover:bg-purple-50 transition-all"
                       >
                         {holisticExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                         {holisticExpanded ? 'Test Seçimini Gizle' : 'Test Seç ve Harmanla'}
@@ -832,9 +832,9 @@ export default function StudentDetailPage() {
 
                     {/* Test Seçim Listesi */}
                     {holisticExpanded && (
-                      <div className="mt-3 bg-white rounded-xl border border-purple-200 p-4" style={{ marginLeft: '52px' }}>
+                      <div className="mt-3 bg-white dark:bg-slate-800 rounded-xl border border-purple-200 p-4" style={{ marginLeft: '52px' }}>
                         <div className="flex items-center justify-between mb-3 pb-3 border-b border-purple-100">
-                          <div className="text-[12px] font-bold text-[#0f2847]">
+                          <div className="text-[12px] font-bold text-[#0f2847] dark:text-slate-100">
                             Harmanlanacak testleri seçin
                             <span className="ml-2 text-[11px] font-normal text-purple-600">
                               ({holisticSelected.size} / {completed.length} seçili)
@@ -849,7 +849,7 @@ export default function StudentDetailPage() {
                             </button>
                             <button
                               onClick={clearAllHolistic}
-                              className="text-[11px] font-semibold text-gray-600 hover:text-gray-900 px-2 py-1 rounded hover:bg-gray-50 transition"
+                              className="text-[11px] font-semibold text-gray-600 dark:text-slate-300 hover:text-gray-900 px-2 py-1 rounded hover:bg-gray-50 dark:bg-slate-800/60 transition"
                             >
                               Temizle
                             </button>
@@ -866,13 +866,13 @@ export default function StudentDetailPage() {
                                 className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-left transition-all ${
                                   isSelected
                                     ? 'bg-purple-50 border-purple-400 text-purple-900 shadow-sm'
-                                    : 'bg-white border-gray-200 text-gray-700 hover:border-purple-300 hover:bg-purple-50/50'
+                                    : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:border-purple-300 hover:bg-purple-50/50'
                                 }`}
                               >
                                 {isSelected ? (
                                   <CheckSquare className="w-4 h-4 text-purple-600 shrink-0" />
                                 ) : (
-                                  <Square className="w-4 h-4 text-gray-400 shrink-0" />
+                                  <Square className="w-4 h-4 text-gray-400 dark:text-slate-500 shrink-0" />
                                 )}
                                 <span className="text-[12px] font-semibold flex-1 truncate">{labelOf(ct.test_type)}</span>
                               </button>
@@ -909,11 +909,11 @@ export default function StudentDetailPage() {
                       <div className="mt-3" style={{ marginLeft: '52px' }}>
                         <button
                           onClick={() => setHolisticHistoryOpen(v => !v)}
-                          className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-white border border-purple-200 hover:bg-purple-50 transition"
+                          className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-white dark:bg-slate-800 border border-purple-200 hover:bg-purple-50 transition"
                         >
                           <div className="flex items-center gap-2">
                             <FileText className="w-4 h-4 text-purple-600" />
-                            <span className="text-[12px] font-bold text-[#0f2847]">
+                            <span className="text-[12px] font-bold text-[#0f2847] dark:text-slate-100">
                               Geçmiş Harmanlanmış Raporlar
                             </span>
                             <span className="px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold">
@@ -926,14 +926,14 @@ export default function StudentDetailPage() {
                         {holisticHistoryOpen && (
                           <div className="mt-2 space-y-2">
                             {holisticHistory.map((hr, idx) => (
-                              <div key={hr.id} className="bg-white rounded-xl border border-purple-200 p-3 hover:shadow-sm transition">
+                              <div key={hr.id} className="bg-white dark:bg-slate-800 rounded-xl border border-purple-200 p-3 hover:shadow-sm transition">
                                 <div className="flex items-start justify-between gap-3 flex-wrap">
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1.5">
                                       <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-[10px] font-bold">
                                         #{holisticHistory.length - idx}
                                       </span>
-                                      <span className="text-[12px] font-semibold text-[#0f2847]">
+                                      <span className="text-[12px] font-semibold text-[#0f2847] dark:text-slate-100">
                                         {formatDate(hr.generated_at)}
                                       </span>
                                       <span className="text-[11px] text-purple-600">
@@ -947,7 +947,7 @@ export default function StudentDetailPage() {
                                         </span>
                                       ))}
                                       {hr.selected_test_types.length > 6 && (
-                                        <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[10px] font-semibold">
+                                        <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-700/60 text-gray-600 dark:text-slate-300 text-[10px] font-semibold">
                                           +{hr.selected_test_types.length - 6}
                                         </span>
                                       )}
@@ -959,7 +959,7 @@ export default function StudentDetailPage() {
                                         title: `${student.full_name} — Harmanlanmış Rapor (${formatDate(hr.generated_at)})`,
                                         text: hr.text,
                                       })}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white text-purple-700 text-[11px] font-bold border border-purple-300 hover:bg-purple-50 transition"
+                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-purple-700 text-[11px] font-bold border border-purple-300 hover:bg-purple-50 transition"
                                     >
                                       <Eye className="w-3 h-3" /> Görüntüle
                                     </button>
@@ -967,7 +967,7 @@ export default function StudentDetailPage() {
                                       href={`/api/export/holistic/pdf?id=${encodeURIComponent(hr.id)}`}
                                       target="_blank"
                                       rel="noopener"
-                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white text-rose-700 text-[11px] font-bold border border-rose-200 hover:bg-rose-50 transition"
+                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-rose-700 text-[11px] font-bold border border-rose-200 hover:bg-rose-50 transition"
                                       title="PDF olarak indir"
                                     >
                                       <Download className="w-3 h-3" /> PDF
@@ -976,7 +976,7 @@ export default function StudentDetailPage() {
                                       href={`/api/export/holistic/docx?id=${encodeURIComponent(hr.id)}`}
                                       target="_blank"
                                       rel="noopener"
-                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white text-sky-700 text-[11px] font-bold border border-sky-200 hover:bg-sky-50 transition"
+                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-sky-700 text-[11px] font-bold border border-sky-200 hover:bg-sky-50 transition"
                                       title="Word (DOCX) olarak indir"
                                     >
                                       <Download className="w-3 h-3" /> DOCX
@@ -984,7 +984,7 @@ export default function StudentDetailPage() {
                                     <button
                                       onClick={() => deleteHolistic(hr.id)}
                                       disabled={busyKey === 'holistic-delete-' + hr.id}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white text-red-600 text-[11px] font-bold border border-red-200 hover:bg-red-50 disabled:opacity-60 transition"
+                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-red-600 text-[11px] font-bold border border-red-200 hover:bg-red-50 disabled:opacity-60 transition"
                                     >
                                       {busyKey === 'holistic-delete-' + hr.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
                                     </button>
@@ -1005,7 +1005,7 @@ export default function StudentDetailPage() {
                         <Layers className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-[15px] font-extrabold text-[#0f2847]">Entegre 3&apos;lü Rapor</h3>
+                        <h3 className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100">Entegre 3&apos;lü Rapor</h3>
                         <p className="text-[12px] text-rose-700 mt-0.5">Öğretmen + Öğrenci + Veli için özelleştirilmiş 3 ayrı rapor.</p>
                       </div>
                     </div>
@@ -1028,7 +1028,7 @@ export default function StudentDetailPage() {
                               pdfUrl: `/api/export/integrated?student_id=${studentId}&format=pdf`,
                               docxUrl: `/api/export/integrated?student_id=${studentId}&format=docx`,
                             })}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white text-sky-700 text-[12px] font-bold border border-sky-300 hover:bg-sky-50 transition-all"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white dark:bg-slate-800 text-sky-700 text-[12px] font-bold border border-sky-300 hover:bg-sky-50 transition-all"
                           >
                             <Eye className="w-3.5 h-3.5" /> Öğretmen
                           </button>
@@ -1039,7 +1039,7 @@ export default function StudentDetailPage() {
                               pdfUrl: `/api/export/integrated?student_id=${studentId}&format=pdf`,
                               docxUrl: `/api/export/integrated?student_id=${studentId}&format=docx`,
                             })}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white text-violet-700 text-[12px] font-bold border border-violet-300 hover:bg-violet-50 transition-all"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white dark:bg-slate-800 text-violet-700 text-[12px] font-bold border border-violet-300 hover:bg-violet-50 transition-all"
                           >
                             <Eye className="w-3.5 h-3.5" /> Öğrenci
                           </button>
@@ -1050,7 +1050,7 @@ export default function StudentDetailPage() {
                               pdfUrl: `/api/export/integrated?student_id=${studentId}&format=pdf`,
                               docxUrl: `/api/export/integrated?student_id=${studentId}&format=docx`,
                             })}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white text-pink-700 text-[12px] font-bold border border-pink-300 hover:bg-pink-50 transition-all"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white dark:bg-slate-800 text-pink-700 text-[12px] font-bold border border-pink-300 hover:bg-pink-50 transition-all"
                           >
                             <Eye className="w-3.5 h-3.5" /> Veli
                           </button>
@@ -1069,7 +1069,7 @@ export default function StudentDetailPage() {
                           <button
                             onClick={() => generateIntegrated(true)}
                             disabled={busyKey === 'integrated'}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white text-gray-600 text-[12px] font-bold border border-gray-300 hover:bg-gray-50 disabled:opacity-60 transition-all"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 text-[12px] font-bold border border-gray-300 hover:bg-gray-50 dark:bg-slate-800/60 disabled:opacity-60 transition-all"
                           >
                             {busyKey === 'integrated' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Yenile
                           </button>
@@ -1092,15 +1092,15 @@ export default function StudentDetailPage() {
                       // Kilitli durum
                       const missingReports = completed.filter((c) => !c.has_report).length;
                       return (
-                        <div className="mt-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-2xl p-5 text-center">
-                          <Lock className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <h3 className="text-[14px] font-extrabold text-gray-600 mb-1">İleri Analiz Kilitli</h3>
-                          <p className="text-[12px] text-gray-500">
+                        <div className="mt-4 bg-gray-50 dark:bg-slate-800/60 border-2 border-dashed border-gray-300 rounded-2xl p-5 text-center">
+                          <Lock className="w-8 h-8 text-gray-400 dark:text-slate-500 mx-auto mb-2" />
+                          <h3 className="text-[14px] font-extrabold text-gray-600 dark:text-slate-300 mb-1">İleri Analiz Kilitli</h3>
+                          <p className="text-[12px] text-gray-500 dark:text-slate-400">
                             {completed.length < 2
                               ? 'En az 2 test tamamlanmalı.'
                               : `İleri analizi açmak için ${missingReports} testin daha raporu üretilmeli.`}
                           </p>
-                          <p className="text-[11px] text-gray-400 mt-2">
+                          <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-2">
                             🔓 Risk Skoru, Korelasyon, Kariyer Önerileri ve 360° Profil burada görünecek.
                           </p>
                         </div>
@@ -1129,14 +1129,14 @@ export default function StudentDetailPage() {
                         {advanced.riskScore && (
                           <div className={`rounded-2xl border-2 p-5 shadow-sm ${advanced.riskScore.bgColor} ${advanced.riskScore.borderColor}`}>
                             <div className="flex items-start gap-3 mb-3">
-                              <div className="w-10 h-10 rounded-xl bg-white shadow-md flex items-center justify-center shrink-0">
+                              <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 shadow-md flex items-center justify-center shrink-0">
                                 <Shield className={`w-5 h-5 ${advanced.riskScore.color}`} />
                               </div>
                               <div className="flex-1">
                                 <h3 className={`text-[15px] font-extrabold ${advanced.riskScore.color} flex items-center gap-2`}>
                                   Risk Skoru: {advanced.riskScore.label} {advanced.riskScore.emoji}
                                 </h3>
-                                <p className="text-[12px] text-gray-600 mt-0.5">
+                                <p className="text-[12px] text-gray-600 dark:text-slate-300 mt-0.5">
                                   Genel Skor: <strong>{Math.round(advanced.riskScore.overallScore)}/100</strong>
                                 </p>
                               </div>
@@ -1145,9 +1145,9 @@ export default function StudentDetailPage() {
                             {/* Boyutlar */}
                             <div className="grid grid-cols-2 gap-2 mb-3" style={{ marginLeft: '52px' }}>
                               {advanced.riskScore.dimensions.map((d) => (
-                                <div key={d.key} className="bg-white/70 rounded-lg p-2 border border-white/50">
-                                  <p className="text-[10px] uppercase font-bold text-gray-400">{d.name}</p>
-                                  <p className={`text-sm font-extrabold ${d.available ? 'text-[#0f2847]' : 'text-gray-300'}`}>
+                                <div key={d.key} className="bg-white/70 dark:bg-slate-800/50 rounded-lg p-2 border border-white/50 dark:border-slate-700/60">
+                                  <p className="text-[10px] uppercase font-bold text-gray-400 dark:text-slate-500">{d.name}</p>
+                                  <p className={`text-sm font-extrabold ${d.available ? 'text-[#0f2847] dark:text-slate-100' : 'text-gray-300'}`}>
                                     {d.available && d.score !== null ? `${Math.round(d.score)}/100` : '—'}
                                   </p>
                                 </div>
@@ -1176,7 +1176,7 @@ export default function StudentDetailPage() {
                                 <Link2 className="w-5 h-5 text-white" />
                               </div>
                               <div className="flex-1">
-                                <h3 className="text-[15px] font-extrabold text-[#0f2847]">Korelasyon Bulguları</h3>
+                                <h3 className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100">Korelasyon Bulguları</h3>
                                 <p className="text-[12px] text-blue-700 mt-0.5">
                                   Testler arası anlamlı bağlantılar ({advanced.patterns.length})
                                 </p>
@@ -1187,13 +1187,13 @@ export default function StudentDetailPage() {
                                 <div key={p.id} className={`rounded-xl p-3 border ${
                                   p.severity === 'kritik' ? 'bg-red-50 border-red-200' :
                                   p.severity === 'uyarı' ? 'bg-amber-50 border-amber-200' :
-                                  'bg-white border-blue-100'
+                                  'bg-white dark:bg-slate-800 border-blue-100'
                                 }`}>
                                   <div className="flex items-start gap-2">
                                     <span className="text-lg">{p.icon}</span>
                                     <div className="flex-1">
-                                      <h4 className="text-[13px] font-bold text-[#0f2847]">{p.title}</h4>
-                                      <p className="text-[12px] text-gray-600 mt-0.5">{p.description}</p>
+                                      <h4 className="text-[13px] font-bold text-[#0f2847] dark:text-slate-100">{p.title}</h4>
+                                      <p className="text-[12px] text-gray-600 dark:text-slate-300 mt-0.5">{p.description}</p>
                                     </div>
                                   </div>
                                 </div>
@@ -1204,14 +1204,14 @@ export default function StudentDetailPage() {
 
                         {/* GÜÇLÜ KORELASYON ÇİFTLERİ */}
                         {advanced.correlation && advanced.correlation.pairs.filter(p => p.strength === 'güçlü').length > 0 && (
-                          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-5 shadow-sm">
-                            <h4 className="text-[14px] font-extrabold text-[#0f2847] mb-3 flex items-center gap-2">
+                          <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-5 shadow-sm">
+                            <h4 className="text-[14px] font-extrabold text-[#0f2847] dark:text-slate-100 mb-3 flex items-center gap-2">
                               <Link2 className="w-4 h-4 text-indigo-500" /> Güçlü Test Bağlantıları
                             </h4>
                             <div className="space-y-1.5">
                               {advanced.correlation.pairs.filter(p => p.strength === 'güçlü').map((p, i) => (
-                                <div key={i} className="flex items-center justify-between text-[12px] px-3 py-2 bg-gray-50 rounded-lg">
-                                  <span className="font-semibold text-[#0f2847]">
+                                <div key={i} className="flex items-center justify-between text-[12px] px-3 py-2 bg-gray-50 dark:bg-slate-800/60 rounded-lg">
+                                  <span className="font-semibold text-[#0f2847] dark:text-slate-100">
                                     {labelOf(p.testA)} ↔ {labelOf(p.testB)}
                                   </span>
                                   <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
@@ -1233,32 +1233,32 @@ export default function StudentDetailPage() {
                                 <Briefcase className="w-5 h-5 text-white" />
                               </div>
                               <div className="flex-1">
-                                <h3 className="text-[15px] font-extrabold text-[#0f2847]">Kariyer Önerileri</h3>
+                                <h3 className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100">Kariyer Önerileri</h3>
                                 <p className="text-[12px] text-amber-700 mt-0.5">
                                   Çoklu Zekâ + Holland RIASEC + VARK eşleşmesi
                                 </p>
                               </div>
                             </div>
-                            <p className="text-[12px] text-gray-600 mb-3 italic" style={{ marginLeft: '52px' }}>
+                            <p className="text-[12px] text-gray-600 dark:text-slate-300 mb-3 italic" style={{ marginLeft: '52px' }}>
                               {advanced.career.compatibilityNote}
                             </p>
                             <div className="space-y-2" style={{ marginLeft: '52px' }}>
                               {advanced.career.topCareers.map((c) => (
-                                <div key={c.rank} className="bg-white rounded-xl p-3 border border-amber-100 shadow-sm">
+                                <div key={c.rank} className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-amber-100 shadow-sm">
                                   <div className="flex items-start gap-3">
                                     <span className="text-2xl">{c.icon}</span>
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center justify-between gap-2 mb-1">
-                                        <h4 className="text-[13px] font-extrabold text-[#0f2847] truncate">
+                                        <h4 className="text-[13px] font-extrabold text-[#0f2847] dark:text-slate-100 truncate">
                                           #{c.rank} {c.career}
                                         </h4>
                                         <span className="text-[11px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full shrink-0">
                                           %{c.matchScore}
                                         </span>
                                       </div>
-                                      <p className="text-[11px] text-gray-500 mb-1">{c.field}</p>
+                                      <p className="text-[11px] text-gray-500 dark:text-slate-400 mb-1">{c.field}</p>
                                       {c.reasons.length > 0 && (
-                                        <ul className="text-[11px] text-gray-600 space-y-0.5">
+                                        <ul className="text-[11px] text-gray-600 dark:text-slate-300 space-y-0.5">
                                           {c.reasons.slice(0, 2).map((r, i) => (
                                             <li key={i}>• {r}</li>
                                           ))}
@@ -1295,8 +1295,8 @@ export default function StudentDetailPage() {
               )}
 
               {completed.length === 1 && (
-                <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 text-center mt-2">
-                  <p className="text-[12px] text-gray-500">
+                <div className="bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-2xl p-4 text-center mt-2">
+                  <p className="text-[12px] text-gray-500 dark:text-slate-400">
                     💡 Harmanlanmış ve 3&apos;lü Entegre Rapor üretmek için en az <strong>2 tamamlanmış test</strong> gerekir.
                   </p>
                 </div>
@@ -1314,19 +1314,19 @@ export default function StudentDetailPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full"
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full"
           >
-            <div className="px-6 py-5 border-b border-gray-100">
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-slate-700/60">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md shrink-0">
                   <AlertTriangle className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="text-[16px] font-extrabold text-[#0f2847]">Yeni Harmanlanmış Rapor Üretilecek</h3>
+                <h3 className="text-[16px] font-extrabold text-[#0f2847] dark:text-slate-100">Yeni Harmanlanmış Rapor Üretilecek</h3>
               </div>
             </div>
 
             <div className="px-6 py-5 space-y-4">
-              <p className="text-[13px] text-gray-700 leading-relaxed">
+              <p className="text-[13px] text-gray-700 dark:text-slate-300 leading-relaxed">
                 Seçtiğiniz <strong className="text-purple-700">{holisticSelected.size} test</strong> için yeni bir harmanlanmış rapor üretilecek.
                 Daha önce üretilmiş harmanlanmış raporlar <strong>silinmez</strong>, bu yeni bir kayıt olarak eklenir ve geçmiş listede görüntülenir.
               </p>
@@ -1335,7 +1335,7 @@ export default function StudentDetailPage() {
                 <div className="text-[11px] font-bold text-purple-700 mb-2">SEÇİLİ TESTLER:</div>
                 <div className="flex flex-wrap gap-1.5">
                   {Array.from(holisticSelected).map(t => (
-                    <span key={t} className="px-2 py-0.5 rounded-full bg-white border border-purple-300 text-purple-800 text-[11px] font-semibold">
+                    <span key={t} className="px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 border border-purple-300 text-purple-800 text-[11px] font-semibold">
                       {labelOf(t)}
                     </span>
                   ))}
@@ -1350,16 +1350,16 @@ export default function StudentDetailPage() {
               </div>
 
               {holisticHistory.length > 0 && (
-                <p className="text-[11px] text-gray-500 italic">
+                <p className="text-[11px] text-gray-500 dark:text-slate-400 italic">
                   Şu an bu öğrenci için <strong>{holisticHistory.length}</strong> harmanlanmış rapor mevcut. Yeni üretim ile {holisticHistory.length + 1}&apos;e çıkacak.
                 </p>
               )}
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-2">
+            <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-700/60 flex items-center justify-end gap-2">
               <button
                 onClick={() => setHolisticConfirmOpen(false)}
-                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-[12px] font-bold hover:bg-gray-200 transition-all"
+                className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-slate-700/60 text-gray-700 dark:text-slate-300 text-[12px] font-bold hover:bg-gray-200 transition-all"
               >
                 İptal
               </button>
@@ -1387,11 +1387,11 @@ export default function StudentDetailPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col"
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col"
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
-              <h3 className="text-[16px] font-extrabold text-[#0f2847]">{viewer.title}</h3>
-              <button onClick={() => setViewer(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-700/60 shrink-0">
+              <h3 className="text-[16px] font-extrabold text-[#0f2847] dark:text-slate-100">{viewer.title}</h3>
+              <button onClick={() => setViewer(null)} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:text-slate-300 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1401,7 +1401,7 @@ export default function StudentDetailPage() {
             </div>
 
             {(viewer.pdfUrl || viewer.docxUrl) && (
-              <div className="flex items-center gap-2 px-6 py-3 border-t border-gray-100 shrink-0">
+              <div className="flex items-center gap-2 px-6 py-3 border-t border-gray-100 dark:border-slate-700/60 shrink-0">
                 {viewer.pdfUrl && (
                   <a href={viewer.pdfUrl} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-50 text-red-700 text-[12px] font-bold border border-red-200 hover:bg-red-100 transition-all">
                     <Download className="w-3.5 h-3.5" /> PDF İndir
@@ -1412,7 +1412,7 @@ export default function StudentDetailPage() {
                     <Download className="w-3.5 h-3.5" /> DOCX İndir
                   </a>
                 )}
-                <button onClick={() => setViewer(null)} className="ml-auto px-3 py-2 rounded-lg bg-gray-100 text-gray-600 text-[12px] font-bold hover:bg-gray-200 transition-all">
+                <button onClick={() => setViewer(null)} className="ml-auto px-3 py-2 rounded-lg bg-gray-100 dark:bg-slate-700/60 text-gray-600 dark:text-slate-300 text-[12px] font-bold hover:bg-gray-200 transition-all">
                   Kapat
                 </button>
               </div>
@@ -1429,36 +1429,36 @@ export default function StudentDetailPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[85vh] flex flex-col"
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-xl w-full max-h-[85vh] flex flex-col"
           >
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-slate-700/60 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-cyan-500 flex items-center justify-center shadow-md shrink-0">
                   <ArrowRightLeft className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-[16px] font-extrabold text-[#0f2847]">Öğrenciyi Aktar</h3>
-                  <p className="text-[11px] text-gray-500">{student.full_name} için hedef öğretmen seçin</p>
+                  <h3 className="text-[16px] font-extrabold text-[#0f2847] dark:text-slate-100">Öğrenciyi Aktar</h3>
+                  <p className="text-[11px] text-gray-500 dark:text-slate-400">{student.full_name} için hedef öğretmen seçin</p>
                 </div>
               </div>
               <button
                 onClick={() => !transferring && setTransferModalOpen(false)}
-                className="text-gray-400 hover:text-gray-700 transition-colors"
+                className="text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:text-slate-300 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Arama kutusu */}
-            <div className="px-6 py-3 border-b border-gray-100 shrink-0">
+            <div className="px-6 py-3 border-b border-gray-100 dark:border-slate-700/60 shrink-0">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
                 <input
                   type="text"
                   value={transferSearch}
                   onChange={(e) => setTransferSearch(e.target.value)}
                   placeholder="Öğretmen ara (isim, branş, okul)..."
-                  className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-700 text-[13px] focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
                 />
               </div>
             </div>
@@ -1466,12 +1466,12 @@ export default function StudentDetailPage() {
             {/* Liste */}
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {transferLoading ? (
-                <div className="flex items-center justify-center py-12 text-gray-400">
+                <div className="flex items-center justify-center py-12 text-gray-400 dark:text-slate-500">
                   <Loader2 className="w-5 h-5 animate-spin mr-2" />
                   Öğretmenler yükleniyor...
                 </div>
               ) : filteredTransferTeachers.length === 0 ? (
-                <div className="text-center py-12 text-gray-400 text-[13px]">
+                <div className="text-center py-12 text-gray-400 dark:text-slate-500 text-[13px]">
                   {transferSearch ? 'Aramanıza uygun öğretmen bulunamadı.' : 'Aktarım yapılabilecek başka onaylı öğretmen yok.'}
                 </div>
               ) : (
@@ -1480,14 +1480,14 @@ export default function StudentDetailPage() {
                     <button
                       key={t.id}
                       onClick={() => confirmTransfer({ id: t.id, full_name: t.full_name })}
-                      className="w-full text-left bg-white hover:bg-sky-50 border border-gray-200 hover:border-sky-300 rounded-xl p-3 transition-all flex items-center gap-3"
+                      className="w-full text-left bg-white dark:bg-slate-800 hover:bg-sky-50 border border-gray-200 dark:border-slate-700 hover:border-sky-300 rounded-xl p-3 transition-all flex items-center gap-3"
                     >
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-100 to-cyan-100 flex items-center justify-center shrink-0">
                         <UserPlus className="w-5 h-5 text-sky-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-bold text-[#0f2847] truncate">{t.full_name}</p>
-                        <p className="text-[11px] text-gray-500 truncate">
+                        <p className="text-[13px] font-bold text-[#0f2847] dark:text-slate-100 truncate">{t.full_name}</p>
+                        <p className="text-[11px] text-gray-500 dark:text-slate-400 truncate">
                           {t.branch && <span>{t.branch}</span>}
                           {t.branch && t.school_name && <span> · </span>}
                           {t.school_name && <span>{t.school_name}</span>}
@@ -1501,8 +1501,8 @@ export default function StudentDetailPage() {
               )}
             </div>
 
-            <div className="px-6 py-3 border-t border-gray-100 shrink-0">
-              <p className="text-[11px] text-gray-500 text-center">
+            <div className="px-6 py-3 border-t border-gray-100 dark:border-slate-700/60 shrink-0">
+              <p className="text-[11px] text-gray-500 dark:text-slate-400 text-center">
                 Aktarım sonrası öğrencinin tüm verileri (testler, raporlar) korunur.
               </p>
             </div>
@@ -1518,20 +1518,20 @@ export default function StudentDetailPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full"
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full"
           >
-            <div className="px-6 py-5 border-b border-gray-100">
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-slate-700/60">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-md shrink-0">
                   <AlertTriangle className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="text-[16px] font-extrabold text-[#0f2847]">Aktarımı Onayla</h3>
+                <h3 className="text-[16px] font-extrabold text-[#0f2847] dark:text-slate-100">Aktarımı Onayla</h3>
               </div>
             </div>
 
             <div className="px-6 py-5 space-y-3">
-              <p className="text-[13px] text-gray-700 leading-relaxed">
-                <strong className="text-[#0f2847]">{student.full_name}</strong> adlı öğrenciyi{' '}
+              <p className="text-[13px] text-gray-700 dark:text-slate-300 leading-relaxed">
+                <strong className="text-[#0f2847] dark:text-slate-100">{student.full_name}</strong> adlı öğrenciyi{' '}
                 <strong className="text-sky-700">{transferSelected.full_name}</strong> adlı öğretmene aktarmak üzeresiniz.
               </p>
 
@@ -1554,11 +1554,11 @@ export default function StudentDetailPage() {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-2">
+            <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-700/60 flex items-center justify-end gap-2">
               <button
                 onClick={() => !transferring && setTransferConfirmOpen(false)}
                 disabled={transferring}
-                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-[12px] font-bold hover:bg-gray-200 disabled:opacity-60 transition-all"
+                className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-slate-700/60 text-gray-700 dark:text-slate-300 text-[12px] font-bold hover:bg-gray-200 disabled:opacity-60 transition-all"
               >
                 İptal
               </button>

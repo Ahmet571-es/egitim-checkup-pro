@@ -248,16 +248,16 @@ export default function SchoolStudentsPage() {
           subtitle={search ? 'Arama terimlerini değiştirmeyi deneyin.' : 'İlk öğrencinizi eklemek için "Yeni Öğrenci" veya "CSV İçe Aktar" butonlarını kullanın.'}
         />
       ) : (
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm overflow-hidden">
+        <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50 border-b border-sky-100">
                 <tr>
-                  <th className="text-left px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">Ad Soyad</th>
-                  <th className="text-left px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">E-posta</th>
-                  <th className="text-left px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">Durum</th>
-                  <th className="text-left px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">Kayıt</th>
-                  <th className="text-right px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">İşlem</th>
+                  <th className="text-left px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] dark:text-slate-100 uppercase tracking-wider">Ad Soyad</th>
+                  <th className="text-left px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] dark:text-slate-100 uppercase tracking-wider">E-posta</th>
+                  <th className="text-left px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] dark:text-slate-100 uppercase tracking-wider">Durum</th>
+                  <th className="text-left px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] dark:text-slate-100 uppercase tracking-wider">Kayıt</th>
+                  <th className="text-right px-5 py-3.5 text-[12px] font-extrabold text-[#0f2847] dark:text-slate-100 uppercase tracking-wider">İşlem</th>
                 </tr>
               </thead>
               <tbody>
@@ -272,12 +272,12 @@ export default function SchoolStudentsPage() {
                         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white flex items-center justify-center shadow-md text-[12px] font-extrabold shrink-0">
                           {s.full_name.charAt(0).toUpperCase()}
                         </div>
-                        <span className="font-bold text-[#0f2847]">{s.full_name}</span>
+                        <span className="font-bold text-[#0f2847] dark:text-slate-100">{s.full_name}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-gray-600">
+                    <td className="px-5 py-4 text-gray-600 dark:text-slate-300">
                       <div className="flex items-center gap-1.5">
-                        <Mail className="w-3 h-3 text-gray-400" />
+                        <Mail className="w-3 h-3 text-gray-400 dark:text-slate-500" />
                         {s.email}
                       </div>
                     </td>
@@ -285,22 +285,22 @@ export default function SchoolStudentsPage() {
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-bold ${
                         s.is_active
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : 'bg-gray-100 text-gray-500 border border-gray-200'
+                          : 'bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-700'
                       }`}>
                         {s.is_active ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
                         {s.is_active ? 'Aktif' : 'Pasif'}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-gray-500 text-[12.5px]">
+                    <td className="px-5 py-4 text-gray-500 dark:text-slate-400 text-[12.5px]">
                       <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3 h-3 text-gray-400" />
+                        <Calendar className="w-3 h-3 text-gray-400 dark:text-slate-500" />
                         {new Date(s.created_at).toLocaleDateString('tr-TR')}
                       </div>
                     </td>
                     <td className="px-5 py-4 text-right">
                       <button
                         onClick={() => removeStudent(s.id, s.full_name)}
-                        className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition active:scale-95"
+                        className="p-2 rounded-lg hover:bg-red-50 text-gray-400 dark:text-slate-500 hover:text-red-500 transition active:scale-95"
                         title="Pasife Al"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -344,29 +344,29 @@ export default function SchoolStudentsPage() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Ad Soyad *</label>
+            <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Ad Soyad *</label>
             <input
               type="text"
               value={newStudent.full_name}
               onChange={(e) => setNewStudent({ ...newStudent, full_name: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
             />
           </div>
           <div>
-            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">E-posta *</label>
+            <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">E-posta *</label>
             <input
               type="email"
               value={newStudent.email}
               onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
             />
           </div>
           <div>
-            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Sınıf</label>
+            <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Sınıf</label>
             <select
               value={newStudent.class_id}
               onChange={(e) => setNewStudent({ ...newStudent, class_id: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
             >
               <option value="">Seçiniz</option>
               {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}

@@ -71,10 +71,10 @@ async function apiCall(password: string, action: string, extra: Record<string, u
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
     <div className="flex items-start gap-3 py-2">
-      <Icon className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+      <Icon className="w-4 h-4 text-gray-400 dark:text-slate-500 mt-0.5 shrink-0" />
       <div>
-        <span className="text-[12px] text-gray-400 font-medium">{label}</span>
-        <p className="text-sm text-[#0f2847] font-medium">{value || '—'}</p>
+        <span className="text-[12px] text-gray-400 dark:text-slate-500 font-medium">{label}</span>
+        <p className="text-sm text-[#0f2847] dark:text-slate-100 font-medium">{value || '—'}</p>
       </div>
     </div>
   );
@@ -86,7 +86,7 @@ function DeleteButton({ onDelete, label }: { onDelete: () => void; label: string
     <div className="flex items-center gap-2">
       <span className="text-[12px] text-red-500 font-medium">Silmek istediğinize emin misiniz?</span>
       <button onClick={onDelete} className="px-3 py-1 rounded-lg bg-red-500 text-white text-[12px] font-bold hover:bg-red-600 transition-colors">Evet, Sil</button>
-      <button onClick={() => setConfirm(false)} className="px-3 py-1 rounded-lg bg-gray-200 text-gray-600 text-[12px] font-bold hover:bg-gray-300 transition-colors">İptal</button>
+      <button onClick={() => setConfirm(false)} className="px-3 py-1 rounded-lg bg-gray-200 text-gray-600 dark:text-slate-300 text-[12px] font-bold hover:bg-gray-300 transition-colors">İptal</button>
     </div>
   ) : (
     <button onClick={() => setConfirm(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-red-500 hover:bg-red-50 text-[12px] font-semibold transition-colors">
@@ -493,12 +493,12 @@ export default function YoneticiPage() {
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 opacity-50 blur-xl -z-10" />
             </div>
             <div>
-              <h1 className="text-xl font-extrabold text-[#0f2847] tracking-tight">Yönetici Paneli</h1>
-              <p className="text-[10.5px] text-gray-500 font-bold tracking-wider uppercase -mt-0.5">Güvenli Giriş</p>
+              <h1 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100 tracking-tight">Yönetici Paneli</h1>
+              <p className="text-[10.5px] text-gray-500 dark:text-slate-400 font-bold tracking-wider uppercase -mt-0.5">Güvenli Giriş</p>
             </div>
           </Link>
 
-          <div className="relative bg-white/85 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-2xl overflow-hidden">
+          <div className="relative bg-white/85 backdrop-blur-2xl rounded-3xl border border-white/60 dark:border-slate-700/60 shadow-2xl overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500" />
             <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 opacity-[0.08] blur-3xl pointer-events-none" />
 
@@ -508,8 +508,8 @@ export default function YoneticiPage() {
                 Yetkili Erişim
               </div>
 
-              <h2 className="text-[26px] font-extrabold text-[#0f2847] mb-1.5 tracking-tight">Yönetici Girişi</h2>
-              <p className="text-[13.5px] text-gray-500 mb-6 leading-relaxed">Yönetici şifresini girerek platformu yönetebilirsiniz</p>
+              <h2 className="text-[26px] font-extrabold text-[#0f2847] dark:text-slate-100 mb-1.5 tracking-tight">Yönetici Girişi</h2>
+              <p className="text-[13.5px] text-gray-500 dark:text-slate-400 mb-6 leading-relaxed">Yönetici şifresini girerek platformu yönetebilirsiniz</p>
 
               {authError && (
                 <div className="mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 flex items-center gap-2 text-sm text-red-700">
@@ -520,7 +520,7 @@ export default function YoneticiPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Yönetici Şifresi</label>
+                  <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Yönetici Şifresi</label>
                   <div className="relative">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-md pointer-events-none">
                       <Lock className="w-4 h-4 text-white" />
@@ -531,12 +531,12 @@ export default function YoneticiPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                       placeholder="Şifrenizi girin"
-                      className="w-full pl-14 pr-12 py-3.5 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
+                      className="w-full pl-14 pr-12 py-3.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 dark:bg-slate-700/60 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:text-slate-300 transition-colors"
                       aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -554,7 +554,7 @@ export default function YoneticiPage() {
 
               <Link
                 href="/"
-                className="mt-6 flex items-center justify-center gap-1.5 text-[13px] text-gray-500 hover:text-amber-600 font-bold transition-colors"
+                className="mt-6 flex items-center justify-center gap-1.5 text-[13px] text-gray-500 dark:text-slate-400 hover:text-amber-600 font-bold transition-colors"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Ana Sayfaya Dön
               </Link>
@@ -603,7 +603,7 @@ export default function YoneticiPage() {
       </div>
 
       {/* Header */}
-      <nav className="sticky top-0 z-50 bg-white/85 backdrop-blur-2xl border-b border-gray-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+      <nav className="sticky top-0 z-50 bg-white/85 backdrop-blur-2xl border-b border-gray-200 dark:border-slate-700/60 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -612,7 +612,7 @@ export default function YoneticiPage() {
               <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/30 to-transparent" />
             </div>
             <div>
-              <span className="text-[14.5px] font-extrabold text-[#0f2847] tracking-tight block leading-tight">Yönetici Paneli</span>
+              <span className="text-[14.5px] font-extrabold text-[#0f2847] dark:text-slate-100 tracking-tight block leading-tight">Yönetici Paneli</span>
               <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Yetkili Erişim</span>
             </div>
           </div>
@@ -622,7 +622,7 @@ export default function YoneticiPage() {
               onClick={goBack}
               disabled={!canGoBack}
               aria-label="Bir adım geri"
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-[12px] font-bold text-[#0f2847] hover:bg-amber-50 hover:border-amber-300 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-[12px] font-bold text-[#0f2847] dark:text-slate-100 hover:bg-amber-50 hover:border-amber-300 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Geri</span>
@@ -631,7 +631,7 @@ export default function YoneticiPage() {
               onClick={goForward}
               disabled={!canGoForward}
               aria-label="Bir adım ileri"
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-[12px] font-bold text-[#0f2847] hover:bg-amber-50 hover:border-amber-300 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-[12px] font-bold text-[#0f2847] dark:text-slate-100 hover:bg-amber-50 hover:border-amber-300 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
             >
               <span className="hidden sm:inline">İleri</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -641,7 +641,7 @@ export default function YoneticiPage() {
 
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] text-gray-600 hover:text-amber-600 hover:bg-amber-50 font-bold transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] text-gray-600 dark:text-slate-300 hover:text-amber-600 hover:bg-amber-50 font-bold transition-colors"
               aria-label="Ana sayfaya git"
             >
               <Home className="w-3.5 h-3.5" />
@@ -650,7 +650,7 @@ export default function YoneticiPage() {
 
             <button
               onClick={() => { setAuthed(false); setPassword(''); setView('teachers'); setSelectedTeacher(null); setSelectedStudent(null); setHistory([]); setHistoryIndex(-1); }}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] text-gray-600 hover:text-red-500 hover:bg-red-50 font-bold transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] text-gray-600 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 font-bold transition-colors"
             >
               Çıkış Yap
             </button>
@@ -673,13 +673,13 @@ export default function YoneticiPage() {
         )}
 
         {/* Tabs */}
-        <div className="flex items-center gap-4 mb-6 border-b border-gray-200 pb-3">
+        <div className="flex items-center gap-4 mb-6 border-b border-gray-200 dark:border-slate-700 pb-3">
           <button onClick={() => { setView('teachers'); setSelectedTeacher(null); setSelectedStudent(null); }}
-            className={`text-[13px] font-semibold pb-1 transition-colors border-b-2 ${view === 'teachers' || view === 'teacher-detail' || view === 'student-detail' || view === 'report-view' ? 'text-[#0f2847] border-[#0f2847]' : 'text-gray-400 border-transparent hover:text-gray-600'}`}>
-            Öğretmenler <span className="text-xs text-gray-400 ml-1">({teachers.length})</span>
+            className={`text-[13px] font-semibold pb-1 transition-colors border-b-2 ${view === 'teachers' || view === 'teacher-detail' || view === 'student-detail' || view === 'report-view' ? 'text-[#0f2847] dark:text-slate-100 border-[#0f2847]' : 'text-gray-400 dark:text-slate-500 border-transparent hover:text-gray-600 dark:text-slate-300'}`}>
+            Öğretmenler <span className="text-xs text-gray-400 dark:text-slate-500 ml-1">({teachers.length})</span>
           </button>
           <button onClick={() => { setView('pending-teachers'); loadPendingTeachers(storedPw()); }}
-            className={`text-[13px] font-semibold pb-1 transition-colors border-b-2 flex items-center gap-1.5 ${view === 'pending-teachers' ? 'text-[#0f2847] border-[#0f2847]' : 'text-gray-400 border-transparent hover:text-gray-600'}`}>
+            className={`text-[13px] font-semibold pb-1 transition-colors border-b-2 flex items-center gap-1.5 ${view === 'pending-teachers' ? 'text-[#0f2847] dark:text-slate-100 border-[#0f2847]' : 'text-gray-400 dark:text-slate-500 border-transparent hover:text-gray-600 dark:text-slate-300'}`}>
             Onay Bekleyenler
             {pendingTeachers.length > 0 && (
               <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">{pendingTeachers.length}</span>
@@ -689,16 +689,16 @@ export default function YoneticiPage() {
 
         {/* Breadcrumb (detay sayfaları için) */}
         {(view === 'teacher-detail' || view === 'student-detail' || view === 'report-view') && (
-        <div className="flex items-center gap-2 mb-6 text-[13px] text-gray-400">
+        <div className="flex items-center gap-2 mb-6 text-[13px] text-gray-400 dark:text-slate-500">
           <button onClick={() => { setView('teachers'); setSelectedTeacher(null); setSelectedStudent(null); }}
-            className="hover:text-[#0f2847] transition-colors">
+            className="hover:text-[#0f2847] dark:text-slate-100 transition-colors">
             Öğretmenler
           </button>
           {selectedTeacher && (
             <>
               <ChevronRight className="w-3.5 h-3.5" />
               <button onClick={() => { setView('teacher-detail'); setSelectedStudent(null); }}
-                className={`hover:text-[#0f2847] transition-colors ${view === 'teacher-detail' ? 'text-[#0f2847] font-bold' : ''}`}>
+                className={`hover:text-[#0f2847] dark:text-slate-100 transition-colors ${view === 'teacher-detail' ? 'text-[#0f2847] dark:text-slate-100 font-bold' : ''}`}>
                 {selectedTeacher.full_name}
               </button>
             </>
@@ -706,7 +706,7 @@ export default function YoneticiPage() {
           {selectedStudent && (
             <>
               <ChevronRight className="w-3.5 h-3.5" />
-              <span className="text-[#0f2847] font-bold">{selectedStudent.full_name}</span>
+              <span className="text-[#0f2847] dark:text-slate-100 font-bold">{selectedStudent.full_name}</span>
             </>
           )}
         </div>
@@ -716,20 +716,20 @@ export default function YoneticiPage() {
         {view === 'pending-teachers' && (
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-extrabold text-[#0f2847]">Onay Bekleyen Öğretmenler</h2>
+              <h2 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100">Onay Bekleyen Öğretmenler</h2>
               <button onClick={() => loadPendingTeachers(storedPw())} className="text-sm text-emerald-600 font-semibold hover:underline">Yenile</button>
             </div>
             {loading ? (
-              <div className="text-center py-20 text-gray-400">Yükleniyor...</div>
+              <div className="text-center py-20 text-gray-400 dark:text-slate-500">Yükleniyor...</div>
             ) : pendingTeachers.length === 0 ? (
               <div className="text-center py-20">
                 <CheckCircle2 className="w-12 h-12 text-emerald-300 mx-auto mb-3" />
-                <p className="text-gray-400">Onay bekleyen başvuru yok.</p>
+                <p className="text-gray-400 dark:text-slate-500">Onay bekleyen başvuru yok.</p>
               </div>
             ) : (
               <div className="grid gap-4">
                 {pendingTeachers.map(t => (
-                  <div key={t.id} className="bg-white/70 backdrop-blur-xl rounded-2xl border border-amber-200 p-5 shadow-sm">
+                  <div key={t.id} className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-amber-200 p-5 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
@@ -737,29 +737,29 @@ export default function YoneticiPage() {
                             {t.full_name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-bold text-[#0f2847]">{t.full_name}</p>
+                            <p className="font-bold text-[#0f2847] dark:text-slate-100">{t.full_name}</p>
                             <p className="text-xs text-amber-600 font-semibold">Onay Bekliyor</p>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
-                          <div className="bg-gray-50 rounded-lg p-2">
-                            <p className="text-[10px] text-gray-400 uppercase font-bold">Branş</p>
-                            <p className="text-xs font-semibold text-[#0f2847] truncate">{t.branch}</p>
+                          <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-2">
+                            <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-bold">Branş</p>
+                            <p className="text-xs font-semibold text-[#0f2847] dark:text-slate-100 truncate">{t.branch}</p>
                           </div>
-                          <div className="bg-gray-50 rounded-lg p-2">
-                            <p className="text-[10px] text-gray-400 uppercase font-bold">Kurum</p>
-                            <p className="text-xs font-semibold text-[#0f2847] truncate">{t.school_name}</p>
+                          <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-2">
+                            <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-bold">Kurum</p>
+                            <p className="text-xs font-semibold text-[#0f2847] dark:text-slate-100 truncate">{t.school_name}</p>
                           </div>
-                          <div className="bg-gray-50 rounded-lg p-2">
-                            <p className="text-[10px] text-gray-400 uppercase font-bold">E-posta</p>
-                            <p className="text-xs font-semibold text-[#0f2847] truncate">{t.email}</p>
+                          <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-2">
+                            <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-bold">E-posta</p>
+                            <p className="text-xs font-semibold text-[#0f2847] dark:text-slate-100 truncate">{t.email}</p>
                           </div>
-                          <div className="bg-gray-50 rounded-lg p-2">
-                            <p className="text-[10px] text-gray-400 uppercase font-bold">Telefon</p>
-                            <p className="text-xs font-semibold text-[#0f2847]">{t.phone}</p>
+                          <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-2">
+                            <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-bold">Telefon</p>
+                            <p className="text-xs font-semibold text-[#0f2847] dark:text-slate-100">{t.phone}</p>
                           </div>
                         </div>
-                        <p className="text-[11px] text-gray-400 mt-2">Başvuru: {new Date(t.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                        <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-2">Başvuru: {new Date(t.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
                       <div className="flex sm:flex-col gap-2 shrink-0">
                         <button
@@ -789,15 +789,15 @@ export default function YoneticiPage() {
         {view === 'teachers' && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-extrabold text-[#0f2847]">Kayıtlı Öğretmenler</h2>
-              <span className="text-sm text-gray-400 font-medium">{teachers.length} öğretmen</span>
+              <h2 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100">Kayıtlı Öğretmenler</h2>
+              <span className="text-sm text-gray-400 dark:text-slate-500 font-medium">{teachers.length} öğretmen</span>
             </div>
 
             {/* Toplu işlem çubuğu */}
             {teachers.length > 0 && (
-              <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-3 shadow-sm mb-4 flex items-center justify-between gap-3 flex-wrap">
+              <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-3 shadow-sm mb-4 flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 cursor-pointer text-[12px] font-semibold text-[#0f2847]">
+                  <label className="flex items-center gap-2 cursor-pointer text-[12px] font-semibold text-[#0f2847] dark:text-slate-100">
                     <input
                       type="checkbox"
                       checked={selectedTeacherIds.size === teachers.length && teachers.length > 0}
@@ -842,13 +842,13 @@ export default function YoneticiPage() {
             )}
 
             {loading ? (
-              <div className="text-center py-20 text-gray-400">Yükleniyor...</div>
+              <div className="text-center py-20 text-gray-400 dark:text-slate-500">Yükleniyor...</div>
             ) : teachers.length === 0 ? (
-              <div className="text-center py-20 text-gray-400">Henüz kayıtlı öğretmen yok.</div>
+              <div className="text-center py-20 text-gray-400 dark:text-slate-500">Henüz kayıtlı öğretmen yok.</div>
             ) : (
               <div className="grid gap-3">
                 {teachers.map((t) => (
-                  <div key={t.id} className={`bg-white/70 backdrop-blur-xl rounded-2xl border p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${selectedTeacherIds.has(t.id) ? 'border-amber-400 ring-2 ring-amber-200' : 'border-white/40'}`}>
+                  <div key={t.id} className={`bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${selectedTeacherIds.has(t.id) ? 'border-amber-400 ring-2 ring-amber-200' : 'border-white/40 dark:border-slate-700/60'}`}>
                     <div className="flex items-center justify-between gap-3">
                       <input
                         type="checkbox"
@@ -862,8 +862,8 @@ export default function YoneticiPage() {
                           <User className="w-5 h-5 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-[15px] font-bold text-[#0f2847] truncate">{t.full_name}</h3>
-                          <div className="flex items-center gap-3 mt-1 text-[12px] text-gray-400">
+                          <h3 className="text-[15px] font-bold text-[#0f2847] dark:text-slate-100 truncate">{t.full_name}</h3>
+                          <div className="flex items-center gap-3 mt-1 text-[12px] text-gray-400 dark:text-slate-500">
                             <span className="flex items-center gap-1"><School className="w-3 h-3" />{t.schoolName}</span>
                             <span className="flex items-center gap-1"><Users className="w-3 h-3" />{t.studentCount} öğrenci</span>
                             <span className="flex items-center gap-1"><FileText className="w-3 h-3" />{t.reportCount} rapor</span>
@@ -886,19 +886,19 @@ export default function YoneticiPage() {
         {view === 'teacher-detail' && selectedTeacher && (
           <div>
             <button onClick={() => { setView('teachers'); setSelectedTeacher(null); }}
-              className="flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-[#0f2847] mb-4 transition-colors">
+              className="flex items-center gap-1.5 text-[13px] text-gray-500 dark:text-slate-400 hover:text-[#0f2847] dark:text-slate-100 mb-4 transition-colors">
               <ArrowLeft className="w-4 h-4" /> Öğretmenler listesine dön
             </button>
 
             {/* Teacher Info Card */}
-            <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm mb-6">
+            <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm mb-6">
               <div className="flex items-start gap-4 mb-4">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shrink-0">
                   <User className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-extrabold text-[#0f2847]">{selectedTeacher.full_name}</h2>
-                  <p className="text-sm text-gray-400">Öğretmen</p>
+                  <h2 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100">{selectedTeacher.full_name}</h2>
+                  <p className="text-sm text-gray-400 dark:text-slate-500">Öğretmen</p>
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 gap-x-8">
@@ -915,17 +915,17 @@ export default function YoneticiPage() {
 
             {/* Students by School */}
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-[#0f2847] flex items-center gap-2">
+              <h3 className="text-lg font-bold text-[#0f2847] dark:text-slate-100 flex items-center gap-2">
                 <FolderOpen className="w-5 h-5 text-amber-500" /> Kayıtlı Öğrenciler
               </h3>
-              <span className="text-sm text-gray-400">{students.length} öğrenci</span>
+              <span className="text-sm text-gray-400 dark:text-slate-500">{students.length} öğrenci</span>
             </div>
 
             {/* Toplu işlem çubuğu */}
             {students.length > 0 && (
-              <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-3 shadow-sm mb-4 flex items-center justify-between gap-3 flex-wrap">
+              <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-3 shadow-sm mb-4 flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 cursor-pointer text-[12px] font-semibold text-[#0f2847]">
+                  <label className="flex items-center gap-2 cursor-pointer text-[12px] font-semibold text-[#0f2847] dark:text-slate-100">
                     <input
                       type="checkbox"
                       checked={selectedStudentIds.size === students.length && students.length > 0}
@@ -970,9 +970,9 @@ export default function YoneticiPage() {
             )}
 
             {loading ? (
-              <div className="text-center py-12 text-gray-400">Yükleniyor...</div>
+              <div className="text-center py-12 text-gray-400 dark:text-slate-500">Yükleniyor...</div>
             ) : students.length === 0 ? (
-              <div className="text-center py-12 text-gray-400">Bu öğretmene atanmış öğrenci yok.</div>
+              <div className="text-center py-12 text-gray-400 dark:text-slate-500">Bu öğretmene atanmış öğrenci yok.</div>
             ) : (
               <div className="grid gap-3">
                 {/* ═══ AKTİF: Okul → Sınıf → Şube → Öğrenci ═══ */}
@@ -982,7 +982,7 @@ export default function YoneticiPage() {
                   );
                   const gradeCount = Object.keys(gradeMap).length;
                   return (
-                    <div key={schoolName} className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
+                    <div key={schoolName} className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm overflow-hidden">
                       {/* OKUL */}
                       <button
                         onClick={() => { setOpenSchool(openSchool === schoolName ? null : schoolName); setOpenClass(null); setOpenSection(null); }}
@@ -993,8 +993,8 @@ export default function YoneticiPage() {
                             <FolderOpen className="w-5 h-5 text-amber-600" />
                           </div>
                           <div className="text-left">
-                            <h4 className="text-[14px] font-bold text-[#0f2847]">{schoolName}</h4>
-                            <p className="text-[12px] text-gray-400">{gradeCount} sınıf · {schoolStudentCount} öğrenci</p>
+                            <h4 className="text-[14px] font-bold text-[#0f2847] dark:text-slate-100">{schoolName}</h4>
+                            <p className="text-[12px] text-gray-400 dark:text-slate-500">{gradeCount} sınıf · {schoolStudentCount} öğrenci</p>
                           </div>
                         </div>
                         <ChevronRight className={`w-5 h-5 text-gray-300 transition-transform duration-200 ${openSchool === schoolName ? 'rotate-90' : ''}`} />
@@ -1002,13 +1002,13 @@ export default function YoneticiPage() {
 
                       {/* SINIFLAR */}
                       {openSchool === schoolName && (
-                        <div className="border-t border-gray-100 bg-gray-50/30">
+                        <div className="border-t border-gray-100 dark:border-slate-700/60 bg-gray-50 dark:bg-slate-800/60/30">
                           {Object.entries(gradeMap).map(([gradeKey, secMap]) => {
                             const gKey = `${schoolName}::${gradeKey}`;
                             const gradeStudentCount = Object.values(secMap).reduce((s, arr) => s + arr.length, 0);
                             const sectionCount = Object.keys(secMap).length;
                             return (
-                              <div key={gKey} className="border-b border-gray-100 last:border-b-0">
+                              <div key={gKey} className="border-b border-gray-100 dark:border-slate-700/60 last:border-b-0">
                                 <button
                                   onClick={() => { setOpenClass(openClass === gKey ? null : gKey); setOpenSection(null); }}
                                   className="w-full flex items-center justify-between px-4 py-3 pl-8 hover:bg-sky-50/40 transition-colors"
@@ -1018,8 +1018,8 @@ export default function YoneticiPage() {
                                       <FolderOpen className="w-4 h-4 text-sky-600" />
                                     </div>
                                     <div className="text-left">
-                                      <h5 className="text-[13px] font-bold text-[#0f2847]">{gradeKey}</h5>
-                                      <p className="text-[11px] text-gray-400">{sectionCount} şube · {gradeStudentCount} öğrenci</p>
+                                      <h5 className="text-[13px] font-bold text-[#0f2847] dark:text-slate-100">{gradeKey}</h5>
+                                      <p className="text-[11px] text-gray-400 dark:text-slate-500">{sectionCount} şube · {gradeStudentCount} öğrenci</p>
                                     </div>
                                   </div>
                                   <ChevronRight className={`w-4 h-4 text-gray-300 transition-transform duration-200 ${openClass === gKey ? 'rotate-90' : ''}`} />
@@ -1041,8 +1041,8 @@ export default function YoneticiPage() {
                                                 <FolderOpen className="w-3.5 h-3.5 text-violet-600" />
                                               </div>
                                               <div className="text-left">
-                                                <h6 className="text-[12px] font-bold text-[#0f2847]">{secKey}</h6>
-                                                <p className="text-[10px] text-gray-400">{secStudents.length} öğrenci</p>
+                                                <h6 className="text-[12px] font-bold text-[#0f2847] dark:text-slate-100">{secKey}</h6>
+                                                <p className="text-[10px] text-gray-400 dark:text-slate-500">{secStudents.length} öğrenci</p>
                                               </div>
                                             </div>
                                             <ChevronRight className={`w-4 h-4 text-gray-300 transition-transform duration-200 ${openSection === sKey ? 'rotate-90' : ''}`} />
@@ -1065,8 +1065,8 @@ export default function YoneticiPage() {
                                                       <GraduationCap className="w-3.5 h-3.5 text-violet-600" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                      <p className="text-[13px] font-semibold text-[#0f2847] truncate">{s.full_name}</p>
-                                                      <p className="text-[11px] text-gray-400">{s.testCount} test · {s.reportCount} rapor</p>
+                                                      <p className="text-[13px] font-semibold text-[#0f2847] dark:text-slate-100 truncate">{s.full_name}</p>
+                                                      <p className="text-[11px] text-gray-400 dark:text-slate-500">{s.testCount} test · {s.reportCount} rapor</p>
                                                     </div>
                                                     <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
                                                   </button>
@@ -1103,7 +1103,7 @@ export default function YoneticiPage() {
                           <Briefcase className="w-5 h-5 text-white" />
                         </div>
                         <div className="text-left">
-                          <h4 className="text-[14px] font-extrabold text-[#0f2847]">🎓 Mezunlar</h4>
+                          <h4 className="text-[14px] font-extrabold text-[#0f2847] dark:text-slate-100">🎓 Mezunlar</h4>
                           <p className="text-[12px] text-amber-700">{Object.keys(graduatedTree).length} okul · {graduatedStudents.length} mezun</p>
                         </div>
                       </div>
@@ -1123,7 +1123,7 @@ export default function YoneticiPage() {
                                   <FolderOpen className="w-4 h-4 text-amber-700" />
                                 </div>
                                 <div className="text-left">
-                                  <h5 className="text-[13px] font-bold text-[#0f2847]">{schoolName}</h5>
+                                  <h5 className="text-[13px] font-bold text-[#0f2847] dark:text-slate-100">{schoolName}</h5>
                                   <p className="text-[11px] text-amber-600">{gradStudents.length} mezun</p>
                                 </div>
                               </div>
@@ -1146,7 +1146,7 @@ export default function YoneticiPage() {
                                         <Briefcase className="w-3.5 h-3.5 text-amber-600" />
                                       </div>
                                       <div className="flex-1 min-w-0">
-                                        <p className="text-[13px] font-semibold text-[#0f2847] truncate">{s.full_name}</p>
+                                        <p className="text-[13px] font-semibold text-[#0f2847] dark:text-slate-100 truncate">{s.full_name}</p>
                                         <p className="text-[11px] text-amber-600">Mezun · {s.testCount} test · {s.reportCount} rapor</p>
                                       </div>
                                       <ChevronRight className="w-4 h-4 text-amber-300 shrink-0" />
@@ -1173,19 +1173,19 @@ export default function YoneticiPage() {
         {view === 'student-detail' && selectedStudent && (
           <div>
             <button onClick={() => { setView('teacher-detail'); setSelectedStudent(null); }}
-              className="flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-[#0f2847] mb-4 transition-colors">
+              className="flex items-center gap-1.5 text-[13px] text-gray-500 dark:text-slate-400 hover:text-[#0f2847] dark:text-slate-100 mb-4 transition-colors">
               <ArrowLeft className="w-4 h-4" /> Öğrenciler listesine dön
             </button>
 
             {/* Student Info */}
-            <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm mb-6">
+            <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm mb-6">
               <div className="flex items-start gap-4 mb-4">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shrink-0">
                   <GraduationCap className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-extrabold text-[#0f2847]">{selectedStudent.full_name}</h2>
-                  <p className="text-sm text-gray-400">Öğrenci{selectedStudent.grade ? ` · ${selectedStudent.grade}. Sınıf` : ''}</p>
+                  <h2 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100">{selectedStudent.full_name}</h2>
+                  <p className="text-sm text-gray-400 dark:text-slate-500">Öğrenci{selectedStudent.grade ? ` · ${selectedStudent.grade}. Sınıf` : ''}</p>
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 gap-x-8">
@@ -1199,19 +1199,19 @@ export default function YoneticiPage() {
             </div>
 
             {/* Completed Tests */}
-            <h3 className="text-lg font-bold text-[#0f2847] mb-3">Yapılan Testler</h3>
+            <h3 className="text-lg font-bold text-[#0f2847] dark:text-slate-100 mb-3">Yapılan Testler</h3>
             {selectedStudent.tests.length === 0 ? (
-              <p className="text-sm text-gray-400 mb-6">Henüz test tamamlanmamış.</p>
+              <p className="text-sm text-gray-400 dark:text-slate-500 mb-6">Henüz test tamamlanmamış.</p>
             ) : (
               <div className="grid gap-2 mb-6">
                 {selectedStudent.tests.map((t) => (
-                  <div key={t.id} className="flex items-center gap-3 bg-white/70 rounded-xl border border-white/40 p-3 shadow-sm">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${t.has_report ? 'bg-emerald-100' : 'bg-gray-100'}`}>
-                      <BookOpen className={`w-4 h-4 ${t.has_report ? 'text-emerald-600' : 'text-gray-400'}`} />
+                  <div key={t.id} className="flex items-center gap-3 bg-white/70 dark:bg-slate-800/50 rounded-xl border border-white/40 dark:border-slate-700/60 p-3 shadow-sm">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${t.has_report ? 'bg-emerald-100' : 'bg-gray-100 dark:bg-slate-700/60'}`}>
+                      <BookOpen className={`w-4 h-4 ${t.has_report ? 'text-emerald-600' : 'text-gray-400 dark:text-slate-500'}`} />
                     </div>
                     <div className="flex-1">
-                      <p className="text-[13px] font-semibold text-[#0f2847]">{TEST_LABELS[t.test_type] || t.test_type}</p>
-                      <p className="text-[11px] text-gray-400">{formatDate(t.completed_at)}</p>
+                      <p className="text-[13px] font-semibold text-[#0f2847] dark:text-slate-100">{TEST_LABELS[t.test_type] || t.test_type}</p>
+                      <p className="text-[11px] text-gray-400 dark:text-slate-500">{formatDate(t.completed_at)}</p>
                     </div>
                     {t.has_report && <span className="text-[11px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">Rapor var</span>}
                   </div>
@@ -1220,35 +1220,35 @@ export default function YoneticiPage() {
             )}
 
             {/* Reports */}
-            <h3 className="text-lg font-bold text-[#0f2847] mb-3">Analiz Raporları</h3>
+            <h3 className="text-lg font-bold text-[#0f2847] dark:text-slate-100 mb-3">Analiz Raporları</h3>
             {loading ? (
-              <div className="text-center py-8 text-gray-400">Yükleniyor...</div>
+              <div className="text-center py-8 text-gray-400 dark:text-slate-500">Yükleniyor...</div>
             ) : reports.length === 0 && integratedReports.length === 0 ? (
-              <p className="text-sm text-gray-400">Henüz rapor oluşturulmamış.</p>
+              <p className="text-sm text-gray-400 dark:text-slate-500">Henüz rapor oluşturulmamış.</p>
             ) : (
               <div className="grid gap-2">
                 {reports.map((r) => (
                   <button key={r.id} onClick={() => { setSelectedReport(r); setReportType('single'); setView('report-view'); }}
-                    className="flex items-center gap-3 bg-white/70 rounded-xl border border-white/40 p-3 shadow-sm hover:shadow-md transition-all text-left">
+                    className="flex items-center gap-3 bg-white/70 dark:bg-slate-800/50 rounded-xl border border-white/40 dark:border-slate-700/60 p-3 shadow-sm hover:shadow-md transition-all text-left">
                     <div className="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center">
                       <FileText className="w-4 h-4 text-sky-600" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-[13px] font-semibold text-[#0f2847]">{TEST_LABELS[r.test_type] || r.test_type} — Tekil Rapor</p>
-                      <p className="text-[11px] text-gray-400">{formatDate(r.completed_at)}</p>
+                      <p className="text-[13px] font-semibold text-[#0f2847] dark:text-slate-100">{TEST_LABELS[r.test_type] || r.test_type} — Tekil Rapor</p>
+                      <p className="text-[11px] text-gray-400 dark:text-slate-500">{formatDate(r.completed_at)}</p>
                     </div>
                     <ChevronRight className="w-4 h-4 text-gray-300" />
                   </button>
                 ))}
                 {integratedReports.map((ir) => (
                   <button key={ir.id} onClick={() => { setSelectedReport(ir); setReportType('integrated'); setView('report-view'); }}
-                    className="flex items-center gap-3 bg-white/70 rounded-xl border border-white/40 p-3 shadow-sm hover:shadow-md transition-all text-left">
+                    className="flex items-center gap-3 bg-white/70 dark:bg-slate-800/50 rounded-xl border border-white/40 dark:border-slate-700/60 p-3 shadow-sm hover:shadow-md transition-all text-left">
                     <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center">
                       <FileText className="w-4 h-4 text-violet-600" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-[13px] font-semibold text-[#0f2847]">Entegre 3&apos;lü Rapor</p>
-                      <p className="text-[11px] text-gray-400">{formatDate(ir.generated_at)}</p>
+                      <p className="text-[13px] font-semibold text-[#0f2847] dark:text-slate-100">Entegre 3&apos;lü Rapor</p>
+                      <p className="text-[11px] text-gray-400 dark:text-slate-500">{formatDate(ir.generated_at)}</p>
                     </div>
                     <ChevronRight className="w-4 h-4 text-gray-300" />
                   </button>
@@ -1262,21 +1262,21 @@ export default function YoneticiPage() {
         {view === 'report-view' && selectedReport && (
           <div>
             <button onClick={() => setView('student-detail')}
-              className="flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-[#0f2847] mb-4 transition-colors">
+              className="flex items-center gap-1.5 text-[13px] text-gray-500 dark:text-slate-400 hover:text-[#0f2847] dark:text-slate-100 mb-4 transition-colors">
               <ArrowLeft className="w-4 h-4" /> Öğrenci detayına dön
             </button>
 
-            <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm">
+            <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm">
               {reportType === 'single' && 'ai_report' in selectedReport ? (
                 <>
-                  <h2 className="text-lg font-bold text-[#0f2847] mb-4">
+                  <h2 className="text-lg font-bold text-[#0f2847] dark:text-slate-100 mb-4">
                     {TEST_LABELS[(selectedReport as Report).test_type] || (selectedReport as Report).test_type} — Tekil Rapor
                   </h2>
                   <ReportRenderer text={(selectedReport as Report).ai_report || ''} />
                 </>
               ) : reportType === 'integrated' && 'teacher_report' in selectedReport ? (
                 <>
-                  <h2 className="text-lg font-bold text-[#0f2847] mb-4">Entegre 3&apos;lü Rapor</h2>
+                  <h2 className="text-lg font-bold text-[#0f2847] dark:text-slate-100 mb-4">Entegre 3&apos;lü Rapor</h2>
                   <div className="space-y-6">
                     <div>
                       <h3 className="text-[14px] font-bold text-sky-600 mb-2">Öğretmen Raporu</h3>
@@ -1312,22 +1312,22 @@ export default function YoneticiPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-modal-in"
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-modal-in"
           >
             <div className="flex items-start gap-3 mb-4">
               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${confirmAction.danger ? 'bg-gradient-to-br from-red-500 to-rose-700' : 'bg-gradient-to-br from-amber-500 to-orange-600'}`}>
                 <AlertCircle className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="text-[16px] font-extrabold text-[#0f2847]">{confirmAction.title}</h3>
-                <p className="text-[13px] text-gray-600 mt-1">{confirmAction.message}</p>
+                <h3 className="text-[16px] font-extrabold text-[#0f2847] dark:text-slate-100">{confirmAction.title}</h3>
+                <p className="text-[13px] text-gray-600 dark:text-slate-300 mt-1">{confirmAction.message}</p>
               </div>
             </div>
             <div className="flex items-center justify-end gap-2 mt-5">
               <button
                 onClick={() => setConfirmAction(null)}
                 disabled={loading}
-                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-[13px] font-bold hover:bg-gray-200 disabled:opacity-60 transition-all"
+                className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-slate-700/60 text-gray-700 dark:text-slate-300 text-[13px] font-bold hover:bg-gray-200 disabled:opacity-60 transition-all"
               >
                 Vazgeç
               </button>

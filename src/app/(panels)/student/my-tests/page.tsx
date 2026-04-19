@@ -105,7 +105,7 @@ export default function MyTestsPage() {
         className={`group relative overflow-hidden rounded-2xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4 transition-all hover:-translate-y-0.5 ${
           isHomeworkCard
             ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-300 shadow-md hover:shadow-xl'
-            : 'bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm hover:shadow-lg'
+            : 'bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-lg'
         } ${isCompleted ? 'opacity-85' : ''}`}
       >
         {/* Corner glow */}
@@ -140,7 +140,7 @@ export default function MyTestsPage() {
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-extrabold text-[#0f2847] truncate text-[14px] sm:text-[15px]">{test.name}</p>
+            <p className="font-extrabold text-[#0f2847] dark:text-slate-100 truncate text-[14px] sm:text-[15px]">{test.name}</p>
             {isAssigned && !isCompleted && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm animate-pulse">
                 <Target size={10} />
@@ -149,11 +149,11 @@ export default function MyTestsPage() {
             )}
           </div>
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            <span className="text-[11.5px] text-gray-500 flex items-center gap-1 font-medium">
-              <Clock size={11} className="text-gray-400" /> {test.estimatedMinutes} dk
+            <span className="text-[11.5px] text-gray-500 dark:text-slate-400 flex items-center gap-1 font-medium">
+              <Clock size={11} className="text-gray-400 dark:text-slate-500" /> {test.estimatedMinutes} dk
             </span>
-            <span className="text-[11.5px] text-gray-400">·</span>
-            <span className="text-[11.5px] text-gray-500 font-medium">{test.questionCount} soru</span>
+            <span className="text-[11.5px] text-gray-400 dark:text-slate-500">·</span>
+            <span className="text-[11.5px] text-gray-500 dark:text-slate-400 font-medium">{test.questionCount} soru</span>
             <span
               className="text-[10.5px] px-2 py-0.5 rounded-full font-bold"
               style={{ backgroundColor: test.color + '20', color: test.color }}
@@ -223,7 +223,7 @@ export default function MyTestsPage() {
             <div className="flex-1 text-white min-w-0">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <h2 className="text-[18px] font-extrabold drop-shadow-sm">Öğretmeninden Ödev Var!</h2>
-                <span className="px-2.5 py-0.5 rounded-full bg-white text-orange-600 text-[12px] font-extrabold shadow-sm">
+                <span className="px-2.5 py-0.5 rounded-full bg-white dark:bg-slate-800 text-orange-600 text-[12px] font-extrabold shadow-sm">
                   {homeworkCount} test
                 </span>
               </div>
@@ -252,14 +252,14 @@ export default function MyTestsPage() {
           { label: 'Tamamlanan', value: completedCount, gradient: 'from-emerald-500 to-teal-600', icon: CheckCircle, valueColor: 'text-emerald-600' },
           { label: 'Toplam', value: allAssignments.length, gradient: 'from-violet-500 to-purple-600', icon: BookOpen, valueColor: 'text-violet-600' },
         ].map(({ label, value, gradient, icon: Icon, valueColor }) => (
-          <div key={label} className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-4 sm:p-5 shadow-sm overflow-hidden group hover:shadow-lg transition-all">
+          <div key={label} className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-4 sm:p-5 shadow-sm overflow-hidden group hover:shadow-lg transition-all">
             <div className={`absolute -top-8 -right-8 w-28 h-28 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-2xl group-hover:opacity-25 transition-opacity`} />
             <div className="relative flex items-center gap-3">
               <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} text-white flex items-center justify-center shadow-md shrink-0`}>
                 <Icon className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] sm:text-[11px] text-gray-400 font-bold uppercase tracking-wider">{label}</p>
+                <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider">{label}</p>
                 <p className={`text-xl sm:text-2xl font-extrabold tabular-nums ${valueColor}`}>{loading ? '—' : value}</p>
               </div>
             </div>
@@ -280,7 +280,7 @@ export default function MyTestsPage() {
             className={`px-4 py-2 rounded-xl text-[13px] font-extrabold transition-all active:scale-95 ${
               filter === f.k
                 ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30'
-                : 'bg-white/80 text-gray-600 hover:bg-white border border-white/60 hover:border-violet-300 hover:text-violet-600'
+                : 'bg-white/80 dark:bg-slate-800/60 text-gray-600 dark:text-slate-300 hover:bg-white dark:bg-slate-800 border border-white/60 dark:border-slate-700/60 hover:border-violet-300 hover:text-violet-600'
             }`}
           >
             {f.label}
@@ -300,7 +300,7 @@ export default function MyTestsPage() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-md">
                 <Sparkles size={15} className="text-white" />
               </div>
-              <h3 className="text-[15px] font-extrabold text-[#0f2847]">Öğretmenimin Ödevleri</h3>
+              <h3 className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100">Öğretmenimin Ödevleri</h3>
             </div>
             <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-extrabold border border-amber-200">
               {filteredHomework.length}
@@ -322,7 +322,7 @@ export default function MyTestsPage() {
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md">
                   <BookOpen size={15} className="text-white" />
                 </div>
-                <h3 className="text-[15px] font-extrabold text-[#0f2847]">Diğer Testler</h3>
+                <h3 className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100">Diğer Testler</h3>
               </div>
               <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[11px] font-extrabold border border-violet-200">
                 {filteredOthers.length}
@@ -337,14 +337,14 @@ export default function MyTestsPage() {
       )}
 
       {!loading && filteredHomework.length === 0 && filteredOthers.length === 0 && (
-        <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border border-white/50 p-12 text-center shadow-sm overflow-hidden">
+        <div className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-3xl border border-white/50 dark:border-slate-700/60 p-12 text-center shadow-sm overflow-hidden">
           <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-gradient-to-br from-violet-200 to-purple-200 opacity-30 blur-3xl" />
           <div className="relative">
             <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg animate-bounce" style={{ animationDuration: '2.5s' }}>
               <Inbox className="w-10 h-10 text-white" />
             </div>
-            <p className="text-[17px] text-[#0f2847] font-extrabold mb-2">Bu kategoride test bulunamadı</p>
-            <p className="text-gray-500 text-sm">Farklı bir filtre seç veya Tümü filtresini kullan.</p>
+            <p className="text-[17px] text-[#0f2847] dark:text-slate-100 font-extrabold mb-2">Bu kategoride test bulunamadı</p>
+            <p className="text-gray-500 dark:text-slate-400 text-sm">Farklı bir filtre seç veya Tümü filtresini kullan.</p>
           </div>
         </div>
       )}

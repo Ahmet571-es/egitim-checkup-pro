@@ -320,7 +320,7 @@ export default function TeacherCoachingPage() {
   }
 
   function getStatusColor(s: StudentCoachingInfo): string {
-    if (s.tasks_this_week === 0) return 'text-gray-400';
+    if (s.tasks_this_week === 0) return 'text-gray-400 dark:text-slate-500';
     const rate = s.completed_this_week / s.tasks_this_week;
     if (rate === 0) return 'text-red-500';
     if (rate < 1) return 'text-amber-500';
@@ -426,8 +426,8 @@ export default function TeacherCoachingPage() {
             <GraduationCap className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-extrabold text-[#0f2847]">Nasıl Kullanılır? — Adım Adım Rehber</h2>
-            <p className="text-gray-500 text-xs">Her adıma tıklayarak detayları görün ve ilgili sayfaya yönlenin.</p>
+            <h2 className="text-lg font-extrabold text-[#0f2847] dark:text-slate-100">Nasıl Kullanılır? — Adım Adım Rehber</h2>
+            <p className="text-gray-500 dark:text-slate-400 text-xs">Her adıma tıklayarak detayları görün ve ilgili sayfaya yönlenin.</p>
           </div>
         </div>
 
@@ -438,7 +438,7 @@ export default function TeacherCoachingPage() {
               <div
                 key={step.id}
                 className={`rounded-2xl border overflow-hidden transition-all duration-300 shadow-sm ${
-                  isOpen ? 'border-gray-200 shadow-md' : 'border-white/40'
+                  isOpen ? 'border-gray-200 dark:border-slate-700 shadow-md' : 'border-white/40 dark:border-slate-700/60'
                 }`}
               >
                 {/* Başlık */}
@@ -456,26 +456,26 @@ export default function TeacherCoachingPage() {
                       </span>
                       <h3 className={`font-extrabold text-sm ${step.color}`}>{step.title}</h3>
                     </div>
-                    <p className="text-gray-600 text-xs mt-0.5">{step.subtitle}</p>
+                    <p className="text-gray-600 dark:text-slate-300 text-xs mt-0.5">{step.subtitle}</p>
                   </div>
                   <ChevronDown
-                    className={`w-5 h-5 text-gray-400 transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
+                    className={`w-5 h-5 text-gray-400 dark:text-slate-500 transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
                   />
                 </button>
 
                 {/* İçerik */}
                 {isOpen && (
-                  <div className="px-5 py-5 bg-white border-t border-gray-100">
+                  <div className="px-5 py-5 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700/60">
                     {/* Detaylar */}
                     <div className="mb-4">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2.5">Ne Yapmalısınız?</p>
+                      <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2.5">Ne Yapmalısınız?</p>
                       <div className="space-y-2.5">
                         {step.details.map((d, i) => (
                           <div key={i} className="flex items-start gap-2.5">
                             <div className={`w-5 h-5 rounded-full ${step.chipBg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
                               <span className="text-[10px] font-bold">{i + 1}</span>
                             </div>
-                            <p className="text-sm text-gray-700 leading-relaxed">{d}</p>
+                            <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed">{d}</p>
                           </div>
                         ))}
                       </div>
@@ -525,7 +525,7 @@ export default function TeacherCoachingPage() {
 
       {/* ── HIZLI ERİŞİM BUTONLARI ── */}
       <div className="mb-8">
-        <h2 className="text-base font-extrabold text-[#0f2847] mb-3 flex items-center gap-2">
+        <h2 className="text-base font-extrabold text-[#0f2847] dark:text-slate-100 mb-3 flex items-center gap-2">
           <Zap className="w-4 h-4 text-amber-500" />
           Hızlı Erişim
         </h2>
@@ -539,14 +539,14 @@ export default function TeacherCoachingPage() {
             <Link
               key={q.label}
               href={q.href}
-              className="group bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-3"
+              className="group bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-4 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-3"
             >
               <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${q.gradient} text-white flex items-center justify-center shadow-lg`}>
                 {q.icon}
               </div>
               <div>
-                <p className="font-bold text-sm text-[#0f2847]">{q.label}</p>
-                <p className="text-[11px] text-gray-400">Sayfaya git →</p>
+                <p className="font-bold text-sm text-[#0f2847] dark:text-slate-100">{q.label}</p>
+                <p className="text-[11px] text-gray-400 dark:text-slate-500">Sayfaya git →</p>
               </div>
             </Link>
           ))}
@@ -554,7 +554,7 @@ export default function TeacherCoachingPage() {
       </div>
 
       {/* ── CANLI KOÇLUK TAKİP TABLOSU ── */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
+      <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm overflow-hidden">
         <div className="px-6 py-4 bg-gradient-to-r from-[#0f2847] to-[#1a3d6e] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <TrendingUp className="w-5 h-5 text-emerald-400" />
@@ -579,8 +579,8 @@ export default function TeacherCoachingPage() {
         ) : coachingData.length === 0 ? (
           <div className="px-6 py-12 text-center">
             <Target className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-            <p className="text-gray-400 font-semibold mb-1">Henüz koçluk verisi yok</p>
-            <p className="text-gray-400 text-xs mb-4">Öğrencileriniz testleri tamamladığında burada görev takibini göreceksiniz.</p>
+            <p className="text-gray-400 dark:text-slate-500 font-semibold mb-1">Henüz koçluk verisi yok</p>
+            <p className="text-gray-400 dark:text-slate-500 text-xs mb-4">Öğrencileriniz testleri tamamladığında burada görev takibini göreceksiniz.</p>
             <Link
               href="/teacher/assign-test"
               className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-semibold hover:bg-emerald-100 transition-all"
@@ -594,7 +594,7 @@ export default function TeacherCoachingPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100 bg-gray-50/50">
+                  <tr className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wider border-b border-gray-100 dark:border-slate-700/60 bg-gray-50 dark:bg-slate-800/60/50">
                     <th className="text-left py-3 px-5">Öğrenci</th>
                     <th className="text-center py-3 px-3">Bu Hafta</th>
                     <th className="text-center py-3 px-3">Tamamlama</th>
@@ -607,13 +607,13 @@ export default function TeacherCoachingPage() {
                   {visibleStudents.map(s => {
                     const rate = s.tasks_this_week > 0 ? Math.round((s.completed_this_week / s.tasks_this_week) * 100) : 0;
                     return (
-                      <tr key={s.student_id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                      <tr key={s.student_id} className="border-b border-gray-50 hover:bg-gray-50 dark:bg-slate-800/60/50 transition-colors">
                         <td className="py-3 px-5">
                           <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0f2847] to-[#1a3d6e] flex items-center justify-center text-white text-xs font-bold">
                               {s.student_name.charAt(0)}
                             </div>
-                            <span className="font-medium text-gray-700">{s.student_name}</span>
+                            <span className="font-medium text-gray-700 dark:text-slate-300">{s.student_name}</span>
                           </div>
                         </td>
                         <td className="py-3 px-3 text-center">
@@ -624,7 +624,7 @@ export default function TeacherCoachingPage() {
                         <td className="py-3 px-3 text-center">
                           {s.tasks_this_week > 0 ? (
                             <div className="flex items-center gap-2 justify-center">
-                              <div className="w-16 h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div className="w-16 h-2 bg-gray-100 dark:bg-slate-700/60 rounded-full overflow-hidden">
                                 <div
                                   className={`h-full rounded-full transition-all ${
                                     rate === 100 ? 'bg-emerald-500' : rate > 0 ? 'bg-amber-400' : 'bg-red-400'
@@ -632,7 +632,7 @@ export default function TeacherCoachingPage() {
                                   style={{ width: `${rate}%` }}
                                 />
                               </div>
-                              <span className="text-xs text-gray-500">{rate}%</span>
+                              <span className="text-xs text-gray-500 dark:text-slate-400">{rate}%</span>
                             </div>
                           ) : (
                             <span className="text-xs text-gray-300">—</span>
@@ -647,7 +647,7 @@ export default function TeacherCoachingPage() {
                             <span className="text-gray-300 text-xs">—</span>
                           )}
                         </td>
-                        <td className="py-3 px-3 text-center text-xs text-gray-400">
+                        <td className="py-3 px-3 text-center text-xs text-gray-400 dark:text-slate-500">
                           {s.last_activity || '—'}
                         </td>
                         <td className="py-3 px-3 text-center">{getStatusIcon(s)}</td>
@@ -658,7 +658,7 @@ export default function TeacherCoachingPage() {
               </table>
             </div>
             {coachingData.length > 8 && (
-              <div className="px-5 py-3 border-t border-gray-100 text-center">
+              <div className="px-5 py-3 border-t border-gray-100 dark:border-slate-700/60 text-center">
                 <button
                   onClick={() => setShowAllStudents(!showAllStudents)}
                   className="text-sm text-emerald-600 font-semibold hover:text-emerald-700 transition-colors flex items-center gap-1 mx-auto"

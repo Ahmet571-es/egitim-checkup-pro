@@ -128,7 +128,7 @@ export default function SchoolClassesPage() {
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center animate-pulse shadow-lg">
             <BookOpen className="w-6 h-6 text-white" />
           </div>
-          <p className="text-gray-500 text-sm font-medium">Yükleniyor...</p>
+          <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">Yükleniyor...</p>
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
@@ -144,7 +144,7 @@ export default function SchoolClassesPage() {
             return (
               <div
                 key={c.id}
-                className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all group overflow-hidden"
+                className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all group overflow-hidden"
               >
                 {/* Gradient accent */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-600" />
@@ -157,9 +157,9 @@ export default function SchoolClassesPage() {
                         <BookOpen className="w-5 h-5" />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-[15px] font-extrabold text-[#0f2847] truncate">{c.name}</h3>
+                        <h3 className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100 truncate">{c.name}</h3>
                         {c.grade && (
-                          <p className="text-[11px] text-gray-500 font-semibold">
+                          <p className="text-[11px] text-gray-500 dark:text-slate-400 font-semibold">
                             {c.grade}. Sınıf {c.section && `· ${c.section}`}
                           </p>
                         )}
@@ -168,14 +168,14 @@ export default function SchoolClassesPage() {
                     <div className="flex gap-1 shrink-0">
                       <button
                         onClick={() => { setEditing(c); setModal(true); }}
-                        className="p-1.5 rounded-lg hover:bg-sky-50 text-gray-400 hover:text-sky-600 transition active:scale-95"
+                        className="p-1.5 rounded-lg hover:bg-sky-50 text-gray-400 dark:text-slate-500 hover:text-sky-600 transition active:scale-95"
                         title="Düzenle"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => remove(c.id, c.name)}
-                        className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition active:scale-95"
+                        className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 dark:text-slate-500 hover:text-red-500 transition active:scale-95"
                         title="Sil"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -183,13 +183,13 @@ export default function SchoolClassesPage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1.5 mt-3 pt-3 border-t border-gray-100">
-                    <div className="flex items-center gap-1.5 text-[12px] text-gray-600">
-                      <User className="w-3.5 h-3.5 text-gray-400" />
+                  <div className="flex flex-col gap-1.5 mt-3 pt-3 border-t border-gray-100 dark:border-slate-700/60">
+                    <div className="flex items-center gap-1.5 text-[12px] text-gray-600 dark:text-slate-300">
+                      <User className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
                       <span className="font-medium truncate">{teacher?.full_name || 'Öğretmen atanmadı'}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[12px] text-gray-600">
-                      <Users className="w-3.5 h-3.5 text-gray-400" />
+                    <div className="flex items-center gap-1.5 text-[12px] text-gray-600 dark:text-slate-300">
+                      <Users className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
                       <span>
                         <span className="font-bold text-sky-600">{c.student_count || 0}</span> öğrenci
                       </span>
@@ -224,43 +224,43 @@ export default function SchoolClassesPage() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Sınıf Adı <span className="text-red-500">*</span></label>
+            <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Sınıf Adı <span className="text-red-500">*</span></label>
             <input
               type="text"
               value={editing.name || ''}
               onChange={(e) => setEditing({ ...editing, name: e.target.value })}
               placeholder="Ör: 9-A"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Sınıf Seviyesi</label>
+              <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Sınıf Seviyesi</label>
               <input
                 type="number"
                 value={editing.grade || ''}
                 onChange={(e) => setEditing({ ...editing, grade: parseInt(e.target.value) || null })}
                 placeholder="9"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
               />
             </div>
             <div>
-              <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Şube</label>
+              <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Şube</label>
               <input
                 type="text"
                 value={editing.section || ''}
                 onChange={(e) => setEditing({ ...editing, section: e.target.value })}
                 placeholder="A"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
               />
             </div>
           </div>
           <div>
-            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Sınıf Öğretmeni</label>
+            <label className="block text-[13px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">Sınıf Öğretmeni</label>
             <select
               value={editing.teacher_id || ''}
               onChange={(e) => setEditing({ ...editing, teacher_id: e.target.value || null })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 transition-all"
             >
               <option value="">Seçiniz</option>
               {teachers.map((t) => <option key={t.id} value={t.id}>{t.full_name}</option>)}

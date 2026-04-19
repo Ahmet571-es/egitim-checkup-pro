@@ -563,7 +563,7 @@ export default function TestPage() {
           <p className="text-white/40 text-xs font-mono">ID: {testId}</p>
           <a
             href="/student/my-tests"
-            className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-xl bg-white text-[#0f2847] font-extrabold text-[13.5px] shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-[0.97]"
+            className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-xl bg-white dark:bg-slate-800 text-[#0f2847] dark:text-slate-100 font-extrabold text-[13.5px] shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-[0.97]"
           >
             ← Testlere Dön
           </a>
@@ -608,7 +608,7 @@ export default function TestPage() {
               </div>
               <button
                 onClick={doSaveToDb}
-                className="px-5 py-2 rounded-full bg-white text-red-600 text-[13px] font-extrabold shadow-xl hover:-translate-y-0.5 hover:shadow-2xl transition-all active:scale-[0.97]"
+                className="px-5 py-2 rounded-full bg-white dark:bg-slate-800 text-red-600 text-[13px] font-extrabold shadow-xl hover:-translate-y-0.5 hover:shadow-2xl transition-all active:scale-[0.97]"
               >
                 🔄 Tekrar Dene
               </button>

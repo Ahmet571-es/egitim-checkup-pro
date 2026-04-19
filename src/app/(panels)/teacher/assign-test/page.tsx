@@ -75,7 +75,7 @@ export default function AssignTestPage() {
                     className={`relative flex items-start gap-3 p-4 rounded-2xl text-left transition-all overflow-hidden group ${
                       isSelected
                         ? 'shadow-lg scale-[1.02]'
-                        : 'border border-gray-100 hover:border-gray-200 bg-white hover:shadow-md'
+                        : 'border border-gray-100 dark:border-slate-700/60 hover:border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-md'
                     }`}
                     style={isSelected ? {
                       backgroundColor: test.color + '15',
@@ -93,8 +93,8 @@ export default function AssignTestPage() {
                     <div className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: test.color, minHeight: '48px' }} />
                     <div className="text-2xl shrink-0 group-hover:scale-110 transition-transform">{test.icon}</div>
                     <div className="min-w-0 flex-1 relative">
-                      <p className="font-extrabold text-[#0f2847] text-[13px] leading-tight">{test.shortName}</p>
-                      <p className="text-gray-500 text-[11px] mt-0.5">{test.questionCount} soru · {test.estimatedMinutes} dk</p>
+                      <p className="font-extrabold text-[#0f2847] dark:text-slate-100 text-[13px] leading-tight">{test.shortName}</p>
+                      <p className="text-gray-500 dark:text-slate-400 text-[11px] mt-0.5">{test.questionCount} soru · {test.estimatedMinutes} dk</p>
                     </div>
                     {isSelected && (
                       <CheckCircle size={20} className="shrink-0 mt-0.5" style={{ color: test.color }} />
@@ -126,7 +126,7 @@ export default function AssignTestPage() {
                     className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-all active:scale-[0.98] ${
                       isSelected
                         ? 'bg-gradient-to-r from-sky-50 to-blue-50 border-2 border-sky-400 shadow-sm'
-                        : 'bg-white border border-gray-100 hover:border-sky-200 hover:bg-sky-50/30'
+                        : 'bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700/60 hover:border-sky-200 hover:bg-sky-50/30'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -138,8 +138,8 @@ export default function AssignTestPage() {
                         <Users className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-sky-600'}`} />
                       </div>
                       <div>
-                        <p className="font-extrabold text-[#0f2847] text-[13.5px]">{cls.name}</p>
-                        <p className="text-gray-500 text-[11px]">{cls.studentCount} öğrenci</p>
+                        <p className="font-extrabold text-[#0f2847] dark:text-slate-100 text-[13.5px]">{cls.name}</p>
+                        <p className="text-gray-500 dark:text-slate-400 text-[11px]">{cls.studentCount} öğrenci</p>
                       </div>
                     </div>
                     {isSelected && <CheckCircle size={20} className="text-sky-600" />}
@@ -161,7 +161,7 @@ export default function AssignTestPage() {
               type="date"
               value={dueDate}
               onChange={e => setDueDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 text-gray-700 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 text-gray-700 dark:text-slate-300 transition-all"
             />
           </SectionCard>
 
@@ -195,7 +195,7 @@ export default function AssignTestPage() {
               </div>
 
               {success ? (
-                <div className="bg-white text-emerald-700 rounded-xl p-3 text-center flex items-center justify-center gap-2 shadow-lg">
+                <div className="bg-white dark:bg-slate-800 text-emerald-700 rounded-xl p-3 text-center flex items-center justify-center gap-2 shadow-lg">
                   <Sparkles className="w-4 h-4" />
                   <p className="font-extrabold text-[13px]">Testler başarıyla atandı!</p>
                 </div>
@@ -203,7 +203,7 @@ export default function AssignTestPage() {
                 <button
                   onClick={handleAssign}
                   disabled={selectedTests.size === 0 || selectedClasses.size === 0 || loading}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white text-emerald-700 font-extrabold text-[13.5px] hover:bg-emerald-50 transition-all disabled:opacity-50 disabled:pointer-events-none active:scale-[0.97] shadow-lg"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white dark:bg-slate-800 text-emerald-700 font-extrabold text-[13.5px] hover:bg-emerald-50 transition-all disabled:opacity-50 disabled:pointer-events-none active:scale-[0.97] shadow-lg"
                 >
                   {loading ? (
                     <>

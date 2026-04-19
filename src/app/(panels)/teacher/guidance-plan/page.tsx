@@ -208,7 +208,7 @@ ${months.map((month, i) => `### ${month}
           <button
             onClick={generatePlan}
             disabled={generating}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-emerald-700 font-bold text-[13.5px] rounded-xl hover:bg-emerald-50 shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none transition-all active:scale-[0.97] border border-white/80"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-emerald-700 font-bold text-[13.5px] rounded-xl hover:bg-emerald-50 shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none transition-all active:scale-[0.97] border border-white/80"
           >
             {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
             Yeni Plan Oluştur
@@ -219,9 +219,9 @@ ${months.map((month, i) => `### ${month}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
         {/* Plan Listesi */}
         <div className="space-y-2">
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Planlarım</h3>
+          <h3 className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3">Planlarım</h3>
           {plans.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">Henüz plan yok. "Yeni Plan Oluştur" butonuna tıklayın.</p>
+            <p className="text-sm text-gray-400 dark:text-slate-500 text-center py-8">Henüz plan yok. "Yeni Plan Oluştur" butonuna tıklayın.</p>
           ) : (
             plans.map(plan => (
               <button
@@ -230,14 +230,14 @@ ${months.map((month, i) => `### ${month}
                 className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
                   selectedPlan?.id === plan.id
                     ? 'bg-emerald-50 border border-emerald-200'
-                    : 'bg-white/70 border border-white/40 hover:bg-gray-50'
+                    : 'bg-white/70 dark:bg-slate-800/50 border border-white/40 dark:border-slate-700/60 hover:bg-gray-50 dark:bg-slate-800/60'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-emerald-500 shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-[#0f2847] truncate">{plan.title}</p>
-                    <p className="text-xs text-gray-400">{new Date(plan.created_at).toLocaleDateString('tr-TR')}</p>
+                    <p className="text-sm font-semibold text-[#0f2847] dark:text-slate-100 truncate">{plan.title}</p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500">{new Date(plan.created_at).toLocaleDateString('tr-TR')}</p>
                   </div>
                 </div>
               </button>
@@ -248,23 +248,23 @@ ${months.map((month, i) => `### ${month}
         {/* Plan İçeriği */}
         <div className="lg:col-span-3">
           {selectedPlan ? (
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm p-6">
+            <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-[#0f2847]">{selectedPlan.title}</h2>
+                <h2 className="text-lg font-bold text-[#0f2847] dark:text-slate-100">{selectedPlan.title}</h2>
                 <button
                   onClick={() => downloadPlan(selectedPlan)}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-600 text-sm rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-slate-700/60 text-gray-600 dark:text-slate-300 text-sm rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" /> İndir
                 </button>
               </div>
-              <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+              <div className="prose prose-sm max-w-none text-gray-700 dark:text-slate-300 leading-relaxed">
                 {selectedPlan.content.split('\n').map((line, i) => {
-                  if (line.startsWith('# ')) return <h1 key={i} className="text-xl font-bold text-[#0f2847] mt-4 mb-2">{line.replace('# ', '')}</h1>;
-                  if (line.startsWith('## ')) return <h2 key={i} className="text-lg font-bold text-[#0f2847] mt-3 mb-1">{line.replace('## ', '')}</h2>;
+                  if (line.startsWith('# ')) return <h1 key={i} className="text-xl font-bold text-[#0f2847] dark:text-slate-100 mt-4 mb-2">{line.replace('# ', '')}</h1>;
+                  if (line.startsWith('## ')) return <h2 key={i} className="text-lg font-bold text-[#0f2847] dark:text-slate-100 mt-3 mb-1">{line.replace('## ', '')}</h2>;
                   if (line.startsWith('### ')) return <h3 key={i} className="text-base font-semibold text-emerald-700 mt-2">{line.replace('### ', '')}</h3>;
                   if (line.startsWith('- ')) return <p key={i} className="ml-4 text-sm">• {line.replace('- ', '')}</p>;
-                  if (line.startsWith('---')) return <hr key={i} className="my-3 border-gray-200" />;
+                  if (line.startsWith('---')) return <hr key={i} className="my-3 border-gray-200 dark:border-slate-700" />;
                   if (line.trim() === '') return <div key={i} className="h-2" />;
                   return <p key={i} className="text-sm">{line}</p>;
                 })}
@@ -273,7 +273,7 @@ ${months.map((month, i) => `### ${month}
           ) : (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <FileText className="w-12 h-12 text-gray-200 mb-3" />
-              <p className="text-gray-400 text-sm">Sol taraftan bir plan seçin veya yeni oluşturun.</p>
+              <p className="text-gray-400 dark:text-slate-500 text-sm">Sol taraftan bir plan seçin veya yeni oluşturun.</p>
             </div>
           )}
         </div>

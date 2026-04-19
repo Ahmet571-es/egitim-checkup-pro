@@ -167,38 +167,38 @@ export default function StudentsPage() {
       {/* Premium Stats */}
       {!loading && (
         <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6 grid-stagger">
-          <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/50 p-4 sm:p-5 shadow-sm overflow-hidden group hover:shadow-lg transition-all">
+          <div className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-slate-700/60 p-4 sm:p-5 shadow-sm overflow-hidden group hover:shadow-lg transition-all">
             <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 opacity-10 blur-2xl group-hover:opacity-25 transition-opacity" />
             <div className="relative flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shrink-0">
                 <School className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] sm:text-[11px] text-gray-400 font-bold uppercase tracking-wider">Okul</p>
-                <p className="text-xl sm:text-2xl font-extrabold text-[#0f2847] tabular-nums">{totalSchools}</p>
+                <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider">Okul</p>
+                <p className="text-xl sm:text-2xl font-extrabold text-[#0f2847] dark:text-slate-100 tabular-nums">{totalSchools}</p>
               </div>
             </div>
           </div>
-          <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/50 p-4 sm:p-5 shadow-sm overflow-hidden group hover:shadow-lg transition-all">
+          <div className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-slate-700/60 p-4 sm:p-5 shadow-sm overflow-hidden group hover:shadow-lg transition-all">
             <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 opacity-10 blur-2xl group-hover:opacity-25 transition-opacity" />
             <div className="relative flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white flex items-center justify-center shadow-md shrink-0">
                 <Users className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] sm:text-[11px] text-gray-400 font-bold uppercase tracking-wider">Aktif</p>
+                <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider">Aktif</p>
                 <p className="text-xl sm:text-2xl font-extrabold text-sky-600 tabular-nums">{activeStudentCount}</p>
               </div>
             </div>
           </div>
-          <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/50 p-4 sm:p-5 shadow-sm overflow-hidden group hover:shadow-lg transition-all">
+          <div className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-slate-700/60 p-4 sm:p-5 shadow-sm overflow-hidden group hover:shadow-lg transition-all">
             <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 opacity-10 blur-2xl group-hover:opacity-25 transition-opacity" />
             <div className="relative flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md shrink-0">
                 <Award className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] sm:text-[11px] text-gray-400 font-bold uppercase tracking-wider">Mezun</p>
+                <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider">Mezun</p>
                 <p className="text-xl sm:text-2xl font-extrabold text-amber-600 tabular-nums">{graduatedCount}</p>
               </div>
             </div>
@@ -227,21 +227,21 @@ export default function StudentsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Öğrenci ara (ad veya soyad)..."
-                className="w-full pl-16 pr-12 py-4 rounded-2xl bg-white/90 backdrop-blur-xl border border-white/60 shadow-sm text-[14px] font-medium text-[#0f2847] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 focus:bg-white transition-all"
+                className="w-full pl-16 pr-12 py-4 rounded-2xl bg-white/90 dark:bg-slate-800/80 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-sm text-[14px] font-medium text-[#0f2847] dark:text-slate-100 placeholder:text-gray-400 dark:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 focus:bg-white dark:bg-slate-800 transition-all"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-gray-100 transition"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-gray-100 dark:bg-slate-700/60 transition"
                   title="Aramayı temizle"
                 >
-                  <X className="w-4 h-4 text-gray-500" />
+                  <X className="w-4 h-4 text-gray-500 dark:text-slate-400" />
                 </button>
               )}
             </div>
           </div>
           {isSearching && (
-            <p className="text-[12px] text-gray-500 mt-2.5 ml-1 font-medium">
+            <p className="text-[12px] text-gray-500 dark:text-slate-400 mt-2.5 ml-1 font-medium">
               {searchResults.length === 0
                 ? '🔍 Eşleşen öğrenci bulunamadı.'
                 : `🔍 ${searchResults.length} öğrenci bulundu.`}
@@ -262,7 +262,7 @@ export default function StudentsPage() {
               <button
                 key={s.id}
                 onClick={() => openStudentPath(fs)}
-                className="w-full text-left bg-white/90 backdrop-blur-xl border border-emerald-200 hover:border-emerald-400 hover:bg-emerald-50/60 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex items-center gap-3 group"
+                className="w-full text-left bg-white/90 dark:bg-slate-800/80 backdrop-blur-xl border border-emerald-200 hover:border-emerald-400 hover:bg-emerald-50/60 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex items-center gap-3 group"
               >
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-md ${fs.isGraduated ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-emerald-500 to-teal-600'}`}>
                   {fs.isGraduated ? (
@@ -272,9 +272,9 @@ export default function StudentsPage() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-bold text-[#0f2847] truncate">{s.full_name}</p>
-                  <p className="text-[11px] text-gray-500 truncate">{breadcrumb}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
+                  <p className="text-[14px] font-bold text-[#0f2847] dark:text-slate-100 truncate">{s.full_name}</p>
+                  <p className="text-[11px] text-gray-500 dark:text-slate-400 truncate">{breadcrumb}</p>
+                  <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">
                     {s.completed_count} test tamamlandı
                     {s.assigned_pending_count > 0 && ` · ${s.assigned_pending_count} bekliyor`}
                   </p>
@@ -294,14 +294,14 @@ export default function StudentsPage() {
       {loading ? (
         <CardGridSkeleton count={6} cols={3} />
       ) : totalStudents === 0 ? (
-        <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border border-white/50 p-12 text-center shadow-sm overflow-hidden">
+        <div className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-3xl border border-white/50 dark:border-slate-700/60 p-12 text-center shadow-sm overflow-hidden">
           <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-gradient-to-br from-emerald-200 to-teal-200 opacity-20 blur-3xl" />
           <div className="relative">
             <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg animate-bounce" style={{ animationDuration: '2.5s' }}>
               <Inbox className="w-10 h-10 text-white" />
             </div>
-            <p className="text-[17px] text-[#0f2847] font-extrabold mb-2">Henüz size atanmış öğrenci yok</p>
-            <p className="text-gray-500 text-sm max-w-md mx-auto leading-relaxed">
+            <p className="text-[17px] text-[#0f2847] dark:text-slate-100 font-extrabold mb-2">Henüz size atanmış öğrenci yok</p>
+            <p className="text-gray-500 dark:text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
               Öğrenciler kayıt sırasında sizi seçtiğinde burada görünecek. Kayıt linkinizi öğrencilerinizle paylaşabilirsiniz.
             </p>
           </div>
@@ -320,7 +320,7 @@ export default function StudentsPage() {
             const isSchoolOpen = openSchool === schoolName;
 
             return (
-              <div key={schoolName} className={`bg-white/80 backdrop-blur-xl rounded-2xl border shadow-sm overflow-hidden transition-all ${isSchoolOpen ? 'border-emerald-300 shadow-md' : 'border-white/60 hover:border-emerald-200'}`}>
+              <div key={schoolName} className={`bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border shadow-sm overflow-hidden transition-all ${isSchoolOpen ? 'border-emerald-300 shadow-md' : 'border-white/60 dark:border-slate-700/60 hover:border-emerald-200'}`}>
                 {/* OKUL */}
                 <button
                   onClick={() => { setOpenSchool(isSchoolOpen ? null : schoolName); setOpenGrade(null); setOpenSection(null); }}
@@ -335,8 +335,8 @@ export default function StudentsPage() {
                       )}
                     </div>
                     <div className="text-left min-w-0">
-                      <h4 className="text-[14.5px] font-extrabold text-[#0f2847] truncate">{schoolName}</h4>
-                      <p className="text-[12px] text-gray-500">
+                      <h4 className="text-[14.5px] font-extrabold text-[#0f2847] dark:text-slate-100 truncate">{schoolName}</h4>
+                      <p className="text-[12px] text-gray-500 dark:text-slate-400">
                         <span className="font-semibold">{gradeCount}</span> sınıf · <span className="font-semibold">{schoolStudentCount}</span> öğrenci
                       </p>
                     </div>
@@ -347,7 +347,7 @@ export default function StudentsPage() {
                         <Bell className="w-3 h-3" /> {schoolAlerts}
                       </span>
                     )}
-                    <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isSchoolOpen ? 'rotate-90 text-emerald-600' : ''}`} />
+                    <ChevronRight className={`w-5 h-5 text-gray-400 dark:text-slate-500 transition-transform duration-200 ${isSchoolOpen ? 'rotate-90 text-emerald-600' : ''}`} />
                   </div>
                 </button>
 
@@ -370,18 +370,18 @@ export default function StudentsPage() {
                                 <Layers className={`w-4 h-4 ${isGradeOpen ? 'text-white' : 'text-sky-600'}`} />
                               </div>
                               <div className="text-left min-w-0">
-                                <h5 className="text-[13.5px] font-bold text-[#0f2847]">{gradeKey}</h5>
-                                <p className="text-[11px] text-gray-500">
+                                <h5 className="text-[13.5px] font-bold text-[#0f2847] dark:text-slate-100">{gradeKey}</h5>
+                                <p className="text-[11px] text-gray-500 dark:text-slate-400">
                                   <span className="font-semibold">{sectionCount}</span> şube · <span className="font-semibold">{gradeStudentCount}</span> öğrenci
                                 </p>
                               </div>
                             </div>
-                            <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isGradeOpen ? 'rotate-90 text-sky-600' : ''}`} />
+                            <ChevronRight className={`w-4 h-4 text-gray-400 dark:text-slate-500 transition-transform duration-200 ${isGradeOpen ? 'rotate-90 text-sky-600' : ''}`} />
                           </button>
 
                           {/* ŞUBELER */}
                           {isGradeOpen && (
-                            <div className="bg-white/50">
+                            <div className="bg-white/50 dark:bg-slate-800/30">
                               {Object.entries(secMap).map(([secKey, students]) => {
                                 const sKey = `${gKey}::${secKey}`;
                                 const isSectionOpen = openSection === sKey;
@@ -396,16 +396,16 @@ export default function StudentsPage() {
                                           <FolderOpen className={`w-3.5 h-3.5 ${isSectionOpen ? 'text-white' : 'text-violet-600'}`} />
                                         </div>
                                         <div className="text-left min-w-0">
-                                          <h6 className="text-[12.5px] font-bold text-[#0f2847]">{secKey}</h6>
-                                          <p className="text-[10.5px] text-gray-500">{students.length} öğrenci</p>
+                                          <h6 className="text-[12.5px] font-bold text-[#0f2847] dark:text-slate-100">{secKey}</h6>
+                                          <p className="text-[10.5px] text-gray-500 dark:text-slate-400">{students.length} öğrenci</p>
                                         </div>
                                       </div>
-                                      <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isSectionOpen ? 'rotate-90 text-violet-600' : ''}`} />
+                                      <ChevronRight className={`w-4 h-4 text-gray-400 dark:text-slate-500 transition-transform duration-200 ${isSectionOpen ? 'rotate-90 text-violet-600' : ''}`} />
                                     </button>
 
                                     {/* ÖĞRENCİLER */}
                                     {isSectionOpen && (
-                                      <div className="divide-y divide-violet-100/40 bg-white/70">
+                                      <div className="divide-y divide-violet-100/40 bg-white/70 dark:bg-slate-800/50">
                                         {students.map((s) => {
                                           const isHighlighted = highlightedStudentId === s.id;
                                           return (
@@ -426,8 +426,8 @@ export default function StudentsPage() {
                                                 <GraduationCap className="w-4 h-4 text-white" />
                                               </div>
                                               <div className="flex-1 min-w-0">
-                                                <p className="text-[13px] font-bold text-[#0f2847] truncate">{s.full_name}</p>
-                                                <p className="text-[11px] text-gray-500">
+                                                <p className="text-[13px] font-bold text-[#0f2847] dark:text-slate-100 truncate">{s.full_name}</p>
+                                                <p className="text-[11px] text-gray-500 dark:text-slate-400">
                                                   {s.completed_count} test tamamlandı
                                                   {s.assigned_pending_count > 0 && ` · ${s.assigned_pending_count} bekliyor`}
                                                 </p>
@@ -470,7 +470,7 @@ export default function StudentsPage() {
                     <Award className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-left">
-                    <h4 className="text-[14.5px] font-extrabold text-[#0f2847]">🎓 Mezunlar</h4>
+                    <h4 className="text-[14.5px] font-extrabold text-[#0f2847] dark:text-slate-100">🎓 Mezunlar</h4>
                     <p className="text-[12px] text-amber-700">
                       <span className="font-semibold">{Object.keys(graduated).length}</span> okul · <span className="font-semibold">{graduatedCount}</span> mezun
                     </p>
@@ -494,7 +494,7 @@ export default function StudentsPage() {
                               <FolderOpen className={`w-4 h-4 ${isOpen ? 'text-white' : 'text-amber-700'}`} />
                             </div>
                             <div className="text-left">
-                              <h5 className="text-[13.5px] font-bold text-[#0f2847]">{schoolName}</h5>
+                              <h5 className="text-[13.5px] font-bold text-[#0f2847] dark:text-slate-100">{schoolName}</h5>
                               <p className="text-[11px] text-amber-700"><span className="font-semibold">{students.length}</span> mezun</p>
                             </div>
                           </div>
@@ -502,7 +502,7 @@ export default function StudentsPage() {
                         </button>
 
                         {isOpen && (
-                          <div className="divide-y divide-amber-100/50 bg-white/50">
+                          <div className="divide-y divide-amber-100/50 bg-white/50 dark:bg-slate-800/30">
                             {students.map((s) => {
                               const isHighlighted = highlightedStudentId === s.id;
                               return (
@@ -523,7 +523,7 @@ export default function StudentsPage() {
                                     <Award className="w-4 h-4 text-white" />
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-[13px] font-bold text-[#0f2847] truncate">{s.full_name}</p>
+                                    <p className="text-[13px] font-bold text-[#0f2847] dark:text-slate-100 truncate">{s.full_name}</p>
                                     <p className="text-[11px] text-amber-700">
                                       Mezun · {s.completed_count} test tamamlandı
                                     </p>

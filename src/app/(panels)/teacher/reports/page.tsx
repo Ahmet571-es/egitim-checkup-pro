@@ -341,13 +341,13 @@ export default function TeacherReportsPage() {
       {/* Filtreler */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {/* Sınıf Filtresi */}
-        <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-5 shadow-sm overflow-hidden">
+        <div className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-5 shadow-sm overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-600" />
           <div className="flex items-center gap-2 mb-3">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm">
               <Users className="w-3.5 h-3.5 text-white" />
             </div>
-            <label className="text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">
+            <label className="text-[12px] font-extrabold text-[#0f2847] dark:text-slate-100 uppercase tracking-wider">
               Sınıf Filtresi
             </label>
           </div>
@@ -355,7 +355,7 @@ export default function TeacherReportsPage() {
             <select
               value={selectedClass}
               onChange={e => setSelectedClass(e.target.value)}
-              className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-[#0f2847] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 cursor-pointer transition-all"
+              className="w-full appearance-none bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-[#0f2847] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 cursor-pointer transition-all"
             >
               <option value="all">Tüm Öğrenciler</option>
               {classes.map(c => (
@@ -364,18 +364,18 @@ export default function TeacherReportsPage() {
                 </option>
               ))}
             </select>
-            <ChevronDown size={16} className="absolute right-3 top-3.5 text-gray-400 pointer-events-none" />
+            <ChevronDown size={16} className="absolute right-3 top-3.5 text-gray-400 dark:text-slate-500 pointer-events-none" />
           </div>
         </div>
 
         {/* Öğrenci Seçimi */}
-        <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-5 shadow-sm overflow-hidden">
+        <div className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-5 shadow-sm overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-sky-600" />
           <div className="flex items-center gap-2 mb-3">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 to-sky-600 flex items-center justify-center shadow-sm">
               <BookOpen className="w-3.5 h-3.5 text-white" />
             </div>
-            <label className="text-[12px] font-extrabold text-[#0f2847] uppercase tracking-wider">
+            <label className="text-[12px] font-extrabold text-[#0f2847] dark:text-slate-100 uppercase tracking-wider">
               Öğrenci Seçimi
             </label>
           </div>
@@ -386,7 +386,7 @@ export default function TeacherReportsPage() {
                 const s = students.find(st => st.id === e.target.value);
                 if (s) loadStudentData(s);
               }}
-              className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-[#0f2847] focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-400 cursor-pointer transition-all disabled:opacity-60"
+              className="w-full appearance-none bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-[#0f2847] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-400 cursor-pointer transition-all disabled:opacity-60"
               disabled={loading}
             >
               <option value="">— Öğrenci Seçin —</option>
@@ -394,7 +394,7 @@ export default function TeacherReportsPage() {
                 <option key={s.id} value={s.id}>{s.full_name}</option>
               ))}
             </select>
-            <ChevronDown size={16} className="absolute right-3 top-3.5 text-gray-400 pointer-events-none" />
+            <ChevronDown size={16} className="absolute right-3 top-3.5 text-gray-400 dark:text-slate-500 pointer-events-none" />
           </div>
         </div>
       </div>
@@ -416,20 +416,20 @@ export default function TeacherReportsPage() {
 
       {/* Öğrenci Seçilmemişse */}
       {!selectedStudent && students.length === 0 && !loading && (
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-12 text-center shadow-sm">
+        <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-12 text-center shadow-sm">
           <p className="text-5xl mb-4">📭</p>
-          <p className="text-gray-500 font-semibold">Henüz size atanmış öğrenci yok.</p>
-          <p className="text-gray-400 text-sm mt-2 max-w-md mx-auto">
+          <p className="text-gray-500 dark:text-slate-400 font-semibold">Henüz size atanmış öğrenci yok.</p>
+          <p className="text-gray-400 dark:text-slate-500 text-sm mt-2 max-w-md mx-auto">
             Raporları görebilmek için önce sınıf oluşturulmalı ve öğrenciler sınıfınıza atanmalıdır.
             Okul yöneticinizle iletişime geçin.
           </p>
         </div>
       )}
       {!selectedStudent && students.length > 0 && (
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-12 text-center shadow-sm">
+        <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-12 text-center shadow-sm">
           <p className="text-5xl mb-4">👆</p>
-          <p className="text-gray-500 font-semibold">Lütfen bir öğrenci seçin.</p>
-          <p className="text-gray-400 text-sm mt-1">Öğrenci seçildikten sonra test sonuçları ve rapor üretim seçenekleri görünecek.</p>
+          <p className="text-gray-500 dark:text-slate-400 font-semibold">Lütfen bir öğrenci seçin.</p>
+          <p className="text-gray-400 dark:text-slate-500 text-sm mt-1">Öğrenci seçildikten sonra test sonuçları ve rapor üretim seçenekleri görünecek.</p>
         </div>
       )}
 
@@ -450,7 +450,7 @@ export default function TeacherReportsPage() {
             <div className="relative flex items-center justify-between flex-wrap gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 mb-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-white dark:bg-slate-800 animate-pulse" />
                   <p className="text-white/80 text-[10.5px] font-extrabold uppercase tracking-wider">Seçili Öğrenci</p>
                 </div>
                 <h2 className="text-[26px] font-extrabold drop-shadow-sm tracking-tight">{selectedStudent.full_name}</h2>
@@ -500,7 +500,7 @@ export default function TeacherReportsPage() {
               <div className="flex gap-2">
                 <a
                   href={exportUrl('excel', { student_id: selectedStudent.id })}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white text-emerald-700 text-[12.5px] font-extrabold hover:bg-emerald-50 transition-all shadow-md active:scale-[0.97]"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 text-emerald-700 text-[12.5px] font-extrabold hover:bg-emerald-50 transition-all shadow-md active:scale-[0.97]"
                 >
                   <Download size={14} />
                   Excel
@@ -522,7 +522,7 @@ export default function TeacherReportsPage() {
           </div>
 
           {/* Sekmeler */}
-          <div className="flex gap-1 mb-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 p-1.5 shadow-sm overflow-x-auto">
+          <div className="flex gap-1 mb-4 bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-1.5 shadow-sm overflow-x-auto">
             {tabs.map(tab => (
               <button
                 key={tab.key}
@@ -530,7 +530,7 @@ export default function TeacherReportsPage() {
                 className={`flex-1 min-w-fit flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-extrabold transition-all active:scale-[0.97] ${
                   activeTab === tab.key
                     ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 text-white shadow-lg shadow-emerald-500/30'
-                    : 'text-gray-500 hover:text-gray-800 hover:bg-white'
+                    : 'text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:text-slate-200 hover:bg-white dark:bg-slate-800'
                 }`}
               >
                 {tab.icon}
@@ -543,18 +543,18 @@ export default function TeacherReportsPage() {
           {activeTab === 'tekil' && (
             <div className="space-y-3">
               {testResults.length === 0 && (
-                <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-8 text-center">
-                  <p className="text-gray-400">Bu öğrencinin henüz tamamlanmış testi yok.</p>
+                <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-8 text-center">
+                  <p className="text-gray-400 dark:text-slate-500">Bu öğrencinin henüz tamamlanmış testi yok.</p>
                 </div>
               )}
               {testResults.map(tr => (
-                <div key={tr.id} className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
+                <div key={tr.id} className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm overflow-hidden">
                   <div className="p-4 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <div className={`w-2.5 h-10 rounded-full ${tr.ai_report ? 'bg-emerald-400' : 'bg-gray-200'}`} />
                       <div>
-                        <p className="font-bold text-[#0f2847] text-sm">{getTestLabel(tr.test_type)}</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="font-bold text-[#0f2847] dark:text-slate-100 text-sm">{getTestLabel(tr.test_type)}</p>
+                        <p className="text-xs text-gray-400 dark:text-slate-500">
                           Test tarihi: {tr.completed_at
                             ? new Date(tr.completed_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })
                             : '—'}
@@ -595,7 +595,7 @@ export default function TeacherReportsPage() {
                           <button
                             onClick={() => generateReport(tr, true)}
                             disabled={loadingStates[tr.id]}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 text-xs font-semibold hover:bg-gray-200 disabled:opacity-50 transition-all"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-slate-700/60 text-gray-600 dark:text-slate-300 text-xs font-semibold hover:bg-gray-200 disabled:opacity-50 transition-all"
                           >
                             <RefreshCw size={13} className={loadingStates[tr.id] ? 'animate-spin' : ''} />
                             Yenile
@@ -630,14 +630,14 @@ export default function TeacherReportsPage() {
           {/* BÜTÜNCÜL RAPOR */}
           {activeTab === 'butuncel' && (
             <div className="space-y-4">
-              <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm">
+              <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 rounded-2xl bg-violet-100 flex items-center justify-center flex-shrink-0">
                     <Brain size={22} className="text-violet-600" />
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-[#0f2847] text-lg">Bütüncül Analiz Raporu</h3>
-                    <p className="text-gray-500 text-sm mt-1">
+                    <h3 className="font-extrabold text-[#0f2847] dark:text-slate-100 text-lg">Bütüncül Analiz Raporu</h3>
+                    <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">
                       Öğrencinin tüm test sonuçlarını entegre eden, çapraz korelasyon analizi içeren kapsamlı bütüncül rapor.
                       Minimum 3.000 kelime, 8 bölüm.
                     </p>
@@ -677,17 +677,17 @@ export default function TeacherReportsPage() {
 
               {/* Rapor Görüntüleme */}
               {holisticReport && (
-                <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
-                  <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+                <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm overflow-hidden">
+                  <div className="px-5 py-3.5 border-b border-gray-100 dark:border-slate-700/60 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CheckCircle size={16} className="text-emerald-500" />
-                      <h4 className="font-bold text-[#0f2847] text-sm">Bütüncül Rapor Hazır</h4>
+                      <h4 className="font-bold text-[#0f2847] dark:text-slate-100 text-sm">Bütüncül Rapor Hazır</h4>
                     </div>
                   </div>
                   <div className="max-h-[600px] overflow-y-auto p-5">
                     <ReportRenderer text={holisticReport} />
                   </div>
-                  <div className="px-5 py-3.5 border-t border-gray-100 flex flex-wrap gap-2">
+                  <div className="px-5 py-3.5 border-t border-gray-100 dark:border-slate-700/60 flex flex-wrap gap-2">
                     <button
                       onClick={() => setViewingReport({
                         text: holisticReport,
@@ -703,7 +703,7 @@ export default function TeacherReportsPage() {
                         navigator.clipboard.writeText(holisticReport);
                         setMessage({ type: 'success', text: 'Rapor panoya kopyalandı!' });
                       }}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-all"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-100 dark:bg-slate-700/60 text-gray-600 dark:text-slate-300 text-sm font-semibold hover:bg-gray-200 transition-all"
                     >
                       📋 Kopyala
                     </button>
@@ -792,9 +792,9 @@ export default function TeacherReportsPage() {
 
               {/* Üretilmiş Raporları Göster */}
               {integratedReport && (
-                <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
+                <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm overflow-hidden">
                   {/* Alt sekme seçici */}
-                  <div className="flex border-b border-gray-100">
+                  <div className="flex border-b border-gray-100 dark:border-slate-700/60">
                     {[
                       { key: 'ogretmen' as const, label: '👩‍🏫 Öğretmen / Koç', color: 'text-emerald-600' },
                       { key: 'ogrenci' as const, label: '🎓 Öğrenci', color: 'text-violet-600' },
@@ -805,8 +805,8 @@ export default function TeacherReportsPage() {
                         onClick={() => setActiveIntegratedTab(tab.key)}
                         className={`flex-1 py-3 text-sm font-semibold transition-all border-b-2 ${
                           activeIntegratedTab === tab.key
-                            ? `border-current ${tab.color} bg-gray-50`
-                            : 'border-transparent text-gray-400 hover:text-gray-600'
+                            ? `border-current ${tab.color} bg-gray-50 dark:bg-slate-800/60`
+                            : 'border-transparent text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:text-slate-300'
                         }`}
                       >
                         {tab.label}
@@ -826,7 +826,7 @@ export default function TeacherReportsPage() {
                     return (
                       <div className="p-5">
                         {integratedReport.generated_at && (
-                          <div className="flex items-center gap-2 text-xs text-gray-400 mb-4">
+                          <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-slate-500 mb-4">
                             <Clock size={12} />
                             Oluşturulma: {new Date(integratedReport.generated_at).toLocaleString('tr-TR')}
                           </div>
@@ -862,7 +862,7 @@ export default function TeacherReportsPage() {
                             </div>
                           </>
                         ) : (
-                          <p className="text-gray-400 text-sm text-center py-8">
+                          <p className="text-gray-400 dark:text-slate-500 text-sm text-center py-8">
                             Bu rapor henüz üretilmemiş.
                           </p>
                         )}
@@ -883,14 +883,14 @@ export default function TeacherReportsPage() {
           onClick={() => setViewingReport(null)}
         >
           <div
-            className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl"
+            className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="font-extrabold text-[#0f2847] text-lg">{viewingReport.title}</h3>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-700/60">
+              <h3 className="font-extrabold text-[#0f2847] dark:text-slate-100 text-lg">{viewingReport.title}</h3>
               <button
                 onClick={() => setViewingReport(null)}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-all"
+                className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700/60 hover:bg-gray-200 flex items-center justify-center text-gray-500 dark:text-slate-400 transition-all"
               >
                 ✕
               </button>
@@ -909,13 +909,13 @@ export default function TeacherReportsPage() {
                 />
               )}
             </div>
-            <div className="px-6 py-4 border-t border-gray-100 flex gap-2">
+            <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-700/60 flex gap-2">
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(viewingReport.text);
                   setMessage({ type: 'success', text: 'Rapor panoya kopyalandı!' });
                 }}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-all"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-slate-700/60 text-gray-600 dark:text-slate-300 text-sm font-semibold hover:bg-gray-200 transition-all"
               >
                 📋 Kopyala
               </button>
