@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import ReportRenderer from '@/components/ReportRenderer';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import {
   GraduationCap, Shield, Lock, ArrowRight, ArrowLeft, Users, Trash2,
   Phone, MapPin, BookOpen, FileText, ChevronRight, School,
@@ -96,6 +97,7 @@ function DeleteButton({ onDelete, label }: { onDelete: () => void; label: string
 
 /* ═══ MAIN PAGE ═══ */
 export default function YoneticiPage() {
+  const { confirm } = useConfirm();
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [authed, setAuthed] = useState(false);
@@ -264,7 +266,13 @@ export default function YoneticiPage() {
   };
 
   const rejectTeacher = async (userId: string) => {
-    if (!confirm('Bu başvuruyu reddetmek istediğinize emin misiniz? Hesap silinecek.')) return;
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Başvuruyu reddet?',
+      description: 'Hesap silinecek. Bu işlem geri alınamaz. Öğretmen tekrar kayıt olmalıdır.',
+      confirmLabel: 'Evet, Reddet',
+    });
+    if (!ok) return;
     setLoading(true);
     setError('');
     try {

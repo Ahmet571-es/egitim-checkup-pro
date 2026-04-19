@@ -14,11 +14,13 @@ import PremiumModal from '@/components/ui/PremiumModal';
 import ActionButton from '@/components/ui/ActionButton';
 import { useToast } from '@/components/ui/Toast';
 import { CardGridSkeleton } from '@/components/ui/Skeleton';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type ModalKind = null | 'add' | 'reset' | 'assign';
 
 export default function SchoolTeachersPage() {
   const toast = useToast();
+  const { confirm } = useConfirm();
   const [teachers, setTeachers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -160,9 +162,16 @@ export default function SchoolTeachersPage() {
     }
   };
 
-  const remove = async (id: string) => {
-    if (!confirm('Bu öğretmeni pasife almak istediğinize emin misiniz?')) return;
+  const remove = async (id: string, name: string) => {
+    const ok = await confirm({
+      variant: 'warning',
+      title: 'Öğretmeni pasife almak istiyor musun?',
+      description: `"${name}" adlı öğretmeni pasife almak üzeresin. İstediğin zaman tekrar aktif edebilirsin.`,
+      confirmLabel: 'Pasife Al',
+    });
+    if (!ok) return;
     await supabase.from('profiles').update({ is_active: false }).eq('id', id);
+    toast.success('Öğretmen pasife alındı');
     load();
   };
 
@@ -277,7 +286,7 @@ export default function SchoolTeachersPage() {
                       <KeyRound className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={() => remove(t.id)}
+                      onClick={() => remove(t.id, t.full_name)}
                       title="Pasife Al"
                       className="inline-flex items-center justify-center p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition active:scale-95 border border-red-100"
                     >

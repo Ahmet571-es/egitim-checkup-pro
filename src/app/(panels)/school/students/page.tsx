@@ -15,6 +15,7 @@ import PremiumModal from '@/components/ui/PremiumModal';
 import ActionButton from '@/components/ui/ActionButton';
 import { useToast } from '@/components/ui/Toast';
 import { TableSkeleton } from '@/components/ui/Skeleton';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 interface LicenseLite {
   status: LicenseStatus;
@@ -25,6 +26,7 @@ interface LicenseLite {
 
 export default function SchoolStudentsPage() {
   const toast = useToast();
+  const { confirm } = useConfirm();
   const [students, setStudents] = useState<(Profile & { classes?: string[] })[]>([]);
   const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,8 +104,14 @@ export default function SchoolStudentsPage() {
     load();
   };
 
-  const removeStudent = async (id: string) => {
-    if (!confirm('Bu öğrenciyi silmek istediğinize emin misiniz?')) return;
+  const removeStudent = async (id: string, name: string) => {
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Öğrenciyi silmek istiyor musun?',
+      description: `"${name}" adlı öğrenciyi silmek üzeresin. Bu işlem geri alınamaz.`,
+      confirmLabel: 'Evet, Sil',
+    });
+    if (!ok) return;
     await supabase.from('profiles').update({ is_active: false }).eq('id', id);
     toast.success('Öğrenci silindi');
     load();
@@ -291,7 +299,7 @@ export default function SchoolStudentsPage() {
                     </td>
                     <td className="px-5 py-4 text-right">
                       <button
-                        onClick={() => removeStudent(s.id)}
+                        onClick={() => removeStudent(s.id, s.full_name)}
                         className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition active:scale-95"
                         title="Pasife Al"
                       >

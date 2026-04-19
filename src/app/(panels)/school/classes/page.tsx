@@ -9,8 +9,10 @@ import SearchBar from '@/components/ui/SearchBar';
 import EmptyState from '@/components/ui/EmptyState';
 import PremiumModal from '@/components/ui/PremiumModal';
 import ActionButton from '@/components/ui/ActionButton';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 export default function SchoolClassesPage() {
+  const { confirm } = useConfirm();
   const [classes, setClasses] = useState<Class[]>([]);
   const [teachers, setTeachers] = useState<{ id: string; full_name: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,8 +77,14 @@ export default function SchoolClassesPage() {
     load();
   };
 
-  const remove = async (id: string) => {
-    if (!confirm('Bu sınıfı silmek istediğinize emin misiniz?')) return;
+  const remove = async (id: string, name: string) => {
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Sınıfı silmek istiyor musun?',
+      description: `"${name}" sınıfını silmek üzeresin. Bu işlem geri alınamaz.`,
+      confirmLabel: 'Evet, Sil',
+    });
+    if (!ok) return;
     await supabase.from('classes').delete().eq('id', id);
     load();
   };
@@ -166,7 +174,7 @@ export default function SchoolClassesPage() {
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => remove(c.id)}
+                        onClick={() => remove(c.id, c.name)}
                         className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition active:scale-95"
                         title="Sil"
                       >

@@ -11,6 +11,7 @@ import PremiumModal from '@/components/ui/PremiumModal';
 import ActionButton from '@/components/ui/ActionButton';
 import { useToast } from '@/components/ui/Toast';
 import { CardGridSkeleton } from '@/components/ui/Skeleton';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 interface ParentWithChildren extends Profile {
   children: Profile[];
@@ -18,6 +19,7 @@ interface ParentWithChildren extends Profile {
 
 export default function SchoolParentsPage() {
   const toast = useToast();
+  const { confirm } = useConfirm();
   const [parents, setParents] = useState<ParentWithChildren[]>([]);
   const [students, setStudents] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,9 +78,16 @@ export default function SchoolParentsPage() {
     load();
   };
 
-  const remove = async (id: string) => {
-    if (!confirm('Bu veliyi pasife almak istediğinize emin misiniz?')) return;
+  const remove = async (id: string, name: string) => {
+    const ok = await confirm({
+      variant: 'warning',
+      title: 'Veliyi pasife almak istiyor musun?',
+      description: `"${name}" velisini pasife almak üzeresin. İstediğin zaman tekrar aktif edebilirsin.`,
+      confirmLabel: 'Pasife Al',
+    });
+    if (!ok) return;
     await supabase.from('profiles').update({ is_active: false }).eq('id', id);
+    toast.success('Veli pasife alındı');
     load();
   };
 
@@ -138,7 +147,7 @@ export default function SchoolParentsPage() {
                     </div>
                   </div>
                   <button
-                    onClick={() => remove(p.id)}
+                    onClick={() => remove(p.id, p.full_name)}
                     className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition active:scale-95 shrink-0"
                     title="Pasife Al"
                   >

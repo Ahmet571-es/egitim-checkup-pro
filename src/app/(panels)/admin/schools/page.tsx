@@ -10,6 +10,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import PremiumModal from '@/components/ui/PremiumModal';
 import ActionButton from '@/components/ui/ActionButton';
 import { CardGridSkeleton } from '@/components/ui/Skeleton';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 const EMPTY: Partial<SchoolType> = { name: '', code: '', city: '', phone: '', email: '', max_students: 50 };
 
@@ -54,8 +55,17 @@ export default function AdminSchoolsPage() {
     load();
   };
 
-  const remove = async (id: string) => {
-    if (!confirm('Bu okulu silmek istediğinize emin misiniz?')) return;
+  const { confirm } = useConfirm();
+
+  const remove = async (id: string, name: string) => {
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Okulu silmek istiyor musun?',
+      description: `"${name}" okulunu silmek üzeresin. Bu işlem geri alınamaz ve okula bağlı tüm veriler kaybolabilir.`,
+      confirmLabel: 'Evet, Sil',
+      cancelLabel: 'Vazgeç',
+    });
+    if (!ok) return;
     await supabase.from('schools').delete().eq('id', id);
     load();
   };
@@ -137,7 +147,7 @@ export default function AdminSchoolsPage() {
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => remove(s.id)}
+                        onClick={() => remove(s.id, s.name)}
                         className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition active:scale-95"
                         title="Sil"
                       >

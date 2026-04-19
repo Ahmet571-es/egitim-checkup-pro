@@ -4,6 +4,7 @@ import OfflineBanner from '@/components/OfflineBanner';
 import AccessibilityToggle from '@/components/ui/AccessibilityToggle';
 import CookieConsent from '@/components/CookieConsent';
 import { ToastProvider } from '@/components/ui/Toast';
+import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -35,10 +36,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="tr">
       <body>
         <ToastProvider>
-          <OfflineBanner />
-          {children}
-          <AccessibilityToggle />
-          <CookieConsent />
+          <ConfirmProvider>
+            <OfflineBanner />
+            {children}
+            <AccessibilityToggle />
+            <CookieConsent />
+          </ConfirmProvider>
         </ToastProvider>
         <Analytics />
         <SpeedInsights />

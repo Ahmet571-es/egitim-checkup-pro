@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { secureFetch } from '@/lib/csrf-client';
 import ReportRenderer from '@/components/ReportRenderer';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import {
   ArrowLeft, GraduationCap, CheckCircle2, Circle, Bell, AlertCircle,
   FileText, BookOpen, X, Send, Loader2, Sparkles, Eye, Download, RefreshCw,
@@ -99,6 +100,7 @@ type ViewerMode = null | {
 export default function StudentDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { confirm } = useConfirm();
   const studentId = params.studentId as string;
 
   const [tab, setTab] = useState<'done' | 'pending'>('pending');
@@ -274,7 +276,13 @@ export default function StudentDetailPage() {
 
   // ═══ Tek bir harmanlanmış raporu sil ═══
   const deleteHolistic = async (id: string) => {
-    if (!confirm('Bu harmanlanmış raporu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) return;
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Harmanlanmış raporu sil?',
+      description: 'Bu harmanlanmış raporu silmek üzeresin. İşlem geri alınamaz ve rapor kalıcı olarak kaybolur.',
+      confirmLabel: 'Evet, Sil',
+    });
+    if (!ok) return;
     setBusyKey('holistic-delete-' + id);
     setError('');
     setSuccess('');
