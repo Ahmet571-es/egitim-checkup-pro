@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { secureFetch } from '@/lib/csrf-client';
 import ReportRenderer from '@/components/ReportRenderer';
-import AdvancedInsightsPanel from '@/components/teacher/AdvancedInsightsPanel';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import {
   ArrowLeft, GraduationCap, CheckCircle2, Circle, Bell, AlertCircle,
@@ -908,7 +907,17 @@ export default function StudentDetailPage() {
                     )}
 
                     {/* GEÇMİŞ RAPORLAR LİSTESİ */}
-                    {holisticHistory.length > 0 && (
+                    {holisticHistory.length === 0 ? (
+                      <div className="mt-3 bg-white/70 dark:bg-slate-800/60 rounded-xl border-2 border-dashed border-purple-200 dark:border-slate-700 p-4 text-center" style={{ marginLeft: '52px' }}>
+                        <FileText className="w-7 h-7 text-purple-300 dark:text-slate-500 mx-auto mb-1.5" />
+                        <p className="text-[13px] font-extrabold text-purple-700 dark:text-slate-200">
+                          Hiç harmanlanmış rapor üretilmedi
+                        </p>
+                        <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-1">
+                          Yukarıdan test seçerek ilk harmanlanmış raporu üretebilirsiniz.
+                        </p>
+                      </div>
+                    ) : (
                       <div className="mt-3" style={{ marginLeft: '52px' }}>
                         <button
                           onClick={() => setHolisticHistoryOpen(v => !v)}
@@ -917,7 +926,7 @@ export default function StudentDetailPage() {
                           <div className="flex items-center gap-2">
                             <FileText className="w-4 h-4 text-purple-600" />
                             <span className="text-[12px] font-bold text-[#0f2847] dark:text-slate-100">
-                              Geçmiş Harmanlanmış Raporlar
+                              Üretilmiş Harmanlanmış Raporlar
                             </span>
                             <span className="px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold">
                               {holisticHistory.length}
@@ -932,28 +941,26 @@ export default function StudentDetailPage() {
                               <div key={hr.id} className="bg-white dark:bg-slate-800 rounded-xl border border-purple-200 p-3 hover:shadow-sm transition">
                                 <div className="flex items-start justify-between gap-3 flex-wrap">
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1.5">
+                                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                                       <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-[10px] font-bold">
                                         #{holisticHistory.length - idx}
                                       </span>
                                       <span className="text-[12px] font-semibold text-[#0f2847] dark:text-slate-100">
                                         {formatDate(hr.generated_at)}
                                       </span>
-                                      <span className="text-[11px] text-purple-600">
-                                        {hr.test_count} test
+                                      <span className="text-[11px] font-bold text-purple-600 bg-purple-50 dark:bg-purple-900/30 px-2 py-0.5 rounded">
+                                        {hr.test_count} test harmanlandı
                                       </span>
                                     </div>
+                                    <div className="text-[10.5px] text-gray-500 dark:text-slate-400 font-semibold mb-1">
+                                      Harmanlanan testler:
+                                    </div>
                                     <div className="flex flex-wrap gap-1">
-                                      {hr.selected_test_types.slice(0, 6).map(t => (
-                                        <span key={t} className="px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-semibold">
+                                      {hr.selected_test_types.map(t => (
+                                        <span key={t} className="px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/40 text-purple-700 dark:text-purple-300 text-[10px] font-semibold">
                                           {labelOf(t)}
                                         </span>
                                       ))}
-                                      {hr.selected_test_types.length > 6 && (
-                                        <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-700/60 text-gray-600 dark:text-slate-300 text-[10px] font-semibold">
-                                          +{hr.selected_test_types.length - 6}
-                                        </span>
-                                      )}
                                     </div>
                                   </div>
                                   <div className="flex flex-wrap gap-1.5">
@@ -1087,25 +1094,7 @@ export default function StudentDetailPage() {
                   </div>
 
 
-                  {/* ═══ ANALİZ PANOSU — 2+ test tamamlandıysa görünür ═══ */}
-                  {completed.length >= 2 && advanced.unlocked && (
-                    <AdvancedInsightsPanel
-                      risk={advanced.riskScore ?? null}
-                      patterns={advanced.patterns ?? []}
-                      career={advanced.career ?? null}
-                    />
-                  )}
-                  {completed.length >= 2 && !advanced.unlocked && (
-                    <div className="mt-4 bg-gray-50 dark:bg-slate-800/60 border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-2xl p-5 text-center">
-                      <Sparkles className="w-7 h-7 text-gray-400 dark:text-slate-500 mx-auto mb-2" />
-                      <h3 className="text-[14px] font-extrabold text-gray-600 dark:text-slate-300 mb-1">
-                        Analiz Panosu Hazırlanıyor
-                      </h3>
-                      <p className="text-[12px] text-gray-500 dark:text-slate-400">
-                        Test verileri işleniyor... Birkaç saniye içinde gösterilecek.
-                      </p>
-                    </div>
-                  )}
+
                 </>
               )}
 
