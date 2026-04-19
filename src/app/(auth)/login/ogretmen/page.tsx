@@ -1,19 +1,20 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { GraduationCap, User, Lock, ArrowRight, AlertCircle, Eye, EyeOff, Clock } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { User, Lock, ArrowRight, AlertCircle, Eye, EyeOff, Clock } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_PATHS } from '@/types';
 import type { UserRole } from '@/types';
+import AuthLayout from '@/components/ui/AuthLayout';
 
-// Türkçe karakter dönüşümü
 function toAscii(s: string): string {
   const map: Record<string, string> = { 'ç':'c','Ç':'c','ğ':'g','Ğ':'g','ı':'i','İ':'i','ö':'o','Ö':'o','ş':'s','Ş':'s','ü':'u','Ü':'u' };
   return s.replace(/[çÇğĞıİöÖşŞüÜ]/g, c => map[c] || c);
 }
 
-export default function TeacherLoginPage() {
+function TeacherLoginInner() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
@@ -22,6 +23,13 @@ export default function TeacherLoginPage() {
   const [error, setError] = useState('');
   const [pendingMsg, setPendingMsg] = useState(false);
   const submittingRef = useRef(false);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('pending') === '1') {
+      setPendingMsg(true);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,8 +53,6 @@ export default function TeacherLoginPage() {
 
     try {
       const supabase = createClient();
-
-      // Ad soyad → e-posta dönüşümü
       const ad = toAscii(firstName.trim().toLowerCase()).replace(/[^a-z]/g, '');
       const soyad = toAscii(lastName.trim().toLowerCase()).replace(/[^a-z]/g, '');
       const authEmail = `${ad}_${soyad}@ogretmen.egitimcheckup.com`;
@@ -67,7 +73,6 @@ export default function TeacherLoginPage() {
         return;
       }
 
-      // Onay kontrolü
       const isApproved = data.user?.user_metadata?.is_approved;
       if (isApproved === false) {
         await supabase.auth.signOut();
@@ -99,101 +104,138 @@ export default function TeacherLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#f0f5ff] via-[#f8fafc] to-[#f0fdf8] px-4">
-      <div className="fixed top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-emerald-200/30 to-teal-200/20 blur-3xl" />
-      <div className="fixed bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-blue-200/30 to-indigo-200/20 blur-3xl" />
-
-      <div className="relative w-full max-w-md">
-        <Link href="/" className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-            <GraduationCap className="w-6 h-6 text-white" />
+    <AuthLayout
+      role="teacher"
+      title="Öğretmen Girişi"
+      subtitle="Ad-Soyad ve 7 haneli şifrenizle giriş yapın"
+      footer={
+        <p className="text-[13px] text-gray-500">
+          Hesabınız yok mu?{' '}
+          <Link href="/register/ogretmen" className="text-emerald-600 font-extrabold hover:text-emerald-700 hover:underline transition">
+            Öğretmen Kayıt →
+          </Link>
+        </p>
+      }
+    >
+      {pendingMsg && (
+        <div className="mb-5 p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 flex items-start gap-2.5 text-sm text-amber-800">
+          <Clock className="w-5 h-5 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold mb-0.5">Hesabınız henüz onaylanmadı</p>
+            <p className="text-[12.5px] text-amber-700">Yönetici onayı bekleniyor. Onaylandığında size bilgi verilecek.</p>
           </div>
-          <h1 className="text-xl font-extrabold text-[#0f2847]">Eğitim Check-Up</h1>
-        </Link>
+        </div>
+      )}
 
-        <div className="bg-white/72 backdrop-blur-[20px] rounded-3xl border border-white/40 shadow-xl p-8">
-          <h2 className="text-2xl font-extrabold text-[#0f2847] text-center mb-1">Öğretmen Girişi</h2>
-          <p className="text-sm text-gray-500 text-center mb-8">Ad-Soyad ve şifreniz ile giriş yapın</p>
+      {error && (
+        <div className="mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 flex items-center gap-2 text-sm text-red-700">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span className="font-medium">{error}</span>
+        </div>
+      )}
 
-          {pendingMsg && (
-            <div className="mb-5 p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2 text-sm text-amber-700">
-              <Clock className="w-4 h-4 shrink-0" />
-              <span>Hesabınız henüz onaylanmadı. Yönetici onayı bekleniyor.</span>
-            </div>
-          )}
+      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+        <input type="text" name="prevent_autofill" style={{ display: 'none' }} tabIndex={-1} />
+        <input type="password" name="prevent_autofill_pw" style={{ display: 'none' }} tabIndex={-1} />
 
-          {error && (
-            <div className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2 text-sm text-red-600">
-              <AlertCircle className="w-4 h-4 shrink-0" />{error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
-            <input type="text" name="prevent_autofill" style={{ display: 'none' }} tabIndex={-1} />
-            <input type="password" name="prevent_autofill_pw" style={{ display: 'none' }} tabIndex={-1} />
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Ad</label>
-                <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="Adınız"
-                    className="w-full pl-11 pr-3 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
-                    required
-                    autoComplete="nope"
-                  />
-                </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Ad</label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md pointer-events-none">
+                <User className="w-4 h-4 text-white" />
               </div>
-              <div>
-                <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Soyad</label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Soyadınız"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
-                  required
-                  autoComplete="nope"
-                />
-              </div>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="Adınız"
+                className="w-full pl-14 pr-3 py-3.5 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
+                required
+                autoComplete="nope"
+              />
             </div>
+          </div>
+          <div>
+            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Soyad</label>
+            <input
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Soyadınız"
+              className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
+              required
+              autoComplete="nope"
+            />
+          </div>
+        </div>
 
-            <div>
-              <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Şifre <span className="text-gray-400 font-normal">(7 haneli)</span></label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value.slice(0, 7))}
-                  placeholder="Örn: Ab12345"
-                  maxLength={7}
-                  className="w-full pl-11 pr-11 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
-                  required
-                  autoComplete="new-password"
-                />
-                <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors" tabIndex={-1}>
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              <p className="text-[11px] text-gray-400 mt-1">Kayıt olurken belirlediğiniz 7 haneli şifre</p>
+        <div>
+          <label className="block text-[13px] font-bold text-gray-700 mb-1.5">
+            Şifre <span className="text-gray-400 font-normal">(7 haneli)</span>
+          </label>
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center shadow-md pointer-events-none">
+              <Lock className="w-4 h-4 text-white" />
             </div>
-
-            <button type="submit" disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all flex items-center justify-center gap-2 disabled:opacity-60">
-              {loading ? 'Giriş yapılıyor...' : <>Giriş Yap <ArrowRight className="w-4 h-4" /></>}
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value.slice(0, 7))}
+              placeholder="Örn: Ab12345"
+              maxLength={7}
+              className="w-full pl-14 pr-12 py-3.5 rounded-xl border border-gray-200 bg-white text-sm font-mono font-bold tracking-wider focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
+              required
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(v => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
-          </form>
-
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Hesabınız yok mu?{' '}
-            <Link href="/register/ogretmen" className="text-emerald-600 font-semibold hover:underline">Öğretmen Kayıt</Link>
+          </div>
+          <p className="text-[11.5px] text-gray-500 mt-1.5 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3 text-amber-500" />
+            Kayıt olurken belirlediğiniz 7 haneli şifre
           </p>
         </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 text-white text-[14px] font-extrabold shadow-lg shadow-emerald-500/40 hover:shadow-xl hover:shadow-emerald-500/50 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]"
+        >
+          {loading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Giriş yapılıyor...
+            </>
+          ) : (
+            <>Giriş Yap <ArrowRight className="w-4 h-4" /></>
+          )}
+        </button>
+      </form>
+
+      <div className="mt-6 pt-6 border-t border-gray-100">
+        <Link
+          href="/login"
+          className="flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 text-violet-700 text-[13px] font-bold border border-violet-200 transition-all active:scale-[0.98] group"
+        >
+          <span>Öğrenci misiniz? Öğrenci Girişi</span>
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+        </Link>
       </div>
-    </div>
+    </AuthLayout>
+  );
+}
+
+export default function TeacherLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>}>
+      <TeacherLoginInner />
+    </Suspense>
   );
 }
