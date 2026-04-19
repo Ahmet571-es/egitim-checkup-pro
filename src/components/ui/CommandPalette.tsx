@@ -42,11 +42,6 @@ const ALL_ITEMS: ShortcutItem[] = [
   // Teacher
   { id: 'teacher-dashboard', label: 'Öğretmen Panosu', href: '/teacher/dashboard', icon: LayoutDashboard, roles: ['teacher'] },
   { id: 'teacher-students', label: 'Öğrencilerim', href: '/teacher/students', icon: Users, roles: ['teacher'] },
-  { id: 'teacher-assign', label: 'Test Ata', href: '/teacher/assign-test', icon: ClipboardList, roles: ['teacher'], keywords: ['atama'] },
-  { id: 'teacher-results', label: 'Sonuçlar', href: '/teacher/results', icon: BarChart3, roles: ['teacher'] },
-  { id: 'teacher-reports', label: 'AI Raporları', href: '/teacher/reports', icon: FileText, roles: ['teacher'], keywords: ['rapor', 'analiz'] },
-  { id: 'teacher-coaching', label: 'AI Koçluk', href: '/teacher/coaching', icon: Sparkles, roles: ['teacher'] },
-  { id: 'teacher-guidance', label: 'Rehberlik Planı', href: '/teacher/guidance-plan', icon: FileText, roles: ['teacher'] },
   // Student
   { id: 'student-dashboard', label: 'Panom', href: '/student/dashboard', icon: LayoutDashboard, roles: ['student'] },
   { id: 'student-tests', label: 'Testlerim', href: '/student/my-tests', icon: ClipboardList, roles: ['student'] },
