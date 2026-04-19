@@ -1,11 +1,24 @@
+'use client';
+
+import { Users, Construction } from 'lucide-react';
+import PageHeader from '@/components/ui/PageHeader';
+import EmptyState from '@/components/ui/EmptyState';
+
 export default function Page() {
   return (
     <div>
-      <h1 className="text-2xl font-extrabold text-[#0f2847] mb-2">Kullanıcılar</h1>
-      <p className="text-gray-500 text-sm">Tüm platform kullanıcıları</p>
-      <div className="mt-6 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-8 shadow-sm">
-        <p className="text-gray-400 text-sm">Bu sayfa Faz 2&apos;de geliştirilecek.</p>
-      </div>
+      <PageHeader
+        role="admin"
+        icon={Users}
+        title="Kullanıcılar"
+        subtitle="Platformdaki tüm kullanıcıları görüntüleyin ve yönetin"
+      />
+      <EmptyState
+        role="admin"
+        icon={Construction}
+        title="Bu sayfa yakında aktif olacak"
+        subtitle="Kullanıcı yönetim paneli geliştirme aşamasında. Şimdilik kullanıcıları okul yöneticileri üzerinden yönetebilirsiniz."
+      />
     </div>
   );
 }
