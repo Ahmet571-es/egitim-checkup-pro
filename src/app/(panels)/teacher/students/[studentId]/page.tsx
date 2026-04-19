@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { secureFetch } from '@/lib/csrf-client';
 import ReportRenderer from '@/components/ReportRenderer';
+import AdvancedInsightsPanel from '@/components/teacher/AdvancedInsightsPanel';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import {
   ArrowLeft, GraduationCap, CheckCircle2, Circle, Bell, AlertCircle,
@@ -73,8 +74,10 @@ interface HolisticHistoryItem {
 
 interface RiskDimension { key: string; name: string; score: number | null; weight: number; available: boolean; }
 interface RiskFlag { id: string; message: string; severity: 'kritik' | 'uyarı'; icon: string; }
+interface RiskDimension { key: string; name: string; score: number | null; weight: number; available: boolean; }
+interface RiskFlag { id: string; message: string; severity: 'kritik' | 'uyarı'; icon: string; }
 interface RiskScore {
-  overallScore: number; level: string; color: string; bgColor: string; borderColor: string;
+  overallScore: number; level: 'kritik' | 'izlenmeli' | 'saglikli'; color: string; bgColor: string; borderColor: string;
   emoji: string; label: string; dimensions: RiskDimension[]; flags: RiskFlag[];
 }
 interface PatternInsight { id: string; title: string; description: string; severity: 'kritik' | 'uyarı' | 'bilgi'; relatedTests: string[]; icon: string; }
@@ -1083,214 +1086,26 @@ export default function StudentDetailPage() {
                     )}
                   </div>
 
-                  {/* ═══════════════════════════════════════════════ */}
-                  {/* ═══ İLERİ ANALİZ — TÜM RAPORLAR ÜRETİLDİYSE ═══ */}
-                  {/* ═══════════════════════════════════════════════ */}
-                  {(() => {
-                    const allReportsReady = completed.length >= 2 && completed.every((c) => c.has_report);
-                    if (!allReportsReady) {
-                      // Kilitli durum
-                      const missingReports = completed.filter((c) => !c.has_report).length;
-                      return (
-                        <div className="mt-4 bg-gray-50 dark:bg-slate-800/60 border-2 border-dashed border-gray-300 rounded-2xl p-5 text-center">
-                          <Lock className="w-8 h-8 text-gray-400 dark:text-slate-500 mx-auto mb-2" />
-                          <h3 className="text-[14px] font-extrabold text-gray-600 dark:text-slate-300 mb-1">İleri Analiz Kilitli</h3>
-                          <p className="text-[12px] text-gray-500 dark:text-slate-400">
-                            {completed.length < 2
-                              ? 'En az 2 test tamamlanmalı.'
-                              : `İleri analizi açmak için ${missingReports} testin daha raporu üretilmeli.`}
-                          </p>
-                          <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-2">
-                            🔓 Risk Skoru, Korelasyon, Kariyer Önerileri ve 360° Profil burada görünecek.
-                          </p>
-                        </div>
-                      );
-                    }
 
-                    // Açık durum — advanced verisi gelmiş olmalı
-                    if (!advanced.unlocked) return null;
-
-                    return (
-                      <div className="mt-6 space-y-4">
-                        {/* İleri Analiz Banner */}
-                        <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-2xl p-5 text-white shadow-lg shadow-emerald-500/20">
-                          <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                              <TrendingUp className="w-6 h-6" />
-                            </div>
-                            <div>
-                              <h3 className="text-[16px] font-extrabold">İleri Analiz</h3>
-                              <p className="text-[12px] text-emerald-50">Tüm raporlar baz alınarak üretildi.</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* RİSK SKORU */}
-                        {advanced.riskScore && (
-                          <div className={`rounded-2xl border-2 p-5 shadow-sm ${advanced.riskScore.bgColor} ${advanced.riskScore.borderColor}`}>
-                            <div className="flex items-start gap-3 mb-3">
-                              <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 shadow-md flex items-center justify-center shrink-0">
-                                <Shield className={`w-5 h-5 ${advanced.riskScore.color}`} />
-                              </div>
-                              <div className="flex-1">
-                                <h3 className={`text-[15px] font-extrabold ${advanced.riskScore.color} flex items-center gap-2`}>
-                                  Risk Skoru: {advanced.riskScore.label} {advanced.riskScore.emoji}
-                                </h3>
-                                <p className="text-[12px] text-gray-600 dark:text-slate-300 mt-0.5">
-                                  Genel Skor: <strong>{Math.round(advanced.riskScore.overallScore)}/100</strong>
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Boyutlar */}
-                            <div className="grid grid-cols-2 gap-2 mb-3" style={{ marginLeft: '52px' }}>
-                              {advanced.riskScore.dimensions.map((d) => (
-                                <div key={d.key} className="bg-white/70 dark:bg-slate-800/50 rounded-lg p-2 border border-white/50 dark:border-slate-700/60">
-                                  <p className="text-[10px] uppercase font-bold text-gray-400 dark:text-slate-500">{d.name}</p>
-                                  <p className={`text-sm font-extrabold ${d.available ? 'text-[#0f2847] dark:text-slate-100' : 'text-gray-300'}`}>
-                                    {d.available && d.score !== null ? `${Math.round(d.score)}/100` : '—'}
-                                  </p>
-                                </div>
-                              ))}
-                            </div>
-
-                            {/* Flagler */}
-                            {advanced.riskScore.flags.length > 0 && (
-                              <div className="space-y-1.5" style={{ marginLeft: '52px' }}>
-                                {advanced.riskScore.flags.map((f) => (
-                                  <div key={f.id} className={`flex items-start gap-2 text-[12px] px-3 py-2 rounded-lg ${f.severity === 'kritik' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                                    <span>{f.icon}</span>
-                                    <span className="font-medium">{f.message}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* KORELASYON BULGULARI */}
-                        {advanced.patterns && advanced.patterns.length > 0 && (
-                          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 shadow-sm">
-                            <div className="flex items-start gap-3 mb-3">
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shrink-0">
-                                <Link2 className="w-5 h-5 text-white" />
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100">Korelasyon Bulguları</h3>
-                                <p className="text-[12px] text-blue-700 mt-0.5">
-                                  Testler arası anlamlı bağlantılar ({advanced.patterns.length})
-                                </p>
-                              </div>
-                            </div>
-                            <div className="space-y-2" style={{ marginLeft: '52px' }}>
-                              {advanced.patterns.map((p) => (
-                                <div key={p.id} className={`rounded-xl p-3 border ${
-                                  p.severity === 'kritik' ? 'bg-red-50 border-red-200' :
-                                  p.severity === 'uyarı' ? 'bg-amber-50 border-amber-200' :
-                                  'bg-white dark:bg-slate-800 border-blue-100'
-                                }`}>
-                                  <div className="flex items-start gap-2">
-                                    <span className="text-lg">{p.icon}</span>
-                                    <div className="flex-1">
-                                      <h4 className="text-[13px] font-bold text-[#0f2847] dark:text-slate-100">{p.title}</h4>
-                                      <p className="text-[12px] text-gray-600 dark:text-slate-300 mt-0.5">{p.description}</p>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* GÜÇLÜ KORELASYON ÇİFTLERİ */}
-                        {advanced.correlation && advanced.correlation.pairs.filter(p => p.strength === 'güçlü').length > 0 && (
-                          <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-5 shadow-sm">
-                            <h4 className="text-[14px] font-extrabold text-[#0f2847] dark:text-slate-100 mb-3 flex items-center gap-2">
-                              <Link2 className="w-4 h-4 text-indigo-500" /> Güçlü Test Bağlantıları
-                            </h4>
-                            <div className="space-y-1.5">
-                              {advanced.correlation.pairs.filter(p => p.strength === 'güçlü').map((p, i) => (
-                                <div key={i} className="flex items-center justify-between text-[12px] px-3 py-2 bg-gray-50 dark:bg-slate-800/60 rounded-lg">
-                                  <span className="font-semibold text-[#0f2847] dark:text-slate-100">
-                                    {labelOf(p.testA)} ↔ {labelOf(p.testB)}
-                                  </span>
-                                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                                    p.direction === 'pozitif' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
-                                  }`}>
-                                    {p.direction === 'pozitif' ? '+' : ''}{p.coefficient.toFixed(2)}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* KARİYER ÖNERİLERİ */}
-                        {advanced.career && advanced.career.topCareers.length > 0 && (
-                          <div className="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl p-5 shadow-sm">
-                            <div className="flex items-start gap-3 mb-3">
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-md shrink-0">
-                                <Briefcase className="w-5 h-5 text-white" />
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100">Kariyer Önerileri</h3>
-                                <p className="text-[12px] text-amber-700 mt-0.5">
-                                  Çoklu Zekâ + Holland RIASEC + VARK eşleşmesi
-                                </p>
-                              </div>
-                            </div>
-                            <p className="text-[12px] text-gray-600 dark:text-slate-300 mb-3 italic" style={{ marginLeft: '52px' }}>
-                              {advanced.career.compatibilityNote}
-                            </p>
-                            <div className="space-y-2" style={{ marginLeft: '52px' }}>
-                              {advanced.career.topCareers.map((c) => (
-                                <div key={c.rank} className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-amber-100 shadow-sm">
-                                  <div className="flex items-start gap-3">
-                                    <span className="text-2xl">{c.icon}</span>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center justify-between gap-2 mb-1">
-                                        <h4 className="text-[13px] font-extrabold text-[#0f2847] dark:text-slate-100 truncate">
-                                          #{c.rank} {c.career}
-                                        </h4>
-                                        <span className="text-[11px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full shrink-0">
-                                          %{c.matchScore}
-                                        </span>
-                                      </div>
-                                      <p className="text-[11px] text-gray-500 dark:text-slate-400 mb-1">{c.field}</p>
-                                      {c.reasons.length > 0 && (
-                                        <ul className="text-[11px] text-gray-600 dark:text-slate-300 space-y-0.5">
-                                          {c.reasons.slice(0, 2).map((r, i) => (
-                                            <li key={i}>• {r}</li>
-                                          ))}
-                                        </ul>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* 360° PROFİL LİNKİ */}
-                        <Link
-                          href="/student/profile-360"
-                          className="block bg-gradient-to-r from-violet-500 to-purple-600 rounded-2xl p-5 text-white shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 hover:-translate-y-0.5 transition-all"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                              <Brain className="w-6 h-6" />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="text-[15px] font-extrabold">360° Profil Sayfası</h3>
-                              <p className="text-[12px] text-violet-100">Radar chart + tüm analizlerin görsel özeti</p>
-                            </div>
-                            <ArrowLeft className="w-5 h-5 rotate-180 opacity-60" />
-                          </div>
-                        </Link>
-                      </div>
-                    );
-                  })()}
+                  {/* ═══ ANALİZ PANOSU — 2+ test tamamlandıysa görünür ═══ */}
+                  {completed.length >= 2 && advanced.unlocked && (
+                    <AdvancedInsightsPanel
+                      risk={advanced.riskScore ?? null}
+                      patterns={advanced.patterns ?? []}
+                      career={advanced.career ?? null}
+                    />
+                  )}
+                  {completed.length >= 2 && !advanced.unlocked && (
+                    <div className="mt-4 bg-gray-50 dark:bg-slate-800/60 border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-2xl p-5 text-center">
+                      <Sparkles className="w-7 h-7 text-gray-400 dark:text-slate-500 mx-auto mb-2" />
+                      <h3 className="text-[14px] font-extrabold text-gray-600 dark:text-slate-300 mb-1">
+                        Analiz Panosu Hazırlanıyor
+                      </h3>
+                      <p className="text-[12px] text-gray-500 dark:text-slate-400">
+                        Test verileri işleniyor... Birkaç saniye içinde gösterilecek.
+                      </p>
+                    </div>
+                  )}
                 </>
               )}
 

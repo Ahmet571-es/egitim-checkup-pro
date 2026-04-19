@@ -204,10 +204,10 @@ export async function POST(req: NextRequest) {
         .limit(1)
         .maybeSingle();
 
-      // ═══ İLERİ ANALİZ ═══
-      // Kural: Yapılan tüm testlerin raporu üretilmişse İleri Analiz açılır
-      // (en az 2 test gerekli — 1 testle korelasyon hesaplanamaz)
-      const allReportsReady = completedTests.length >= 2 && completedTests.every((c) => !!c.ai_report);
+      // ═══ ANALİZ PANOSU ═══
+      // Kural: 2+ test tamamlandıysa analiz panosu açılır
+      // (tekil rapor zorunlu değil — veriler algoritmik hesaplanır)
+      const allReportsReady = completedTests.length >= 2;
       let advanced: {
         unlocked: boolean;
         riskScore?: ReturnType<typeof calculateRiskScore>;
