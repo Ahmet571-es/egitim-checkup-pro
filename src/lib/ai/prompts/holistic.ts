@@ -3,17 +3,73 @@
  * Orijinal Python: teacher_view.py → build_holistic_prompt()
  */
 
+import type { RiskResult } from '@/lib/services/riskScore';
+import type { PatternInsight } from '@/lib/services/correlation';
+import type { CareerMatchResult } from '@/lib/services/careerMatch';
+
 interface HolisticPromptParams {
   studentName: string;
   studentAge: number | string;
   studentGender: string;
   testDataList: Array<{ test_name: string; scores: Record<string, unknown>; date?: string }>;
   studentGrade?: number | string | null;
+  // İleri Analiz verisi (opsiyonel - yoksa bölüm 10 gelmez)
+  riskResult?: RiskResult | null;
+  patterns?: PatternInsight[];
+  careerMatch?: CareerMatchResult | null;
 }
 
 export function buildHolisticPrompt(params: HolisticPromptParams): string {
-  const { studentName, studentAge, studentGender, testDataList, studentGrade } = params;
+  const {
+    studentName, studentAge, studentGender, testDataList, studentGrade,
+    riskResult, patterns, careerMatch,
+  } = params;
   const gradeText = studentGrade ? `${studentGrade}. Sınıf` : 'Belirtilmemiş';
+
+  // İleri Analiz bölümü — sadece veri varsa eklenir
+  const hasAdvanced = !!(riskResult || (patterns && patterns.length > 0) || careerMatch);
+  const advancedSection = hasAdvanced ? `
+
+---
+
+# 📊 İLERİ ANALİZ VERİLERİ (Bölüm 10 için sayısal temel)
+
+Bu bölümdeki verileri **Bölüm 10: İLERİ ANALİZ GÖSTERGELERİ** başlığı altında yorumlayacaksın. Veriler zaten algoritmik hesaplanmış — senin görevin bunları **yalın, olasılıksal Türkçe** ile ifade etmek.
+
+${riskResult ? `## Risk Skoru
+\`\`\`json
+${JSON.stringify({
+  genel_skor: riskResult.overallScore,
+  seviye: riskResult.label,
+  boyutlar: riskResult.dimensions.filter(d => d.available).map(d => ({ ad: d.name, puan: d.score })),
+  uyarilar: riskResult.flags.map(f => ({ mesaj: f.message, tip: f.severity })),
+}, null, 2)}
+\`\`\`` : ''}
+
+${patterns && patterns.length > 0 ? `## Tespit Edilen Örüntüler (${patterns.length} adet)
+\`\`\`json
+${JSON.stringify(patterns.map(p => ({
+  baslik: p.title,
+  aciklama: p.description,
+  ilgili_testler: p.relatedTests,
+  ciddiyet: p.severity,
+})), null, 2)}
+\`\`\`` : ''}
+
+${careerMatch ? `## Kariyer Uyum Verisi
+\`\`\`json
+${JSON.stringify({
+  holland_kodu: careerMatch.hollandCode,
+  baskin_zeka: careerMatch.dominantZeka,
+  vark_stili: careerMatch.varkStyle,
+  top_meslekler: careerMatch.topCareers.slice(0, 6).map(c => ({
+    ad: c.career,
+    alan: c.field,
+    uyum: c.matchScore,
+  })),
+}, null, 2)}
+\`\`\`` : ''}
+` : '';
 
   return `# ROL ve KİMLİK
 
@@ -44,7 +100,7 @@ Bu rapor, ücretli bir profesyonel danışmanlık hizmetinin çıktısıdır. Y�
 \`\`\`json
 ${JSON.stringify(testDataList, null, 2)}
 \`\`\`
-
+${advancedSection}
 ---
 
 # KRİTİK KURALLAR
@@ -89,6 +145,30 @@ ${JSON.stringify(testDataList, null, 2)}
    - Her somut tavsiye **neden** sorusuna cevap vermeli: "Çünkü ${studentName}'in X puanı bu yaklaşımı destekliyor"
 
 10. **DENGELİ TON:** Abartılı motivasyon ifadelerinden kaçın. "Bu alanda güçlü bir profil ortaya koyuyor" gibi veriye dayalı, ölçülü ifadeler tercih et. Hiçbir zaman olumsuz özellik etiketleme yapma — gelişim alanı olarak çerçevele.
+
+11. **CÜMLE UZUNLUĞU ve DESEN (KRİTİK — YENİ):**
+   - Her teşhis paragrafı **maksimum 3-4 cümle**
+   - Her cümle **maksimum 15-18 kelime**
+   - Uzun sarmal cümleler **YASAK** — fikri bölüp kısa vuruşlu ifade
+   - **Açılış deseni**: "**Puan X, Puan Y.**" gibi somut sayısal bulgu ile başla (bold)
+   - Sonra **kısa yorum** (1-2 cümle)
+   - Sonra **tek cümlelik tavsiye**
+   - Bölüm sonu: gereksiz dolgu olmadan bitir
+
+12. **OLASILIKSAL DİL (KRİTİK — YENİ):**
+   Kesin tanı/tahmin/yargı ifadelerinden mutlak kaçın:
+   - ❌ "Şu alanda başarılı OLACAK" → ✅ "Bu alanla örtüşme gösterebilir"
+   - ❌ "Kariyeri şu yönde OLMALI" → ✅ "Bu yön araştırılmaya değer görünüyor"
+   - ❌ "Risk YÜKSEKTİR" → ✅ "Belirli bir dikkat alanı olabilir"
+   - ❌ "X YAPAMAZ" → ✅ "X şu an için gelişim alanı"
+   - ❌ "Başarısızlık yaşayacak" → ✅ "Performansını olumsuz etkileyebilir"
+   - ❌ "Muhteşem/olağanüstü/kesin" gibi kesinlik sıfatları → ✅ "anlamlı/dikkat çekici/işaret eden"
+
+   **Olasılık kelimesinin yeri**: Cümlenin sonunda yumuşatıcı olarak — "olabilir / işaret edebilir / düşündürüyor / görünüyor". Cümlenin ortasında değil.
+
+   **Öğretmeni düşündürmeye yönelt, karar verdirme.** Rapor bir "karar mekanizması" değil, "düşünme aracı"dır.
+
+13. **KAYNAK ŞEFFAFLIĞI:** Her teşhisin hangi puandan çıktığı **cümlenin başında** açıkça görülmeli. "Sınav kaygısı 68/100, çalışma davranışı 45/100. Bu ikili..." gibi. Olasılık kaynağının nerede olduğu okuyucu için net olmalı.
 
 ---
 
@@ -351,5 +431,72 @@ Aşağıdaki korelasyon örüntülerini test verileriyle karşılaştır ve tesp
 - Dikkat (ağırlık %25)
 - Çalışma Davranışı (ağırlık %25)
 - Akademik Performans (ağırlık %20)
-Genel risk seviyesini belirt: Kritik (<30), İzlenmeli (30-60), Sağlıklı (>60)`;
+Genel risk seviyesini belirt: Kritik (<30), İzlenmeli (30-60), Sağlıklı (>60)
+
+${hasAdvanced ? `
+---
+
+# 📊 10. İLERİ ANALİZ GÖSTERGELERİ
+
+**ÖNEMLİ:** Bu bölümde yukarıda sana JSON olarak verilen **Risk Skoru / Örüntüler / Kariyer Uyum** verilerini yorumlayacaksın. Veriler algoritmik hesaplanmış — senin görevin bunları **yalın, kısa, olasılıksal dille** ifade etmek.
+
+**Uygulanacak stil**: Kural 11 (cümle uzunluğu), Kural 12 (olasılıksal dil) ve Kural 13 (kaynak şeffaflığı) burada özellikle kritik. Her alt bölüm **maksimum 4-5 cümle**, her cümle **kısa ve net** olsun.
+
+${riskResult ? `## 10.1 Risk Profili
+
+Format şablonu:
+> **Genel risk skoru: ${riskResult.overallScore}/100 — ${riskResult.label} seviyede.**
+>
+> [En yüksek 2-3 risk boyutunu kısa yorumla — hangi puanlar bu sonuca yol açmış olabilir.]
+>
+> [Tek cümlelik olasılıksal yorum: "Bu bileşim X durumuna işaret ediyor olabilir."]
+>
+> [Tek cümlelik somut tavsiye.]
+
+Kurallar:
+- "Risk var" demek yerine "dikkat alanı" ifadesini kullan
+- "Yüksek risk altında" yerine "izlenmesi faydalı olabilecek bir seviye"
+- Uyarılar (flags) varsa → her birini **tek satırda** aktar, açıklama ekleme
+` : ''}
+
+${patterns && patterns.length > 0 ? `## 10.2 Tespit Edilen Örüntüler
+
+Format şablonu — her örüntü için:
+> **[Örüntü başlığı]**
+>
+> [İlgili testler ve puanları — kısa]. Bu [olasılıksal sonuç] düşündürüyor olabilir.
+>
+> [Tek cümlelik tavsiye — "X denenebilir" gibi.]
+
+Kurallar:
+- ${patterns.length} örüntü tespit edilmiş — her birini ayrı alt başlık olarak ver
+- Örüntüyü **kesin** değil **olası** olarak sun: "bu ikili X'e işaret ediyor olabilir"
+- Her örüntü için 2-3 cümleyi geçme
+- "Kesin risk" yerine "dikkat edilmesi faydalı olabilecek bir bileşim"
+` : ''}
+
+${careerMatch ? `## 10.3 Kariyer Yönelim Göstergeleri
+
+Format şablonu:
+> **Holland kodu: ${careerMatch.hollandCode ?? '—'}, baskın zekâ: ${careerMatch.dominantZeka ?? '—'}, öğrenme stili: ${careerMatch.varkStyle ?? '—'}.**
+>
+> Bu bileşim aşağıdaki alanlarla **örtüşme gösteriyor olabilir**:
+>
+> | Alan | Uyum | Kısa Gerekçe |
+> |------|------|--------------|
+> | [meslek 1] | %X | [tek cümlelik neden] |
+> | [meslek 2] | %X | [tek cümlelik neden] |
+> | ... | ... | ... |
+>
+> *(Not: Bu öneriler kesin bir yönlendirme değil — araştırılabilecek alanlardır. Öğrencinin ilgi duyduğu alanlarda kısa süreli deneyimler — kulüp, proje, gönüllülük — gerçek eğilimini ortaya çıkarabilir.)*
+
+Kurallar:
+- Yukarıda verilen top_meslekler listesinin **ilk 5-6 tanesini** tabloda göster
+- Uyum yüzdelerini belirt
+- Her meslek için **tek cümlelik neden** (hangi puandan çıktığı)
+- Asla "şu meslek OLMALISIN" deme — "şu alan araştırılmaya değer"
+- Tabloyla **kesin yön vermiyoruz, seçenek sunuyoruz** imajını ver
+- Liste sonunda "öğrencinin kendi deneyimi önemli" vurgusu yap
+` : ''}
+` : ''}`;
 }

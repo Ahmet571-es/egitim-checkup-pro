@@ -173,6 +173,13 @@ Bu test sonucuna göre veliye 3-5 adet pratik öneri ver. Her öneri şu formatt
 - Her öneriyi velinin kolayca anlayacağı şekilde yaz
 - JSON formatında döndür
 
+## OLASILIKSAL DİL (KRİTİK):
+- Kesin cümle kurma: "yapmalısınız" yerine "deneyebilirsiniz", "faydalı olabilir"
+- "Kesinlikle böyle" yerine "bu yaklaşım işe yarayabilir"
+- Açıklamalar kısa ve net — **her açıklama maksimum 2 cümle, her cümle 15 kelimeyi geçmesin**
+- Yargı içeren ifade yok — "çocuğunuz şu sorunlu" gibi cümleler YASAK
+- Amaç: veliye **önerme** ve **destekleme**, yargılamama
+
 ## ÇIKTI FORMATI:
 \`\`\`json
 [

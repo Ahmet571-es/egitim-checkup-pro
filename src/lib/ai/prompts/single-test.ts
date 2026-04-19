@@ -78,6 +78,23 @@ ${JSON.stringify(testData, null, 2)}
 
 9. **DENGELİ ve GERÇEKÇİ MOTİVASYON TONU:** "Muhteşem", "olağanüstü", "inanılmaz potansiyel" gibi abartılı ifadeler YASAK. Gerçekçi, dengeli ve yapıcı bir ton kullan. Olumsuz özellik etiketleme yapma — "gelişim alanı" olarak çerçevele.
 
+10. **CÜMLE UZUNLUĞU ve DESEN (KRİTİK):**
+   - Her paragraf **maksimum 3-4 cümle**
+   - Her cümle **maksimum 15-18 kelime**
+   - Uzun sarmal cümleler YASAK — fikri bölüp kısa ifade et
+   - **Açılış deseni**: Somut sayısal bulgu (bold) ile başla
+   - Sonra **kısa yorum** (1-2 cümle)
+   - Sonra **tek cümlelik tavsiye**
+
+11. **OLASILIKSAL DİL (KRİTİK):**
+   Kesin tanı/tahmin ifadelerinden kaçın:
+   - ❌ "Başarılı OLACAK" → ✅ "Başarı gösterebilir"
+   - ❌ "YAPAMAZ" → ✅ "Şu an için gelişim alanı"
+   - ❌ "Risk YÜKSEKTİR" → ✅ "Dikkat alanı olabilir"
+   - ❌ "Muhteşem/olağanüstü" → ✅ "Anlamlı/dikkat çekici"
+
+   Olasılık kelimesinin yeri: **Cümlenin sonunda** — "olabilir / işaret edebilir / düşündürüyor". Öğrenciyi/öğretmeni düşündürmeye yönelt, karar verdirme.
+
 ---
 ${testGuidance}
 ---

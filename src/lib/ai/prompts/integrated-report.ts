@@ -106,6 +106,25 @@ Testleri aşağıdaki KESIN sıra ile raporla. Öğrenci testleri karışık sı
 - Aynı bilgiyi farklı yerlerde tekrarlama, çapraz referans ver
 - Raporu MUTLAKA "SONUÇ VE KAPANIŞ" bölümüyle tamamla — yarıda bırakma
 
+## CÜMLE UZUNLUĞU ve DESEN (KRİTİK)
+- Her paragraf **maksimum 3-4 cümle**
+- Her cümle **maksimum 15-18 kelime**
+- Uzun sarmal cümleler YASAK — fikri bölüp kısa vuruşlu ifade et
+- **Açılış deseni**: Somut sayısal bulgu (bold puan) ile başla
+- Sonra kısa yorum (1-2 cümle), sonra tek cümlelik tavsiye
+
+## OLASILIKSAL DİL (KRİTİK — KESİN TANI YASAĞI)
+Kesin tanı, tahmin veya yargı ifadelerinden mutlak kaçın:
+- ❌ "Başarılı OLACAK" → ✅ "Başarı gösterebilir"
+- ❌ "Kesin mühendis olmalı" → ✅ "Mühendislik alanı araştırılmaya değer"
+- ❌ "Risk YÜKSEK" → ✅ "Dikkat alanı olabilir"
+- ❌ "YAPAMAZ" → ✅ "Şu an için gelişim alanı"
+- ❌ "Muhteşem/olağanüstü" → ✅ "Anlamlı/dikkat çekici"
+
+Olasılık kelimesinin yeri: **Cümlenin sonunda** — "olabilir / işaret edebilir / düşündürüyor / görünüyor". Cümle ortasında değil.
+
+**Amaç**: Okuyucuyu (${aud.title.toLowerCase()}) **düşündürmeye yönelt, karar verdirme**. Rapor bir karar mekanizması değil, düşünme aracıdır.
+
 ## VAROLAN TEST VERİLERİ
 Aşağıdaki listede sadece öğrencinin ÇÖZÜMÜŞ olduğu testler var. Eğer sıralamada belirtilen bir test listede yoksa o testi ATLA ve bir sonrakine geç.
 

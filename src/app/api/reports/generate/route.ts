@@ -4,6 +4,9 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { generateAIReport } from '@/lib/ai/claude-client';
 import { buildSingleTestPrompt } from '@/lib/ai/prompts/single-test';
 import { buildHolisticPrompt } from '@/lib/ai/prompts/holistic';
+import { calculateRiskScore, getRiskLevel } from '@/lib/services/riskScore';
+import { identifyPatterns } from '@/lib/services/correlation';
+import { matchCareers } from '@/lib/services/careerMatch';
 import { checkRateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -123,11 +126,23 @@ export async function POST(request: NextRequest) {
         date: r.completed_at,
       }));
 
+      // İleri Analiz verilerini hesapla (algoritmik, AI çağrısı yok)
+      const advancedInput = filteredResults.map(r => ({
+        test_type: r.test_type,
+        scores: r.scores ?? {},
+      }));
+      const riskResult = calculateRiskScore(advancedInput);
+      const patterns = identifyPatterns(advancedInput);
+      const careerMatch = matchCareers(advancedInput);
+
       const prompt = buildHolisticPrompt({
         studentName: student.full_name,
         studentAge: '—',
         studentGender: '—',
         testDataList,
+        riskResult,
+        patterns,
+        careerMatch,
       });
 
       const report = await generateAIReport(prompt, { maxTokens: 32000 });
