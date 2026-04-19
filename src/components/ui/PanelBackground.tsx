@@ -46,25 +46,34 @@ export default function PanelBackground({ role }: PanelBackgroundProps) {
     <>
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         {/* Büyük aurora blob'lar */}
-        <div className={`absolute top-[-20%] right-[-15%] w-[700px] h-[700px] rounded-full bg-gradient-to-br ${c.a} blur-3xl panel-blob-1`} />
-        <div className={`absolute bottom-[-25%] left-[-15%] w-[650px] h-[650px] rounded-full bg-gradient-to-br ${c.b} blur-3xl panel-blob-2`} />
-        <div className={`absolute top-[30%] left-[30%] w-[500px] h-[500px] rounded-full bg-gradient-to-br ${c.c} blur-3xl panel-blob-3`} />
+        <div className={`absolute top-[-20%] right-[-15%] w-[700px] h-[700px] rounded-full bg-gradient-to-br ${c.a} dark:opacity-40 blur-3xl panel-blob-1`} />
+        <div className={`absolute bottom-[-25%] left-[-15%] w-[650px] h-[650px] rounded-full bg-gradient-to-br ${c.b} dark:opacity-30 blur-3xl panel-blob-2`} />
+        <div className={`absolute top-[30%] left-[30%] w-[500px] h-[500px] rounded-full bg-gradient-to-br ${c.c} dark:opacity-20 blur-3xl panel-blob-3`} />
 
         {/* Noise / grain texture */}
         <div
-          className="absolute inset-0 opacity-[0.015] mix-blend-overlay"
+          className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03] mix-blend-overlay"
           style={{
             backgroundImage:
               'url("data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22><filter id=%22n%22><feTurbulence baseFrequency=%220.9%22/></filter><rect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/></svg>")',
           }}
         />
 
-        {/* Subtle grid */}
+        {/* Subtle grid - light */}
         <div
-          className="absolute inset-0 opacity-[0.018]"
+          className="absolute inset-0 opacity-[0.018] dark:opacity-0"
           style={{
             backgroundImage:
               'linear-gradient(rgba(15,40,71,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(15,40,71,0.5) 1px, transparent 1px)',
+            backgroundSize: '48px 48px',
+          }}
+        />
+        {/* Subtle grid - dark */}
+        <div
+          className="absolute inset-0 opacity-0 dark:opacity-[0.04]"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(148,163,184,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.5) 1px, transparent 1px)',
             backgroundSize: '48px 48px',
           }}
         />

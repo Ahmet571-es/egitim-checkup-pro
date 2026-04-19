@@ -6,6 +6,7 @@ import CookieConsent from '@/components/CookieConsent';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
 import CommandPalette from '@/components/ui/CommandPalette';
+import { ThemeProvider, themeScript } from '@/components/ui/Theme';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -34,17 +35,22 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr">
+    <html lang="tr" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
-        <ToastProvider>
-          <ConfirmProvider>
-            <OfflineBanner />
-            {children}
-            <CommandPalette />
-            <AccessibilityToggle />
-            <CookieConsent />
-          </ConfirmProvider>
-        </ToastProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <ConfirmProvider>
+              <OfflineBanner />
+              {children}
+              <CommandPalette />
+              <AccessibilityToggle />
+              <CookieConsent />
+            </ConfirmProvider>
+          </ToastProvider>
+        </ThemeProvider>
         <Analytics />
         <SpeedInsights />
       </body>

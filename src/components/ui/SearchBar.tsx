@@ -62,16 +62,16 @@ export default function SearchBar({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className={`w-full pl-16 pr-12 py-4 rounded-2xl bg-white/90 backdrop-blur-xl border border-white/60 shadow-sm text-[14px] font-medium text-[#0f2847] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:bg-white transition-all ${ring}`}
+          className={`w-full pl-16 pr-12 py-4 rounded-2xl bg-white/90 dark:bg-slate-800/70 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-sm text-[14px] font-medium text-[#0f2847] dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:bg-white dark:focus:bg-slate-800 transition-all ${ring}`}
         />
         {value && (
           <button
             onClick={() => onChange('')}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-gray-100 transition"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700/60 transition"
             title="Temizle"
             type="button"
           >
-            <X className="w-4 h-4 text-gray-500" />
+            <X className="w-4 h-4 text-gray-500 dark:text-slate-400" />
           </button>
         )}
       </div>

@@ -11,10 +11,10 @@ import type { ReactNode } from 'react';
 export function Skeleton({ className = '', ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`relative overflow-hidden bg-gray-200/70 rounded-lg ${className}`}
+      className={`relative overflow-hidden bg-gray-200/70 dark:bg-slate-700/40 rounded-lg ${className}`}
       {...props}
     >
-      <div className="absolute inset-0 -translate-x-full skel-shimmer bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+      <div className="absolute inset-0 -translate-x-full skel-shimmer bg-gradient-to-r from-transparent via-white/50 dark:via-slate-600/40 to-transparent" />
       <style jsx>{`
         @keyframes skel-shimmer {
           100% { transform: translateX(100%); }
@@ -30,7 +30,7 @@ export function Skeleton({ className = '', ...props }: React.HTMLAttributes<HTML
 /* ═══ Page Header Skeleton ═══ */
 export function PageHeaderSkeleton() {
   return (
-    <div className="mb-6 p-6 sm:p-7 rounded-3xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm">
+    <div className="mb-6 p-6 sm:p-7 rounded-3xl bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-sm">
       <div className="flex items-center gap-4">
         <Skeleton className="w-14 h-14 rounded-2xl shrink-0" />
         <div className="flex-1 space-y-2">
@@ -45,7 +45,7 @@ export function PageHeaderSkeleton() {
 /* ═══ Stat Card Skeleton ═══ */
 export function StatCardSkeleton() {
   return (
-    <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-4 sm:p-5 shadow-sm overflow-hidden">
+    <div className="relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-4 sm:p-5 shadow-sm overflow-hidden">
       <div className="flex items-center gap-3">
         <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
         <div className="space-y-1.5 flex-1">
@@ -77,7 +77,7 @@ export function StatCardsGrid({ count = 4, cols = 4 }: { count?: number; cols?: 
 /* ═══ List Row Skeleton ═══ */
 export function ListRowSkeleton() {
   return (
-    <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-50 last:border-b-0">
+    <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-50 dark:border-slate-700/40 last:border-b-0">
       <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
       <div className="flex-1 space-y-1.5 min-w-0">
         <Skeleton className="h-4 w-2/3 rounded" />
@@ -91,7 +91,7 @@ export function ListRowSkeleton() {
 /* ═══ List Skeleton (card with rows) ═══ */
 export function ListSkeleton({ count = 5 }: { count?: number }) {
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm overflow-hidden">
+    <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-sm overflow-hidden">
       {Array.from({ length: count }).map((_, i) => (
         <ListRowSkeleton key={i} />
       ))}
@@ -113,7 +113,7 @@ export function CardGridSkeleton({ count = 6, cols = 3 }: { count?: number; cols
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-5 shadow-sm space-y-3"
+          className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-5 shadow-sm space-y-3"
         >
           <div className="flex items-center gap-3">
             <Skeleton className="w-12 h-12 rounded-xl shrink-0" />
@@ -137,9 +137,9 @@ export function CardGridSkeleton({ count = 6, cols = 3 }: { count?: number; cols
 /* ═══ Table Skeleton ═══ */
 export function TableSkeleton({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm overflow-hidden">
+    <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="bg-gray-50/70 px-4 py-3 border-b border-gray-100">
+      <div className="bg-gray-50/70 dark:bg-slate-800/80 px-4 py-3 border-b border-gray-100 dark:border-slate-700/60">
         <div className="flex gap-4">
           {Array.from({ length: cols }).map((_, i) => (
             <Skeleton key={i} className="h-3 flex-1 rounded" />
@@ -148,7 +148,7 @@ export function TableSkeleton({ rows = 5, cols = 4 }: { rows?: number; cols?: nu
       </div>
       {/* Rows */}
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="px-4 py-4 border-b border-gray-50 last:border-b-0 flex gap-4">
+        <div key={i} className="px-4 py-4 border-b border-gray-50 dark:border-slate-700/40 last:border-b-0 flex gap-4">
           {Array.from({ length: cols }).map((_, j) => (
             <Skeleton key={j} className="h-4 flex-1 rounded" />
           ))}
@@ -163,7 +163,7 @@ export function DashboardSkeleton() {
   return (
     <div className="space-y-5">
       {/* Welcome banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-white/80 backdrop-blur-xl border border-white/60 p-6 sm:p-8 shadow-sm">
+      <div className="relative rounded-3xl overflow-hidden bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 p-6 sm:p-8 shadow-sm">
         <div className="space-y-3">
           <Skeleton className="h-8 w-64 rounded-lg" />
           <Skeleton className="h-4 w-80 rounded" />
@@ -173,13 +173,13 @@ export function DashboardSkeleton() {
       <StatCardsGrid count={4} cols={4} />
       {/* Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-5 shadow-sm space-y-3">
+        <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-5 shadow-sm space-y-3">
           <Skeleton className="h-5 w-40 rounded" />
           <Skeleton className="h-3 w-full rounded" />
           <Skeleton className="h-3 w-5/6 rounded" />
           <Skeleton className="h-3 w-4/6 rounded" />
         </div>
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-5 shadow-sm space-y-3">
+        <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 p-5 shadow-sm space-y-3">
           <Skeleton className="h-5 w-40 rounded" />
           <Skeleton className="h-3 w-full rounded" />
           <Skeleton className="h-3 w-5/6 rounded" />

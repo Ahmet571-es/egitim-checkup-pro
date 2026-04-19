@@ -43,9 +43,9 @@ export default function ActionButton({
   };
 
   const variantClasses: Record<string, string> = {
-    primary: 'bg-white text-[#0f2847] shadow-lg shadow-black/10 hover:bg-gray-50 hover:shadow-xl border border-white/80',
+    primary: 'bg-white dark:bg-slate-800 text-[#0f2847] dark:text-slate-100 shadow-lg shadow-black/10 dark:shadow-black/30 hover:bg-gray-50 dark:hover:bg-slate-700 hover:shadow-xl border border-white/80 dark:border-slate-700',
     secondary: 'bg-white/20 backdrop-blur-md text-white shadow-md hover:bg-white/30 border border-white/30',
-    ghost: 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+    ghost: 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700',
     danger: 'bg-red-500 text-white shadow-md shadow-red-500/30 hover:bg-red-600',
   };
 

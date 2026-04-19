@@ -156,7 +156,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
     <div
       className={`
         relative pointer-events-auto overflow-hidden
-        bg-white/95 backdrop-blur-xl rounded-2xl border border-white/80
+        bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl border border-white/80 dark:border-slate-700/80
         shadow-xl ${config.shadow}
         transition-all duration-300
         ${mounted && !leaving ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-full opacity-0 scale-95'}
@@ -166,11 +166,11 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
       {/* Top gradient bar */}
       <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${config.bar}`} />
       {/* Corner glow */}
-      <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${config.gradient} opacity-[0.08] blur-2xl pointer-events-none`} />
+      <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${config.gradient} opacity-[0.08] dark:opacity-[0.15] blur-2xl pointer-events-none`} />
 
       {/* Progress bar for non-loading toasts */}
       {toast.type !== 'loading' && toast.duration && toast.duration !== Infinity && (
-        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gray-200/60 overflow-hidden">
+        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gray-200/60 dark:bg-slate-700/60 overflow-hidden">
           <div
             className={`h-full bg-gradient-to-r ${config.bar} toast-progress`}
             style={{ animationDuration: `${toast.duration}ms` }}
@@ -183,9 +183,9 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
           <Icon className={`w-5 h-5 ${toast.type === 'loading' ? 'animate-spin' : ''}`} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-extrabold text-[#0f2847] text-[13.5px] leading-tight">{toast.title}</p>
+          <p className="font-extrabold text-[#0f2847] dark:text-slate-100 text-[13.5px] leading-tight">{toast.title}</p>
           {toast.description && (
-            <p className="text-gray-600 text-[12.5px] leading-snug mt-0.5">{toast.description}</p>
+            <p className="text-gray-600 dark:text-slate-400 text-[12.5px] leading-snug mt-0.5">{toast.description}</p>
           )}
           {toast.action && (
             <button
@@ -201,7 +201,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
       {/* Close button */}
       <button
         onClick={handleDismiss}
-        className="absolute top-3 right-3 p-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+        className="absolute top-3 right-3 p-1 rounded-lg text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/60 transition-colors"
         aria-label="Kapat"
       >
         <X className="w-3.5 h-3.5" />

@@ -72,7 +72,7 @@ export default function TiltStatCard({
       ref={ref}
       onMouseMove={onMove}
       onMouseLeave={reset}
-      className="tilt-card group relative bg-white/80 backdrop-blur-xl rounded-3xl border border-white/50 p-6 shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden"
+      className="tilt-card group relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-3xl border border-white/50 dark:border-slate-700/60 p-6 shadow-sm hover:shadow-2xl dark:shadow-slate-900/50 transition-all duration-300 overflow-hidden"
       style={{
         transform: `perspective(1000px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
         transformStyle: 'preserve-3d',
@@ -112,17 +112,17 @@ export default function TiltStatCard({
             {/* Icon pulse glow */}
             <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-60 blur-xl transition-opacity duration-300`} />
           </div>
-          <div className="w-8 h-8 rounded-full bg-gray-50 group-hover:bg-[#0f2847] flex items-center justify-center transition-colors shrink-0">
-            <ArrowUpRight className="w-4 h-4 text-gray-300 group-hover:text-white group-hover:rotate-12 transition-all" />
+          <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-slate-700/60 group-hover:bg-[#0f2847] dark:group-hover:bg-slate-600 flex items-center justify-center transition-colors shrink-0">
+            <ArrowUpRight className="w-4 h-4 text-gray-300 dark:text-slate-500 group-hover:text-white group-hover:rotate-12 transition-all" />
           </div>
         </div>
 
-        <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">{label}</p>
-        <p className="text-4xl font-extrabold text-[#0f2847] mt-1 tabular-nums">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">{label}</p>
+        <p className="text-4xl font-extrabold text-[#0f2847] dark:text-slate-100 mt-1 tabular-nums">
           {isNumeric && !disableCountUp ? <CountUp end={value as number} /> : value}
         </p>
 
-        <div className="mt-3 flex items-center gap-1.5 text-[11px] text-gray-400 group-hover:text-gray-600 transition-colors">
+        <div className="mt-3 flex items-center gap-1.5 text-[11px] text-gray-400 dark:text-slate-500 group-hover:text-gray-600 dark:group-hover:text-slate-300 transition-colors">
           <TrendingUp className="w-3 h-3" />
           <span>{helperText}</span>
         </div>

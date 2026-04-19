@@ -59,34 +59,34 @@ export default function PremiumModal({
 
       {/* Modal */}
       <div
-        className={`relative bg-white rounded-3xl shadow-2xl w-full ${SIZES[size]} max-h-[90vh] overflow-hidden flex flex-col modal-content border border-white/60`}
+        className={`relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full ${SIZES[size]} max-h-[90vh] overflow-hidden flex flex-col modal-content border border-white/60 dark:border-slate-700/60`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="relative px-6 py-5 border-b border-gray-100 bg-gradient-to-b from-gray-50/50 to-white">
+        <div className="relative px-6 py-5 border-b border-gray-100 dark:border-slate-700/60 bg-gradient-to-b from-gray-50/50 to-white dark:from-slate-800/40 dark:to-slate-800">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <h3 className="text-[17px] font-extrabold text-[#0f2847] tracking-tight">{title}</h3>
-              {subtitle && <p className="text-[12.5px] text-gray-500 mt-0.5">{subtitle}</p>}
+              <h3 className="text-[17px] font-extrabold text-[#0f2847] dark:text-slate-100 tracking-tight">{title}</h3>
+              {subtitle && <p className="text-[12.5px] text-gray-500 dark:text-slate-400 mt-0.5">{subtitle}</p>}
             </div>
             <button
               onClick={onClose}
-              className="shrink-0 p-1.5 rounded-lg hover:bg-gray-100 active:scale-95 transition"
+              className="shrink-0 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/60 active:scale-95 transition"
               aria-label="Kapat"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-gray-500 dark:text-slate-400" />
             </button>
           </div>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-6 py-5 text-gray-700 dark:text-slate-300">
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="px-6 py-4 border-t border-gray-100 bg-gradient-to-b from-white to-gray-50/50">
+          <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-700/60 bg-gradient-to-b from-white to-gray-50/50 dark:from-slate-800 dark:to-slate-800/40">
             {footer}
           </div>
         )}

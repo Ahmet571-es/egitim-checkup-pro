@@ -175,17 +175,17 @@ function ConfirmDialog({ variant, title, description, confirmLabel, cancelLabel,
       />
 
       {/* Dialog */}
-      <div className={`relative w-full max-w-md bg-white rounded-3xl shadow-2xl ${config.shadow} overflow-hidden confirm-enter`}>
+      <div className={`relative w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl shadow-2xl ${config.shadow} overflow-hidden confirm-enter`}>
         {/* Top accent */}
         <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${config.bar}`} />
         {/* Corner glow */}
-        <div className={`absolute -top-20 -right-20 w-48 h-48 rounded-full bg-gradient-to-br ${config.gradient} opacity-10 blur-3xl pointer-events-none`} />
-        <div className={`absolute -bottom-20 -left-20 w-48 h-48 rounded-full bg-gradient-to-br ${config.gradient} opacity-[0.06] blur-3xl pointer-events-none`} />
+        <div className={`absolute -top-20 -right-20 w-48 h-48 rounded-full bg-gradient-to-br ${config.gradient} opacity-10 dark:opacity-20 blur-3xl pointer-events-none`} />
+        <div className={`absolute -bottom-20 -left-20 w-48 h-48 rounded-full bg-gradient-to-br ${config.gradient} opacity-[0.06] dark:opacity-[0.12] blur-3xl pointer-events-none`} />
 
         {/* Close button */}
         <button
           onClick={onCancel}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors z-10"
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/60 transition-colors z-10"
           aria-label="Kapat"
         >
           <X className="w-4 h-4" />
@@ -199,11 +199,11 @@ function ConfirmDialog({ variant, title, description, confirmLabel, cancelLabel,
           </div>
 
           {/* Title + Description */}
-          <h2 id="confirm-title" className="text-[20px] font-extrabold text-[#0f2847] text-center mb-2 tracking-tight">
+          <h2 id="confirm-title" className="text-[20px] font-extrabold text-[#0f2847] dark:text-slate-100 text-center mb-2 tracking-tight">
             {title}
           </h2>
           {description && (
-            <p id="confirm-desc" className="text-[13.5px] text-gray-600 text-center leading-relaxed mb-6">
+            <p id="confirm-desc" className="text-[13.5px] text-gray-600 dark:text-slate-400 text-center leading-relaxed mb-6">
               {description}
             </p>
           )}
@@ -212,7 +212,7 @@ function ConfirmDialog({ variant, title, description, confirmLabel, cancelLabel,
           <div className="flex gap-3">
             <button
               onClick={onCancel}
-              className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-700 font-extrabold text-[13.5px] hover:bg-gray-200 transition-all active:scale-[0.97]"
+              className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-slate-700/60 text-gray-700 dark:text-slate-300 font-extrabold text-[13.5px] hover:bg-gray-200 dark:hover:bg-slate-700 transition-all active:scale-[0.97]"
             >
               {cancelLabel}
             </button>

@@ -32,14 +32,14 @@ export default function SectionCard({
 }: SectionCardProps) {
   return (
     <div
-      className={`section-card relative bg-white/80 backdrop-blur-xl rounded-3xl border border-white/50 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ${className}`}
+      className={`section-card relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-3xl border border-white/50 dark:border-slate-700/60 shadow-sm hover:shadow-lg dark:shadow-slate-900/30 transition-all duration-300 overflow-hidden ${className}`}
       style={{ animationDelay: `${delay}ms` }}
     >
       {/* Top gradient bar */}
       <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${gradient} opacity-80`} />
 
       {/* Corner decorative blob */}
-      <div className={`absolute -top-16 -right-16 w-48 h-48 rounded-full bg-gradient-to-br ${gradient} opacity-[0.06] blur-3xl pointer-events-none`} />
+      <div className={`absolute -top-16 -right-16 w-48 h-48 rounded-full bg-gradient-to-br ${gradient} opacity-[0.06] dark:opacity-[0.12] blur-3xl pointer-events-none`} />
 
       <div className="relative p-6">
         {(title || action) && (
@@ -51,9 +51,9 @@ export default function SectionCard({
                 </div>
               )}
               <div className="min-w-0">
-                <h2 className="text-[17px] font-extrabold text-[#0f2847] tracking-tight">{title}</h2>
+                <h2 className="text-[17px] font-extrabold text-[#0f2847] dark:text-slate-100 tracking-tight">{title}</h2>
                 {subtitle && (
-                  <p className="text-[12.5px] text-gray-500 mt-0.5">{subtitle}</p>
+                  <p className="text-[12.5px] text-gray-500 dark:text-slate-400 mt-0.5">{subtitle}</p>
                 )}
               </div>
             </div>

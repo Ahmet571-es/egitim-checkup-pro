@@ -163,12 +163,12 @@ export default function CommandPalette() {
       />
 
       {/* Palette */}
-      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden cmd-enter">
+      <div className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden cmd-enter">
         {/* Top accent */}
         <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient}`} />
 
         {/* Search input */}
-        <div className="relative flex items-center gap-3 border-b border-gray-100 px-4 py-3">
+        <div className="relative flex items-center gap-3 border-b border-gray-100 dark:border-slate-700/60 px-4 py-3">
           <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md shrink-0`}>
             <Search className="w-4 h-4 text-white" />
           </div>
@@ -178,15 +178,15 @@ export default function CommandPalette() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Sayfa ara veya komut yaz..."
-            className="flex-1 outline-none text-[14.5px] font-semibold placeholder:text-gray-400 text-[#0f2847] bg-transparent"
+            className="flex-1 outline-none text-[14.5px] font-semibold placeholder:text-gray-400 dark:placeholder:text-slate-500 text-[#0f2847] dark:text-slate-100 bg-transparent"
             aria-label="Sayfa ara"
           />
-          <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-100 text-gray-500 text-[10.5px] font-bold font-mono shrink-0">
+          <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 text-[10.5px] font-bold font-mono shrink-0">
             ESC
           </kbd>
           <button
             onClick={() => setOpen(false)}
-            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/60 text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 transition-colors"
             aria-label="Kapat"
           >
             <X className="w-4 h-4" />
@@ -197,15 +197,15 @@ export default function CommandPalette() {
         <div className="max-h-[60vh] overflow-y-auto py-2">
           {items.length === 0 ? (
             <div className="px-4 py-10 text-center">
-              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gray-100 flex items-center justify-center">
-                <Search className="w-6 h-6 text-gray-400" />
+              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gray-100 dark:bg-slate-700/60 flex items-center justify-center">
+                <Search className="w-6 h-6 text-gray-400 dark:text-slate-500" />
               </div>
-              <p className="text-[13px] text-gray-500 font-medium">&ldquo;{query}&rdquo; için sonuç bulunamadı</p>
-              <p className="text-[11.5px] text-gray-400 mt-1">Başka bir terim deneyin</p>
+              <p className="text-[13px] text-gray-500 dark:text-slate-400 font-medium">&ldquo;{query}&rdquo; için sonuç bulunamadı</p>
+              <p className="text-[11.5px] text-gray-400 dark:text-slate-500 mt-1">Başka bir terim deneyin</p>
             </div>
           ) : (
             <>
-              <div className="px-4 py-1.5 text-[10.5px] font-extrabold uppercase tracking-wider text-gray-400">
+              <div className="px-4 py-1.5 text-[10.5px] font-extrabold uppercase tracking-wider text-gray-400 dark:text-slate-500">
                 Sayfalar
               </div>
               {items.map((item, idx) => {
@@ -219,28 +219,28 @@ export default function CommandPalette() {
                     onClick={() => handleSelect(item.href)}
                     onMouseEnter={() => setActiveIdx(idx)}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 transition-all ${
-                      isHighlighted ? 'bg-gray-50' : ''
+                      isHighlighted ? 'bg-gray-50 dark:bg-slate-700/40' : ''
                     } ${isActive ? 'bg-opacity-50' : ''}`}
                   >
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${
                       isHighlighted
                         ? `bg-gradient-to-br ${gradient} text-white shadow-md`
-                        : 'bg-gray-100 text-gray-600'
+                        : 'bg-gray-100 dark:bg-slate-700/60 text-gray-600 dark:text-slate-400'
                     }`}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <span className={`flex-1 text-left text-[13.5px] font-bold truncate ${
-                      isActive ? 'text-[#0f2847]' : 'text-gray-700'
+                      isActive ? 'text-[#0f2847] dark:text-slate-100' : 'text-gray-700 dark:text-slate-300'
                     }`}>
                       {item.label}
                     </span>
                     {isActive && (
-                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
                         Şu an
                       </span>
                     )}
                     {isHighlighted && !isActive && (
-                      <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
+                      <ArrowRight className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
                     )}
                   </button>
                 );
@@ -250,14 +250,14 @@ export default function CommandPalette() {
         </div>
 
         {/* Footer hint */}
-        <div className="flex items-center justify-between gap-2 border-t border-gray-100 px-4 py-2.5 bg-gray-50/50">
-          <div className="flex items-center gap-2 text-[10.5px] text-gray-500 font-bold">
-            <kbd className="px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-700 font-mono">↑↓</kbd>
+        <div className="flex items-center justify-between gap-2 border-t border-gray-100 dark:border-slate-700/60 px-4 py-2.5 bg-gray-50/50 dark:bg-slate-800/60">
+          <div className="flex items-center gap-2 text-[10.5px] text-gray-500 dark:text-slate-400 font-bold">
+            <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-300 font-mono">↑↓</kbd>
             <span>gez</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-700 font-mono">↵</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-300 font-mono">↵</kbd>
             <span>seç</span>
           </div>
-          <div className="flex items-center gap-1 text-[10.5px] text-gray-500 font-bold">
+          <div className="flex items-center gap-1 text-[10.5px] text-gray-500 dark:text-slate-400 font-bold">
             <Command className="w-3 h-3" />
             <span>K</span>
             <span>aç/kapat</span>

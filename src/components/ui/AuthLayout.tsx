@@ -53,16 +53,24 @@ export default function AuthLayout({
   const ambient = AMBIENT[role];
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-gradient-to-br from-slate-50 via-white to-slate-50 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 relative overflow-hidden">
       {/* Ambient aurora blobs */}
-      <div className={`pointer-events-none fixed top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br ${ambient.a} blur-3xl auth-blob-1`} />
-      <div className={`pointer-events-none fixed bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br ${ambient.b} blur-3xl auth-blob-2`} />
+      <div className={`pointer-events-none fixed top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br ${ambient.a} dark:opacity-40 blur-3xl auth-blob-1`} />
+      <div className={`pointer-events-none fixed bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br ${ambient.b} dark:opacity-30 blur-3xl auth-blob-2`} />
 
-      {/* Subtle grid */}
+      {/* Subtle grid - light */}
       <div
-        className="pointer-events-none fixed inset-0 opacity-[0.02]"
+        className="pointer-events-none fixed inset-0 opacity-[0.02] dark:opacity-0"
         style={{
           backgroundImage: `linear-gradient(rgba(15,40,71,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(15,40,71,0.5) 1px, transparent 1px)`,
+          backgroundSize: '48px 48px',
+        }}
+      />
+      {/* Subtle grid - dark */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-0 dark:opacity-[0.04]"
+        style={{
+          backgroundImage: `linear-gradient(rgba(148,163,184,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.5) 1px, transparent 1px)`,
           backgroundSize: '48px 48px',
         }}
       />
@@ -76,17 +84,17 @@ export default function AuthLayout({
             <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradient} opacity-50 blur-xl -z-10`} />
           </div>
           <div>
-            <h1 className="text-xl font-extrabold text-[#0f2847] tracking-tight">Eğitim Check-Up</h1>
-            <p className="text-[10.5px] text-gray-500 font-bold tracking-wider uppercase -mt-0.5">{BADGES[role]}</p>
+            <h1 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100 tracking-tight">Eğitim Check-Up</h1>
+            <p className="text-[10.5px] text-gray-500 dark:text-slate-400 font-bold tracking-wider uppercase -mt-0.5">{BADGES[role]}</p>
           </div>
         </Link>
 
         {/* Glass card */}
-        <div className="relative bg-white/85 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-2xl overflow-hidden">
+        <div className="relative bg-white/85 dark:bg-slate-800/80 backdrop-blur-2xl rounded-3xl border border-white/60 dark:border-slate-700/60 shadow-2xl overflow-hidden">
           {/* Top gradient strip */}
           <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient}`} />
           {/* Corner glow */}
-          <div className={`absolute -top-20 -right-20 w-48 h-48 rounded-full bg-gradient-to-br ${gradient} opacity-[0.08] blur-3xl pointer-events-none`} />
+          <div className={`absolute -top-20 -right-20 w-48 h-48 rounded-full bg-gradient-to-br ${gradient} opacity-[0.08] dark:opacity-[0.15] blur-3xl pointer-events-none`} />
 
           <div className="relative p-8">
             {/* Badge */}
@@ -95,14 +103,14 @@ export default function AuthLayout({
               {BADGES[role]}
             </div>
 
-            <h2 className="text-[26px] font-extrabold text-[#0f2847] mb-1.5 tracking-tight">{title}</h2>
-            {subtitle && <p className="text-[13.5px] text-gray-500 mb-6 leading-relaxed">{subtitle}</p>}
+            <h2 className="text-[26px] font-extrabold text-[#0f2847] dark:text-slate-100 mb-1.5 tracking-tight">{title}</h2>
+            {subtitle && <p className="text-[13.5px] text-gray-500 dark:text-slate-400 mb-6 leading-relaxed">{subtitle}</p>}
 
             {children}
           </div>
         </div>
 
-        {footer && <div className="mt-6 text-center">{footer}</div>}
+        {footer && <div className="mt-6 text-center text-gray-500 dark:text-slate-400">{footer}</div>}
       </div>
 
       <style>{`
