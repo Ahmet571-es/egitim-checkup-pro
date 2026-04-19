@@ -5,6 +5,7 @@ import AccessibilityToggle from '@/components/ui/AccessibilityToggle';
 import CookieConsent from '@/components/CookieConsent';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
+import CommandPalette from '@/components/ui/CommandPalette';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ConfirmProvider>
             <OfflineBanner />
             {children}
+            <CommandPalette />
             <AccessibilityToggle />
             <CookieConsent />
           </ConfirmProvider>

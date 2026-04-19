@@ -96,7 +96,7 @@ export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: Si
 
       {/* Logo */}
       <div className="relative px-5 py-6 border-b border-gray-100/80">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-3">
           <div className={`relative w-11 h-11 rounded-2xl bg-gradient-to-br ${accent.gradient} flex items-center justify-center shadow-lg ${accent.glow}`}>
             <GraduationCap className="w-6 h-6 text-white relative z-10" />
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 to-transparent" />
@@ -107,6 +107,22 @@ export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: Si
             <p className="text-[10.5px] text-gray-400 font-semibold tracking-wider uppercase mt-0.5">{ROLE_LABELS[role]}</p>
           </div>
         </div>
+
+        {/* Cmd+K hint button */}
+        <button
+          onClick={() => {
+            const event = new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true, bubbles: true });
+            window.dispatchEvent(event);
+          }}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 hover:bg-white hover:shadow-sm border border-gray-100 hover:border-gray-200 text-gray-500 text-[12px] font-semibold transition-all group"
+          aria-label="Hızlı arama (Cmd+K)"
+        >
+          <Menu className="w-3.5 h-3.5 opacity-60" />
+          <span className="flex-1 text-left">Hızlı ara...</span>
+          <kbd className="px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-600 text-[9.5px] font-bold font-mono shrink-0">
+            ⌘K
+          </kbd>
+        </button>
       </div>
 
       {/* Nav */}
