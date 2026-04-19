@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 import { getTestById } from '@/lib/tests/index';
@@ -542,11 +542,31 @@ export default function TestPage() {
 
   if (!test) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0f2847]">
-        <div className="text-white text-center">
-          <p className="text-5xl mb-4">❌</p>
-          <p className="font-bold text-xl">Test bulunamadı</p>
-          <p className="text-white/60 text-sm mt-2">ID: {testId}</p>
+      <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-gradient-to-br from-slate-900 via-[#0f2847] to-slate-900">
+        {/* Aurora */}
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full bg-red-500/10 blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 rounded-full bg-orange-500/10 blur-3xl" />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
+            backgroundSize: '32px 32px',
+          }}
+        />
+
+        <div className="relative text-white text-center max-w-md">
+          <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-2xl shadow-red-500/50">
+            <span className="text-5xl">❌</span>
+          </div>
+          <p className="font-extrabold text-2xl mb-2 drop-shadow-md">Test bulunamadı</p>
+          <p className="text-white/70 text-sm mb-1">Aradığınız test artık mevcut değil ya da taşındı.</p>
+          <p className="text-white/40 text-xs font-mono">ID: {testId}</p>
+          <a
+            href="/student/my-tests"
+            className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-xl bg-white text-[#0f2847] font-extrabold text-[13.5px] shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-[0.97]"
+          >
+            ← Testlere Dön
+          </a>
         </div>
       </div>
     );
@@ -570,30 +590,39 @@ export default function TestPage() {
           }}
         />
         {/* Kaydetme durumu göstergesi */}
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
           {saveStatus === 'saving' && (
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-blue-600/90 backdrop-blur text-white text-sm font-medium shadow-lg">
+            <div className="flex items-center gap-2.5 px-5 py-3 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 backdrop-blur-md text-white text-[13px] font-bold shadow-xl shadow-blue-500/40 border border-white/20">
               <Loader2 size={14} className="animate-spin" /> Sonuç kaydediliyor...
             </div>
           )}
           {saveStatus === 'saved' && (
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-emerald-600/90 backdrop-blur text-white text-sm font-medium shadow-lg animate-pulse">
-              ✅ Sonuç kaydedildi
+            <div className="flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 backdrop-blur-md text-white text-[13px] font-bold shadow-xl shadow-emerald-500/40 border border-white/20 save-pulse">
+              <CheckCircle size={14} /> Sonuç kaydedildi
             </div>
           )}
           {saveStatus === 'error' && (
             <div className="flex flex-col items-center gap-2">
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-red-600/90 backdrop-blur text-white text-sm font-medium shadow-lg">
+              <div className="flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-red-500 to-rose-600 backdrop-blur-md text-white text-[13px] font-bold shadow-xl shadow-red-500/40 border border-white/20">
                 ❌ {saveError || 'Kaydetme başarısız'}
               </div>
               <button
                 onClick={doSaveToDb}
-                className="px-4 py-2 rounded-full bg-white/90 text-red-600 text-sm font-bold shadow-lg hover:bg-white transition-all"
+                className="px-5 py-2 rounded-full bg-white text-red-600 text-[13px] font-extrabold shadow-xl hover:-translate-y-0.5 hover:shadow-2xl transition-all active:scale-[0.97]"
               >
                 🔄 Tekrar Dene
               </button>
             </div>
           )}
+          <style jsx>{`
+            @keyframes save-pulse {
+              0%, 100% { transform: scale(1); }
+              50% { transform: scale(1.03); }
+            }
+            .save-pulse {
+              animation: save-pulse 1.5s ease-in-out infinite;
+            }
+          `}</style>
         </div>
       </>
     );
@@ -601,7 +630,14 @@ export default function TestPage() {
 
   // ── D2 Dikkat ─────────────────────────────────────────
   if (testId === 'd2-dikkat') {
-    if (!d2Rows) return <div className="flex items-center justify-center min-h-screen bg-[#0f2847]"><Loader2 className="animate-spin text-white" size={40} /></div>;
+    if (!d2Rows) return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-[#0f2847] to-slate-900 gap-4">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 flex items-center justify-center shadow-2xl shadow-violet-500/40 animate-pulse">
+          <Loader2 className="animate-spin text-white" size={28} />
+        </div>
+        <p className="text-white/80 font-medium text-sm">Test hazırlanıyor...</p>
+      </div>
+    );
     return <D2TestBoard rows={d2Rows} timePerRow={D2_CONFIG.timePerRow} onComplete={handleD2Complete} />;
   }
 
@@ -614,8 +650,13 @@ export default function TestPage() {
   // ── Yükleniyor ────────────────────────────────────────
   if (questions.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0f2847]">
-        <Loader2 className="animate-spin text-white" size={40} />
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-[#0f2847] to-slate-900 gap-4 relative overflow-hidden">
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full bg-violet-500/10 blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 rounded-full bg-fuchsia-500/10 blur-3xl" />
+        <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 flex items-center justify-center shadow-2xl shadow-violet-500/40 animate-pulse">
+          <Loader2 className="animate-spin text-white" size={28} />
+        </div>
+        <p className="relative text-white/80 font-medium text-sm">Sorular yükleniyor...</p>
       </div>
     );
   }
@@ -624,33 +665,76 @@ export default function TestPage() {
   if (resumePrompt) {
     const total = questions.length;
     const answeredCount = Object.keys(resumePrompt.answers).length;
+    const progressPct = total > 0 ? (answeredCount / total) * 100 : 0;
     const dateStr = new Date(resumePrompt.startedAt).toLocaleString('tr-TR', {
       day: '2-digit', month: '2-digit', year: 'numeric',
       hour: '2-digit', minute: '2-digit',
     });
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f2847] to-[#1a3a5c] p-6">
-        <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-8 max-w-md w-full text-center shadow-2xl">
-          <div className="text-5xl mb-4">💾</div>
-          <h2 className="text-white font-extrabold text-xl mb-2">Kaldığınız yerden devam etmek ister misiniz?</h2>
-          <p className="text-white/70 text-sm mb-1">
-            Daha önce <strong className="text-white">{answeredCount}/{total}</strong> soruyu cevaplamışsınız.
-          </p>
-          <p className="text-white/50 text-xs mb-6">Son kayıt: {dateStr}</p>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={handleResumeAccept}
-              className="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm transition-all shadow-lg"
-            >
-              Evet, Devam Et
-            </button>
-            <button
-              onClick={handleResumeDecline}
-              className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm transition-all"
-            >
-              Baştan Başla
-            </button>
+      <div className="min-h-screen flex items-center justify-center px-4 py-10 relative overflow-hidden bg-gradient-to-br from-slate-900 via-[#0f2847] to-slate-900">
+        {/* Aurora */}
+        <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-violet-500/20 to-purple-500/10 blur-3xl" />
+        <div className="absolute bottom-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-emerald-500/15 to-teal-500/10 blur-3xl" />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
+            backgroundSize: '32px 32px',
+          }}
+        />
+
+        <div className="relative bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 p-8 max-w-md w-full shadow-2xl resume-enter">
+          {/* Top accent */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-sky-400 to-violet-400 rounded-t-3xl" />
+
+          <div className="text-center">
+            <div className="w-20 h-20 mx-auto mb-5 rounded-3xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 flex items-center justify-center shadow-2xl shadow-violet-500/40">
+              <span className="text-4xl">💾</span>
+            </div>
+
+            <h2 className="text-white font-extrabold text-2xl mb-2 tracking-tight">Kaldığınız yerden devam?</h2>
+            <p className="text-white/80 text-sm mb-4 leading-relaxed">
+              Daha önce <strong className="text-white">{answeredCount}/{total}</strong> soruyu cevaplamışsınız.
+            </p>
+
+            {/* Progress bar */}
+            <div className="mb-4">
+              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full transition-all duration-700"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+              <p className="text-white/60 text-[11px] font-bold mt-1.5 tabular-nums">{progressPct.toFixed(0)}% tamamlandı</p>
+            </div>
+
+            <p className="text-white/50 text-[11.5px] mb-6 font-mono">Son kayıt: {dateStr}</p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleResumeAccept}
+                className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:shadow-xl hover:shadow-emerald-500/50 text-white font-extrabold text-[13.5px] transition-all shadow-lg shadow-emerald-500/30 active:scale-[0.97]"
+              >
+                ✓ Evet, Devam Et
+              </button>
+              <button
+                onClick={handleResumeDecline}
+                className="flex-1 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-extrabold text-[13.5px] transition-all active:scale-[0.97]"
+              >
+                Baştan Başla
+              </button>
+            </div>
           </div>
+
+          <style jsx>{`
+            @keyframes resume-enter {
+              from { opacity: 0; transform: translateY(16px) scale(0.98); }
+              to { opacity: 1; transform: translateY(0) scale(1); }
+            }
+            .resume-enter {
+              animation: resume-enter 500ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+            }
+          `}</style>
         </div>
       </div>
     );
