@@ -114,11 +114,11 @@ export default function ParentNotes({ teacherId }: ParentNotesProps) {
   const replies = notes.filter((n) => n.reply_to);
 
   return (
-    <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
+    <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm overflow-hidden">
       {/* Başlık */}
-      <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-700/60 flex items-center gap-2">
         <MessageSquare className="w-4 h-4 text-emerald-500" />
-        <h2 className="font-extrabold text-[#0f2847] text-base">Veli Notları</h2>
+        <h2 className="font-extrabold text-[#0f2847] dark:text-slate-100 text-base">Veli Notları</h2>
         {unreadCount > 0 && (
           <span className="ml-auto flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700">
             <Bell className="w-3 h-3" />
@@ -132,7 +132,7 @@ export default function ParentNotes({ teacherId }: ParentNotesProps) {
         {parentNotes.length === 0 ? (
           <div className="px-6 py-12 text-center">
             <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 font-semibold text-sm">Henüz veli notu bulunmuyor.</p>
+            <p className="text-gray-500 dark:text-slate-400 font-semibold text-sm">Henüz veli notu bulunmuyor.</p>
           </div>
         ) : (
           parentNotes.map((n) => {
@@ -148,16 +148,16 @@ export default function ParentNotes({ teacherId }: ParentNotesProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-bold text-[#0f2847]">{n.parent_name}</span>
-                      <span className="text-[10px] text-gray-400">→</span>
-                      <span className="text-xs text-gray-500">{n.student_name} hakkında</span>
+                      <span className="text-sm font-bold text-[#0f2847] dark:text-slate-100">{n.parent_name}</span>
+                      <span className="text-[10px] text-gray-400 dark:text-slate-500">→</span>
+                      <span className="text-xs text-gray-500 dark:text-slate-400">{n.student_name} hakkında</span>
                     </div>
-                    <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-xl p-3">
+                    <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed bg-gray-50 dark:bg-slate-800/60 rounded-xl p-3">
                       {n.note}
                     </p>
                     <div className="flex items-center gap-2 mt-1.5">
                       <Clock className="w-3 h-3 text-gray-300" />
-                      <span className="text-[10px] text-gray-400">
+                      <span className="text-[10px] text-gray-400 dark:text-slate-500">
                         {new Date(n.created_at).toLocaleDateString('tr-TR', {
                           day: '2-digit',
                           month: 'short',
@@ -181,10 +181,10 @@ export default function ParentNotes({ teacherId }: ParentNotesProps) {
                             key={r.id}
                             className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-100"
                           >
-                            <p className="text-xs text-gray-600">{r.note}</p>
+                            <p className="text-xs text-gray-600 dark:text-slate-300">{r.note}</p>
                             <div className="flex items-center gap-1 mt-1">
                               <Clock className="w-2.5 h-2.5 text-gray-300" />
-                              <span className="text-[9px] text-gray-400">
+                              <span className="text-[9px] text-gray-400 dark:text-slate-500">
                                 {new Date(r.created_at).toLocaleDateString('tr-TR', {
                                   day: '2-digit',
                                   month: 'short',
@@ -208,7 +208,7 @@ export default function ParentNotes({ teacherId }: ParentNotesProps) {
                           onChange={(e) => setReplyText(e.target.value)}
                           onKeyDown={(e) => e.key === 'Enter' && handleReply(n.parent_id, n.student_id, n.id)}
                           placeholder="Yanıtınızı yazın..."
-                          className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 outline-none"
+                          className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-700 text-sm focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 outline-none"
                           autoFocus
                         />
                         <button

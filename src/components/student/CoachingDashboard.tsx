@@ -180,7 +180,7 @@ export default function CoachingDashboard() {
           </div>
           <p className="text-3xl font-extrabold">{completed}/{total}</p>
           <div className="mt-2 h-2 bg-white/20 rounded-full overflow-hidden">
-            <div className="h-full bg-white rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+            <div className="h-full bg-white dark:bg-slate-800 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
           </div>
         </div>
 
@@ -195,9 +195,9 @@ export default function CoachingDashboard() {
       </div>
 
       {/* Görevler */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm p-6">
+      <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-extrabold text-[#0f2847]">Bu Haftanın Görevleri</h2>
+          <h2 className="text-lg font-extrabold text-[#0f2847] dark:text-slate-100">Bu Haftanın Görevleri</h2>
           <button
             onClick={generateTasks}
             disabled={generating}
@@ -211,8 +211,8 @@ export default function CoachingDashboard() {
         {tasks.length === 0 ? (
           <div className="text-center py-12">
             <Sparkles className="w-12 h-12 text-violet-300 mx-auto mb-3" />
-            <p className="text-gray-500 text-sm">Henüz bu hafta için görevin yok.</p>
-            <p className="text-gray-400 text-xs mt-1">Yukarıdaki butona tıklayarak AI koçundan görev iste!</p>
+            <p className="text-gray-500 dark:text-slate-400 text-sm">Henüz bu hafta için görevin yok.</p>
+            <p className="text-gray-400 dark:text-slate-500 text-xs mt-1">Yukarıdaki butona tıklayarak AI koçundan görev iste!</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -222,7 +222,7 @@ export default function CoachingDashboard() {
                 <div
                   key={task.id}
                   className={`flex items-start gap-3 p-4 rounded-xl border transition-all ${
-                    task.is_completed ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-white border-gray-200 hover:border-violet-300 hover:shadow-sm'
+                    task.is_completed ? 'bg-gray-50 dark:bg-slate-800/60 border-gray-200 dark:border-slate-700 opacity-70' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:border-violet-300 hover:shadow-sm'
                   }`}
                 >
                   <button
@@ -240,14 +240,14 @@ export default function CoachingDashboard() {
                   </button>
 
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${task.is_completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                    <p className={`text-sm font-medium ${task.is_completed ? 'line-through text-gray-400 dark:text-slate-500' : 'text-gray-700 dark:text-slate-300'}`}>
                       {task.task_text}
                     </p>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${CATEGORY_COLORS[cat] || 'bg-gray-50 text-gray-600'}`}>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${CATEGORY_COLORS[cat] || 'bg-gray-50 dark:bg-slate-800/60 text-gray-600 dark:text-slate-300'}`}>
                         {CATEGORY_ICONS[cat] || '📋'} {CATEGORY_LABELS[cat] || task.category}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-400 dark:text-slate-500">
                         {'⭐'.repeat(task.difficulty)}
                       </span>
                     </div>

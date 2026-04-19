@@ -181,12 +181,12 @@ export default function KPIDashboard() {
 
   if (loading) {
     return (
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm">
+      <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm">
         <div className="animate-pulse space-y-4">
           <div className="h-6 bg-gray-200 rounded w-48" />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-24 bg-gray-100 rounded-xl" />
+              <div key={i} className="h-24 bg-gray-100 dark:bg-slate-700/60 rounded-xl" />
             ))}
           </div>
         </div>
@@ -202,49 +202,49 @@ export default function KPIDashboard() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-[#0f2847] mb-1">Anahtar Performans Göstergeleri</h2>
-        <p className="text-gray-500 text-xs mb-4">Okul geneli özet istatistikler</p>
+        <h2 className="text-lg font-bold text-[#0f2847] dark:text-slate-100 mb-1">Anahtar Performans Göstergeleri</h2>
+        <p className="text-gray-500 dark:text-slate-400 text-xs mb-4">Okul geneli özet istatistikler</p>
       </div>
 
       {/* KPI Kartları */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Toplam Öğrenci</p>
-          <p className="text-2xl font-extrabold text-[#0f2847] mt-1">{kpi.totalStudents}</p>
+        <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-4 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">Toplam Öğrenci</p>
+          <p className="text-2xl font-extrabold text-[#0f2847] dark:text-slate-100 mt-1">{kpi.totalStudents}</p>
         </div>
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Tamamlanan Test</p>
-          <p className="text-2xl font-extrabold text-[#0f2847] mt-1">{kpi.completedTests}</p>
+        <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-4 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">Tamamlanan Test</p>
+          <p className="text-2xl font-extrabold text-[#0f2847] dark:text-slate-100 mt-1">{kpi.completedTests}</p>
         </div>
         <div className={`rounded-2xl border p-4 shadow-sm ${riskBg}`}>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Ort. Risk Skoru</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">Ort. Risk Skoru</p>
           <p className={`text-2xl font-extrabold mt-1 ${riskColor}`}>{kpi.avgRiskScore}</p>
         </div>
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Aktif (7 gün)</p>
-          <p className="text-2xl font-extrabold text-[#0f2847] mt-1">{kpi.activeStudents7d}</p>
+        <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-4 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">Aktif (7 gün)</p>
+          <p className="text-2xl font-extrabold text-[#0f2847] dark:text-slate-100 mt-1">{kpi.activeStudents7d}</p>
         </div>
       </div>
 
       {/* İkinci sıra: haftalık, aylık, risk flag */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Bu Hafta Test</p>
-          <p className="text-2xl font-extrabold text-[#0f2847] mt-1">{kpi.weeklyTests}</p>
+        <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-4 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">Bu Hafta Test</p>
+          <p className="text-2xl font-extrabold text-[#0f2847] dark:text-slate-100 mt-1">{kpi.weeklyTests}</p>
         </div>
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Bu Ay Test</p>
-          <p className="text-2xl font-extrabold text-[#0f2847] mt-1">{kpi.monthlyTests}</p>
+        <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-4 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">Bu Ay Test</p>
+          <p className="text-2xl font-extrabold text-[#0f2847] dark:text-slate-100 mt-1">{kpi.monthlyTests}</p>
         </div>
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">En Sık Risk</p>
-          <p className="text-xs font-semibold text-gray-700 mt-2 line-clamp-2">{kpi.topRiskFlag}</p>
+        <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-4 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">En Sık Risk</p>
+          <p className="text-xs font-semibold text-gray-700 dark:text-slate-300 mt-2 line-clamp-2">{kpi.topRiskFlag}</p>
         </div>
       </div>
 
       {/* Mini trend grafik */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-3">Son 14 Gün Test Trendi</p>
+      <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-4 shadow-sm">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-3">Son 14 Gün Test Trendi</p>
         <ResponsiveContainer width="100%" height={120}>
           <LineChart data={kpi.testTrend}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />

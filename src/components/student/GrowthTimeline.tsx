@@ -49,14 +49,14 @@ function TrendIcon({ direction }: { direction: string }) {
     return <TrendingUp size={16} className="text-emerald-500" />;
   if (direction === 'declining')
     return <TrendingDown size={16} className="text-red-500" />;
-  return <Minus size={16} className="text-gray-400" />;
+  return <Minus size={16} className="text-gray-400 dark:text-slate-500" />;
 }
 
 function TrendBadge({ direction }: { direction: string }) {
   const config = {
     improving: { label: 'Yukseliyor', bg: 'bg-emerald-50', text: 'text-emerald-700' },
     declining: { label: 'Dusuyor', bg: 'bg-red-50', text: 'text-red-700' },
-    stable: { label: 'Sabit', bg: 'bg-gray-50', text: 'text-gray-600' },
+    stable: { label: 'Sabit', bg: 'bg-gray-50 dark:bg-slate-800/60', text: 'text-gray-600 dark:text-slate-300' },
   };
   const c = config[direction as keyof typeof config] ?? config.stable;
   return (
@@ -91,20 +91,20 @@ function CustomTooltip({
   const attempt = payload[0]?.payload?.attempt;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-3 min-w-[160px]">
-      <p className="text-xs text-gray-400 mb-2">{label}</p>
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-100 dark:border-slate-700/60 p-3 min-w-[160px]">
+      <p className="text-xs text-gray-400 dark:text-slate-500 mb-2">{label}</p>
       {payload.map((entry, idx) => (
         <div key={idx} className="flex items-center justify-between gap-3 mb-1">
           <span className="text-xs font-medium" style={{ color: entry.color }}>
             {entry.name}
           </span>
-          <span className="text-xs font-bold text-gray-800">
+          <span className="text-xs font-bold text-gray-800 dark:text-slate-200">
             {Math.round(entry.value)} puan
           </span>
         </div>
       ))}
       {attempt && (
-        <p className="text-[10px] text-gray-400 mt-1 pt-1 border-t border-gray-50">
+        <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-1 pt-1 border-t border-gray-50">
           {attempt}. deneme
         </p>
       )}
@@ -193,10 +193,10 @@ export default function GrowthTimeline() {
 
   if (trends.length === 0) {
     return (
-      <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-10 text-center">
+      <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-10 text-center">
         <BarChart2 size={40} className="text-gray-300 mx-auto mb-3" />
-        <p className="text-gray-500 font-semibold">Henuz gelisim verisi yok</p>
-        <p className="text-gray-400 text-sm mt-1">
+        <p className="text-gray-500 dark:text-slate-400 font-semibold">Henuz gelisim verisi yok</p>
+        <p className="text-gray-400 dark:text-slate-500 text-sm mt-1">
           Testleri tamamladikca gelisim grafigin burada gorunecek.
         </p>
       </div>
@@ -211,10 +211,10 @@ export default function GrowthTimeline() {
           <BarChart2 size={20} className="text-violet-600" />
         </div>
         <div>
-          <h2 className="text-lg font-extrabold text-[#0f2847]">
+          <h2 className="text-lg font-extrabold text-[#0f2847] dark:text-slate-100">
             Gelisim Grafigin
           </h2>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-slate-500">
             Tum testlerdeki ilerlemeni takip et
           </p>
         </div>
@@ -229,7 +229,7 @@ export default function GrowthTimeline() {
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border ${
               selectedTests.has(t.testType)
                 ? 'border-transparent text-white shadow-sm'
-                : 'border-gray-200 text-gray-400 bg-white/50'
+                : 'border-gray-200 dark:border-slate-700 text-gray-400 dark:text-slate-500 bg-white/50 dark:bg-slate-800/30'
             }`}
             style={
               selectedTests.has(t.testType)
@@ -244,7 +244,7 @@ export default function GrowthTimeline() {
 
       {/* Grafik */}
       {chartData.length > 0 && (
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
+        <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-4 shadow-sm">
           <div className="w-full" style={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
@@ -302,7 +302,7 @@ export default function GrowthTimeline() {
           return (
             <div
               key={t.testType}
-              className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm"
+              className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-4 shadow-sm"
             >
               <div className="flex items-center justify-between mb-2">
                 <span
@@ -318,10 +318,10 @@ export default function GrowthTimeline() {
               </div>
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-2xl font-extrabold text-[#0f2847]">
+                  <p className="text-2xl font-extrabold text-[#0f2847] dark:text-slate-100">
                     {Math.round(t.latestScore)}
                   </p>
-                  <p className="text-[10px] text-gray-400">Son skor</p>
+                  <p className="text-[10px] text-gray-400 dark:text-slate-500">Son skor</p>
                 </div>
                 <div className="text-right">
                   <p
@@ -330,13 +330,13 @@ export default function GrowthTimeline() {
                         ? 'text-emerald-600'
                         : growth < 0
                           ? 'text-red-600'
-                          : 'text-gray-500'
+                          : 'text-gray-500 dark:text-slate-400'
                     }`}
                   >
                     {growth > 0 ? '+' : ''}
                     {growth}%
                   </p>
-                  <p className="text-[10px] text-gray-400">
+                  <p className="text-[10px] text-gray-400 dark:text-slate-500">
                     {t.attempts.length} deneme
                   </p>
                 </div>

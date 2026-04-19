@@ -59,7 +59,7 @@ function TrendArrow({ direction }: { direction: string }) {
     return <TrendingUp size={16} className="text-emerald-500" />;
   if (direction === 'declining')
     return <TrendingDown size={16} className="text-red-500" />;
-  return <Minus size={16} className="text-gray-400" />;
+  return <Minus size={16} className="text-gray-400 dark:text-slate-500" />;
 }
 
 export default function StudentTrendView() {
@@ -165,10 +165,10 @@ export default function StudentTrendView() {
           <Users size={20} className="text-emerald-600" />
         </div>
         <div>
-          <h2 className="text-lg font-extrabold text-[#0f2847]">
+          <h2 className="text-lg font-extrabold text-[#0f2847] dark:text-slate-100">
             Ogrenci Gelisim Takibi
           </h2>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-slate-500">
             Ogrenci secin ve tum testlerdeki gelisimini gorun
           </p>
         </div>
@@ -179,7 +179,7 @@ export default function StudentTrendView() {
         <select
           value={selectedStudentId}
           onChange={(e) => setSelectedStudentId(e.target.value)}
-          className="w-full appearance-none bg-white/70 backdrop-blur-xl border border-white/40 rounded-xl px-4 py-2.5 text-sm font-medium text-[#0f2847] focus:outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer shadow-sm"
+          className="w-full appearance-none bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl border border-white/40 dark:border-slate-700/60 rounded-xl px-4 py-2.5 text-sm font-medium text-[#0f2847] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer shadow-sm"
           disabled={loadingStudents}
         >
           <option value="">
@@ -193,7 +193,7 @@ export default function StudentTrendView() {
         </select>
         <ChevronDown
           size={16}
-          className="absolute right-3 top-3 text-gray-400 pointer-events-none"
+          className="absolute right-3 top-3 text-gray-400 dark:text-slate-500 pointer-events-none"
         />
       </div>
 
@@ -203,16 +203,16 @@ export default function StudentTrendView() {
           <div className="w-8 h-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : selectedStudentId && trends.length === 0 ? (
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-10 text-center">
+        <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-10 text-center">
           <BarChart2 size={40} className="text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-slate-400">
             Bu ogrencinin henuz gelisim verisi yok.
           </p>
         </div>
       ) : selectedStudentId && trends.length > 0 ? (
         <>
           {/* Grafik */}
-          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-4 shadow-sm">
+          <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-4 shadow-sm">
             <div className="w-full" style={{ height: 280 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
@@ -245,7 +245,7 @@ export default function StudentTrendView() {
           </div>
 
           {/* Detay Tablosu */}
-          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
+          <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -286,7 +286,7 @@ export default function StudentTrendView() {
                       <tr
                         key={t.testType}
                         className={`border-b border-gray-50 hover:bg-emerald-50/30 transition-colors ${
-                          idx % 2 === 0 ? '' : 'bg-gray-50/50'
+                          idx % 2 === 0 ? '' : 'bg-gray-50 dark:bg-slate-800/60/50'
                         }`}
                       >
                         <td className="px-4 py-3">
@@ -301,10 +301,10 @@ export default function StudentTrendView() {
                             {TEST_LABELS[t.testType] ?? t.testType}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-center font-bold text-[#0f2847]">
+                        <td className="px-4 py-3 text-center font-bold text-[#0f2847] dark:text-slate-100">
                           {Math.round(t.latestScore)}
                         </td>
-                        <td className="px-4 py-3 text-center text-gray-500">
+                        <td className="px-4 py-3 text-center text-gray-500 dark:text-slate-400">
                           {Math.round(prevScore)}
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -314,7 +314,7 @@ export default function StudentTrendView() {
                                 ? 'text-emerald-600'
                                 : change < 0
                                   ? 'text-red-600'
-                                  : 'text-gray-500'
+                                  : 'text-gray-500 dark:text-slate-400'
                             }`}
                           >
                             {change > 0 ? '+' : ''}

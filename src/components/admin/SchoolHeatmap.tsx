@@ -127,10 +127,10 @@ export default function SchoolHeatmap() {
 
   if (loading) {
     return (
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm">
+      <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm">
         <div className="animate-pulse space-y-4">
           <div className="h-6 bg-gray-200 rounded w-48" />
-          <div className="h-64 bg-gray-100 rounded" />
+          <div className="h-64 bg-gray-100 dark:bg-slate-700/60 rounded" />
         </div>
       </div>
     );
@@ -138,20 +138,20 @@ export default function SchoolHeatmap() {
 
   if (rows.length === 0) {
     return (
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-[#0f2847] mb-2">Okul Geneli Isı Haritası</h2>
-        <p className="text-gray-500 text-sm">Henüz yeterli veri bulunmuyor.</p>
+      <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-[#0f2847] dark:text-slate-100 mb-2">Okul Geneli Isı Haritası</h2>
+        <p className="text-gray-500 dark:text-slate-400 text-sm">Henüz yeterli veri bulunmuyor.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm relative">
-      <h2 className="text-lg font-bold text-[#0f2847] mb-1">Okul Geneli Isı Haritası</h2>
-      <p className="text-gray-500 text-xs mb-4">Sınıflar × Testler matris görünümü</p>
+    <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm relative">
+      <h2 className="text-lg font-bold text-[#0f2847] dark:text-slate-100 mb-1">Okul Geneli Isı Haritası</h2>
+      <p className="text-gray-500 dark:text-slate-400 text-xs mb-4">Sınıflar × Testler matris görünümü</p>
 
       {/* Renk lejandı */}
-      <div className="flex items-center gap-1 mb-4 text-[10px] font-medium text-gray-500">
+      <div className="flex items-center gap-1 mb-4 text-[10px] font-medium text-gray-500 dark:text-slate-400">
         <span>Düşük</span>
         <div className="w-5 h-3 rounded bg-red-600" />
         <div className="w-5 h-3 rounded bg-red-400" />
@@ -166,9 +166,9 @@ export default function SchoolHeatmap() {
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className="text-left text-[11px] font-semibold text-gray-500 py-2 px-2 min-w-[100px]">Sınıf</th>
+              <th className="text-left text-[11px] font-semibold text-gray-500 dark:text-slate-400 py-2 px-2 min-w-[100px]">Sınıf</th>
               {TEST_KEYS.map(key => (
-                <th key={key} className="text-center text-[9px] font-semibold text-gray-500 py-2 px-1 min-w-[60px]">
+                <th key={key} className="text-center text-[9px] font-semibold text-gray-500 dark:text-slate-400 py-2 px-1 min-w-[60px]">
                   {(TEST_LABELS[key] || key).substring(0, 8)}
                 </th>
               ))}
@@ -176,8 +176,8 @@ export default function SchoolHeatmap() {
           </thead>
           <tbody>
             {rows.map(row => (
-              <tr key={row.classId} className="border-t border-gray-100">
-                <td className="text-[12px] font-semibold text-gray-700 py-1.5 px-2">{row.className}</td>
+              <tr key={row.classId} className="border-t border-gray-100 dark:border-slate-700/60">
+                <td className="text-[12px] font-semibold text-gray-700 dark:text-slate-300 py-1.5 px-2">{row.className}</td>
                 {TEST_KEYS.map(key => {
                   const cell = row.cells[key];
                   return (
@@ -194,7 +194,7 @@ export default function SchoolHeatmap() {
                           {cell.average}
                         </div>
                       ) : (
-                        <div className="inline-block w-10 h-8 rounded-md bg-gray-100 flex items-center justify-center text-[10px] text-gray-300">
+                        <div className="inline-block w-10 h-8 rounded-md bg-gray-100 dark:bg-slate-700/60 flex items-center justify-center text-[10px] text-gray-300">
                           —
                         </div>
                       )}
@@ -213,8 +213,8 @@ export default function SchoolHeatmap() {
              style={{ left: tooltip.x, top: tooltip.y }}>
           <p className="font-bold mb-1">{tooltip.cell.className}</p>
           <p className="text-gray-300">{TEST_LABELS[tooltip.cell.testType] || tooltip.cell.testType}</p>
-          <p className="text-lg font-extrabold mt-1">{tooltip.cell.average}<span className="text-gray-400 text-[10px] ml-1">/ 100</span></p>
-          <p className="text-gray-400 text-[10px] mt-1">{tooltip.cell.studentCount} öğrenci verisi</p>
+          <p className="text-lg font-extrabold mt-1">{tooltip.cell.average}<span className="text-gray-400 dark:text-slate-500 text-[10px] ml-1">/ 100</span></p>
+          <p className="text-gray-400 dark:text-slate-500 text-[10px] mt-1">{tooltip.cell.studentCount} öğrenci verisi</p>
         </div>
       )}
     </div>

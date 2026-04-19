@@ -102,7 +102,7 @@ export default function GamificationProfile() {
             </div>
             <div className="h-3 bg-white/20 rounded-full overflow-hidden">
               <div
-                className="h-full bg-white rounded-full transition-all duration-700 shadow-sm"
+                className="h-full bg-white dark:bg-slate-800 rounded-full transition-all duration-700 shadow-sm"
                 style={{ width: `${level.progressPercent}%` }}
               />
             </div>
@@ -111,8 +111,8 @@ export default function GamificationProfile() {
       </div>
 
       {/* Seviye Yol Haritası */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm p-6">
-        <h3 className="text-sm font-bold text-[#0f2847] mb-4">Seviye Yol Haritası</h3>
+      <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm p-6">
+        <h3 className="text-sm font-bold text-[#0f2847] dark:text-slate-100 mb-4">Seviye Yol Haritası</h3>
         <div className="flex items-center justify-between gap-2">
           {LEVELS.map((lvl, i) => {
             const isActive = lvl.name === level.name;
@@ -121,14 +121,14 @@ export default function GamificationProfile() {
               <div key={lvl.name} className="flex-1 text-center">
                 <div className={`w-10 h-10 mx-auto rounded-xl flex items-center justify-center text-lg mb-1 transition-all ${
                   isActive ? `bg-gradient-to-br ${lvl.color} text-white shadow-lg scale-110` :
-                  isPast ? 'bg-gray-100 text-gray-600' : 'bg-gray-50 text-gray-300'
+                  isPast ? 'bg-gray-100 dark:bg-slate-700/60 text-gray-600 dark:text-slate-300' : 'bg-gray-50 dark:bg-slate-800/60 text-gray-300'
                 }`}>
                   {lvl.emoji}
                 </div>
-                <p className={`text-[10px] font-bold ${isActive ? 'text-violet-600' : isPast ? 'text-gray-500' : 'text-gray-300'}`}>
+                <p className={`text-[10px] font-bold ${isActive ? 'text-violet-600' : isPast ? 'text-gray-500 dark:text-slate-400' : 'text-gray-300'}`}>
                   {lvl.name}
                 </p>
-                <p className="text-[9px] text-gray-400">{lvl.minXP}+</p>
+                <p className="text-[9px] text-gray-400 dark:text-slate-500">{lvl.minXP}+</p>
                 {i < LEVELS.length - 1 && (
                   <div className={`absolute h-0.5 ${isPast ? 'bg-violet-300' : 'bg-gray-200'}`} />
                 )}
@@ -142,10 +142,10 @@ export default function GamificationProfile() {
       {categories.map(cat => {
         const catBadges = badges.filter(b => b.category === cat);
         return (
-          <div key={cat} className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm p-6">
-            <h3 className="text-sm font-bold text-[#0f2847] mb-4">
+          <div key={cat} className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm p-6">
+            <h3 className="text-sm font-bold text-[#0f2847] dark:text-slate-100 mb-4">
               {CATEGORY_LABELS[cat] || cat}
-              <span className="ml-2 text-xs font-normal text-gray-400">
+              <span className="ml-2 text-xs font-normal text-gray-400 dark:text-slate-500">
                 {catBadges.filter(b => earnedIds.includes(b.id)).length}/{catBadges.length}
               </span>
             </h3>
@@ -158,17 +158,17 @@ export default function GamificationProfile() {
                     className={`relative rounded-xl border p-3 text-center transition-all ${
                       earned
                         ? 'bg-gradient-to-b from-amber-50 to-white border-amber-200 shadow-sm'
-                        : 'bg-gray-50 border-gray-200 opacity-50'
+                        : 'bg-gray-50 dark:bg-slate-800/60 border-gray-200 dark:border-slate-700 opacity-50'
                     }`}
                   >
                     {!earned && (
                       <Lock className="absolute top-2 right-2 w-3 h-3 text-gray-300" />
                     )}
                     <div className="text-2xl mb-1">{badge.icon}</div>
-                    <p className={`text-xs font-bold ${earned ? 'text-[#0f2847]' : 'text-gray-400'}`}>
+                    <p className={`text-xs font-bold ${earned ? 'text-[#0f2847] dark:text-slate-100' : 'text-gray-400 dark:text-slate-500'}`}>
                       {badge.name}
                     </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-2">
+                    <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5 line-clamp-2">
                       {badge.description}
                     </p>
                     <p className="text-[10px] font-semibold text-amber-500 mt-1">+{badge.xp_reward} XP</p>

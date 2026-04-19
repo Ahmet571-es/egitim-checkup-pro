@@ -117,7 +117,7 @@ export default function RiskDashboard() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-[#0f2847] flex items-center gap-2">
+        <h2 className="text-lg font-bold text-[#0f2847] dark:text-slate-100 flex items-center gap-2">
           <Shield size={20} className="text-red-500" />
           Risk Altındaki Öğrenciler
         </h2>
@@ -127,7 +127,7 @@ export default function RiskDashboard() {
           <select
             value={selectedClass}
             onChange={e => setSelectedClass(e.target.value)}
-            className="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white"
+            className="text-sm border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 bg-white dark:bg-slate-800"
           >
             {classes.map(c => (
               <option key={c.id} value={c.id}>{c.name}</option>
@@ -138,10 +138,10 @@ export default function RiskDashboard() {
 
       {/* İstatistik kartları */}
       <div className="grid grid-cols-4 gap-3">
-        <div className="bg-gray-50 rounded-xl p-3 text-center">
-          <Users size={16} className="mx-auto text-gray-400 mb-1" />
-          <p className="text-lg font-bold text-[#0f2847]">{stats.total}</p>
-          <p className="text-xs text-gray-500">Toplam</p>
+        <div className="bg-gray-50 dark:bg-slate-800/60 rounded-xl p-3 text-center">
+          <Users size={16} className="mx-auto text-gray-400 dark:text-slate-500 mb-1" />
+          <p className="text-lg font-bold text-[#0f2847] dark:text-slate-100">{stats.total}</p>
+          <p className="text-xs text-gray-500 dark:text-slate-400">Toplam</p>
         </div>
         <div className="bg-red-50 rounded-xl p-3 text-center cursor-pointer hover:bg-red-100 transition"
           onClick={() => setFilter(filter === 'kritik' ? 'hepsi' : 'kritik')}>
@@ -164,7 +164,7 @@ export default function RiskDashboard() {
 
       {/* Filtre bilgisi */}
       {filter !== 'hepsi' && (
-        <div className="flex items-center gap-2 text-sm text-gray-600">
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
           <Filter size={14} />
           <span>
             {filter === 'kritik' ? 'Sadece kritik öğrenciler' : 'Sadece izlenmeli öğrenciler'}
@@ -178,29 +178,29 @@ export default function RiskDashboard() {
       {/* Tablo */}
       {loading ? (
         <div className="flex items-center justify-center py-8">
-          <Loader2 size={24} className="animate-spin text-gray-400" />
+          <Loader2 size={24} className="animate-spin text-gray-400 dark:text-slate-500" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-8 text-gray-500 text-sm">
+        <div className="text-center py-8 text-gray-500 dark:text-slate-400 text-sm">
           {riskList.length === 0 ? 'Bu sınıfta öğrenci bulunamadı.' : 'Bu filtreye uygun öğrenci yok.'}
         </div>
       ) : (
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
+        <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left text-xs font-semibold text-gray-500 px-4 py-3">Öğrenci</th>
-                <th className="text-center text-xs font-semibold text-gray-500 px-4 py-3">Risk Skoru</th>
-                <th className="text-center text-xs font-semibold text-gray-500 px-4 py-3">Seviye</th>
-                <th className="text-left text-xs font-semibold text-gray-500 px-4 py-3">En Kritik Bulgu</th>
-                <th className="text-center text-xs font-semibold text-gray-500 px-4 py-3 w-12"></th>
+              <tr className="border-b border-gray-100 dark:border-slate-700/60">
+                <th className="text-left text-xs font-semibold text-gray-500 dark:text-slate-400 px-4 py-3">Öğrenci</th>
+                <th className="text-center text-xs font-semibold text-gray-500 dark:text-slate-400 px-4 py-3">Risk Skoru</th>
+                <th className="text-center text-xs font-semibold text-gray-500 dark:text-slate-400 px-4 py-3">Seviye</th>
+                <th className="text-left text-xs font-semibold text-gray-500 dark:text-slate-400 px-4 py-3">En Kritik Bulgu</th>
+                <th className="text-center text-xs font-semibold text-gray-500 dark:text-slate-400 px-4 py-3 w-12"></th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(s => (
-                <tr key={s.studentId} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+                <tr key={s.studentId} className="border-b border-gray-50 hover:bg-gray-50 dark:bg-slate-800/60/50 transition">
                   <td className="px-4 py-3">
-                    <p className="font-medium text-[#0f2847] text-sm">{s.studentName}</p>
+                    <p className="font-medium text-[#0f2847] dark:text-slate-100 text-sm">{s.studentName}</p>
                   </td>
                   <td className="px-4 py-3 text-center">
                     <span className={`text-lg font-bold ${s.risk.color}`}>
@@ -216,18 +216,18 @@ export default function RiskDashboard() {
                     {s.mostCriticalFlag ? (
                       <div className="flex items-start gap-1.5">
                         <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
-                        <span className="text-xs text-gray-600 line-clamp-2">{s.mostCriticalFlag}</span>
+                        <span className="text-xs text-gray-600 dark:text-slate-300 line-clamp-2">{s.mostCriticalFlag}</span>
                       </div>
                     ) : (
-                      <span className="text-xs text-gray-400">—</span>
+                      <span className="text-xs text-gray-400 dark:text-slate-500">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <Link
                       href={`/teacher/results?student=${s.studentId}`}
-                      className="p-1.5 hover:bg-gray-100 rounded-lg transition inline-flex"
+                      className="p-1.5 hover:bg-gray-100 dark:bg-slate-700/60 rounded-lg transition inline-flex"
                     >
-                      <ChevronRight size={16} className="text-gray-400" />
+                      <ChevronRight size={16} className="text-gray-400 dark:text-slate-500" />
                     </Link>
                   </td>
                 </tr>

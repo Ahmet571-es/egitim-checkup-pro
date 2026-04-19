@@ -108,15 +108,15 @@ export default function EmailPreferences({ userId, userRole, initialPrefs }: Pro
   }
 
   return (
-    <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+    <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-700/60 flex items-center gap-2">
         <Bell className="w-4 h-4 text-emerald-500" />
-        <h3 className="font-extrabold text-[#0f2847] text-base">E-posta Bildirimleri</h3>
+        <h3 className="font-extrabold text-[#0f2847] dark:text-slate-100 text-base">E-posta Bildirimleri</h3>
       </div>
 
       <div className="p-6 space-y-4">
         {relevantPrefs.length === 0 && (
-          <p className="text-gray-400 text-sm text-center py-4">
+          <p className="text-gray-400 dark:text-slate-500 text-sm text-center py-4">
             Bu rol için yapılandırılabilir bildirim yok.
           </p>
         )}
@@ -124,8 +124,8 @@ export default function EmailPreferences({ userId, userRole, initialPrefs }: Pro
         {relevantPrefs.map(pref => (
           <div key={pref.key} className="flex items-center justify-between gap-4 py-3 border-b border-gray-50 last:border-0">
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm text-[#0f2847]">{pref.label}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{pref.desc}</p>
+              <p className="font-semibold text-sm text-[#0f2847] dark:text-slate-100">{pref.label}</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{pref.desc}</p>
             </div>
             {/* Toggle */}
             <button
@@ -137,7 +137,7 @@ export default function EmailPreferences({ userId, userRole, initialPrefs }: Pro
               aria-checked={prefs[pref.key]}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+                className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-slate-800 shadow-sm transition-transform ${
                   prefs[pref.key] ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />

@@ -122,10 +122,10 @@ export default function RiskDistribution() {
 
   if (loading) {
     return (
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm">
+      <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm">
         <div className="animate-pulse space-y-4">
           <div className="h-6 bg-gray-200 rounded w-48" />
-          <div className="h-64 bg-gray-100 rounded" />
+          <div className="h-64 bg-gray-100 dark:bg-slate-700/60 rounded" />
         </div>
       </div>
     );
@@ -138,12 +138,12 @@ export default function RiskDistribution() {
   ].filter(d => d.value > 0);
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm">
-      <h2 className="text-lg font-bold text-[#0f2847] mb-1">Risk Dağılımı</h2>
-      <p className="text-gray-500 text-xs mb-4">Okul genelinde öğrenci risk seviyeleri</p>
+    <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm">
+      <h2 className="text-lg font-bold text-[#0f2847] dark:text-slate-100 mb-1">Risk Dağılımı</h2>
+      <p className="text-gray-500 dark:text-slate-400 text-xs mb-4">Okul genelinde öğrenci risk seviyeleri</p>
 
       {stats.total === 0 ? (
-        <p className="text-gray-400 text-sm text-center py-8">Henüz yeterli veri bulunmuyor.</p>
+        <p className="text-gray-400 dark:text-slate-500 text-sm text-center py-8">Henüz yeterli veri bulunmuyor.</p>
       ) : (
         <>
           {/* Özet kartlar */}
@@ -188,7 +188,7 @@ export default function RiskDistribution() {
           {/* Sınıf bazlı kırılım */}
           {classBreakdown.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-600 mb-2">Sınıf Bazlı Risk Kırılımı</h3>
+              <h3 className="text-sm font-semibold text-gray-600 dark:text-slate-300 mb-2">Sınıf Bazlı Risk Kırılımı</h3>
               <ResponsiveContainer width="100%" height={Math.max(200, classBreakdown.length * 35)}>
                 <BarChart data={classBreakdown} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />

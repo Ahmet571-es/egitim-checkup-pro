@@ -33,22 +33,22 @@ export default function QRCodeGenerator() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-[#0f2847]">QR Kod ile Test Başlat</h3>
-              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-gray-100 rounded-lg">
-                <X className="w-5 h-5 text-gray-400" />
+              <h3 className="text-lg font-bold text-[#0f2847] dark:text-slate-100">QR Kod ile Test Başlat</h3>
+              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-gray-100 dark:bg-slate-700/60 rounded-lg">
+                <X className="w-5 h-5 text-gray-400 dark:text-slate-500" />
               </button>
             </div>
 
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
               Test seçin, QR kodu öğrencilere gösterin. Öğrenciler telefon kamerasıyla okutarak doğrudan teste başlar.
             </p>
 
             <select
               value={selectedTest}
               onChange={(e) => setSelectedTest(e.target.value)}
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-4"
+              className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-4"
             >
               <option value="">Test seçin...</option>
               {TEST_TYPES.map(t => (
@@ -58,13 +58,13 @@ export default function QRCodeGenerator() {
 
             {selectedTest && (
               <div className="text-center">
-                <div className="bg-white border-2 border-gray-100 rounded-xl p-4 inline-block mb-4">
+                <div className="bg-white dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700/60 rounded-xl p-4 inline-block mb-4">
                   <img src={qrImageUrl} alt="QR Kod" className="w-48 h-48 mx-auto" />
                 </div>
-                <p className="text-xs text-gray-400 mb-3 break-all">{testUrl}</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500 mb-3 break-all">{testUrl}</p>
                 <button
                   onClick={copyLink}
-                  className="flex items-center gap-2 mx-auto px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition-colors"
+                  className="flex items-center gap-2 mx-auto px-4 py-2 bg-gray-100 dark:bg-slate-700/60 text-gray-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-gray-200 transition-colors"
                 >
                   {copied ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                   {copied ? 'Kopyalandı!' : 'Linki Kopyala'}

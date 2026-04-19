@@ -22,14 +22,14 @@ export default function TestScoreComparison({
   const isDeclined = growth.changePercent < 0;
 
   return (
-    <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-5 shadow-sm">
+    <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-5 shadow-sm">
       {/* Baslik */}
       <div className="flex items-center gap-2 mb-4">
         <Award size={18} className="text-violet-500" />
-        <h3 className="font-extrabold text-[#0f2847] text-sm">
+        <h3 className="font-extrabold text-[#0f2847] dark:text-slate-100 text-sm">
           Gelisim Karsilastirmasi
         </h3>
-        <span className="text-xs text-gray-400 ml-auto">
+        <span className="text-xs text-gray-400 dark:text-slate-500 ml-auto">
           {currentAttempt}. deneme
         </span>
       </div>
@@ -37,9 +37,9 @@ export default function TestScoreComparison({
       {/* Skor karsilastirma */}
       <div className="grid grid-cols-3 gap-3 mb-4">
         {/* Onceki */}
-        <div className="bg-gray-50 rounded-xl p-3 text-center">
-          <p className="text-xs text-gray-400 mb-1">Onceki</p>
-          <p className="text-xl font-extrabold text-gray-600">
+        <div className="bg-gray-50 dark:bg-slate-800/60 rounded-xl p-3 text-center">
+          <p className="text-xs text-gray-400 dark:text-slate-500 mb-1">Onceki</p>
+          <p className="text-xl font-extrabold text-gray-600 dark:text-slate-300">
             {Math.round(previousScore)}
           </p>
         </div>
@@ -52,7 +52,7 @@ export default function TestScoreComparison({
                 ? 'bg-emerald-50'
                 : isDeclined
                   ? 'bg-red-50'
-                  : 'bg-gray-50'
+                  : 'bg-gray-50 dark:bg-slate-800/60'
             }`}
           >
             {isImproved ? (
@@ -60,7 +60,7 @@ export default function TestScoreComparison({
             ) : isDeclined ? (
               <TrendingDown size={24} className="text-red-500" />
             ) : (
-              <Minus size={24} className="text-gray-400" />
+              <Minus size={24} className="text-gray-400 dark:text-slate-500" />
             )}
           </div>
         </div>
@@ -72,17 +72,17 @@ export default function TestScoreComparison({
               ? 'bg-emerald-50'
               : isDeclined
                 ? 'bg-red-50'
-                : 'bg-gray-50'
+                : 'bg-gray-50 dark:bg-slate-800/60'
           }`}
         >
-          <p className="text-xs text-gray-400 mb-1">Simdiki</p>
+          <p className="text-xs text-gray-400 dark:text-slate-500 mb-1">Simdiki</p>
           <p
             className={`text-xl font-extrabold ${
               isImproved
                 ? 'text-emerald-700'
                 : isDeclined
                   ? 'text-red-700'
-                  : 'text-gray-700'
+                  : 'text-gray-700 dark:text-slate-300'
             }`}
           >
             {Math.round(currentScore)}
@@ -97,7 +97,7 @@ export default function TestScoreComparison({
             ? 'bg-emerald-50 border border-emerald-100'
             : isDeclined
               ? 'bg-red-50 border border-red-100'
-              : 'bg-gray-50 border border-gray-100'
+              : 'bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-700/60'
         }`}
       >
         <p
@@ -106,13 +106,13 @@ export default function TestScoreComparison({
               ? 'text-emerald-600'
               : isDeclined
                 ? 'text-red-600'
-                : 'text-gray-600'
+                : 'text-gray-600 dark:text-slate-300'
           }`}
         >
           {growth.changePercent > 0 ? '+' : ''}
           {growth.changePercent}%
         </p>
-        <p className="text-xs text-gray-400 mt-0.5">
+        <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
           {isImproved
             ? 'Tebrikler! Gelisim gosterdin!'
             : isDeclined

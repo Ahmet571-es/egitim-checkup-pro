@@ -24,9 +24,9 @@ const THEMES = {
       'GÜÇLÜ YÖN': { bg: 'bg-gradient-to-br from-emerald-50 to-green-50', border: 'border-emerald-200', accent: 'text-emerald-800' },
       'GELİŞİM ALAN': { bg: 'bg-gradient-to-br from-teal-50 to-cyan-50', border: 'border-teal-200', accent: 'text-teal-800' },
       'AKSİYON PLANI': { bg: 'bg-gradient-to-br from-blue-50 to-indigo-50', border: 'border-blue-200', accent: 'text-blue-800' },
-      'STRATEJİ': { bg: 'bg-gradient-to-br from-[#0f2847]/5 to-[#1a5c3a]/5', border: 'border-[#0f2847]/20', accent: 'text-[#0f2847]' },
+      'STRATEJİ': { bg: 'bg-gradient-to-br from-[#0f2847]/5 to-[#1a5c3a]/5', border: 'border-[#0f2847]/20', accent: 'text-[#0f2847] dark:text-slate-100' },
       'AİLE': { bg: 'bg-gradient-to-br from-green-50 to-emerald-50', border: 'border-green-200', accent: 'text-green-800' },
-      'SONUÇ': { bg: 'bg-gradient-to-br from-gray-50 to-slate-50', border: 'border-gray-200', accent: 'text-gray-800' },
+      'SONUÇ': { bg: 'bg-gradient-to-br from-gray-50 to-slate-50', border: 'border-gray-200 dark:border-slate-700', accent: 'text-gray-800 dark:text-slate-200' },
     },
     cardBg: 'bg-gradient-to-br from-emerald-50/50 to-teal-50/50',
     chipBg: 'bg-emerald-100',
@@ -49,7 +49,7 @@ const THEMES = {
       'GELİŞİM ALAN': { bg: 'bg-gradient-to-br from-cyan-50 to-teal-50', border: 'border-cyan-200', accent: 'text-cyan-800' },
       'AKSİYON PLANI': { bg: 'bg-gradient-to-br from-purple-50 to-fuchsia-50', border: 'border-purple-200', accent: 'text-purple-800' },
       'MOTİVASYON': { bg: 'bg-gradient-to-br from-violet-100 to-purple-100', border: 'border-violet-300', accent: 'text-violet-800' },
-      'SONUÇ': { bg: 'bg-gradient-to-br from-slate-50 to-gray-50', border: 'border-gray-200', accent: 'text-gray-800' },
+      'SONUÇ': { bg: 'bg-gradient-to-br from-slate-50 to-gray-50', border: 'border-gray-200 dark:border-slate-700', accent: 'text-gray-800 dark:text-slate-200' },
     },
     cardBg: 'bg-gradient-to-br from-violet-50/50 to-cyan-50/50',
     chipBg: 'bg-violet-100',
@@ -74,7 +74,7 @@ const THEMES = {
       'YAPIN': { bg: 'bg-gradient-to-br from-green-50 to-emerald-50', border: 'border-green-200', accent: 'text-green-800' },
       'YAPMAYIN': { bg: 'bg-gradient-to-br from-red-50 to-rose-50', border: 'border-red-200', accent: 'text-red-800' },
       'AİLE': { bg: 'bg-gradient-to-br from-pink-50 to-rose-50', border: 'border-pink-200', accent: 'text-pink-800' },
-      'SONUÇ': { bg: 'bg-gradient-to-br from-gray-50 to-slate-50', border: 'border-gray-200', accent: 'text-gray-800' },
+      'SONUÇ': { bg: 'bg-gradient-to-br from-gray-50 to-slate-50', border: 'border-gray-200 dark:border-slate-700', accent: 'text-gray-800 dark:text-slate-200' },
     },
     cardBg: 'bg-gradient-to-br from-pink-50/50 to-orange-50/50',
     chipBg: 'bg-pink-100',
@@ -146,7 +146,7 @@ function getSectionStyle(title: string, theme: typeof THEMES[ReportType]) {
   for (const [key, style] of Object.entries(theme.sectionStyles)) {
     if (title.toUpperCase().includes(key)) return style;
   }
-  return { bg: 'bg-white', border: 'border-gray-200', accent: 'text-gray-800' };
+  return { bg: 'bg-white dark:bg-slate-800', border: 'border-gray-200 dark:border-slate-700', accent: 'text-gray-800 dark:text-slate-200' };
 }
 
 // ── Themed Progress Bar ──
@@ -161,10 +161,10 @@ function ThemedProgressBar({ name, value, color, theme }: { name: string; value:
   return (
     <div className="mb-3">
       <div className="flex justify-between items-center mb-1">
-        <span className="text-sm font-semibold text-gray-700">{name}</span>
+        <span className="text-sm font-semibold text-gray-700 dark:text-slate-300">{name}</span>
         <span className="text-sm font-bold" style={{ color }}>{value}%</span>
       </div>
-      <div className="h-3.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+      <div className="h-3.5 bg-gray-100 dark:bg-slate-700/60 rounded-full overflow-hidden shadow-inner">
         <div
           className={`h-full rounded-full bg-gradient-to-r ${getGradient(value)} transition-all duration-1000 shadow-sm`}
           style={{ width: `${value}%` }}
@@ -189,7 +189,7 @@ function ThemedSectionContent({ content, theme }: { content: string; theme: type
   return (
     <div>
       {bars.length > 0 && (
-        <div className="mb-4 p-4 bg-white/70 rounded-xl backdrop-blur-sm">
+        <div className="mb-4 p-4 bg-white/70 dark:bg-slate-800/50 rounded-xl backdrop-blur-sm">
           {bars.map((bar, i) => (
             <ThemedProgressBar key={i} name={bar.name} value={bar.value} color={theme.barColors[i % theme.barColors.length]} theme={theme} />
           ))}
@@ -211,9 +211,9 @@ function ThemedSectionContent({ content, theme }: { content: string; theme: type
             </thead>
             <tbody>
               {table.rows.map((row, ri) => (
-                <tr key={ri} className={ri % 2 === 0 ? 'bg-white' : 'bg-gray-50/80'}>
+                <tr key={ri} className={ri % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-gray-50 dark:bg-slate-800/60/80'}>
                   {row.map((cell, ci) => (
-                    <td key={ci} className="px-4 py-3 text-gray-700 border-b border-gray-100">
+                    <td key={ci} className="px-4 py-3 text-gray-700 dark:text-slate-300 border-b border-gray-100 dark:border-slate-700/60">
                       {cell.includes('🔴') ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-semibold">{cell}</span> :
                        cell.includes('🟡') ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">{cell}</span> :
                        cell.includes('🟢') ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">{cell}</span> :
@@ -227,7 +227,7 @@ function ThemedSectionContent({ content, theme }: { content: string; theme: type
         </div>
       )}
 
-      <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+      <div className="prose prose-sm max-w-none text-gray-700 dark:text-slate-300 leading-relaxed">
         {cleanContent.split('\n').map((line, i) => {
           const trimmed = line.trim();
           if (!trimmed) return <div key={i} className="h-2" />;
@@ -247,7 +247,7 @@ function ThemedSectionContent({ content, theme }: { content: string; theme: type
             const hasCheck = text.startsWith('✅') || text.startsWith('✓');
             const hasWarn = text.startsWith('⚠️') || text.startsWith('❌');
             return (
-              <div key={i} className={`flex items-start gap-2 py-1 pl-2 ${hasCheck ? 'text-emerald-700' : hasWarn ? 'text-amber-700' : 'text-gray-700'}`}>
+              <div key={i} className={`flex items-start gap-2 py-1 pl-2 ${hasCheck ? 'text-emerald-700' : hasWarn ? 'text-amber-700' : 'text-gray-700 dark:text-slate-300'}`}>
                 <span className="mt-1.5 w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: hasCheck ? '#10b981' : hasWarn ? '#f59e0b' : theme.accentColor }} />
                 <span className="text-sm" dangerouslySetInnerHTML={{ __html: text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }} />
               </div>
@@ -259,7 +259,7 @@ function ThemedSectionContent({ content, theme }: { content: string; theme: type
           }
 
           if (trimmed.startsWith('*') && trimmed.endsWith('*') && !trimmed.startsWith('**')) {
-            return <p key={i} className="text-gray-500 italic text-xs mt-1 mb-2">{trimmed.replace(/\*/g, '')}</p>;
+            return <p key={i} className="text-gray-500 dark:text-slate-400 italic text-xs mt-1 mb-2">{trimmed.replace(/\*/g, '')}</p>;
           }
 
           return <p key={i} className="text-sm mb-1" dangerouslySetInnerHTML={{ __html: trimmed.replace(/\*\*(.+?)\*\*/g, `<strong style="color:${theme.barColors[0]}">$1</strong>`) }} />;
@@ -307,14 +307,14 @@ export default function IntegratedReportRenderer({ text, reportType, scores }: I
 
       {/* Skor Grafikleri */}
       {implicitScores.length >= 3 && (
-        <div className={`rounded-2xl border shadow-sm overflow-hidden ${theme.cardBg} border-white/40`}>
+        <div className={`rounded-2xl border shadow-sm overflow-hidden ${theme.cardBg} border-white/40 dark:border-slate-700/60`}>
           <div className={`px-5 py-4 ${theme.headerBg}`}>
             <h3 className="text-white font-bold text-lg">📊 Skor Profili</h3>
           </div>
-          <div className="p-5 bg-white/80">
+          <div className="p-5 bg-white/80 dark:bg-slate-800/60">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
-                <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">Radar Profili</p>
+                <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-3 uppercase tracking-wide">Radar Profili</p>
                 <ResponsiveContainer width="100%" height={280}>
                   <RadarChart data={implicitScores}>
                     <PolarGrid stroke="#e2e8f0" />
@@ -325,7 +325,7 @@ export default function IntegratedReportRenderer({ text, reportType, scores }: I
                 </ResponsiveContainer>
               </div>
               <div>
-                <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">Boyut Karşılaştırma</p>
+                <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-3 uppercase tracking-wide">Boyut Karşılaştırma</p>
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={implicitScores} layout="vertical" margin={{ left: 10, right: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -347,7 +347,7 @@ export default function IntegratedReportRenderer({ text, reportType, scores }: I
               {implicitScores.slice(0, 5).map((item, i) => (
                 <div key={i} className="rounded-xl p-3 text-center shadow-sm" style={{ backgroundColor: `${theme.barColors[i % theme.barColors.length]}15` }}>
                   <p className="text-2xl font-black" style={{ color: theme.barColors[i % theme.barColors.length] }}>{item.value}%</p>
-                  <p className="text-[10px] font-semibold text-gray-600 mt-0.5 leading-tight">{item.name}</p>
+                  <p className="text-[10px] font-semibold text-gray-600 dark:text-slate-300 mt-0.5 leading-tight">{item.name}</p>
                 </div>
               ))}
             </div>
@@ -385,7 +385,7 @@ export default function IntegratedReportRenderer({ text, reportType, scores }: I
       })}
 
       {/* Footer */}
-      <div className="text-center text-xs text-gray-400 py-4 border-t border-gray-100">
+      <div className="text-center text-xs text-gray-400 dark:text-slate-500 py-4 border-t border-gray-100 dark:border-slate-700/60">
         Bu rapor Eğitim Check-Up Pro AI analiz sistemi tarafından üretilmiştir. Klinik tanı içermez.
       </div>
     </div>

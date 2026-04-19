@@ -30,18 +30,18 @@ export default function RetakeTestModal({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
+        className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Baslik */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-700/60">
           <div className="flex items-center gap-2">
             <RefreshCw size={18} className="text-amber-500" />
-            <h3 className="font-extrabold text-[#0f2847]">Tekrar Coz</h3>
+            <h3 className="font-extrabold text-[#0f2847] dark:text-slate-100">Tekrar Coz</h3>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-all"
+            className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700/60 hover:bg-gray-200 flex items-center justify-center text-gray-500 dark:text-slate-400 transition-all"
           >
             <X size={16} />
           </button>
@@ -49,8 +49,8 @@ export default function RetakeTestModal({
 
         {/* Icerik */}
         <div className="px-6 py-5">
-          <p className="text-gray-700 text-sm mb-4">
-            <span className="font-bold text-[#0f2847]">{testName}</span> testini
+          <p className="text-gray-700 dark:text-slate-300 text-sm mb-4">
+            <span className="font-bold text-[#0f2847] dark:text-slate-100">{testName}</span> testini
             daha once cozmusun.
           </p>
 
@@ -77,17 +77,17 @@ export default function RetakeTestModal({
             </div>
           </div>
 
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 dark:text-slate-400 text-sm">
             Tekrar cozerek gelisimini takip edebilirsin. Yeni sonucun oncekiyle
             karsilastirilacak.
           </p>
         </div>
 
         {/* Butonlar */}
-        <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
+        <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-700/60 flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-all"
+            className="flex-1 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-700/60 text-gray-600 dark:text-slate-300 text-sm font-semibold hover:bg-gray-200 transition-all"
           >
             Vazgec
           </button>

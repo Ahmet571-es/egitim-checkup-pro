@@ -105,8 +105,8 @@ export default function BulkStudentUpload() {
   const invalidCount = students.filter(s => !s.valid).length;
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm p-6">
-      <h2 className="text-lg font-extrabold text-[#0f2847] mb-4">Toplu Öğrenci Yükleme</h2>
+    <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm p-6">
+      <h2 className="text-lg font-extrabold text-[#0f2847] dark:text-slate-100 mb-4">Toplu Öğrenci Yükleme</h2>
 
       {/* Şablon İndir */}
       <button
@@ -119,11 +119,11 @@ export default function BulkStudentUpload() {
       {/* Dosya Yükle */}
       <div
         onClick={() => fileRef.current?.click()}
-        className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center cursor-pointer hover:border-violet-300 hover:bg-violet-50/30 transition-all"
+        className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-xl p-8 text-center cursor-pointer hover:border-violet-300 hover:bg-violet-50/30 transition-all"
       >
         <FileSpreadsheet className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-        <p className="text-sm text-gray-500">CSV dosyasını sürükle veya tıkla</p>
-        <p className="text-xs text-gray-400 mt-1">Sütunlar: Ad Soyad, E-posta, Sınıf</p>
+        <p className="text-sm text-gray-500 dark:text-slate-400">CSV dosyasını sürükle veya tıkla</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">Sütunlar: Ad Soyad, E-posta, Sınıf</p>
         <input ref={fileRef} type="file" accept=".csv,.txt" onChange={handleFile} className="hidden" />
       </div>
 
@@ -131,7 +131,7 @@ export default function BulkStudentUpload() {
       {students.length > 0 && (
         <div className="mt-4">
           <div className="flex items-center gap-4 mb-3">
-            <span className="text-sm font-medium text-gray-600">
+            <span className="text-sm font-medium text-gray-600 dark:text-slate-300">
               {validCount} geçerli, {invalidCount} hatalı
             </span>
             <button
@@ -144,10 +144,10 @@ export default function BulkStudentUpload() {
             </button>
           </div>
 
-          <div className="max-h-60 overflow-y-auto border border-gray-100 rounded-xl">
+          <div className="max-h-60 overflow-y-auto border border-gray-100 dark:border-slate-700/60 rounded-xl">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr className="text-xs text-gray-400 uppercase">
+              <thead className="bg-gray-50 dark:bg-slate-800/60">
+                <tr className="text-xs text-gray-400 dark:text-slate-500 uppercase">
                   <th className="text-left py-2 px-3">Ad Soyad</th>
                   <th className="text-left py-2 px-3">E-posta</th>
                   <th className="text-left py-2 px-3">Sınıf</th>
@@ -157,9 +157,9 @@ export default function BulkStudentUpload() {
               <tbody>
                 {students.map((s, i) => (
                   <tr key={i} className="border-t border-gray-50">
-                    <td className="py-2 px-3 text-gray-700">{s.full_name}</td>
-                    <td className="py-2 px-3 text-gray-500">{s.email}</td>
-                    <td className="py-2 px-3 text-gray-500">{s.grade}</td>
+                    <td className="py-2 px-3 text-gray-700 dark:text-slate-300">{s.full_name}</td>
+                    <td className="py-2 px-3 text-gray-500 dark:text-slate-400">{s.email}</td>
+                    <td className="py-2 px-3 text-gray-500 dark:text-slate-400">{s.grade}</td>
                     <td className="py-2 px-3 text-center">
                       {s.valid
                         ? <CheckCircle2 className="w-4 h-4 text-emerald-500 mx-auto" />

@@ -82,9 +82,9 @@ export default function Leaderboard() {
 
   const rankIcon = (rank: number) => {
     if (rank === 1) return <Crown className="w-5 h-5 text-amber-500" />;
-    if (rank === 2) return <Medal className="w-5 h-5 text-gray-400" />;
+    if (rank === 2) return <Medal className="w-5 h-5 text-gray-400 dark:text-slate-500" />;
     if (rank === 3) return <Medal className="w-5 h-5 text-amber-700" />;
-    return <span className="w-5 h-5 flex items-center justify-center text-xs font-bold text-gray-400">{rank}</span>;
+    return <span className="w-5 h-5 flex items-center justify-center text-xs font-bold text-gray-400 dark:text-slate-500">{rank}</span>;
   };
 
   if (loading) {
@@ -97,17 +97,17 @@ export default function Leaderboard() {
 
   if (entries.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-400 text-sm">
+      <div className="text-center py-8 text-gray-400 dark:text-slate-500 text-sm">
         Henüz liderlik tablosu verisi yok.
       </div>
     );
   }
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm p-6">
+    <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm p-6">
       <div className="flex items-center gap-2 mb-4">
         <Trophy className="w-5 h-5 text-amber-500" />
-        <h3 className="text-sm font-bold text-[#0f2847]">Sınıf Liderlik Tablosu</h3>
+        <h3 className="text-sm font-bold text-[#0f2847] dark:text-slate-100">Sınıf Liderlik Tablosu</h3>
       </div>
 
       <div className="space-y-2">
@@ -118,7 +118,7 @@ export default function Leaderboard() {
             <div
               key={entry.student_id}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                isMe ? 'bg-violet-50 border border-violet-200' : 'hover:bg-gray-50'
+                isMe ? 'bg-violet-50 border border-violet-200' : 'hover:bg-gray-50 dark:bg-slate-800/60'
               }`}
             >
               <div className="w-8 text-center">{rankIcon(i + 1)}</div>
@@ -128,15 +128,15 @@ export default function Leaderboard() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold truncate ${isMe ? 'text-violet-700' : 'text-gray-700'}`}>
+                <p className={`text-sm font-semibold truncate ${isMe ? 'text-violet-700' : 'text-gray-700 dark:text-slate-300'}`}>
                   {entry.student_name} {isMe && '(Sen)'}
                 </p>
-                <p className="text-xs text-gray-400">{entry.current_level}</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500">{entry.current_level}</p>
               </div>
 
               <div className="text-right">
-                <p className="text-sm font-bold text-[#0f2847]">{entry.total_xp} XP</p>
-                <p className="text-xs text-gray-400">{entry.badge_count} rozet</p>
+                <p className="text-sm font-bold text-[#0f2847] dark:text-slate-100">{entry.total_xp} XP</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500">{entry.badge_count} rozet</p>
               </div>
             </div>
           );

@@ -135,28 +135,28 @@ export default function GenderAgeBreakdown() {
 
   if (loading) {
     return (
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm">
+      <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm">
         <div className="animate-pulse space-y-4">
           <div className="h-6 bg-gray-200 rounded w-48" />
-          <div className="h-64 bg-gray-100 rounded" />
+          <div className="h-64 bg-gray-100 dark:bg-slate-700/60 rounded" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm">
-      <h2 className="text-lg font-bold text-[#0f2847] mb-1">Cinsiyet & Sınıf Kırılımı</h2>
-      <p className="text-gray-500 text-xs mb-4">Test ortalamalarının cinsiyet ve sınıf bazlı karşılaştırması</p>
+    <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm">
+      <h2 className="text-lg font-bold text-[#0f2847] dark:text-slate-100 mb-1">Cinsiyet & Sınıf Kırılımı</h2>
+      <p className="text-gray-500 dark:text-slate-400 text-xs mb-4">Test ortalamalarının cinsiyet ve sınıf bazlı karşılaştırması</p>
 
       {/* Filtreler */}
       <div className="flex flex-wrap gap-3 mb-5">
         <div>
-          <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">Cinsiyet</label>
+          <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 block mb-1">Cinsiyet</label>
           <select
             value={genderFilter}
             onChange={e => setGenderFilter(e.target.value as FilterGender)}
-            className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-violet-300"
+            className="text-xs border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-1.5 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-300"
           >
             <option value="all">Tümü</option>
             <option value="female">Kız</option>
@@ -164,11 +164,11 @@ export default function GenderAgeBreakdown() {
           </select>
         </div>
         <div>
-          <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">Sınıf Seviyesi</label>
+          <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 block mb-1">Sınıf Seviyesi</label>
           <select
             value={gradeFilter}
             onChange={e => setGradeFilter(e.target.value)}
-            className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-violet-300"
+            className="text-xs border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-1.5 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-300"
           >
             <option value="all">Tümü</option>
             {availableGrades.map(g => (
@@ -204,7 +204,7 @@ export default function GenderAgeBreakdown() {
           </BarChart>
         </ResponsiveContainer>
       ) : (
-        <p className="text-gray-400 text-sm text-center py-8">Seçili filtrelerde veri bulunmuyor.</p>
+        <p className="text-gray-400 dark:text-slate-500 text-sm text-center py-8">Seçili filtrelerde veri bulunmuyor.</p>
       )}
     </div>
   );

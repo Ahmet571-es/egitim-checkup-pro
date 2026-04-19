@@ -41,7 +41,7 @@ export default function StatCard({ icon: Icon, value, label, color = 'emerald' }
   }, [targetNum, isNumeric]);
 
   return (
-    <div className={`bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 p-5 shadow-sm
+    <div className={`bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-5 shadow-sm
       hover:-translate-y-1 hover:shadow-lg hover:${c.glow} transition-all duration-300
       group cursor-default`}
       style={{ boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.6)' }}>
@@ -53,10 +53,10 @@ export default function StatCard({ icon: Icon, value, label, color = 'emerald' }
                style={{ filter: 'blur(8px)' }} />
         </div>
         <div>
-          <p className="text-2xl font-extrabold text-[#0f2847]">
+          <p className="text-2xl font-extrabold text-[#0f2847] dark:text-slate-100">
             {isNumeric ? displayVal : value}
           </p>
-          <p className="text-[13px] text-gray-500 font-medium">{label}</p>
+          <p className="text-[13px] text-gray-500 dark:text-slate-400 font-medium">{label}</p>
         </div>
       </div>
     </div>

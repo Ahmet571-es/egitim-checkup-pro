@@ -116,7 +116,7 @@ export default function CoachingTracking() {
   }
 
   function getStatusColor(student: StudentCoachingInfo): string {
-    if (student.tasks_this_week === 0) return 'text-gray-400';
+    if (student.tasks_this_week === 0) return 'text-gray-400 dark:text-slate-500';
     const rate = student.completed_this_week / student.tasks_this_week;
     if (rate === 0) return 'text-red-500';
     if (rate < 1) return 'text-amber-500';
@@ -141,20 +141,20 @@ export default function CoachingTracking() {
 
   if (students.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-400 text-sm">
+      <div className="text-center py-8 text-gray-400 dark:text-slate-500 text-sm">
         Henüz koçluk verisi yok.
       </div>
     );
   }
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm p-6">
-      <h2 className="text-lg font-extrabold text-[#0f2847] mb-4">Koçluk Takip</h2>
+    <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm p-6">
+      <h2 className="text-lg font-extrabold text-[#0f2847] dark:text-slate-100 mb-4">Koçluk Takip</h2>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
+            <tr className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wider border-b border-gray-100 dark:border-slate-700/60">
               <th className="text-left py-3 px-2">Öğrenci</th>
               <th className="text-center py-3 px-2">Bu Hafta</th>
               <th className="text-center py-3 px-2">Seri</th>
@@ -164,8 +164,8 @@ export default function CoachingTracking() {
           </thead>
           <tbody>
             {students.map((s) => (
-              <tr key={s.student_id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                <td className="py-3 px-2 font-medium text-gray-700">{s.student_name}</td>
+              <tr key={s.student_id} className="border-b border-gray-50 hover:bg-gray-50 dark:bg-slate-800/60/50">
+                <td className="py-3 px-2 font-medium text-gray-700 dark:text-slate-300">{s.student_name}</td>
                 <td className="py-3 px-2 text-center">
                   <span className={`font-bold ${getStatusColor(s)}`}>
                     {s.completed_this_week}/{s.tasks_this_week}
@@ -179,7 +179,7 @@ export default function CoachingTracking() {
                   )}
                   {s.current_streak === 0 && <span className="text-gray-300">—</span>}
                 </td>
-                <td className="py-3 px-2 text-center text-xs text-gray-400">
+                <td className="py-3 px-2 text-center text-xs text-gray-400 dark:text-slate-500">
                   {s.last_activity || '—'}
                 </td>
                 <td className="py-3 px-2 text-center">

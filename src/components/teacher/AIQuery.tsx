@@ -42,14 +42,14 @@ export default function AIQuery() {
   ];
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm p-6">
+    <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm p-6">
       <div className="flex items-center gap-2 mb-4">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
           <Bot className="w-4 h-4 text-white" />
         </div>
         <div>
-          <h3 className="text-sm font-bold text-[#0f2847]">AI Asistan</h3>
-          <p className="text-xs text-gray-400">
+          <h3 className="text-sm font-bold text-[#0f2847] dark:text-slate-100">AI Asistan</h3>
+          <p className="text-xs text-gray-400 dark:text-slate-500">
             {remaining !== null ? `${remaining} sorgu hakkınız kaldı` : 'Günlük 10 sorgu hakkınız var'}
           </p>
         </div>
@@ -76,7 +76,7 @@ export default function AIQuery() {
           onChange={(e) => setQuestion(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && askQuestion()}
           placeholder="Öğrencileriniz hakkında soru sorun..."
-          className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="flex-1 px-4 py-2.5 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
         <button
           onClick={askQuestion}
@@ -89,7 +89,7 @@ export default function AIQuery() {
 
       {/* Cevap */}
       {answer && (
-        <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 leading-relaxed">
+        <div className="bg-gray-50 dark:bg-slate-800/60 rounded-xl p-4 text-sm text-gray-700 dark:text-slate-300 leading-relaxed">
           <div className="flex items-center gap-2 mb-2">
             <MessageSquare className="w-4 h-4 text-emerald-500" />
             <span className="text-xs font-semibold text-emerald-600">AI Yanıtı</span>

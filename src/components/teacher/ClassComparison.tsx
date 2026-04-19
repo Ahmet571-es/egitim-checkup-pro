@@ -173,10 +173,10 @@ export default function ClassComparison() {
 
   if (loading) {
     return (
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm">
+      <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm">
         <div className="animate-pulse space-y-4">
           <div className="h-6 bg-gray-200 rounded w-48" />
-          <div className="h-64 bg-gray-100 rounded" />
+          <div className="h-64 bg-gray-100 dark:bg-slate-700/60 rounded" />
         </div>
       </div>
     );
@@ -184,17 +184,17 @@ export default function ClassComparison() {
 
   if (classes.length === 0) {
     return (
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-[#0f2847] mb-2">Sınıf Karşılaştırma</h2>
-        <p className="text-gray-500 text-sm">Henüz sınıfınız bulunmuyor.</p>
+      <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-[#0f2847] dark:text-slate-100 mb-2">Sınıf Karşılaştırma</h2>
+        <p className="text-gray-500 dark:text-slate-400 text-sm">Henüz sınıfınız bulunmuyor.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 p-6 shadow-sm">
-      <h2 className="text-lg font-bold text-[#0f2847] mb-1">Sınıf Karşılaştırma</h2>
-      <p className="text-gray-500 text-xs mb-4">Sınıflarınızın test ortalamaları karşılaştırması</p>
+    <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-6 shadow-sm">
+      <h2 className="text-lg font-bold text-[#0f2847] dark:text-slate-100 mb-1">Sınıf Karşılaştırma</h2>
+      <p className="text-gray-500 dark:text-slate-400 text-xs mb-4">Sınıflarınızın test ortalamaları karşılaştırması</p>
 
       {/* Sınıf seçim dropdown (çoklu) */}
       <div className="flex flex-wrap gap-2 mb-5">
@@ -205,7 +205,7 @@ export default function ClassComparison() {
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               selectedIds.includes(cls.id)
                 ? 'text-white shadow-md'
-                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                : 'bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 hover:bg-gray-200'
             }`}
             style={
               selectedIds.includes(cls.id)
@@ -219,7 +219,7 @@ export default function ClassComparison() {
       </div>
 
       {classAverages.length === 0 ? (
-        <p className="text-gray-400 text-sm text-center py-8">Seçili sınıflarda henüz test verisi yok.</p>
+        <p className="text-gray-400 dark:text-slate-500 text-sm text-center py-8">Seçili sınıflarda henüz test verisi yok.</p>
       ) : (
         <>
           {/* En güçlü / en zayıf alan */}
@@ -246,7 +246,7 @@ export default function ClassComparison() {
 
           {/* Radar Chart */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Radar Karşılaştırma</h3>
+            <h3 className="text-sm font-semibold text-gray-600 dark:text-slate-300 mb-2">Radar Karşılaştırma</h3>
             <ResponsiveContainer width="100%" height={350}>
               <RadarChart data={radarData}>
                 <PolarGrid stroke="#e5e7eb" />
@@ -271,7 +271,7 @@ export default function ClassComparison() {
 
           {/* Bar Chart */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Test Bazlı Karşılaştırma</h3>
+            <h3 className="text-sm font-semibold text-gray-600 dark:text-slate-300 mb-2">Test Bazlı Karşılaştırma</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={barData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />

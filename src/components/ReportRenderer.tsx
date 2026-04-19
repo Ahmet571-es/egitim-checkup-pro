@@ -64,7 +64,7 @@ const renderInline = (text: string): React.ReactNode => {
 
   while (rest.length > 0) {
     const boldM = rest.match(/^\*\*([^*]+)\*\*/);
-    if (boldM) { parts.push(<strong key={key++} className="font-bold text-[#0f2847]">{boldM[1]}</strong>); rest = rest.slice(boldM[0].length); continue; }
+    if (boldM) { parts.push(<strong key={key++} className="font-bold text-[#0f2847] dark:text-slate-100">{boldM[1]}</strong>); rest = rest.slice(boldM[0].length); continue; }
     const italM = rest.match(/^\*([^*]+)\*/);
     if (italM) { parts.push(<em key={key++} className="italic">{italM[1]}</em>); rest = rest.slice(italM[0].length); continue; }
     const codeM = rest.match(/^`([^`]+)`/);
@@ -203,27 +203,27 @@ const RenderBlock: React.FC<{ block: Block; idx: number }> = ({ block, idx }) =>
       );
     }
     case 'h4':
-      return <h4 key={idx} className="text-base font-bold mt-5 mb-2 text-[#0f2847]">{renderInline(block.text)}</h4>;
+      return <h4 key={idx} className="text-base font-bold mt-5 mb-2 text-[#0f2847] dark:text-slate-100">{renderInline(block.text)}</h4>;
     case 'hr':
       return <hr key={idx} className="my-6 border-0 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />;
     case 'progress': {
       const c = colorByPct(block.pct);
       return (
-        <div key={idx} className="mb-3 p-3 rounded-xl bg-white border border-gray-100 shadow-sm">
+        <div key={idx} className="mb-3 p-3 rounded-xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700/60 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[13px] font-bold text-[#0f2847]">{block.label}</span>
+            <span className="text-[13px] font-bold text-[#0f2847] dark:text-slate-100">{block.label}</span>
             <span className={`text-[13px] font-extrabold ${c.text}`}>%{block.pct}</span>
           </div>
-          <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
+          <div className="h-3 rounded-full bg-gray-100 dark:bg-slate-700/60 overflow-hidden">
             <div className={`h-full rounded-full bg-gradient-to-r ${c.bar} transition-all duration-700`} style={{ width: `${block.pct}%` }} />
           </div>
-          {block.rest && <p className="mt-2 text-[12px] text-gray-500 italic">{renderInline(block.rest)}</p>}
+          {block.rest && <p className="mt-2 text-[12px] text-gray-500 dark:text-slate-400 italic">{renderInline(block.rest)}</p>}
         </div>
       );
     }
     case 'table':
       return (
-        <div key={idx} className="my-4 overflow-x-auto rounded-2xl border border-gray-100 shadow-sm">
+        <div key={idx} className="my-4 overflow-x-auto rounded-2xl border border-gray-100 dark:border-slate-700/60 shadow-sm">
           <table className="w-full text-[13px]">
             <thead>
               <tr className="bg-gradient-to-r from-violet-50 via-purple-50 to-pink-50">
@@ -236,9 +236,9 @@ const RenderBlock: React.FC<{ block: Block; idx: number }> = ({ block, idx }) =>
             </thead>
             <tbody>
               {block.rows.map((row, ri) => (
-                <tr key={ri} className={`${ri % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-amber-50/40 transition-colors`}>
+                <tr key={ri} className={`${ri % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-gray-50 dark:bg-slate-800/60/50'} hover:bg-amber-50/40 transition-colors`}>
                   {row.map((cell, ci) => (
-                    <td key={ci} className="px-3 py-2.5 text-gray-700 border-b border-gray-50 align-top">
+                    <td key={ci} className="px-3 py-2.5 text-gray-700 dark:text-slate-300 border-b border-gray-50 align-top">
                       {renderInline(cell)}
                     </td>
                   ))}
@@ -252,7 +252,7 @@ const RenderBlock: React.FC<{ block: Block; idx: number }> = ({ block, idx }) =>
       return (
         <ul key={idx} className="my-3 space-y-1.5 pl-1">
           {block.items.map((it, i) => (
-            <li key={i} className="flex items-start gap-2 text-[14px] text-gray-700 leading-relaxed">
+            <li key={i} className="flex items-start gap-2 text-[14px] text-gray-700 dark:text-slate-300 leading-relaxed">
               <span className="mt-2 w-1.5 h-1.5 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 shrink-0" />
               <span>{renderInline(it)}</span>
             </li>
@@ -263,7 +263,7 @@ const RenderBlock: React.FC<{ block: Block; idx: number }> = ({ block, idx }) =>
       return (
         <ol key={idx} className="my-3 space-y-1.5 pl-1">
           {block.items.map((it, i) => (
-            <li key={i} className="flex items-start gap-2 text-[14px] text-gray-700 leading-relaxed">
+            <li key={i} className="flex items-start gap-2 text-[14px] text-gray-700 dark:text-slate-300 leading-relaxed">
               <span className="mt-0.5 w-5 h-5 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">
                 {i + 1}
               </span>
@@ -275,7 +275,7 @@ const RenderBlock: React.FC<{ block: Block; idx: number }> = ({ block, idx }) =>
     case 'codeblock':
       return <pre key={idx} className="my-3 p-3 rounded-xl bg-slate-900 text-slate-100 text-[12px] font-mono overflow-x-auto">{block.text}</pre>;
     case 'p':
-      return <p key={idx} className="my-2.5 text-[14px] text-gray-700 leading-relaxed">{renderInline(block.text)}</p>;
+      return <p key={idx} className="my-2.5 text-[14px] text-gray-700 dark:text-slate-300 leading-relaxed">{renderInline(block.text)}</p>;
   }
 };
 
@@ -290,7 +290,7 @@ export default function ReportRenderer({
 }) {
   // İleride scores/testType ile rapor başına grafik üretmek için opsiyonel
   void scores; void testType;
-  if (!text || !text.trim()) return <p className="text-gray-400 italic">Rapor içeriği boş.</p>;
+  if (!text || !text.trim()) return <p className="text-gray-400 dark:text-slate-500 italic">Rapor içeriği boş.</p>;
   const blocks = parseBlocks(text);
   return (
     <div className="report-renderer">
