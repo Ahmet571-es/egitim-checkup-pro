@@ -59,6 +59,8 @@ interface IntegratedReport {
   student_report: string | null;
   parent_report: string | null;
   generated_at: string | null;
+  source_test_types?: string[] | null;
+  test_count?: number | null;
 }
 
 interface HolisticReport {
@@ -1032,6 +1034,51 @@ export default function StudentDetailPage() {
                         <p className="text-[12px] text-rose-700 mt-0.5">Öğretmen + Öğrenci + Veli için özelleştirilmiş 3 ayrı rapor.</p>
                       </div>
                     </div>
+
+                    {/* ═══ KAYNAK TEST ROZETLERİ ═══ */}
+                    {integratedExists && integrated?.source_test_types && integrated.source_test_types.length > 0 && (
+                      <div className="mb-3 bg-white/70 dark:bg-slate-800/60 rounded-lg p-3 border border-rose-200/60" style={{ marginLeft: '52px' }}>
+                        <p className="text-[10px] font-extrabold text-rose-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                          <FileText className="w-3 h-3" />
+                          Bu raporda analiz edilen testler ({integrated.source_test_types.length})
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {integrated.source_test_types.map(testType => (
+                            <span
+                              key={testType}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-[11px] font-bold border border-rose-200"
+                            >
+                              ✓ {labelOf(testType)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {integratedExists && (!integrated?.source_test_types || integrated.source_test_types.length === 0) && integrated?.test_count && (
+                      <div className="mb-3 bg-white/70 dark:bg-slate-800/60 rounded-lg p-2.5 border border-amber-200/60" style={{ marginLeft: '52px' }}>
+                        <p className="text-[11px] text-amber-700 italic">
+                          ℹ️ Bu rapor {integrated.test_count} test kullanılarak üretilmiş (eski kayıt — test tipleri kaydedilmemiş).
+                        </p>
+                      </div>
+                    )}
+
+                    {/* ═══ PERSPEKTİF AÇIKLAMALARI ═══ */}
+                    {integratedExists && (
+                      <div className="mb-3 grid grid-cols-1 sm:grid-cols-3 gap-1.5" style={{ marginLeft: '52px' }}>
+                        <div className="bg-sky-50 border border-sky-200 rounded-lg px-2.5 py-1.5">
+                          <p className="text-[10px] font-extrabold text-sky-700 uppercase">👨‍🏫 Öğretmen</p>
+                          <p className="text-[10.5px] text-sky-900">Sınıfta gözlem + yaklaşım stratejileri</p>
+                        </div>
+                        <div className="bg-violet-50 border border-violet-200 rounded-lg px-2.5 py-1.5">
+                          <p className="text-[10px] font-extrabold text-violet-700 uppercase">🎓 Öğrenci</p>
+                          <p className="text-[10.5px] text-violet-900">Kişisel farkındalık + öz-gelişim</p>
+                        </div>
+                        <div className="bg-pink-50 border border-pink-200 rounded-lg px-2.5 py-1.5">
+                          <p className="text-[10px] font-extrabold text-pink-700 uppercase">👨‍👩‍👧 Veli</p>
+                          <p className="text-[10.5px] text-pink-900">Ev desteği + iletişim önerileri</p>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="flex flex-wrap gap-2" style={{ paddingLeft: '52px' }}>
                       {!integratedExists ? (

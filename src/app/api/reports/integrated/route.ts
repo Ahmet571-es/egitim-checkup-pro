@@ -137,6 +137,7 @@ export async function POST(request: NextRequest) {
     await Promise.all(genPromises);
 
     // Admin client ile entegre raporları kaydet (RLS bypass)
+    const sourceTestTypes = results.map(r => r.test_type);
     const { error: insertErr } = await admin.from('integrated_reports').insert({
       student_id: student.id,
       school_id: student.school_id,
@@ -144,6 +145,7 @@ export async function POST(request: NextRequest) {
       student_report: reports.ogrenci ?? null,
       parent_report: reports.ebeveyn ?? null,
       test_count: results.length,
+      source_test_types: sourceTestTypes,
       generated_at: new Date().toISOString(),
     });
 
@@ -276,6 +278,7 @@ export async function PUT(request: NextRequest) {
     }));
 
     // Admin client ile kaydet (RLS bypass)
+    const sourceTestTypesPut = results.map(r => r.test_type);
     const { error: insErr } = await admin.from('integrated_reports').insert({
       student_id: student.id,
       school_id: student.school_id,
@@ -283,6 +286,7 @@ export async function PUT(request: NextRequest) {
       student_report: reports.ogrenci,
       parent_report: reports.ebeveyn,
       test_count: results.length,
+      source_test_types: sourceTestTypesPut,
       generated_at: new Date().toISOString(),
     });
 

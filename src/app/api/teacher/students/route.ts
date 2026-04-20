@@ -198,7 +198,7 @@ export async function POST(req: NextRequest) {
       // Entegre 3'lü Rapor — integrated_reports tablosundan
       const { data: ir } = await admin
         .from('integrated_reports')
-        .select('teacher_report, student_report, parent_report, generated_at')
+        .select('teacher_report, student_report, parent_report, generated_at, source_test_types, test_count')
         .eq('student_id', studentId)
         .order('generated_at', { ascending: false })
         .limit(1)
