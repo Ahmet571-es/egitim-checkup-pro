@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { GRADE_LABEL, ROLE_LABELS, type UserRole } from '@/types';
+import BirthDatePromptCard from '@/components/student/BirthDatePromptCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,8 +27,20 @@ export default async function Page() {
   const username = meta.username || '—';
   const phone = meta.phone || profile?.phone || '—';
   const gender = meta.gender || '—';
-  const birthDate = meta.birth_date || '—';
-  const age = meta.age || null;
+  // Önce profiles tablosundan, sonra metadata'dan birth_date'i al
+  const birthDate = profile?.birth_date || meta.birth_date || '—';
+  // Yaş: runtime hesabı (metadata'daki statik yaş değil)
+  const hasBirthDate = birthDate && birthDate !== '—';
+  let age: number | null = null;
+  if (hasBirthDate) {
+    try {
+      const birth = new Date(birthDate);
+      const today = new Date();
+      age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--;
+    } catch { /* ignore */ }
+  }
   const city = meta.city || '—';
   const district = meta.district || '—';
   const schoolName = meta.school_name || '—';
@@ -143,6 +156,11 @@ export default async function Page() {
           .profile-aurora-2 { animation: profile-aurora-2 11s ease-in-out infinite 1s; }
         `}</style>
       </div>
+
+      {/* Doğum Tarihi Uyarı Kartı — sadece birth_date eksikse görünür, yalnız öğrencilere */}
+      {role === 'student' && (
+        <BirthDatePromptCard currentBirthDate={hasBirthDate ? birthDate : null} />
+      )}
 
       {/* Bilgi Kartları */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 grid-stagger">

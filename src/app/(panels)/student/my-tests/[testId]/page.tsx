@@ -30,6 +30,7 @@ import {
   generateBurdonReport, getBurdonTimePerSection, BURDON_CONFIG
 } from '@/lib/tests/burdon-dikkat/engine';
 import type { BurdonSection, BurdonSectionResponse } from '@/lib/tests/burdon-dikkat/engine';
+import { calculateAge, getBurdonTimeByAge } from '@/lib/utils/age';
 
 // ── Veri importları ──────────────────────────────────────
 import { SAG_SOL_BEYIN_QUESTIONS } from '@/lib/tests/sag-sol-beyin/data';
@@ -149,6 +150,7 @@ export default function TestPage() {
   // Autosave — studentId + resume prompt
   const [studentId, setStudentId] = useState<string | null>(null);
   const [studentGrade, setStudentGrade] = useState<number>(7);
+  const [studentBirthDate, setStudentBirthDate] = useState<string | null>(null);
   const [resumePrompt, setResumePrompt] = useState<{
     currentQuestion: number;
     answers: AnswerMap;
@@ -156,21 +158,29 @@ export default function TestPage() {
   } | null>(null);
   const [resumeChecked, setResumeChecked] = useState<boolean>(false);
 
-  // Auth user'ı bir kere oku + sınıf seviyesini al
+  // Auth user'ı bir kere oku + sınıf seviyesini + doğum tarihini al
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(async ({ data }) => {
       if (data?.user?.id) {
         setStudentId(data.user.id);
-        // Öğrencinin sınıf seviyesini profil veya sınıf tablosundan al
+        // Öğrencinin sınıf seviyesini ve doğum tarihini profil tablosundan al
         const { data: profile } = await supabase
           .from('profiles')
-          .select('grade')
+          .select('grade, birth_date')
           .eq('id', data.user.id)
           .single();
         if (profile?.grade) {
           const g = parseInt(String(profile.grade), 10);
           if (!isNaN(g) && g >= 1 && g <= 12) setStudentGrade(g);
+        }
+        if (profile?.birth_date) {
+          setStudentBirthDate(profile.birth_date);
+        } else {
+          // Fallback: auth metadata'dan dene
+          const meta = data.user.user_metadata as Record<string, unknown> | null;
+          const metaBirth = meta?.birth_date as string | undefined;
+          if (metaBirth && metaBirth !== '—') setStudentBirthDate(metaBirth);
         }
       }
     });
@@ -692,10 +702,12 @@ export default function TestPage() {
         <p className="text-white/80 font-medium text-sm">Test hazırlanıyor...</p>
       </div>
     );
-    const timePerSection = getBurdonTimePerSection(studentGrade);
-    // Sınıftan yaklaşık yaş hesabı (Türk eğitim sistemi — yıl başında):
-    // 1. sınıf ≈ 6-7, 5. sınıf ≈ 10-11, 9. sınıf ≈ 14-15, 12. sınıf ≈ 17-18
-    const estimatedAge = studentGrade ? studentGrade + 5 : null;
+    // Gerçek yaş (varsa) doğum tarihinden hesaplanır; yoksa sınıftan tahmin edilir
+    const realAge = calculateAge(studentBirthDate);
+    const ageForTiming = realAge ?? (studentGrade ? studentGrade + 5 : null);
+    const timePerSection = ageForTiming != null
+      ? getBurdonTimeByAge(ageForTiming)
+      : getBurdonTimePerSection(studentGrade);
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#0f2847] to-slate-900 py-6 px-4">
         <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
@@ -707,7 +719,7 @@ export default function TestPage() {
             timePerSection={timePerSection}
             timePractice={BURDON_CONFIG.practiceTimeSeconds}
             studentGrade={studentGrade}
-            studentAge={estimatedAge}
+            studentAge={ageForTiming}
             onComplete={handleBurdonComplete}
           />
         </div>
