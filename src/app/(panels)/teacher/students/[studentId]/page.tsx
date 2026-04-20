@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { secureFetch } from '@/lib/csrf-client';
 import ReportRenderer from '@/components/ReportRenderer';
+import TestAnswersViewer from '@/components/teacher/TestAnswersViewer';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import {
   ArrowLeft, GraduationCap, CheckCircle2, Circle, Bell, AlertCircle,
@@ -120,6 +121,7 @@ export default function StudentDetailPage() {
   const [holisticHistoryOpen, setHolisticHistoryOpen] = useState(false);
   const [integrated, setIntegrated] = useState<IntegratedReport | null>(null);
   const [advanced, setAdvanced] = useState<AdvancedAnalysis>({ unlocked: false });
+  const [answersViewer, setAnswersViewer] = useState<{ resultId: string } | null>(null);
 
   // ═══ Öğrenci Aktarma State'leri ═══
   const [transferModalOpen, setTransferModalOpen] = useState(false);
@@ -755,6 +757,15 @@ export default function StudentDetailPage() {
                       </div>
 
                       <div className="flex flex-wrap gap-2 ml-11">
+                        {/* Cevapları Gör — her zaman gözükür */}
+                        <button
+                          onClick={() => setAnswersViewer({ resultId: c.id })}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[12px] font-bold border border-violet-200 dark:border-violet-700/50 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-all"
+                          title="Öğrencinin verdiği cevapları gör"
+                        >
+                          <FileText className="w-3.5 h-3.5" /> Cevapları Gör
+                        </button>
+
                         {!c.has_report ? (
                           <button
                             onClick={() => generateSingle(c)}
@@ -1382,6 +1393,19 @@ export default function StudentDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ═══ TEST CEVAPLARI GÖRÜNTÜLEYİCİ ═══ */}
+      {answersViewer && (
+        <TestAnswersViewer
+          studentId={studentId}
+          resultId={answersViewer.resultId}
+          onClose={() => setAnswersViewer(null)}
+          onDeleted={() => {
+            setAnswersViewer(null);
+            loadDetail(); // Test listesini yenile
+          }}
+        />
       )}
     </div>
   );
