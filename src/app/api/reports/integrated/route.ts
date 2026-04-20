@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
 
     // Admin client ile entegre raporları kaydet (RLS bypass)
     const sourceTestTypes = results.map(r => r.test_type);
-    const { error: insertErr } = await admin.from('integrated_reports').insert({
+    const insertPayload: Record<string, unknown> = {
       student_id: student.id,
       school_id: student.school_id,
       teacher_report: reports.ogretmen ?? null,
@@ -147,7 +147,17 @@ export async function POST(request: NextRequest) {
       test_count: results.length,
       source_test_types: sourceTestTypes,
       generated_at: new Date().toISOString(),
-    });
+    };
+
+    let { error: insertErr } = await admin.from('integrated_reports').insert(insertPayload);
+
+    // Fallback: eğer source_test_types kolonu henüz migrate edilmediyse, onu çıkarıp tekrar dene
+    if (insertErr && /source_test_types|column.*does not exist/i.test(insertErr.message)) {
+      console.warn('[integrated] source_test_types kolonu yok, eski şema ile kaydediliyor. Migration çalıştırılmalı!');
+      delete insertPayload.source_test_types;
+      const retry = await admin.from('integrated_reports').insert(insertPayload);
+      insertErr = retry.error;
+    }
 
     if (insertErr) {
       console.error('[integrated_reports insert]', insertErr.message);
@@ -279,7 +289,7 @@ export async function PUT(request: NextRequest) {
 
     // Admin client ile kaydet (RLS bypass)
     const sourceTestTypesPut = results.map(r => r.test_type);
-    const { error: insErr } = await admin.from('integrated_reports').insert({
+    const putPayload: Record<string, unknown> = {
       student_id: student.id,
       school_id: student.school_id,
       teacher_report: reports.ogretmen,
@@ -288,7 +298,17 @@ export async function PUT(request: NextRequest) {
       test_count: results.length,
       source_test_types: sourceTestTypesPut,
       generated_at: new Date().toISOString(),
-    });
+    };
+
+    let { error: insErr } = await admin.from('integrated_reports').insert(putPayload);
+
+    // Fallback: kolon yoksa source_test_types'ı çıkarıp tekrar dene
+    if (insErr && /source_test_types|column.*does not exist/i.test(insErr.message)) {
+      console.warn('[integrated PUT] source_test_types kolonu yok, eski şema ile kaydediliyor.');
+      delete putPayload.source_test_types;
+      const retry = await admin.from('integrated_reports').insert(putPayload);
+      insErr = retry.error;
+    }
 
     if (insErr) {
       console.error('[integrated PUT insert]', insErr.message);
