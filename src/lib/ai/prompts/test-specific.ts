@@ -449,64 +449,72 @@ Bu test, 4 alt boyutta akademik yetkinliği ölçer.
 const BURDON_GUIDANCE = `
 ## 🔬 BURDON DİKKAT TESTİ — UZMAN ANALİZ PROTOKOLÜ
 
-Bu test, Benjamin Bourdon'un (1895) orijinal harf tarama paradigmasına dayanır — Türk MEB uyarlamasında 3 bölüm × 20 satır × 40 harf yapısında uygulanır. Öğrenci, sayfadaki **a, b, d, g** harflerinin altını çizerek seçici dikkatini ve sürekli dikkat dayanıklılığını ortaya koyar.
+Bu test, Benjamin Bourdon'un (1895) orijinal harf tarama paradigmasına dayanır — Türk MEB uyarlamasında **3 paragraf × 10 satır × 22 harf** yapısında uygulanır. Öğrenci, sayfadaki **b, c, d, g** harflerinin altını çizerek seçici dikkatini ortaya koyar.
 
-### KATMAN 1: METRİK ÖZETİ (Veri Tabanlı Başlangıç)
+**TEMEL AMAÇ:** Üç paragraftaki hata dağılımına bakarak, öğrencinin dikkatinin **ZAMAN İÇİNDE NASIL DAĞILDIĞINI** (başta mı, ortada mı, sonda mı) tespit etmek ve buna göre kişiselleştirilmiş öneri sunmak.
+
+### KATMAN 1: METRİK ÖZETİ
 - **C (Correct)**: Doğru işaretlenen hedef harf sayısı
 - **E1 (İhmal)**: Atlanan hedef — dikkatsizlik/hız göstergesi
 - **E2 (Yanlış İşaret)**: Hedef olmayan harflere tıklama — dürtüsellik göstergesi
-- **Genel Puan (0-100)**: Doğruluk × 0.5 + Dayanıklılık × 0.3 + Sürdürülebilirlik × 0.2
-- Her bölümün puanını ayrı ayrı raporla, eğilimi yorumla
+- **Genel Puan (0-100)**: (C - E2) / Toplam Hedef × 100
+- Her paragrafın puanını ayrı raporla
 
-### KATMAN 2: PROFİL TESPİTİ (Orijinal Bourdon Kriterleri)
-Profil bilgisi JSON'da verilmiş olacak. 4 profilden biri olacak:
+### KATMAN 2: PARAGRAF-BAZLI DİKKAT DAĞILIM ÖRÜNTÜSÜ (ANA TESPİT)
 
-**1. Dikkati Çabuk Dağılan Profil**
-- Son bölümde hata sayısı, ilk bölüme göre belirgin şekilde artmış
-- Dikkatin uzun süre sürdürülmesinde zorlanma
-- Yorum: "Başlangıç performansı iyi ancak süreç ilerledikçe dikkat yükü artıyor olabilir"
+JSON'da "dikkat_oruntusu" alanı 4 değerden biri olacak. **Bu tespit cümlelerini birebir koru, sadece puan verilerini ekleyerek genişlet:**
 
-**2. Uyum Güçlüğü Profili**
-- İlk bölümde hata çok, sonraki bölümlerde azalma
-- Isınma dönemi uzun, ama adapte olunca verimli
-- Yorum: "Çalışmaya başlangıçta aşina olma süresi gerekiyor olabilir — bir kez adapte olunca dikkat kalitesi yükseliyor"
+#### **basta-dagilan** (1. paragrafta hata yoğun)
+- Tespit cümlesi: "Derslerde ve sınavlarda **başlangıçta dikkatinin daha fazla dağılma** eğilimi gözleniyor olabilir."
+- Neden: "İlk paragrafta [X] hata/atlama yaparken, diğer paragraflarda toplam [Y] hata yaptığın için bu değerlendirme yapıldı."
+- Öneriler:
+  → Ders/sınav öncesi **2-3 dakikalık zihinsel ısınma** (basit soru, nefes egzersizi, ortam hazırlığı)
+  → **Aşamalı başlangıç**: kolay konudan başla, zora geç
+  → Sınavda ilk 5 dakikayı "alışma süresi" olarak düşün, hemen zor sorulara girme
 
-**3. Dikkat Toplama Zayıflığı**
-- Genel doğruluk %40'ın altında
-- Seçici dikkatte genel zorlanma
-- Yorum: "Dikkatin bir noktaya yoğunlaştırılmasında destek faydalı olabilir"
+#### **ortada-dagilan** (2. paragrafta hata yoğun)
+- Tespit cümlesi: "Başlangıçta dikkatin iyi durumda olmakla birlikte, **ortalara doğru dikkat dağılma** eğilimi gösterebiliyor, ardından sona doğru tekrar toparlanıyor."
+- Neden: "İkinci paragrafta [X] hata, ilk ve üçüncü paragraflarda toplam [Y] hata yaptığın için bu örüntü belirlendi."
+- Öneriler:
+  → **Uzun çalışmalarda ortada kısa mola** (15-20 dk sonra 3-5 dk)
+  → Sınavda ortadaki soruları acele etmeden, **yeniden okuyarak** çöz
+  → Ev çalışmasında konuyu değiştirmek (Mat → Edebiyat → Mat) monotonluğu kırar
 
-**4. Dengeli Dikkat Profili**
-- Bölümler arası tutarlı performans
-- Makul hata oranı
-- Yorum: "Dikkat süreç boyunca dengeli seyrediyor — sürdürülebilir bir konsantrasyon yapısı"
+#### **sonda-dagilan** (3. paragrafta hata yoğun)
+- Tespit cümlesi: "Başta ve ortada dikkatin iyi olmakla birlikte, **son 1/3'lük kısımda dikkatin dağılma** eğilimi gösteriyor olabilir."
+- Neden: "Üçüncü paragrafta [X] hata yaparken, ilk iki paragrafta toplam [Y] hata yaptığın için bu tespit yapıldı."
+- Öneriler:
+  → **Zor soruları ve kritik konuları başa/ortaya** yerleştir
+  → Çalışma seanslarını **30-40 dk'lık bloklara** böl
+  → Sınavın son 10 dakikasını kontrol için ayır, yeni zor soru çözmeye çalışma
+
+#### **dengeli** (hatalar dağıtılmış)
+- Tespit cümlesi: "Üç paragraf boyunca dikkatin **dengeli bir seyir** izliyor."
+- Neden: "Paragraflarda hata dağılımı ([p1], [p2], [p3]) birbirine yakın."
+- Öneriler:
+  → Mevcut çalışma düzenini korumak
+  → Haftada birkaç kez 20-30 dk **odak egzersizleri** (satranç, yap-boz, derin okuma)
 
 ### KATMAN 3: HATA TİPİ ANALİZİ
-- **E1 > E2** (İhmal baskın) → Hızlı geçiş, yüzeysel tarama, dikkat dağılımı
-- **E2 > E1** (Yanlış işaret baskın) → Dürtüsel tepki, acele, yönerge ihlali
-- **E1 ≈ E2 ve ikisi düşük** → Dengeli, dikkatli profil
-- **E1 ≈ E2 ve ikisi yüksek** → Yoğun dikkat yükü, sürece uyum güçlüğü
+- **E1 > E2 (ihmal baskın)** → Hızlı-yüzeysel tarama; yavaşlamak yerinde olabilir
+- **E2 > E1 (yanlış işaret baskın)** → Dürtüsel tepki; yönerge okumaya dönmek faydalı
+- **İkisi de düşük** → Dikkatli ve özenli profil
+- **İkisi de yüksek** → Dikkat yükü ağır gelmiş olabilir
 
-### KATMAN 4: BÖLÜMLER ARASI EĞRİ ANALİZİ
-- **Düz çizgi** (tüm bölümler benzer): Dayanıklılık yüksek
-- **Aşağı iniş** (1 > 2 > 3): Yorgunluk etkisi, dikkat rezervi sınırlı
-- **Yukarı çıkış** (1 < 2 < 3): Uyum süresi gerekiyor
-- **V şekli** (1 yüksek, 2 düşük, 3 yüksek): Motivasyon dalgalanması
-- **Ters V** (ortada pik): Başlangıç + bitirme zorluğu, orta kısımda odak
+### KATMAN 4: AKADEMİK BAĞLAM KURMA
+Paragraf-bazlı örüntüyü günlük hayata uyarla:
+- "Sınavın hangi dakikalarında" dikkat düşüşü olabilir?
+- "Derste hangi aşamada" zihin dağılıyor olabilir?
+- "Ödev çalışmasında" optimal seans uzunluğu nedir?
 
-### KATMAN 5: AKADEMİK BAĞLAM
-- Bu profil sınav ortamında nasıl yansır?
-- Ders dinleme sürecinde hangi aşamada dikkat düşer?
-- Ödev çalışmalarında ideal seans süresi ne olabilir (dayanıklılık puanına göre)?
-- Sınav tekniği önerisi: Zor soruları başta/sonda/ortada çözme stratejisi
+### KATMAN 5: AİLE VE ÖĞRETMEN YÖNERGESİ
+- **Aile için somut 3 öneri** (örüntüye göre): Çalışma ortamı, mola yönetimi, gözlem noktaları
+- **Öğretmen için somut 3 öneri**: Sınıfta oturma, görev dağılımı, sınav stratejisi
 
-### KATMAN 6: DESTEK ÖNERİLERİ (Sınıf + Ev)
-- **Öğretmen için**: Sınıfta bu profili nasıl destekler (oturma yeri, görev bölümü, mola yönetimi)
-- **Aile için**: Ev çalışma düzenine dair öneriler (çalışma süresi, dinlenme, ortam)
-- **Öğrenci için**: Kendi farkındalığını artıracak kısa egzersizler
-
-### KRİTİK NOT
-- Burdon **tanı aracı değildir** — DEHB, disleksi vb. klinik tanılar kullanma
-- Her yorum, puanlar üzerinden olasılıksal dille sunulmalı (Kural 12)
-- Test sonuçlarının başka dikkat ölçümleriyle (P2, sınav kaygısı) birleştirilmesi daha güvenilir resim verir
+### KRİTİK KURALLAR
+1. Tespit cümleleri **patronun diline sadık** — keyfi değiştirme
+2. Her öneri **neden** sorusuna puan referanslı cevap vermeli
+3. Tavsiye edici ton: "denenebilir", "faydalı olabilir" — emir kipi YOK
+4. Burdon **tanı aracı değildir** — DEHB/disleksi gibi klinik tanı kullanma
+5. Her cümle 15-18 kelimeyi geçmesin; paragrafta max 3-4 cümle
 `;

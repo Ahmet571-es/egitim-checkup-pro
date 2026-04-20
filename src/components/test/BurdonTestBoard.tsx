@@ -287,8 +287,8 @@ export default function BurdonTestBoard({
               <div className="mt-2 bg-white/5 rounded-lg p-3 border border-white/10">
                 <p className="text-amber-200 font-bold mb-1">
                   Sayfadaki bütün{' '}
-                  <span className="bg-amber-500/30 px-2 py-0.5 rounded">a</span>,{' '}
                   <span className="bg-amber-500/30 px-2 py-0.5 rounded">b</span>,{' '}
+                  <span className="bg-amber-500/30 px-2 py-0.5 rounded">c</span>,{' '}
                   <span className="bg-amber-500/30 px-2 py-0.5 rounded">d</span>{' '}
                   ve{' '}
                   <span className="bg-amber-500/30 px-2 py-0.5 rounded">g</span>{' '}
@@ -313,7 +313,7 @@ export default function BurdonTestBoard({
               <ul className="list-disc list-inside space-y-1 text-white/85">
                 <li>Bir satırı bitirmeden diğerine geçme — sırayla ilerle.</li>
                 <li>Hızlı ama dikkatli ol. Her bir harfi tek tek kontrol et.</li>
-                <li>Sayfadaki <strong>tüm</strong> a, b, d, g harflerini yakalamaya çalış — hiçbirini atlama.</li>
+                <li>Sayfadaki <strong>tüm</strong> b, c, d, g harflerini yakalamaya çalış — hiçbirini atlama.</li>
               </ul>
             </div>
 
@@ -347,7 +347,7 @@ export default function BurdonTestBoard({
           <div className="text-[48px] mb-3">🎯</div>
           <h2 className="text-[22px] font-extrabold text-white mb-3">Deneme Zamanı</h2>
           <p className="text-white/85 text-[14px] leading-relaxed mb-4">
-            Aşağıdaki 2 satırda <strong className="text-amber-300">a, b, d, g</strong> harflerine tıklayarak altlarını çizmeyi dene.
+            Aşağıdaki 2 satırda <strong className="text-amber-300">b, c, d, g</strong> harflerine tıklayarak altlarını çizmeyi dene.
             Süren <strong>{timePractice} saniye</strong>.
           </p>
           <p className="text-white/60 text-[12px] italic mb-5">
@@ -371,7 +371,7 @@ export default function BurdonTestBoard({
         <div className="flex items-center justify-between gap-3 mb-3 sticky top-0 z-10 bg-slate-900/90 backdrop-blur-xl py-2 border-b border-white/10">
           <div>
             <p className="text-amber-300 text-[11px] font-bold uppercase tracking-wider">Deneme</p>
-            <h3 className="text-white font-extrabold text-[16px]">a, b, d, g harflerini işaretle</h3>
+            <h3 className="text-white font-extrabold text-[16px]">b, c, d, g harflerini işaretle</h3>
           </div>
           <CountdownCircle remaining={remaining} total={timePractice} />
         </div>
@@ -456,7 +456,7 @@ export default function BurdonTestBoard({
               ) : accuracy >= 50 ? (
                 <>👍 <strong className="text-amber-300">İyi başladın.</strong> Asıl testte daha dikkatli olursan doğruluk oranın yükselir.</>
               ) : (
-                <>💡 <strong className="text-rose-300">Dikkatli ol.</strong> Unutma: sadece <strong>a, b, d, g</strong> harflerinin altını çizeceksin. Diğer harflere dokunma.</>
+                <>💡 <strong className="text-rose-300">Dikkatli ol.</strong> Unutma: sadece <strong>b, c, d, g</strong> harflerinin altını çizeceksin. Diğer harflere dokunma.</>
               )}
             </p>
           </div>
@@ -548,8 +548,8 @@ export default function BurdonTestBoard({
               Bölüm {currentSection + 1} / {sections.length}
             </p>
             <h3 className="text-white font-extrabold text-[15px] sm:text-[17px]">
-              <span className="bg-amber-500/30 px-1.5 rounded">a</span>{' '}
               <span className="bg-amber-500/30 px-1.5 rounded">b</span>{' '}
+              <span className="bg-amber-500/30 px-1.5 rounded">c</span>{' '}
               <span className="bg-amber-500/30 px-1.5 rounded">d</span>{' '}
               <span className="bg-amber-500/30 px-1.5 rounded">g</span>{' '}
               harflerini işaretle

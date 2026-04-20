@@ -550,23 +550,23 @@ export default function TestPage() {
   const handleBurdonComplete = (responses: BurdonSectionResponse[]) => {
     if (!burdonSections) return;
     const s = calculateBurdon(burdonSections, responses);
-    // Answers olarak kaydedilecek scores objesi — backend ai_reports için
     const scores = generateBurdonReport(s);
-    // State'e yerleştir — autosave computeResult dışından bu şekilde kaydedilmeli
     setAnswers(prev => ({ ...prev, __burdon_scores__: JSON.stringify(scores) }));
 
     setResult({
-      main: s.profileLabel,
+      main: s.patternTitle,
       desc: `Genel Puan: ${s.overallScore}/100 · Doğruluk: %${s.overallAccuracy}`,
       scores: [
         { label: 'Genel Puan', value: `${s.overallScore}/100`, pct: s.overallScore },
         { label: 'Doğruluk Oranı', value: `%${s.overallAccuracy}`, pct: s.overallAccuracy },
-        { label: 'Dikkat Dayanıklılığı', value: `%${s.attentionPersistence}`, pct: s.attentionPersistence },
+        { label: 'Paragraf 1 Hata', value: `${s.paragraphErrors[0]}` },
+        { label: 'Paragraf 2 Hata', value: `${s.paragraphErrors[1]}` },
+        { label: 'Paragraf 3 Hata', value: `${s.paragraphErrors[2]}` },
         { label: 'Doğru İşaret', value: `${s.totalCorrect}/${s.totalTargets}` },
         { label: 'Atlanan Hedef (E1)', value: s.totalOmission.toString() },
         { label: 'Yanlış İşaret (E2)', value: s.totalCommission.toString() },
       ],
-      report: s.profileDescription,
+      report: `${s.patternFinding}\n\n${s.patternSuggestion}`,
     });
   };
 

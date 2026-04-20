@@ -1,253 +1,174 @@
 // ============================================================
-// BURDON DİKKAT TESTİ — Orijinal Formatı (Benjamin Bourdon, 1895)
-// Türk MEB Uyarlaması — Prof. Dr. Servet Bayram referansı
+// BURDON DİKKAT TESTİ — Orijinal Word Form (Emre Bülbün versiyonu)
+// Benjamin Bourdon (1895) — MEB Türkçe uyarlaması
 //
-// YAPISAL SPESİFİKASYON (Orijinal MEB Formu):
-// - 3 bölüm × 20 satır × 40 harf = 2400 stimuli
-// - Her bölümde orijinal dağılım: 150(a) + 75(g) + 50(b) + 25(d) = 300 hedef
-// - Hedef olmayan dolgu harfler: c,e,f,h,i,j,k,l,m,n,o,p,r,s,t,u,v,y,z
-// - Süre: Ortaokul 3 dk/bölüm, Lise 2 dk/bölüm (otomatik sınıfa göre)
-// - Metrikler: C (Correct), E1 (ihmal), E2 (yanlış), TN (tamamlanan)
-// - Profil: dikkat-dagilimi | uyum-guclugu | dikkat-zayifligi | dengeli
+// YAPI (Orijinal Word dosyasından birebir alınmış):
+// - 3 paragraf × 10 satır × 22 harf = 660 harf toplam
+// - HEDEF HARFLER: b, c, d, g
+// - Her paragrafta ~39-40 hedef harf (toplam ~118)
+// - Süre: Ortaokul 3 dk, Lise 2 dk / paragraf
+//
+// PATRONUN İSTEĞİ: Paragraf-bazlı dikkat dağılımı tespiti
+// - 1. paragrafta yoğun hata → "Başlangıçta dikkat dağılıyor"
+// - 2. paragrafta yoğun hata → "Ortada dikkat dağılıyor, sonda toparlanıyor"
+// - 3. paragrafta yoğun hata → "Başta ve ortada iyi, son 1/3'te dağılıyor"
 // ============================================================
 
-// ── KONFİGÜRASYON (Orijinale Sadık) ─────────────────────
-export const BURDON_CONFIG = {
-  sections: 3,                  // Orijinal: 3 bölüm (dikkat dayanıklılığı)
-  rowsPerSection: 20,           // Her bölümde 20 satır
-  lettersPerRow: 40,            // Her satırda 40 harf
-  totalLettersPerSection: 800,  // 20 × 40
-  totalTargetsPerSection: 300,  // 150a + 75g + 50b + 25d
-  targetDistribution: {
-    a: 150,
-    g: 75,
-    b: 50,
-    d: 25,
-  } as const,
-  timeSecondsOrtaokul: 180,  // 3 dakika
-  timeSecondsLise: 120,       // 2 dakika
-  practiceSectionRows: 2,    // Deneme için 2 satır
-  practiceTimeSeconds: 30,   // Deneme için 30 saniye
-} as const;
-
-export const BURDON_TARGETS = ['a', 'b', 'd', 'g'] as const;
+export const BURDON_TARGETS = ['b', 'c', 'd', 'g'] as const;
 export type BurdonTarget = typeof BURDON_TARGETS[number];
 
-// Hedef olmayan dolgu harfler (Türk alfabesi benzer, küçük harf)
-const FILLER_LETTERS = ['c', 'e', 'f', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'y', 'z'];
+export const BURDON_CONFIG = {
+  sections: 3,
+  rowsPerSection: 10,
+  lettersPerRow: 22,
+  totalLettersPerSection: 220,
+  totalTargetsPerSection: 39,
+  timeSecondsOrtaokul: 180,
+  timeSecondsLise: 120,
+  practiceSectionRows: 2,
+  practiceTimeSeconds: 30,
+} as const;
 
-// ── Seeded Random (Sabit yaprak için) ───────────────────
-class SeededRandom {
-  private seed: number;
-  constructor(seed: number) { this.seed = seed >>> 0; }
-  next(): number {
-    this.seed = (this.seed * 1664525 + 1013904223) >>> 0;
-    return this.seed / 0x100000000;
-  }
-  shuffle<T>(arr: T[]): T[] {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(this.next() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-}
+// Word dosyasından birebir — 3 paragraf × 10 satır × 22 harf
+const BURDON_LETTER_GRID: string[][][] = [
+  [
+    ["a", "e", "p", "z", "s", "u", "a", "h", "v", "k", "l", "a", "s", "i", "b", "i", "o", "u", "o", "u", "o", "e"],
+    ["r", "v", "b", "p", "m", "i", "b", "i", "r", "b", "s", "m", "n", "t", "d", "a", "u", "f", "c", "f", "k", "a"],
+    ["c", "k", "a", "h", "s", "e", "y", "p", "h", "b", "p", "s", "d", "g", "y", "z", "d", "v", "r", "i", "f", "g"],
+    ["y", "d", "v", "c", "o", "y", "e", "r", "z", "h", "e", "z", "s", "e", "g", "m", "k", "f", "z", "d", "a", "y"],
+    ["f", "s", "d", "y", "i", "b", "t", "d", "h", "m", "l", "n", "i", "e", "m", "t", "g", "t", "b", "d", "f", "u"],
+    ["k", "c", "i", "c", "k", "o", "k", "o", "s", "t", "l", "u", "z", "u", "g", "m", "a", "f", "l", "v", "u", "t"],
+    ["i", "z", "r", "f", "o", "u", "d", "v", "h", "y", "p", "n", "b", "p", "m", "v", "h", "n", "n", "g", "r", "y"],
+    ["p", "v", "k", "l", "n", "t", "y", "o", "r", "z", "n", "c", "p", "h", "t", "e", "m", "z", "i", "o", "i", "m"],
+    ["r", "a", "l", "y", "g", "s", "o", "i", "v", "a", "i", "n", "a", "r", "c", "h", "o", "d", "b", "f", "p", "h"],
+    ["k", "u", "b", "s", "y", "g", "u", "e", "m", "k", "l", "t", "c", "g", "v", "g", "r", "i", "p", "c", "t", "e"],
+  ],
+  [
+    ["c", "i", "t", "e", "l", "r", "n", "z", "f", "u", "d", "b", "m", "s", "h", "d", "k", "u", "f", "d", "s", "m"],
+    ["s", "i", "v", "e", "t", "c", "p", "l", "r", "g", "v", "g", "c", "t", "l", "r", "m", "e", "u", "g", "y", "e"],
+    ["b", "o", "k", "e", "h", "b", "u", "k", "o", "p", "f", "u", "d", "o", "h", "o", "r", "a", "n", "i", "a", "v"],
+    ["i", "o", "s", "g", "y", "l", "a", "r", "m", "i", "f", "b", "z", "m", "e", "l", "h", "t", "z", "n", "z", "r"],
+    ["o", "y", "t", "n", "a", "k", "v", "p", "y", "k", "g", "v", "n", "n", "h", "v", "m", "p", "b", "n", "p", "y"],
+    ["v", "d", "u", "o", "f", "r", "h", "i", "t", "u", "v", "l", "u", "a", "m", "f", "a", "c", "u", "l", "t", "s"],
+    ["o", "k", "o", "k", "c", "i", "c", "k", "u", "f", "s", "b", "t", "g", "t", "m", "e", "i", "n", "i", "z", "h"],
+    ["d", "t", "b", "i", "y", "a", "s", "f", "y", "n", "d", "z", "f", "k", "m", "g", "e", "s", "z", "e", "h", "z"],
+    ["r", "e", "n", "e", "o", "c", "v", "d", "y", "f", "f", "l", "r", "v", "d", "z", "y", "g", "d", "z", "p", "b"],
+    ["p", "y", "c", "a", "a", "s", "c", "g", "c", "a", "h", "t", "n", "m", "p", "b", "r", "i", "b", "i", "k", "p"],
+  ],
+  [
+    ["a", "f", "n", "p", "v", "d", "m", "t", "o", "y", "m", "i", "l", "g", "d", "e", "o", "t", "o", "c", "n", "t"],
+    ["l", "u", "p", "z", "n", "k", "r", "h", "p", "u", "c", "b", "o", "y", "g", "u", "d", "v", "y", "a", "o", "l"],
+    ["s", "z", "o", "a", "p", "f", "f", "t", "c", "v", "k", "i", "r", "b", "p", "m", "n", "e", "r", "g", "e", "s"],
+    ["b", "a", "h", "v", "i", "h", "s", "c", "k", "z", "r", "f", "d", "r", "a", "c", "g", "y", "n", "m", "h", "y"],
+    ["t", "d", "s", "v", "c", "g", "z", "y", "f", "m", "p", "t", "r", "o", "g", "e", "u", "u", "b", "b", "y", "h"],
+    ["i", "u", "a", "n", "y", "a", "d", "u", "m", "f", "a", "p", "y", "z", "e", "b", "k", "d", "b", "o", "l", "z"],
+    ["e", "l", "z", "h", "e", "a", "d", "z", "t", "c", "l", "p", "r", "y", "f", "m", "s", "n", "v", "i", "c", "v"],
+    ["s", "b", "i", "v", "m", "z", "g", "p", "s", "m", "r", "k", "b", "k", "r", "e", "h", "c", "u", "v", "n", "s"],
+    ["f", "l", "s", "l", "e", "i", "o", "l", "g", "l", "k", "t", "h", "z", "o", "k", "t", "d", "e", "a", "r", "h"],
+    ["f", "m", "i", "ı", "c", "f", "t", "i", "b", "s", "g", "k", "m", "k", "n", "p", "h", "v", "b", "g", "u", "x"],
+  ],
+];
 
-// ── Tipler ────────────────────────────────────────────────
+const BURDON_PRACTICE_GRID: string[][] = [
+  ["b", "s", "a", "o", "c", "k", "m", "d", "r", "t", "i", "b", "n", "u", "g", "p", "e", "d", "l", "h", "c", "b"],
+  ["r", "g", "t", "a", "k", "d", "v", "l", "b", "o", "c", "u", "g", "m", "i", "n", "e", "b", "p", "c", "d", "s"],
+];
+
+// ── Tipler ─────────────────────────────────────────────
 export interface BurdonCell {
   letter: string;
-  isTarget: boolean;  // a, b, d, g ise true
+  isTarget: boolean;
 }
 
 export interface BurdonSection {
-  index: number;        // 0, 1, 2
-  rows: BurdonCell[][]; // 20 satır × 40 hücre
-  targetCount: number;  // 300 (her zaman)
+  index: number;
+  rows: BurdonCell[][];
+  targetCount: number;
 }
 
 export interface BurdonRowResponse {
-  row: number;                // 0-19
-  markedCells: number[];     // Öğrencinin işaretlediği hücre indeksleri (0-39)
+  row: number;
+  markedCells: number[];
 }
 
 export interface BurdonSectionResponse {
-  section: number;                  // 0, 1, 2
+  section: number;
   responses: BurdonRowResponse[];
-  completed: boolean;                // Süre bitmeden tamamlandı mı
+  completed: boolean;
   timeTakenSeconds: number;
-  reachedRow: number;               // En son ulaştığı satır (TN için)
+  reachedRow: number;
 }
 
 export interface BurdonRowScore {
   row: number;
-  correct: number;        // C - doğru işaretlenen hedef
-  omission: number;       // E1 - atlanan hedef
-  commission: number;     // E2 - yanlış işaretlenen (hedef olmayan)
-  targetCount: number;    // O satırdaki toplam hedef sayısı
+  correct: number;
+  omission: number;
+  commission: number;
+  targetCount: number;
 }
 
 export interface BurdonSectionScore {
   section: number;
   rowScores: BurdonRowScore[];
-  totalCorrect: number;      // C
-  totalOmission: number;     // E1
-  totalCommission: number;   // E2
-  totalTargets: number;      // 300 (genelde)
-  reachedRow: number;        // TN
-  accuracy: number;          // 0-100 (E2 hariç doğruluk)
-  sustainedAttention: number; // 0-100 (ilk yarı vs son yarı oranı)
-  rawScore: number;           // C - E2 (negatif olabilir → 0'a yuvarlanır)
-  normalizedScore: number;   // 0-100
+  totalCorrect: number;
+  totalOmission: number;
+  totalCommission: number;
+  totalErrors: number;  // E1 + E2
+  totalTargets: number;
+  reachedRow: number;
+  accuracy: number;
+  normalizedScore: number;
 }
+
+export type BurdonAttentionPattern =
+  | 'basta-dagilan'
+  | 'ortada-dagilan'
+  | 'sonda-dagilan'
+  | 'dengeli';
 
 export interface BurdonOverallScore {
   sections: BurdonSectionScore[];
   totalCorrect: number;
   totalOmission: number;
   totalCommission: number;
-  totalTargets: number;          // 900
-  overallAccuracy: number;       // 0-100
-  attentionPersistence: number;  // 0-100 (bölümler arası dengelilik)
-  overallScore: number;          // 0-100 (kompozit)
-  profile: BurdonProfile;
-  profileLabel: string;
-  profileDescription: string;
-  attentionCurve: number[];       // 60 değer — her satır için skor (grafik için)
+  totalTargets: number;
+  overallAccuracy: number;
+  overallScore: number;
+  attentionPattern: BurdonAttentionPattern;
+  patternTitle: string;
+  patternFinding: string;
+  patternSuggestion: string;
+  paragraphErrors: [number, number, number];
 }
 
-export type BurdonProfile =
-  | 'dikkat-dagilimi'
-  | 'uyum-guclugu'
-  | 'dikkat-zayifligi'
-  | 'dengeli';
+// ── Test Üretimi ───────────────────────────────────────
 
-// ── PROFİL TANIMLARI (Orijinal Bourdon Kriterleri) ─────
-const PROFILE_DEFS: Record<BurdonProfile, { label: string; description: string }> = {
-  'dikkat-dagilimi': {
-    label: 'Dikkati Çabuk Dağılan Profil',
-    description: 'İlk satırlarda hata azken ilerledikçe hata artma eğilimi gözleniyor. Dikkatin uzun süre tek bir yerde tutulmasında zorlanılıyor olabilir.',
-  },
-  'uyum-guclugu': {
-    label: 'Uyum Güçlüğü Profili',
-    description: 'İlk satırlarda hata çokken sonraki satırlarda hata azalma eğilimi gözleniyor. Çalışmaya ilk başlarken uyum süreci yavaş, bir süre sonra verim artıyor olabilir.',
-  },
-  'dikkat-zayifligi': {
-    label: 'Dikkat Toplama Zayıflığı',
-    description: 'Genel işaretleme sayısı beklenen düzeyin altında. Dikkatin bir noktaya toplanmasında zorlanılıyor olabilir.',
-  },
-  'dengeli': {
-    label: 'Dengeli Dikkat Profili',
-    description: 'Dikkat süreç boyunca dengeli bir seyir izliyor. Hata oranı makul düzeyde ve zaman içinde dalgalanma sınırlı.',
-  },
-};
-
-// ============================================================
-// TEST YAPRAĞI ÜRETİMİ (Deterministic — Sabit Seed)
-// ============================================================
-
-function buildLetterPool(targets: Partial<Record<BurdonTarget, number>>, totalLetters: number): string[] {
-  const pool: string[] = [];
-
-  // 1) Hedef harfleri ekle (orijinal dağılımda)
-  for (const [letter, count] of Object.entries(targets) as [BurdonTarget, number | undefined][]) {
-    const c = count ?? 0;
-    for (let i = 0; i < c; i++) pool.push(letter);
-  }
-
-  // 2) Dolgu harflerle tamamla
-  const totalTargets = Object.values(targets).reduce((a, b) => (a as number) + ((b as number | undefined) ?? 0), 0) as number;
-  const fillerNeeded = totalLetters - totalTargets;
-  // Her dolgu harfinden eşit dağıt (tam bölme mümkün değilse artanları ilk birkaç harfe dağıt)
-  const perFiller = Math.floor(fillerNeeded / FILLER_LETTERS.length);
-  const remainder = fillerNeeded - perFiller * FILLER_LETTERS.length;
-  for (let i = 0; i < FILLER_LETTERS.length; i++) {
-    const count = perFiller + (i < remainder ? 1 : 0);
-    for (let j = 0; j < count; j++) pool.push(FILLER_LETTERS[i]);
-  }
-
-  return pool;
+function buildSectionFromGrid(rows: string[][], sectionIndex: number): BurdonSection {
+  const builtRows: BurdonCell[][] = rows.map(row =>
+    row.map(letter => ({
+      letter,
+      isTarget: (BURDON_TARGETS as readonly string[]).includes(letter),
+    }))
+  );
+  const targetCount = builtRows.reduce(
+    (sum, row) => sum + row.filter(c => c.isTarget).length,
+    0
+  );
+  return { index: sectionIndex, rows: builtRows, targetCount };
 }
-
-function generateSection(sectionIndex: number, seed: number): BurdonSection {
-  const rng = new SeededRandom(seed);
-  const pool = buildLetterPool(BURDON_CONFIG.targetDistribution, BURDON_CONFIG.totalLettersPerSection);
-  const shuffled = rng.shuffle(pool);
-
-  const rows: BurdonCell[][] = [];
-  for (let r = 0; r < BURDON_CONFIG.rowsPerSection; r++) {
-    const row: BurdonCell[] = [];
-    for (let c = 0; c < BURDON_CONFIG.lettersPerRow; c++) {
-      const letter = shuffled[r * BURDON_CONFIG.lettersPerRow + c];
-      const isTarget = (BURDON_TARGETS as readonly string[]).includes(letter);
-      row.push({ letter, isTarget });
-    }
-    rows.push(row);
-  }
-
-  return {
-    index: sectionIndex,
-    rows,
-    targetCount: BURDON_CONFIG.totalTargetsPerSection,
-  };
-}
-
-// Sabit seedlerle 3 bölüm — tüm öğrenciler aynı yaprağı görür
-// (orijinal "sabit yaprak" mantığına sadık)
-const FIXED_SEEDS = [0x12345678, 0x23456789, 0x3456789a];
 
 export function generateBurdonTest(): BurdonSection[] {
-  return [
-    generateSection(0, FIXED_SEEDS[0]),
-    generateSection(1, FIXED_SEEDS[1]),
-    generateSection(2, FIXED_SEEDS[2]),
-  ];
+  return BURDON_LETTER_GRID.map((para, idx) => buildSectionFromGrid(para, idx));
 }
 
-// Deneme için kısa (2 satır) bölüm — ayrı seed
 export function generateBurdonPractice(): BurdonSection {
-  const rng = new SeededRandom(0x99999999);
-  const practiceLetterCount = BURDON_CONFIG.practiceSectionRows * BURDON_CONFIG.lettersPerRow;
-  // Deneme yaprağında orijinal dağılımı küçültüp uygula (oranlar korunsun)
-  // 80 harf için: ~30(a) + 15(g) + 10(b) + 5(d) = 60 hedef, 20 dolgu kalır (scale factor 0.2)
-  const scale = practiceLetterCount / BURDON_CONFIG.totalLettersPerSection;
-  const practiceTargets = {
-    a: Math.round(BURDON_CONFIG.targetDistribution.a * scale),
-    g: Math.round(BURDON_CONFIG.targetDistribution.g * scale),
-    b: Math.round(BURDON_CONFIG.targetDistribution.b * scale),
-    d: Math.round(BURDON_CONFIG.targetDistribution.d * scale),
-  };
-  const pool = buildLetterPool(practiceTargets, practiceLetterCount);
-  const shuffled = rng.shuffle(pool);
-
-  const rows: BurdonCell[][] = [];
-  for (let r = 0; r < BURDON_CONFIG.practiceSectionRows; r++) {
-    const row: BurdonCell[] = [];
-    for (let c = 0; c < BURDON_CONFIG.lettersPerRow; c++) {
-      const letter = shuffled[r * BURDON_CONFIG.lettersPerRow + c];
-      const isTarget = (BURDON_TARGETS as readonly string[]).includes(letter);
-      row.push({ letter, isTarget });
-    }
-    rows.push(row);
-  }
-
-  return {
-    index: -1,
-    rows,
-    targetCount: Object.values(practiceTargets).reduce((a, b) => a + b, 0),
-  };
+  return { ...buildSectionFromGrid(BURDON_PRACTICE_GRID, -1), index: -1 };
 }
 
-// ============================================================
-// SKORLAMA
-// ============================================================
+// ── Skorlama ──────────────────────────────────────────
 
 function scoreRow(row: BurdonCell[], markedIndices: Set<number>, rowIdx: number): BurdonRowScore {
-  let correct = 0;
-  let omission = 0;
-  let commission = 0;
-  let targetCount = 0;
-
+  let correct = 0, omission = 0, commission = 0, targetCount = 0;
   for (let i = 0; i < row.length; i++) {
     const cell = row[i];
     const isMarked = markedIndices.has(i);
@@ -255,18 +176,16 @@ function scoreRow(row: BurdonCell[], markedIndices: Set<number>, rowIdx: number)
       targetCount++;
       if (isMarked) correct++;
       else omission++;
-    } else {
-      if (isMarked) commission++;
+    } else if (isMarked) {
+      commission++;
     }
   }
-
   return { row: rowIdx, correct, omission, commission, targetCount };
 }
 
 function scoreSection(section: BurdonSection, response: BurdonSectionResponse): BurdonSectionScore {
   const rowScores: BurdonRowScore[] = [];
   let totalC = 0, totalE1 = 0, totalE2 = 0, totalT = 0;
-
   for (let r = 0; r < section.rows.length; r++) {
     const resp = response.responses.find(x => x.row === r);
     const markedSet = new Set<number>(resp?.markedCells ?? []);
@@ -277,24 +196,8 @@ function scoreSection(section: BurdonSection, response: BurdonSectionResponse): 
     totalE2 += rs.commission;
     totalT += rs.targetCount;
   }
-
-  // Accuracy: E2 hariç doğruluk (doğru / toplam hedef)
   const accuracy = totalT > 0 ? (totalC / totalT) * 100 : 0;
-
-  // Sustained attention: ilk yarı vs son yarı C oranı (10 satır)
-  const firstHalfC = rowScores.slice(0, 10).reduce((a, r) => a + r.correct, 0);
-  const secondHalfC = rowScores.slice(10, 20).reduce((a, r) => a + r.correct, 0);
-  const avgHalf = (firstHalfC + secondHalfC) / 2;
-  const variance = Math.abs(firstHalfC - secondHalfC);
-  // Düşük varyans = yüksek sürdürülebilirlik
-  const sustainedAttention = avgHalf > 0
-    ? Math.max(0, 100 - (variance / avgHalf) * 100)
-    : 0;
-
-  // Raw score: C - E2 (yanlış işaretleme cezası)
   const rawScore = Math.max(0, totalC - totalE2);
-
-  // Normalized score (0-100): (C - E2) / toplam hedef
   const normalizedScore = totalT > 0 ? Math.max(0, Math.min(100, (rawScore / totalT) * 100)) : 0;
 
   return {
@@ -303,50 +206,69 @@ function scoreSection(section: BurdonSection, response: BurdonSectionResponse): 
     totalCorrect: totalC,
     totalOmission: totalE1,
     totalCommission: totalE2,
+    totalErrors: totalE1 + totalE2,
     totalTargets: totalT,
     reachedRow: response.reachedRow,
     accuracy: Math.round(accuracy * 10) / 10,
-    sustainedAttention: Math.round(sustainedAttention * 10) / 10,
-    rawScore,
     normalizedScore: Math.round(normalizedScore * 10) / 10,
   };
 }
 
-// ── Profil Tespiti (Orijinal Bourdon Kriterleri) ────────
-function detectProfile(sections: BurdonSectionScore[]): BurdonProfile {
-  // Tüm satır hatalarını (E1 + E2) bir araya topla — 60 satır
-  const allErrors: number[] = [];
-  for (const s of sections) {
-    for (const rs of s.rowScores) {
-      allErrors.push(rs.omission + rs.commission);
-    }
-  }
+// ── Paragraf-Bazlı Dikkat Örüntüsü Tespiti ─────────────
 
-  const totalCorrect = sections.reduce((a, s) => a + s.totalCorrect, 0);
-  const totalTargets = sections.reduce((a, s) => a + s.totalTargets, 0);
-  const overallAccuracy = totalTargets > 0 ? (totalCorrect / totalTargets) : 0;
+function detectAttentionPattern(
+  sections: BurdonSectionScore[]
+): { pattern: BurdonAttentionPattern; errors: [number, number, number] } {
+  const e = sections.map(s => s.totalErrors);
+  const errors: [number, number, number] = [e[0] ?? 0, e[1] ?? 0, e[2] ?? 0];
+  const total = errors.reduce((a, b) => a + b, 0);
 
-  // Profil 3: Dikkat Zayıflığı — genel doğruluk %40'ın altında
-  if (overallAccuracy < 0.4) {
-    return 'dikkat-zayifligi';
-  }
+  if (total < 6) return { pattern: 'dengeli', errors };
 
-  const firstThird = allErrors.slice(0, 20).reduce((a, b) => a + b, 0);
-  const lastThird = allErrors.slice(40, 60).reduce((a, b) => a + b, 0);
+  const mean = total / 3;
+  const maxIdx = errors.indexOf(Math.max(...errors));
+  const maxVal = errors[maxIdx];
+  const otherAvg = (total - maxVal) / 2;
+  const isSignificantlyHigher = maxVal >= otherAvg * 1.4 && maxVal > mean * 1.2;
 
-  // Profil 1: Dikkati Çabuk Dağılan — son kısımda hatalar belirgin artmış
-  if (lastThird >= firstThird * 1.5 && (lastThird - firstThird) >= 10) {
-    return 'dikkat-dagilimi';
-  }
-
-  // Profil 2: Uyum Güçlüğü — ilk kısımda hata çok, sonra azalmış
-  if (firstThird >= lastThird * 1.5 && (firstThird - lastThird) >= 10) {
-    return 'uyum-guclugu';
-  }
-
-  // Profil 4: Dengeli
-  return 'dengeli';
+  if (!isSignificantlyHigher) return { pattern: 'dengeli', errors };
+  if (maxIdx === 0) return { pattern: 'basta-dagilan', errors };
+  if (maxIdx === 1) return { pattern: 'ortada-dagilan', errors };
+  return { pattern: 'sonda-dagilan', errors };
 }
+
+const PATTERN_COPY: Record<BurdonAttentionPattern, { title: string; finding: string; suggestion: string }> = {
+  'basta-dagilan': {
+    title: 'Başlangıçta Dikkat Dağılımı',
+    finding:
+      'Derslerde ve sınavlarda başlangıçta dikkatinin daha fazla dağılma eğilimi gözleniyor olabilir. İlk paragrafta hata ve atlama sayısı diğer bölümlere göre belirgin yüksek çıktı.',
+    suggestion:
+      'Ders veya sınavdan önce 2-3 dakikalık bir zihinsel ısınma denemek faydalı olabilir: birkaç basit soru çöz, nefes egzersizi yap, çalışma ortamını hazırla. Aynı şekilde aşamalı başlangıç yapılabilir — kolay konulardan başla, sonra zora geç.',
+  },
+  'ortada-dagilan': {
+    title: 'Ortada Dikkat Dağılımı',
+    finding:
+      'Başlangıçta dikkatin iyi durumda olmakla birlikte, ortalara doğru dikkat dağılma eğilimi gösterebiliyor, ardından sona doğru tekrar toparlanma gözleniyor. İkinci paragrafta hata/atlama sayısı diğer iki paragrafa göre belirgin yüksek.',
+    suggestion:
+      'Uzun çalışmalarda tam ortada (15-20 dakika sonrası) kısa bir mola denenebilir — 3-5 dakika ayağa kalkmak, su içmek, gözleri dinlendirmek yardımcı olabilir. Sınav sırasında ortadaki soruları acele etmeden, bir daha okuyarak çözmen performansı koruyabilir.',
+  },
+  'sonda-dagilan': {
+    title: 'Sonda Dikkat Dağılımı',
+    finding:
+      "Başta ve ortada dikkatin iyi olmakla birlikte, son 1/3'lük kısımda dikkatin dağılma eğilimi gösteriyor olabilir. Üçüncü paragrafta hata/atlama sayısı diğer bölümlere göre belirgin yüksek çıktı.",
+    suggestion:
+      'Uzun sınavlarda ve derslerin son bölümünde dikkat yorgunluğu doğal bir durum — zor soruları ve kritik konuları başa veya ortaya yerleştirmek yerinde olabilir. Çalışma seanslarını 30-40 dakikalık bloklara bölmek, son kısımda taze kalmana yardımcı olabilir.',
+  },
+  'dengeli': {
+    title: 'Dengeli Dikkat Profili',
+    finding:
+      'Üç paragraf boyunca dikkatin dengeli bir seyir izliyor. Hata dağılımı belirgin bir bölgede yoğunlaşmıyor — bu, sürdürülebilir bir dikkat yapısına işaret ediyor olabilir.',
+    suggestion:
+      'Mevcut çalışma düzenini korumak yerinde görünüyor. Dikkati daha da güçlendirmek için haftada birkaç kez 20-30 dakikalık odak egzersizleri (satranç, yap-boz, derin okuma) faydalı olabilir.',
+  },
+};
+
+// ── Ana Hesaplama ─────────────────────────────────────
 
 export function calculateBurdon(
   test: BurdonSection[],
@@ -356,18 +278,16 @@ export function calculateBurdon(
   for (const section of test) {
     const resp = responses.find(r => r.section === section.index);
     if (!resp) {
-      // Bölüm yapılmamışsa boş skor
       sectionScores.push({
         section: section.index,
         rowScores: section.rows.map((_, r) => ({ row: r, correct: 0, omission: 0, commission: 0, targetCount: 0 })),
         totalCorrect: 0,
         totalOmission: section.targetCount,
         totalCommission: 0,
+        totalErrors: section.targetCount,
         totalTargets: section.targetCount,
         reachedRow: 0,
         accuracy: 0,
-        sustainedAttention: 0,
-        rawScore: 0,
         normalizedScore: 0,
       });
     } else {
@@ -381,33 +301,11 @@ export function calculateBurdon(
   const totalT = sectionScores.reduce((a, s) => a + s.totalTargets, 0);
   const overallAccuracy = totalT > 0 ? (totalC / totalT) * 100 : 0;
 
-  // Attention persistence: bölümler arası normalizedScore varyansı
-  const scores = sectionScores.map(s => s.normalizedScore);
-  const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
-  const variance = scores.reduce((a, b) => a + (b - mean) ** 2, 0) / scores.length;
-  const stdDev = Math.sqrt(variance);
-  // Düşük stdDev = yüksek persistence (dayanıklılık)
-  const attentionPersistence = Math.max(0, 100 - stdDev * 2);
+  const { pattern, errors } = detectAttentionPattern(sectionScores);
+  const copy = PATTERN_COPY[pattern];
 
-  // Kompozit overall score: doğruluk (0.5) + dayanıklılık (0.3) + sürdürülebilirlik (0.2)
-  const avgSustained = sectionScores.reduce((a, s) => a + s.sustainedAttention, 0) / sectionScores.length;
-  const overallScore =
-    overallAccuracy * 0.5 +
-    attentionPersistence * 0.3 +
-    avgSustained * 0.2;
-
-  const profile = detectProfile(sectionScores);
-
-  // Dikkat eğrisi (60 satır) — her satırdaki doğruluk oranı
-  const attentionCurve: number[] = [];
-  for (const s of sectionScores) {
-    for (const rs of s.rowScores) {
-      const rowAccuracy = rs.targetCount > 0
-        ? Math.max(0, (rs.correct - rs.commission) / rs.targetCount) * 100
-        : 0;
-      attentionCurve.push(Math.round(rowAccuracy * 10) / 10);
-    }
-  }
+  const rawOverall = Math.max(0, totalC - totalE2);
+  const overallScore = totalT > 0 ? Math.max(0, Math.min(100, (rawOverall / totalT) * 100)) : 0;
 
   return {
     sections: sectionScores,
@@ -416,51 +314,46 @@ export function calculateBurdon(
     totalCommission: totalE2,
     totalTargets: totalT,
     overallAccuracy: Math.round(overallAccuracy * 10) / 10,
-    attentionPersistence: Math.round(attentionPersistence * 10) / 10,
     overallScore: Math.round(overallScore * 10) / 10,
-    profile,
-    profileLabel: PROFILE_DEFS[profile].label,
-    profileDescription: PROFILE_DEFS[profile].description,
-    attentionCurve,
+    attentionPattern: pattern,
+    patternTitle: copy.title,
+    patternFinding: copy.finding,
+    patternSuggestion: copy.suggestion,
+    paragraphErrors: errors,
   };
 }
 
-// ============================================================
-// SÜRE HESAPLAMA (Sınıfa Göre Otomatik)
-// ============================================================
 export function getBurdonTimePerSection(studentGrade: number | null | undefined): number {
-  // Lise: 9, 10, 11, 12. sınıf → 2 dk
-  // Ortaokul: 5, 6, 7, 8. sınıf → 3 dk
-  // Belirsizse ortaokul varsayılır (daha uzun süre, güvende tarafta)
   if (!studentGrade) return BURDON_CONFIG.timeSecondsOrtaokul;
   if (studentGrade >= 9 && studentGrade <= 12) return BURDON_CONFIG.timeSecondsLise;
   return BURDON_CONFIG.timeSecondsOrtaokul;
 }
 
-// ============================================================
-// RAPOR METNİ ÜRETİMİ (Prompt'a gidecek skor verisi)
-// ============================================================
 export function generateBurdonReport(score: BurdonOverallScore): Record<string, unknown> {
   return {
     toplam_dogru: score.totalCorrect,
-    toplam_ihmal_hatasi: score.totalOmission,  // E1
-    toplam_yanlis_isaret: score.totalCommission,  // E2
+    toplam_ihmal_hatasi: score.totalOmission,
+    toplam_yanlis_isaret: score.totalCommission,
     toplam_hedef: score.totalTargets,
     genel_dogruluk_yuzdesi: score.overallAccuracy,
-    dikkat_dayanikliligi: score.attentionPersistence,
     genel_puan: score.overallScore,
-    profil: score.profile,
-    profil_etiketi: score.profileLabel,
-    profil_aciklama: score.profileDescription,
+    dikkat_oruntusu: score.attentionPattern,
+    oruntu_basligi: score.patternTitle,
+    oruntu_tespiti: score.patternFinding,
+    oruntu_tavsiyesi: score.patternSuggestion,
+    paragraf_hatalari: {
+      paragraf_1: score.paragraphErrors[0],
+      paragraf_2: score.paragraphErrors[1],
+      paragraf_3: score.paragraphErrors[2],
+    },
     bolumler: score.sections.map(s => ({
       bolum: s.section + 1,
       dogru: s.totalCorrect,
       ihmal_hatasi: s.totalOmission,
       yanlis_isaret: s.totalCommission,
+      toplam_hata: s.totalErrors,
       dogruluk_yuzdesi: s.accuracy,
-      ulasilan_satir: s.reachedRow + 1,
       bolum_puani: s.normalizedScore,
     })),
-    dikkat_egrisi: score.attentionCurve,  // 60 değer — grafik için
   };
 }

@@ -138,14 +138,14 @@ export const ALL_TESTS: RegisteredTest[] = [
     id: 'burdon-dikkat',
     name: 'Burdon Dikkat Testi',
     shortName: 'Burdon Dikkat',
-    description: "Orijinal Benjamin Bourdon (1895) formatı. MEB uyarlaması: 3 bölüm × 20 satır × 40 harf. Sayfadaki a, b, d, g harflerinin altını çiz. Dikkat dayanıklılığı ve seçici dikkat performansını ölçer.",
+    description: "Orijinal Benjamin Bourdon (1895) formatı. MEB uyarlaması: 3 paragraf × 10 satır × 22 harf. Sayfadaki b, c, d, g harflerinin altını çiz. Paragraf-bazlı dikkat dağılımı örüntüsünü (başta/ortada/sonda) tespit eder.",
     icon: '🔍',
     color: '#0891b2',
     category: 'dikkat',
     level: 'hepsi',
     estimatedMinutes: 10,
-    questionCount: 2400,
-    tags: ['dikkat', 'konsantrasyon', 'harf tarama', 'dayanıklılık'],
+    questionCount: 660,
+    tags: ['dikkat', 'konsantrasyon', 'harf tarama', 'dağılım örüntüsü'],
   },
 ];
 
