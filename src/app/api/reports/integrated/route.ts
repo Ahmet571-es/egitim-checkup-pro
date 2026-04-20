@@ -18,11 +18,13 @@ export async function POST(request: NextRequest) {
     const {
       student_id,
       report_types = ['ogretmen', 'ogrenci', 'ebeveyn'],
-      selected_test_types,  // opsiyonel - belirli testler seçildiyse
+      selected_test_types,
+      selected_result_ids,
     } = body as {
       student_id: string;
       report_types?: IntegratedReportType[];
       selected_test_types?: string[];
+      selected_result_ids?: string[];
     };
 
     if (!student_id) {
@@ -97,7 +99,18 @@ export async function POST(request: NextRequest) {
 
     // Seçili test tipleri belirtildiyse filtrele — her tip için en son kaydı al
     let results = allResults;
-    if (selected_test_types && selected_test_types.length > 0) {
+    // Öncelik: selected_result_ids (spesifik kayıt)
+    if (selected_result_ids && selected_result_ids.length > 0) {
+      const idSet = new Set(selected_result_ids);
+      results = allResults.filter(r => idSet.has(r.id));
+
+      if (results.length < 2) {
+        return NextResponse.json(
+          { error: `Seçilen kayıtlardan en az 2'si bulunmalıdır. Uygun: ${results.length}` },
+          { status: 400 }
+        );
+      }
+    } else if (selected_test_types && selected_test_types.length > 0) {
       const selectedSet = new Set(selected_test_types);
       // Her test tipinin en son kaydını al (order ASC, sonuncu en güncel)
       const latestByType = new Map<string, typeof allResults[0]>();
@@ -231,9 +244,10 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { student_id, selected_test_types } = body as {
+    const { student_id, selected_test_types, selected_result_ids } = body as {
       student_id: string;
       selected_test_types?: string[];
+      selected_result_ids?: string[];
     };
 
     if (!student_id) {
@@ -298,7 +312,18 @@ export async function PUT(request: NextRequest) {
 
     // Seçili testler varsa filtrele
     let results = allResultsPut;
-    if (selected_test_types && selected_test_types.length > 0) {
+    // Öncelik: selected_result_ids
+    if (selected_result_ids && selected_result_ids.length > 0) {
+      const idSet = new Set(selected_result_ids);
+      results = allResultsPut.filter(r => idSet.has(r.id));
+
+      if (results.length < 2) {
+        return NextResponse.json(
+          { error: `Seçilen kayıtlardan en az 2'si bulunmalıdır. Uygun: ${results.length}` },
+          { status: 400 }
+        );
+      }
+    } else if (selected_test_types && selected_test_types.length > 0) {
       const selectedSet = new Set(selected_test_types);
       const latestByType = new Map<string, typeof allResultsPut[0]>();
       for (const r of allResultsPut) {

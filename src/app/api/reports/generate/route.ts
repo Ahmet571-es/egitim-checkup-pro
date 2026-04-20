@@ -15,11 +15,12 @@ export const maxDuration = 300;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { student_id, test_result_id, report_type, selected_test_types } = body as {
+    const { student_id, test_result_id, report_type, selected_test_types, selected_result_ids } = body as {
       student_id?: string;
       test_result_id?: string;
       report_type?: string;
       selected_test_types?: string[];
+      selected_result_ids?: string[];
     };
 
     if (!student_id) {
@@ -98,9 +99,30 @@ export async function POST(request: NextRequest) {
       let filteredResults = results;
       let selectedTypes: string[] = [];
 
-      if (Array.isArray(selected_test_types) && selected_test_types.length > 0) {
+      // Öncelik: selected_result_ids (yeni, spesifik kayıt seçimi)
+      if (Array.isArray(selected_result_ids) && selected_result_ids.length > 0) {
+        const idSet = new Set(selected_result_ids);
+        filteredResults = results.filter(r => idSet.has(r.id));
+
+        if (filteredResults.length < 2) {
+          return NextResponse.json(
+            { error: 'Harmanlanmış rapor için seçilen kayıtlardan en az 2 tanesi öğrencide bulunmalıdır.' },
+            { status: 400 }
+          );
+        }
+        selectedTypes = Array.from(new Set(filteredResults.map(r => normalize(r.test_type))));
+      } else if (Array.isArray(selected_test_types) && selected_test_types.length > 0) {
+        // Geri uyum: test_type bazlı seçim (aynı tipin en son kaydını alır)
         const selectedNormalized = new Set(selected_test_types.map(normalize));
-        filteredResults = results.filter(r => selectedNormalized.has(normalize(r.test_type)));
+        // Her tip için en son kaydı tut
+        const latestByType = new Map<string, typeof results[0]>();
+        for (const r of results) {
+          const key = normalize(r.test_type);
+          if (selectedNormalized.has(key) && !latestByType.has(key)) {
+            latestByType.set(key, r);
+          }
+        }
+        filteredResults = Array.from(latestByType.values());
 
         if (filteredResults.length < 2) {
           return NextResponse.json(

@@ -276,19 +276,19 @@ export default function StudentDetailPage() {
     setSuccess('');
     setHolisticConfirmOpen(false);
     try {
-      const selectedTypes = Array.from(holisticSelected);
+      const selectedIds = Array.from(holisticSelected);
       const res = await secureFetch('/api/reports/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           student_id: studentId,
           report_type: 'holistic',
-          selected_test_types: selectedTypes,
+          selected_result_ids: selectedIds,
         }),
       });
       const data = await res.json();
       if (data.success && data.report) {
-        setSuccess(`✅ ${selectedTypes.length} test için harmanlanmış rapor üretildi.`);
+        setSuccess(`✅ ${selectedIds.length} test için harmanlanmış rapor üretildi.`);
         setTimeout(() => setSuccess(''), 3500);
         setHolisticSelected(new Set());
         setHolisticExpanded(false);
@@ -333,17 +333,17 @@ export default function StudentDetailPage() {
   };
 
   // ═══ Checkbox toggle ═══
-  const toggleHolisticTest = (testType: string) => {
+  const toggleHolisticTest = (recordId: string) => {
     setHolisticSelected(prev => {
       const next = new Set(prev);
-      if (next.has(testType)) next.delete(testType);
-      else next.add(testType);
+      if (next.has(recordId)) next.delete(recordId);
+      else next.add(recordId);
       return next;
     });
   };
 
   const selectAllHolistic = () => {
-    setHolisticSelected(new Set(completed.map(c => c.test_type)));
+    setHolisticSelected(new Set(completed.map(c => c.id)));
   };
 
   const clearAllHolistic = () => {
@@ -442,7 +442,7 @@ export default function StudentDetailPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           student_id: studentId,
-          selected_test_types: selected,
+          selected_result_ids: selected,
         }),
       });
       const data = await res.json();
@@ -921,11 +921,17 @@ export default function StudentDetailPage() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                           {completed.map(ct => {
-                            const isSelected = holisticSelected.has(ct.test_type);
+                            const isSelected = holisticSelected.has(ct.id);
+                            const totalAttempts = attemptInfo.totalFor(ct.test_type);
+                            const attemptNo = attemptInfo.numberFor(ct.id);
+                            const showAttempt = totalAttempts > 1;
+                            const attemptDate = ct.completed_at
+                              ? new Date(ct.completed_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
+                              : '';
                             return (
                               <button
                                 key={ct.id}
-                                onClick={() => toggleHolisticTest(ct.test_type)}
+                                onClick={() => toggleHolisticTest(ct.id)}
                                 className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-left transition-all ${
                                   isSelected
                                     ? 'bg-purple-50 border-purple-400 text-purple-900 shadow-sm'
@@ -937,7 +943,14 @@ export default function StudentDetailPage() {
                                 ) : (
                                   <Square className="w-4 h-4 text-gray-400 dark:text-slate-500 shrink-0" />
                                 )}
-                                <span className="text-[12px] font-semibold flex-1 truncate">{labelOf(ct.test_type)}</span>
+                                <span className="text-[12px] font-semibold flex-1 truncate">
+                                  {labelOf(ct.test_type)}
+                                  {showAttempt && (
+                                    <span className="ml-1.5 text-[10px] font-bold text-purple-600">
+                                      #{attemptNo} ({attemptDate})
+                                    </span>
+                                  )}
+                                </span>
                               </button>
                             );
                           })}
@@ -1559,7 +1572,7 @@ export default function StudentDetailPage() {
                 </span>
                 <div className="flex gap-1.5">
                   <button
-                    onClick={() => setIntegratedSelected(new Set(completed.map(c => c.test_type)))}
+                    onClick={() => setIntegratedSelected(new Set(completed.map(c => c.id)))}
                     className="px-2.5 py-1 bg-white/20 hover:bg-white/30 rounded text-[11px] font-bold transition"
                   >
                     Tümünü Seç
@@ -1578,14 +1591,20 @@ export default function StudentDetailPage() {
             <div className="flex-1 overflow-y-auto p-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {completed.map(ct => {
-                  const isSelected = integratedSelected.has(ct.test_type);
+                  const isSelected = integratedSelected.has(ct.id);
+                  const totalAttempts = attemptInfo.totalFor(ct.test_type);
+                  const attemptNo = attemptInfo.numberFor(ct.id);
+                  const showAttempt = totalAttempts > 1;
+                  const attemptDate = ct.completed_at
+                    ? new Date(ct.completed_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
+                    : '';
                   return (
                     <button
                       key={ct.id}
                       onClick={() => {
                         const next = new Set(integratedSelected);
-                        if (next.has(ct.test_type)) next.delete(ct.test_type);
-                        else next.add(ct.test_type);
+                        if (next.has(ct.id)) next.delete(ct.id);
+                        else next.add(ct.id);
                         setIntegratedSelected(next);
                       }}
                       className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-left transition-all ${
@@ -1599,7 +1618,14 @@ export default function StudentDetailPage() {
                       ) : (
                         <Square className="w-4 h-4 text-gray-400 dark:text-slate-500 shrink-0" />
                       )}
-                      <span className="text-[12.5px] font-semibold flex-1 truncate">{labelOf(ct.test_type)}</span>
+                      <span className="text-[12.5px] font-semibold flex-1 truncate">
+                        {labelOf(ct.test_type)}
+                        {showAttempt && (
+                          <span className="ml-1.5 text-[10px] font-bold text-rose-600">
+                            #{attemptNo} ({attemptDate})
+                          </span>
+                        )}
+                      </span>
                     </button>
                   );
                 })}
