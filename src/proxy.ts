@@ -58,14 +58,29 @@ export async function proxy(request: NextRequest) {
       const cookieToken = request.cookies.get(CSRF_COOKIE)?.value;
       const headerToken = request.headers.get(CSRF_HEADER);
       if (!cookieToken || !headerToken || cookieToken !== headerToken) {
-        return NextResponse.json({ error: 'CSRF token geçersiz' }, { status: 403 });
+        return NextResponse.json(
+          {
+            error: 'Oturum güvenlik anahtarınız güncel değil. Lütfen sayfayı yenileyin (Ctrl+Shift+R) ve tekrar deneyin.',
+            code: 'CSRF_TOKEN_INVALID',
+          },
+          { status: 403 },
+        );
       }
     }
     return supabaseResponse;
   }
 
-  // API GET istekleri: atla
+  // API GET istekleri: CSRF cookie yoksa set et, sonra geç
   if (pathname.startsWith('/api')) {
+    if (!request.cookies.get(CSRF_COOKIE)?.value) {
+      supabaseResponse.cookies.set(CSRF_COOKIE, generateCSRFToken(), {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 30, // 30 gün
+      });
+    }
     return supabaseResponse;
   }
 
@@ -153,14 +168,14 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // CSRF cookie yoksa oluştur
+  // CSRF cookie yoksa oluştur (panel sayfaları)
   if (!request.cookies.get(CSRF_COOKIE)?.value) {
     supabaseResponse.cookies.set(CSRF_COOKIE, generateCSRFToken(), {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
-      maxAge: 86400,
+      maxAge: 60 * 60 * 24 * 30, // 30 gün — uzun oturumlar için
     });
   }
 
