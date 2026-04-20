@@ -198,6 +198,7 @@ export async function POST(req: NextRequest) {
       // Entegre 3'lü Rapor — integrated_reports tablosundan
       // Defensive: source_test_types kolonu migrate edilmediyse hata vermemesi için try/catch
       let ir: {
+        id: string;
         teacher_report: string | null;
         student_report: string | null;
         parent_report: string | null;
@@ -205,25 +206,35 @@ export async function POST(req: NextRequest) {
         source_test_types?: string[] | null;
         test_count?: number | null;
       } | null = null;
+
+      // Tüm entegre rapor geçmişi (yeniden eskiye)
+      let integratedHistory: Array<{
+        id: string;
+        teacher_report: string | null;
+        student_report: string | null;
+        parent_report: string | null;
+        generated_at: string | null;
+        source_test_types?: string[] | null;
+        test_count?: number | null;
+      }> = [];
+
       try {
         const { data } = await admin
           .from('integrated_reports')
-          .select('teacher_report, student_report, parent_report, generated_at, source_test_types, test_count')
+          .select('id, teacher_report, student_report, parent_report, generated_at, source_test_types, test_count')
           .eq('student_id', studentId)
-          .order('generated_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        ir = data;
+          .order('generated_at', { ascending: false });
+        integratedHistory = data || [];
+        ir = integratedHistory[0] || null;
       } catch {
         // source_test_types kolonu yoksa, eski şema ile yeniden dene
         const { data } = await admin
           .from('integrated_reports')
-          .select('teacher_report, student_report, parent_report, generated_at, test_count')
+          .select('id, teacher_report, student_report, parent_report, generated_at, test_count')
           .eq('student_id', studentId)
-          .order('generated_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        ir = data;
+          .order('generated_at', { ascending: false });
+        integratedHistory = data || [];
+        ir = integratedHistory[0] || null;
       }
 
       // ═══ ANALİZ PANOSU ═══
@@ -286,6 +297,7 @@ export async function POST(req: NextRequest) {
         holisticReport,
         holisticReports,
         integratedReport: ir || null,
+        integratedHistory,
         advanced,
       });
     }

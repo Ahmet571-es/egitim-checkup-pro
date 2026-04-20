@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('student_id');
     const format = searchParams.get('format'); // 'pdf' | 'docx'
+    const reportId = searchParams.get('id'); // opsiyonel — belirli bir rapor geçmişten
 
     if (!studentId) {
       return NextResponse.json({ error: 'student_id gereklidir.' }, { status: 400 });
@@ -33,14 +34,32 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Öğrenci bulunamadı.' }, { status: 404 });
     }
 
-    // Entegre raporu getir
-    const { data: ir } = await supabase
-      .from('integrated_reports')
-      .select('teacher_report, student_report, parent_report, generated_at')
-      .eq('student_id', studentId)
-      .order('generated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    // Entegre raporu getir — id verildiyse o rapor, yoksa en sonuncusu
+    let ir: {
+      teacher_report: string | null;
+      student_report: string | null;
+      parent_report: string | null;
+      generated_at: string | null;
+    } | null = null;
+
+    if (reportId) {
+      const { data } = await supabase
+        .from('integrated_reports')
+        .select('teacher_report, student_report, parent_report, generated_at')
+        .eq('id', reportId)
+        .eq('student_id', studentId)
+        .maybeSingle();
+      ir = data;
+    } else {
+      const { data } = await supabase
+        .from('integrated_reports')
+        .select('teacher_report, student_report, parent_report, generated_at')
+        .eq('student_id', studentId)
+        .order('generated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      ir = data;
+    }
 
     if (!ir) {
       return NextResponse.json({ error: 'Bu öğrenci için entegre rapor bulunamadı.' }, { status: 404 });
