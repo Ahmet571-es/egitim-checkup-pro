@@ -14,6 +14,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Loader2, X, CheckCircle2, AlertCircle, Trash2, Calendar, FileText, Hash } from 'lucide-react';
+import { secureFetch } from '@/lib/csrf-client';
 
 // Test veri importları — öğretmen tarafında da kullanılacak
 import { SAG_SOL_BEYIN_QUESTIONS } from '@/lib/tests/sag-sol-beyin/data';
@@ -209,7 +210,7 @@ export default function TestAnswersViewer({ studentId, resultId, onClose, onDele
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const res = await fetch(`/api/teacher/students/${studentId}/test-results/${resultId}`, {
+      const res = await secureFetch(`/api/teacher/students/${studentId}/test-results/${resultId}`, {
         method: 'DELETE',
       });
       const body = await res.json();
