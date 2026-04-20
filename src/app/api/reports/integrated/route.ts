@@ -15,9 +15,14 @@ export const maxDuration = 300;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { student_id, report_types = ['ogretmen', 'ogrenci', 'ebeveyn'] } = body as {
+    const {
+      student_id,
+      report_types = ['ogretmen', 'ogrenci', 'ebeveyn'],
+      selected_test_types,  // opsiyonel - belirli testler seçildiyse
+    } = body as {
       student_id: string;
       report_types?: IntegratedReportType[];
+      selected_test_types?: string[];
     };
 
     if (!student_id) {
@@ -71,7 +76,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Tüm tamamlanmış test sonuçlarını çek (admin — RLS bypass)
-    const { data: results, error: resultsErr } = await admin
+    const { data: allResults, error: resultsErr } = await admin
       .from('test_results')
       .select('id, test_type, scores, completed_at')
       .eq('student_id', student_id)
@@ -83,11 +88,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Test sonuçları çekilemedi: ' + resultsErr.message }, { status: 500 });
     }
 
-    if (!results || results.length < 2) {
+    if (!allResults || allResults.length < 2) {
       return NextResponse.json(
-        { error: `Entegre rapor için en az 2 tamamlanmış test gereklidir. Mevcut: ${results?.length || 0}` },
+        { error: `Entegre rapor için en az 2 tamamlanmış test gereklidir. Mevcut: ${allResults?.length || 0}` },
         { status: 400 }
       );
+    }
+
+    // Seçili test tipleri belirtildiyse filtrele — her tip için en son kaydı al
+    let results = allResults;
+    if (selected_test_types && selected_test_types.length > 0) {
+      const selectedSet = new Set(selected_test_types);
+      // Her test tipinin en son kaydını al (order ASC, sonuncu en güncel)
+      const latestByType = new Map<string, typeof allResults[0]>();
+      for (const r of allResults) {
+        if (selectedSet.has(r.test_type)) {
+          latestByType.set(r.test_type, r);
+        }
+      }
+      results = Array.from(latestByType.values());
+
+      if (results.length < 2) {
+        return NextResponse.json(
+          { error: `Seçilen testlerden en az 2'sinin tamamlanmış olması gerekir. Uygun test: ${results.length}` },
+          { status: 400 }
+        );
+      }
     }
 
     const testDataList = results.map(r => ({
@@ -205,7 +231,10 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { student_id } = body as { student_id: string };
+    const { student_id, selected_test_types } = body as {
+      student_id: string;
+      selected_test_types?: string[];
+    };
 
     if (!student_id) {
       return NextResponse.json({ error: 'student_id zorunludur.' }, { status: 400 });
@@ -256,15 +285,35 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Bu öğrenci sizin okulunuzda değil.' }, { status: 403 });
     }
 
-    const { data: results } = await admin
+    const { data: allResultsPut } = await admin
       .from('test_results')
       .select('id, test_type, scores, completed_at')
       .eq('student_id', student_id)
       .not('completed_at', 'is', null)
       .order('completed_at', { ascending: true });
 
-    if (!results || results.length < 2) {
-      return NextResponse.json({ error: `Yetersiz test sayısı. Mevcut: ${results?.length || 0}, gereken: 2+` }, { status: 400 });
+    if (!allResultsPut || allResultsPut.length < 2) {
+      return NextResponse.json({ error: `Yetersiz test sayısı. Mevcut: ${allResultsPut?.length || 0}, gereken: 2+` }, { status: 400 });
+    }
+
+    // Seçili testler varsa filtrele
+    let results = allResultsPut;
+    if (selected_test_types && selected_test_types.length > 0) {
+      const selectedSet = new Set(selected_test_types);
+      const latestByType = new Map<string, typeof allResultsPut[0]>();
+      for (const r of allResultsPut) {
+        if (selectedSet.has(r.test_type)) {
+          latestByType.set(r.test_type, r);
+        }
+      }
+      results = Array.from(latestByType.values());
+
+      if (results.length < 2) {
+        return NextResponse.json(
+          { error: `Seçilen testlerden en az 2'sinin tamamlanmış olması gerekir. Uygun test: ${results.length}` },
+          { status: 400 }
+        );
+      }
     }
 
     const testDataList = results.map(r => ({

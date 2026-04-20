@@ -122,6 +122,10 @@ export default function StudentDetailPage() {
   const [holisticConfirmOpen, setHolisticConfirmOpen] = useState(false);
   const [holisticHistoryOpen, setHolisticHistoryOpen] = useState(false);
   const [integrated, setIntegrated] = useState<IntegratedReport | null>(null);
+
+  // ═══ Entegre 3'lü Rapor — Test Seçimi (harmanlanmış rapor ile aynı pattern) ═══
+  const [integratedExpanded, setIntegratedExpanded] = useState(false);
+  const [integratedSelected, setIntegratedSelected] = useState<Set<string>>(new Set());
   const [advanced, setAdvanced] = useState<AdvancedAnalysis>({ unlocked: false });
   const [answersViewer, setAnswersViewer] = useState<{ resultId: string } | null>(null);
 
@@ -161,6 +165,11 @@ export default function StudentDetailPage() {
       setHolistic(data.holisticReport || null);
       setHolisticHistory(Array.isArray(data.holisticReports) ? data.holisticReports : []);
       setIntegrated(data.integratedReport || null);
+      // Son raporun testleri varsa ön-seçim yap; yoksa tümünü seç
+      const defaultTestTypes = data.integratedReport?.source_test_types?.length
+        ? data.integratedReport.source_test_types
+        : (data.completedTests || []).map((c: CompletedTest) => c.test_type);
+      setIntegratedSelected(new Set(defaultTestTypes));
       setAdvanced(data.advanced || { unlocked: false });
       setSelected(new Set());
     } catch (e: unknown) {
@@ -406,6 +415,13 @@ export default function StudentDetailPage() {
 
   // ═══ Entegre 3'lü rapor üret ═══
   const generateIntegrated = async (force = false) => {
+    const selected = Array.from(integratedSelected);
+    if (selected.length < 2) {
+      setError('En az 2 test seçmelisiniz.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
     setBusyKey('integrated');
     setError('');
     setSuccess('');
@@ -413,12 +429,16 @@ export default function StudentDetailPage() {
       const res = await secureFetch('/api/reports/integrated', {
         method: force ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ student_id: studentId }),
+        body: JSON.stringify({
+          student_id: studentId,
+          selected_test_types: selected,
+        }),
       });
       const data = await res.json();
       if (data.success || data.already_generated) {
         setSuccess(force ? '✅ 3\'lü rapor yeniden üretildi.' : '✅ 3\'lü entegre rapor üretildi.');
         setTimeout(() => setSuccess(''), 3000);
+        setIntegratedExpanded(false);
         await loadDetail();
       } else {
         setError(data.error || 'Rapor üretilemedi.');
@@ -428,6 +448,20 @@ export default function StudentDetailPage() {
     }
     setBusyKey(null);
   };
+
+  // Toggle helpers
+  const toggleIntegratedTest = (testType: string) => {
+    setIntegratedSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(testType)) next.delete(testType);
+      else next.add(testType);
+      return next;
+    });
+  };
+  const selectAllIntegrated = () => {
+    setIntegratedSelected(new Set(completed.map(c => c.test_type)));
+  };
+  const clearAllIntegrated = () => setIntegratedSelected(new Set());
 
   // ═══ Aynı testten çoklu deneme etiketleri ═══
   // completed dizisi zaten completed_at DESC (yeni üstte) sıralı
@@ -1031,66 +1065,58 @@ export default function StudentDetailPage() {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100">Entegre 3&apos;lü Rapor</h3>
-                        <p className="text-[12px] text-rose-700 mt-0.5">Öğretmen + Öğrenci + Veli için özelleştirilmiş 3 ayrı rapor.</p>
+                        <p className="text-[12px] text-rose-700 mt-0.5">Seçtiğin testlerden Öğretmen + Öğrenci + Veli için 3 ayrı rapor üretilir.</p>
                       </div>
                     </div>
 
-                    {/* ═══ KAYNAK TEST ROZETLERİ ═══ */}
-                    {integratedExists && integrated?.source_test_types && integrated.source_test_types.length > 0 && (
-                      <div className="mb-3 bg-white/70 dark:bg-slate-800/60 rounded-lg p-3 border border-rose-200/60" style={{ marginLeft: '52px' }}>
-                        <p className="text-[10px] font-extrabold text-rose-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                          <FileText className="w-3 h-3" />
-                          Bu raporda analiz edilen testler ({integrated.source_test_types.length})
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {integrated.source_test_types.map(testType => (
-                            <span
-                              key={testType}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-[11px] font-bold border border-rose-200"
-                            >
-                              ✓ {labelOf(testType)}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {integratedExists && (!integrated?.source_test_types || integrated.source_test_types.length === 0) && integrated?.test_count && (
-                      <div className="mb-3 bg-white/70 dark:bg-slate-800/60 rounded-lg p-2.5 border border-amber-200/60" style={{ marginLeft: '52px' }}>
-                        <p className="text-[11px] text-amber-700 italic">
-                          ℹ️ Bu rapor {integrated.test_count} test kullanılarak üretilmiş (eski kayıt — test tipleri kaydedilmemiş).
-                        </p>
-                      </div>
-                    )}
-
-                    {/* ═══ PERSPEKTİF AÇIKLAMALARI ═══ */}
+                    {/* ═══ MEVCUT RAPOR DURUMU ═══ */}
                     {integratedExists && (
-                      <div className="mb-3 grid grid-cols-1 sm:grid-cols-3 gap-1.5" style={{ marginLeft: '52px' }}>
-                        <div className="bg-sky-50 border border-sky-200 rounded-lg px-2.5 py-1.5">
-                          <p className="text-[10px] font-extrabold text-sky-700 uppercase">👨‍🏫 Öğretmen</p>
-                          <p className="text-[10.5px] text-sky-900">Sınıfta gözlem + yaklaşım stratejileri</p>
-                        </div>
-                        <div className="bg-violet-50 border border-violet-200 rounded-lg px-2.5 py-1.5">
-                          <p className="text-[10px] font-extrabold text-violet-700 uppercase">🎓 Öğrenci</p>
-                          <p className="text-[10.5px] text-violet-900">Kişisel farkındalık + öz-gelişim</p>
-                        </div>
-                        <div className="bg-pink-50 border border-pink-200 rounded-lg px-2.5 py-1.5">
-                          <p className="text-[10px] font-extrabold text-pink-700 uppercase">👨‍👩‍👧 Veli</p>
-                          <p className="text-[10.5px] text-pink-900">Ev desteği + iletişim önerileri</p>
-                        </div>
-                      </div>
-                    )}
+                      <>
+                        {/* Kaynak test rozetleri */}
+                        {integrated?.source_test_types && integrated.source_test_types.length > 0 && (
+                          <div className="mb-3 bg-white/70 dark:bg-slate-800/60 rounded-lg p-3 border border-rose-200/60" style={{ marginLeft: '52px' }}>
+                            <p className="text-[10px] font-extrabold text-rose-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                              <FileText className="w-3 h-3" />
+                              Mevcut rapor şu testlerden üretildi ({integrated.source_test_types.length})
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {integrated.source_test_types.map(testType => (
+                                <span
+                                  key={testType}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-[11px] font-bold border border-rose-200"
+                                >
+                                  ✓ {labelOf(testType)}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {(!integrated?.source_test_types || integrated.source_test_types.length === 0) && integrated?.test_count && (
+                          <div className="mb-3 bg-white/70 dark:bg-slate-800/60 rounded-lg p-2.5 border border-amber-200/60" style={{ marginLeft: '52px' }}>
+                            <p className="text-[11px] text-amber-700 italic">
+                              ℹ️ Bu rapor {integrated.test_count} test kullanılarak üretilmiş (eski kayıt — test tipleri kaydedilmemiş). Yeni rapor üreterek güncelleyebilirsiniz.
+                            </p>
+                          </div>
+                        )}
 
-                    <div className="flex flex-wrap gap-2" style={{ paddingLeft: '52px' }}>
-                      {!integratedExists ? (
-                        <button
-                          onClick={() => generateIntegrated()}
-                          disabled={busyKey === 'integrated'}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-white text-[12px] font-bold shadow-md hover:shadow-lg disabled:opacity-60 transition-all"
-                        >
-                          {busyKey === 'integrated' ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Üretiliyor...</> : <><Sparkles className="w-3.5 h-3.5" /> 3&apos;lü Rapor Üret</>}
-                        </button>
-                      ) : (
-                        <>
+                        {/* 3 Perspektif Mini Kartı */}
+                        <div className="mb-3 grid grid-cols-1 sm:grid-cols-3 gap-1.5" style={{ marginLeft: '52px' }}>
+                          <div className="bg-sky-50 border border-sky-200 rounded-lg px-2.5 py-1.5">
+                            <p className="text-[10px] font-extrabold text-sky-700 uppercase">👨‍🏫 Öğretmen</p>
+                            <p className="text-[10.5px] text-sky-900">Sınıfta gözlem + yaklaşım stratejileri</p>
+                          </div>
+                          <div className="bg-violet-50 border border-violet-200 rounded-lg px-2.5 py-1.5">
+                            <p className="text-[10px] font-extrabold text-violet-700 uppercase">🎓 Öğrenci</p>
+                            <p className="text-[10.5px] text-violet-900">Kişisel farkındalık + öz-gelişim</p>
+                          </div>
+                          <div className="bg-pink-50 border border-pink-200 rounded-lg px-2.5 py-1.5">
+                            <p className="text-[10px] font-extrabold text-pink-700 uppercase">👨‍👩‍👧 Veli</p>
+                            <p className="text-[10.5px] text-pink-900">Ev desteği + iletişim önerileri</p>
+                          </div>
+                        </div>
+
+                        {/* Görüntüleme + İndirme butonları */}
+                        <div className="flex flex-wrap gap-2 mb-3" style={{ paddingLeft: '52px' }}>
                           <button
                             onClick={() => setViewer({
                               title: `${student.full_name} — Öğretmen Raporu`,
@@ -1136,19 +1162,106 @@ export default function StudentDetailPage() {
                           >
                             <Download className="w-3.5 h-3.5" /> DOCX
                           </a>
+                        </div>
+                      </>
+                    )}
+
+                    {/* ═══ TEST SEÇİM BÖLÜMÜ (Inline Expand) ═══ */}
+                    <div style={{ paddingLeft: '52px' }}>
+                      <button
+                        onClick={() => setIntegratedExpanded(v => !v)}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white dark:bg-slate-800 text-rose-700 text-[12px] font-bold border border-rose-300 hover:bg-rose-50 transition-all"
+                      >
+                        {integratedExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                        {integratedExpanded
+                          ? 'Test Seçimini Gizle'
+                          : (integratedExists ? 'Farklı Testlerle Yeni Rapor Üret' : 'Test Seç ve 3\'lü Rapor Üret')
+                        }
+                        {integratedSelected.size > 0 && !integratedExpanded && (
+                          <span className="ml-1 px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px]">
+                            {integratedSelected.size} seçili
+                          </span>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Test Seçim Listesi (expanded) */}
+                    {integratedExpanded && (
+                      <div className="mt-3 bg-white dark:bg-slate-800 rounded-xl border border-rose-200 p-4" style={{ marginLeft: '52px' }}>
+                        <div className="flex items-center justify-between mb-3 pb-3 border-b border-rose-100">
+                          <div className="text-[12px] font-bold text-[#0f2847] dark:text-slate-100">
+                            Entegre raporda kullanılacak testler
+                            <span className="ml-2 text-[11px] font-normal text-rose-600">
+                              ({integratedSelected.size} / {completed.length} seçili)
+                            </span>
+                          </div>
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={selectAllIntegrated}
+                              className="text-[11px] font-semibold text-rose-700 hover:text-rose-900 px-2 py-1 rounded hover:bg-rose-50 transition"
+                            >
+                              Tümünü Seç
+                            </button>
+                            <button
+                              onClick={clearAllIntegrated}
+                              className="text-[11px] font-semibold text-gray-600 dark:text-slate-300 hover:text-gray-900 px-2 py-1 rounded hover:bg-gray-50 dark:bg-slate-800/60 transition"
+                            >
+                              Temizle
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                          {completed.map(ct => {
+                            const isSelected = integratedSelected.has(ct.test_type);
+                            return (
+                              <button
+                                key={ct.id}
+                                onClick={() => toggleIntegratedTest(ct.test_type)}
+                                className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-left transition-all ${
+                                  isSelected
+                                    ? 'bg-rose-50 border-rose-400 text-rose-900 shadow-sm'
+                                    : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:border-rose-300 hover:bg-rose-50/50'
+                                }`}
+                              >
+                                {isSelected ? (
+                                  <CheckSquare className="w-4 h-4 text-rose-600 shrink-0" />
+                                ) : (
+                                  <Square className="w-4 h-4 text-gray-400 dark:text-slate-500 shrink-0" />
+                                )}
+                                <span className="text-[12px] font-semibold flex-1 truncate">{labelOf(ct.test_type)}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Üret Butonu */}
+                        {integratedSelected.size < 2 ? (
+                          <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                            <p className="text-[12px] text-amber-800">
+                              Entegre rapor için en az <strong>2 test</strong> seçmelisiniz.
+                            </p>
+                          </div>
+                        ) : (
                           <button
                             onClick={() => generateIntegrated(true)}
                             disabled={busyKey === 'integrated'}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 text-[12px] font-bold border border-gray-300 hover:bg-gray-50 dark:bg-slate-800/60 disabled:opacity-60 transition-all"
+                            className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-white text-[13px] font-bold shadow-md hover:shadow-lg disabled:opacity-60 transition-all"
                           >
-                            {busyKey === 'integrated' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Yenile
+                            {busyKey === 'integrated' ? (
+                              <><Loader2 className="w-4 h-4 animate-spin" /> Üretiliyor...</>
+                            ) : (
+                              <><Sparkles className="w-4 h-4" /> Seçili {integratedSelected.size} Testle 3&apos;lü Rapor Üret</>
+                            )}
                           </button>
-                        </>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    )}
+
                     {integrated?.generated_at && (
                       <p className="text-[11px] text-rose-600 mt-2" style={{ paddingLeft: '52px' }}>
-                        Üretildi: {formatDate(integrated.generated_at)}
+                        Son üretim: {formatDate(integrated.generated_at)}
                       </p>
                     )}
                   </div>
