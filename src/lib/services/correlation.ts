@@ -37,7 +37,8 @@ export const TEST_LABELS: Record<string, string> = {
   'calisma-davranisi': 'Çalışma Davranışı',
   'akademik-analiz': 'Akademik Analiz',
   'hizli-okuma': 'Hızlı Okuma',
-  'd2-dikkat': 'D2 Dikkat',
+  'd2-dikkat': 'P2 Dikkat',
+  'burdon-dikkat': 'Burdon Dikkat',
   'sag-sol-beyin': 'Sağ-Sol Beyin',
 };
 
@@ -85,6 +86,11 @@ export function extractNormalizedScore(testType: string, scores: Record<string, 
       case 'd2-dikkat': {
         const cpPct = scores.cpPct as number;
         return cpPct ?? null;
+      }
+      case 'burdon-dikkat': {
+        // Burdon genel puan (0-100) — generateBurdonReport'taki genel_puan alanı
+        const genelPuan = (scores.genel_puan ?? scores.overallScore) as number | undefined;
+        return genelPuan ?? null;
       }
       case 'sag-sol-beyin': {
         const sagYuzde = scores.sagYuzde as number;

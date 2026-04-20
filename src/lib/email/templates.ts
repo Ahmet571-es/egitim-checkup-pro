@@ -109,7 +109,7 @@ export function welcomeEmailTemplate(params: {
     <h2 style="margin:24px 0 12px;color:#0f2847;font-size:16px;font-weight:700;">Platformda Neler Yapabilirsiniz?</h2>
     <table width="100%" cellpadding="0" cellspacing="0" border="0">
       ${[
-        ['🧠', 'Psikometrik Testler', '10 farklı test ile öğrencilerin güçlü yönlerini keşfedin'],
+        ['🧠', 'Psikometrik Testler', '11 farklı test ile öğrencilerin güçlü yönlerini keşfedin'],
         ['📊', 'AI Raporlar', 'Yapay zeka destekli kişiselleştirilmiş analizler'],
         ['👥', 'Panel Yönetimi', 'Rol bazlı erişim ile ekibinizi yönetin'],
       ].map(([emoji, title, desc]) => `

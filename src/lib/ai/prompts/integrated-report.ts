@@ -29,6 +29,7 @@ const INTEGRATED_TEST_ORDER = [
   'Sınav Kaygısı',                    // 8
   'D2 Dikkat',                         // 9
   'P2 Dikkat',                         // alias
+  'Burdon Dikkat',                     // 10 — Yeni
 ];
 
 export function buildIntegratedReportPrompt(params: IntegratedReportParams): string {

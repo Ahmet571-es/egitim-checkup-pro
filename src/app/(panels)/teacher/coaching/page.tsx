@@ -36,7 +36,7 @@ const STEPS: StepInfo[] = [
     bgGradient: 'from-emerald-50 to-teal-50',
     chipBg: 'bg-emerald-100 text-emerald-700',
     details: [
-      '"Test Ata" menüsünden sınıfınıza test atayın. Enneagram, VARK, Çoklu Zekâ, Sınav Kaygısı gibi 10 farklı test mevcuttur.',
+      '"Test Ata" menüsünden sınıfınıza test atayın. Enneagram, VARK, Çoklu Zekâ, Sınav Kaygısı gibi 11 farklı test mevcuttur.',
       'Öğrenciler kendi panellerinden testleri tamamlar. Tamamlama durumunu "Sonuçlar" sayfasından takip edebilirsiniz.',
       'En az 2 test tamamlandığında AI koçluk sistemi otomatik olarak devreye girer.',
       'Daha fazla test = daha isabetli AI analizi. İdeal olarak 4-5 farklı test uygulatmanız önerilir.',

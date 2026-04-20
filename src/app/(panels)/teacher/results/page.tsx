@@ -22,6 +22,7 @@ const TEST_LABELS: Record<string, string> = {
   akademik_analiz: 'Akademik Analiz', 'akademik-analiz': 'Akademik Analiz',
   hizli_okuma: 'Hızlı Okuma', 'hizli-okuma': 'Hızlı Okuma',
   d2_dikkat: 'P2 Dikkat Testi', 'd2-dikkat': 'P2 Dikkat Testi',
+  burdon_dikkat: 'Burdon Dikkat', 'burdon-dikkat': 'Burdon Dikkat',
   sag_sol_beyin: 'Sağ-Sol Beyin', 'sag-sol-beyin': 'Sağ-Sol Beyin',
 };
 const labelOf = (t: string) => TEST_LABELS[t] || t;

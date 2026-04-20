@@ -30,6 +30,8 @@ const TEST_LABELS: Record<string, string> = {
   'hizli-okuma': 'Hızlı Okuma',
   d2_dikkat: 'P2 Dikkat Testi',
   'd2-dikkat': 'P2 Dikkat Testi',
+  burdon_dikkat: 'Burdon Dikkat',
+  'burdon-dikkat': 'Burdon Dikkat',
   sag_sol_beyin: 'Sağ-Sol Beyin',
   'sag-sol-beyin': 'Sağ-Sol Beyin',
 };
@@ -651,7 +653,7 @@ export default function StudentDetailPage() {
             <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-12 text-center shadow-sm">
               <p className="text-5xl mb-3">🎉</p>
               <p className="text-gray-600 dark:text-slate-300 font-semibold">Tüm testler tamamlandı!</p>
-              <p className="text-gray-400 dark:text-slate-500 text-sm mt-2">Öğrenci 10 testin hepsini bitirdi.</p>
+              <p className="text-gray-400 dark:text-slate-500 text-sm mt-2">Öğrenci 11 testin hepsini bitirdi.</p>
             </div>
           ) : (
             <>

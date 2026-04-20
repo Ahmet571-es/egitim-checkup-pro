@@ -10,6 +10,7 @@ import TestShell from '@/components/test/TestShell';
 import QuestionCard from '@/components/test/QuestionCard';
 import TestResult from '@/components/test/TestResult';
 import D2TestBoard from '@/components/test/D2TestBoard';
+import BurdonTestBoard from '@/components/test/BurdonTestBoard';
 import SpeedReadingTest from '@/components/test/SpeedReadingTest';
 
 // ── Test motorları ───────────────────────────────────────
@@ -24,6 +25,11 @@ import { calculateAkademik, generateAkademikReport, getAkademikSections } from '
 import { calculateSpeedReading, getPassageForGrade } from '@/lib/tests/hizli-okuma/engine';
 import { generateD2Test, calculateD2, generateD2Report } from '@/lib/tests/d2-dikkat/engine';
 import { D2_CONFIG } from '@/lib/tests/d2-dikkat/engine';
+import {
+  generateBurdonTest, generateBurdonPractice, calculateBurdon,
+  generateBurdonReport, getBurdonTimePerSection, BURDON_CONFIG
+} from '@/lib/tests/burdon-dikkat/engine';
+import type { BurdonSection, BurdonSectionResponse } from '@/lib/tests/burdon-dikkat/engine';
 
 // ── Veri importları ──────────────────────────────────────
 import { SAG_SOL_BEYIN_QUESTIONS } from '@/lib/tests/sag-sol-beyin/data';
@@ -136,6 +142,10 @@ export default function TestPage() {
   // D2 state
   const [d2Rows, setD2Rows] = useState<ReturnType<typeof generateD2Test> | null>(null);
 
+  // Burdon state
+  const [burdonSections, setBurdonSections] = useState<BurdonSection[] | null>(null);
+  const [burdonPractice, setBurdonPractice] = useState<BurdonSection | null>(null);
+
   // Autosave — studentId + resume prompt
   const [studentId, setStudentId] = useState<string | null>(null);
   const [studentGrade, setStudentGrade] = useState<number>(7);
@@ -170,6 +180,9 @@ export default function TestPage() {
     if (!testId) return;
     if (testId === 'd2-dikkat') {
       setD2Rows(generateD2Test());
+    } else if (testId === 'burdon-dikkat') {
+      setBurdonSections(generateBurdonTest());
+      setBurdonPractice(generateBurdonPractice());
     } else if (testId !== 'hizli-okuma') {
       setQuestions(buildQuestions(testId));
     }
@@ -178,7 +191,7 @@ export default function TestPage() {
   // Autosave — yüklendiğinde localStorage'da kayıt var mı bak
   useEffect(() => {
     if (!studentId || !testId || questions.length === 0 || result || resumeChecked) return;
-    if (testId === 'd2-dikkat' || testId === 'hizli-okuma') return;
+    if (testId === 'd2-dikkat' || testId === 'burdon-dikkat' || testId === 'hizli-okuma') return;
     const key = `test_progress_${testId}_${studentId}`;
     try {
       const raw = localStorage.getItem(key);
@@ -204,7 +217,7 @@ export default function TestPage() {
   // Autosave — her cevap/navigation değişimde yaz
   useEffect(() => {
     if (!studentId || !testId || questions.length === 0 || result) return;
-    if (testId === 'd2-dikkat' || testId === 'hizli-okuma') return;
+    if (testId === 'd2-dikkat' || testId === 'burdon-dikkat' || testId === 'hizli-okuma') return;
     // Henüz hiç cevap yok + ilk sorudayız → yazma
     if (Object.keys(answers).length === 0 && currentQ === 0) return;
     // Resume prompt görünürken yazma
@@ -374,7 +387,7 @@ export default function TestPage() {
 
   // Zamanlayıcı
   useEffect(() => {
-    if (result || testId === 'd2-dikkat' || testId === 'hizli-okuma') return;
+    if (result || testId === 'd2-dikkat' || testId === 'burdon-dikkat' || testId === 'hizli-okuma') return;
     const iv = setInterval(() => setElapsed(t => t + 1), 1000);
     return () => clearInterval(iv);
   }, [result, testId]);
@@ -523,6 +536,30 @@ export default function TestPage() {
     });
   };
 
+  // Burdon tamamlandı
+  const handleBurdonComplete = (responses: BurdonSectionResponse[]) => {
+    if (!burdonSections) return;
+    const s = calculateBurdon(burdonSections, responses);
+    // Answers olarak kaydedilecek scores objesi — backend ai_reports için
+    const scores = generateBurdonReport(s);
+    // State'e yerleştir — autosave computeResult dışından bu şekilde kaydedilmeli
+    setAnswers(prev => ({ ...prev, __burdon_scores__: JSON.stringify(scores) }));
+
+    setResult({
+      main: s.profileLabel,
+      desc: `Genel Puan: ${s.overallScore}/100 · Doğruluk: %${s.overallAccuracy}`,
+      scores: [
+        { label: 'Genel Puan', value: `${s.overallScore}/100`, pct: s.overallScore },
+        { label: 'Doğruluk Oranı', value: `%${s.overallAccuracy}`, pct: s.overallAccuracy },
+        { label: 'Dikkat Dayanıklılığı', value: `%${s.attentionPersistence}`, pct: s.attentionPersistence },
+        { label: 'Doğru İşaret', value: `${s.totalCorrect}/${s.totalTargets}` },
+        { label: 'Atlanan Hedef (E1)', value: s.totalOmission.toString() },
+        { label: 'Yanlış İşaret (E2)', value: s.totalCommission.toString() },
+      ],
+      report: s.profileDescription,
+    });
+  };
+
   // Hızlı okuma tamamlandı
   const handleSpeedReadingComplete = (readAnswers: Record<string, string>, readingTimeSec: number) => {
     const { passage, kademe } = getPassageForGrade(studentGrade);
@@ -587,6 +624,10 @@ export default function TestPage() {
           onRetake={() => {
             setResult(null); setAnswers({}); setCurrentQ(0); setElapsed(0); setDbSaved(false); setSaveStatus('idle');
             if (testId === 'd2-dikkat') setD2Rows(generateD2Test());
+            if (testId === 'burdon-dikkat') {
+              setBurdonSections(generateBurdonTest());
+              setBurdonPractice(generateBurdonPractice());
+            }
           }}
         />
         {/* Kaydetme durumu göstergesi */}
@@ -639,6 +680,34 @@ export default function TestPage() {
       </div>
     );
     return <D2TestBoard rows={d2Rows} timePerRow={D2_CONFIG.timePerRow} onComplete={handleD2Complete} />;
+  }
+
+  // ── Burdon Dikkat ─────────────────────────────────────
+  if (testId === 'burdon-dikkat') {
+    if (!burdonSections || !burdonPractice) return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-[#0f2847] to-slate-900 gap-4">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600 flex items-center justify-center shadow-2xl shadow-cyan-500/40 animate-pulse">
+          <Loader2 className="animate-spin text-white" size={28} />
+        </div>
+        <p className="text-white/80 font-medium text-sm">Test hazırlanıyor...</p>
+      </div>
+    );
+    const timePerSection = getBurdonTimePerSection(studentGrade);
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#0f2847] to-slate-900 py-6 px-4">
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
+        <div className="relative">
+          <BurdonTestBoard
+            sections={burdonSections}
+            practiceSection={burdonPractice}
+            timePerSection={timePerSection}
+            timePractice={BURDON_CONFIG.practiceTimeSeconds}
+            onComplete={handleBurdonComplete}
+          />
+        </div>
+      </div>
+    );
   }
 
   // ── Hızlı Okuma ───────────────────────────────────────

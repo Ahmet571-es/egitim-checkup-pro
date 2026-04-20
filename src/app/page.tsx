@@ -269,7 +269,7 @@ export default function LandingPage() {
       <section id="testler" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 scroll-mt-20" ref={tests.ref}>
         <div className={`text-center mb-14 transition-all duration-500 ${tests.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847] dark:text-slate-100">Testlerimiz</h2>
-          <p className="mt-3 text-gray-500 dark:text-slate-400 text-lg max-w-xl mx-auto">Bilimsel temelli 10 farklı psikometrik test ile kapsamlı öğrenci profili</p>
+          <p className="mt-3 text-gray-500 dark:text-slate-400 text-lg max-w-xl mx-auto">Bilimsel temelli 11 farklı psikometrik test ile kapsamlı öğrenci profili</p>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           {TESTS.map((t, i) => (

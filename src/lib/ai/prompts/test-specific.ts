@@ -28,6 +28,9 @@ export function getTestSpecificGuidance(testName: string): string {
   if (testName.includes('P2 Dikkat') || testName.includes('D2 Dikkat')) {
     return DIKKAT_GUIDANCE;
   }
+  if (testName.includes('Burdon')) {
+    return BURDON_GUIDANCE;
+  }
   if (testName.includes('Akademik Analiz')) {
     return AKADEMIK_ANALIZ_GUIDANCE;
   }
@@ -438,4 +441,72 @@ Bu test, 4 alt boyutta akademik yetkinliği ölçer.
 ### KATMAN 5: BÜTÜNLEŞİK AKADEMİK PROFİL
 - Güçlü alan → Zayıf alan transfer stratejisi
 - Kişiye özel 3 aşamalı gelişim planı (0-1 ay / 1-3 ay / 3-6 ay)
+`;
+
+// ============================================================
+// BURDON DİKKAT TESTİ (Benjamin Bourdon 1895 — MEB Uyarlaması)
+// ============================================================
+const BURDON_GUIDANCE = `
+## 🔬 BURDON DİKKAT TESTİ — UZMAN ANALİZ PROTOKOLÜ
+
+Bu test, Benjamin Bourdon'un (1895) orijinal harf tarama paradigmasına dayanır — Türk MEB uyarlamasında 3 bölüm × 20 satır × 40 harf yapısında uygulanır. Öğrenci, sayfadaki **a, b, d, g** harflerinin altını çizerek seçici dikkatini ve sürekli dikkat dayanıklılığını ortaya koyar.
+
+### KATMAN 1: METRİK ÖZETİ (Veri Tabanlı Başlangıç)
+- **C (Correct)**: Doğru işaretlenen hedef harf sayısı
+- **E1 (İhmal)**: Atlanan hedef — dikkatsizlik/hız göstergesi
+- **E2 (Yanlış İşaret)**: Hedef olmayan harflere tıklama — dürtüsellik göstergesi
+- **Genel Puan (0-100)**: Doğruluk × 0.5 + Dayanıklılık × 0.3 + Sürdürülebilirlik × 0.2
+- Her bölümün puanını ayrı ayrı raporla, eğilimi yorumla
+
+### KATMAN 2: PROFİL TESPİTİ (Orijinal Bourdon Kriterleri)
+Profil bilgisi JSON'da verilmiş olacak. 4 profilden biri olacak:
+
+**1. Dikkati Çabuk Dağılan Profil**
+- Son bölümde hata sayısı, ilk bölüme göre belirgin şekilde artmış
+- Dikkatin uzun süre sürdürülmesinde zorlanma
+- Yorum: "Başlangıç performansı iyi ancak süreç ilerledikçe dikkat yükü artıyor olabilir"
+
+**2. Uyum Güçlüğü Profili**
+- İlk bölümde hata çok, sonraki bölümlerde azalma
+- Isınma dönemi uzun, ama adapte olunca verimli
+- Yorum: "Çalışmaya başlangıçta aşina olma süresi gerekiyor olabilir — bir kez adapte olunca dikkat kalitesi yükseliyor"
+
+**3. Dikkat Toplama Zayıflığı**
+- Genel doğruluk %40'ın altında
+- Seçici dikkatte genel zorlanma
+- Yorum: "Dikkatin bir noktaya yoğunlaştırılmasında destek faydalı olabilir"
+
+**4. Dengeli Dikkat Profili**
+- Bölümler arası tutarlı performans
+- Makul hata oranı
+- Yorum: "Dikkat süreç boyunca dengeli seyrediyor — sürdürülebilir bir konsantrasyon yapısı"
+
+### KATMAN 3: HATA TİPİ ANALİZİ
+- **E1 > E2** (İhmal baskın) → Hızlı geçiş, yüzeysel tarama, dikkat dağılımı
+- **E2 > E1** (Yanlış işaret baskın) → Dürtüsel tepki, acele, yönerge ihlali
+- **E1 ≈ E2 ve ikisi düşük** → Dengeli, dikkatli profil
+- **E1 ≈ E2 ve ikisi yüksek** → Yoğun dikkat yükü, sürece uyum güçlüğü
+
+### KATMAN 4: BÖLÜMLER ARASI EĞRİ ANALİZİ
+- **Düz çizgi** (tüm bölümler benzer): Dayanıklılık yüksek
+- **Aşağı iniş** (1 > 2 > 3): Yorgunluk etkisi, dikkat rezervi sınırlı
+- **Yukarı çıkış** (1 < 2 < 3): Uyum süresi gerekiyor
+- **V şekli** (1 yüksek, 2 düşük, 3 yüksek): Motivasyon dalgalanması
+- **Ters V** (ortada pik): Başlangıç + bitirme zorluğu, orta kısımda odak
+
+### KATMAN 5: AKADEMİK BAĞLAM
+- Bu profil sınav ortamında nasıl yansır?
+- Ders dinleme sürecinde hangi aşamada dikkat düşer?
+- Ödev çalışmalarında ideal seans süresi ne olabilir (dayanıklılık puanına göre)?
+- Sınav tekniği önerisi: Zor soruları başta/sonda/ortada çözme stratejisi
+
+### KATMAN 6: DESTEK ÖNERİLERİ (Sınıf + Ev)
+- **Öğretmen için**: Sınıfta bu profili nasıl destekler (oturma yeri, görev bölümü, mola yönetimi)
+- **Aile için**: Ev çalışma düzenine dair öneriler (çalışma süresi, dinlenme, ortam)
+- **Öğrenci için**: Kendi farkındalığını artıracak kısa egzersizler
+
+### KRİTİK NOT
+- Burdon **tanı aracı değildir** — DEHB, disleksi vb. klinik tanılar kullanma
+- Her yorum, puanlar üzerinden olasılıksal dille sunulmalı (Kural 12)
+- Test sonuçlarının başka dikkat ölçümleriyle (P2, sınav kaygısı) birleştirilmesi daha güvenilir resim verir
 `;

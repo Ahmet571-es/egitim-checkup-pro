@@ -23,7 +23,7 @@ export const PLANS: Record<PlanKey, SubscriptionPlan> = {
     durationDays: 365,
     features: [
       '50 öğrenciye kadar',
-      '10 test türü',
+      '11 test türü',
       'AI destekli 3\'lü rapor',
       'E-posta destek',
     ],
@@ -37,7 +37,7 @@ export const PLANS: Record<PlanKey, SubscriptionPlan> = {
     popular: true,
     features: [
       '200 öğrenciye kadar',
-      '10 test türü',
+      '11 test türü',
       'AI destekli 3\'lü rapor',
       'Toplu rapor dışa aktarımı',
       'Öncelikli destek',
@@ -51,7 +51,7 @@ export const PLANS: Record<PlanKey, SubscriptionPlan> = {
     durationDays: 365,
     features: [
       'Sınırsız öğrenci',
-      '10 test türü',
+      '11 test türü',
       'AI destekli 3\'lü rapor',
       'Toplu rapor dışa aktarımı',
       'Özel entegrasyon desteği',
