@@ -9,6 +9,8 @@ interface Props {
   practiceSection: BurdonSection;
   timePerSection: number;    // saniye
   timePractice: number;       // saniye
+  studentGrade?: number | null;  // 5-12 (ortaokul=5-8, lise=9-12)
+  studentAge?: number | null;    // Öğrencinin yaşı
   onComplete: (responses: BurdonSectionResponse[]) => void;
 }
 
@@ -93,6 +95,8 @@ export default function BurdonTestBoard({
   practiceSection,
   timePerSection,
   timePractice,
+  studentGrade,
+  studentAge,
   onComplete,
 }: Props) {
   const [phase, setPhase] = useState<Phase>('instructions');
@@ -212,8 +216,62 @@ export default function BurdonTestBoard({
 
   // ── RENDER: Bilgilendirme Kılavuzu ──────────────────
   if (phase === 'instructions') {
+    // Yaş ve sınıf bilgisi — öğrencinin profilinden
+    const isLise = studentGrade != null && studentGrade >= 9 && studentGrade <= 12;
+    const levelLabel = isLise ? 'lise' : 'ortaokul';
+    const minutes = Math.floor(timePerSection / 60);
+    const extraSecs = timePerSection % 60;
+    const timeLabel = extraSecs > 0
+      ? `${minutes} dakika ${extraSecs} saniye`
+      : `${minutes} dakika`;
+
     return (
       <div className="max-w-3xl mx-auto">
+        {/* ═══ KİŞİSELLEŞTİRİLMİŞ YAŞ/SÜRE BİLGİLENDİRME KARTI ═══ */}
+        {(studentAge || studentGrade) && (
+          <div className="mb-4 relative bg-gradient-to-br from-amber-500/20 to-orange-500/15 border border-amber-400/40 rounded-2xl p-5 backdrop-blur-xl overflow-hidden">
+            <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-amber-400/20 blur-2xl" />
+            <div className="relative flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
+                <span className="text-[24px]">👋</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-amber-200 font-extrabold text-[14px] uppercase tracking-wider mb-2">
+                  Senin İçin Kişiselleştirildi
+                </h3>
+                <div className="space-y-2 text-white/90 text-[13.5px] leading-relaxed">
+                  {studentAge && (
+                    <p>
+                      📅 <strong className="text-amber-200">{studentAge} yaşında</strong> olduğun için
+                      {studentGrade && <> ({studentGrade}. sınıf — <strong>{levelLabel}</strong>)</>}
+                      {!studentGrade && isLise === false && <> (<strong>{levelLabel}</strong>)</>},
+                      test süreleri sana göre ayarlandı.
+                    </p>
+                  )}
+                  {!studentAge && studentGrade && (
+                    <p>
+                      📅 <strong className="text-amber-200">{studentGrade}. sınıf ({levelLabel})</strong> olduğun için test süreleri sana göre ayarlandı.
+                    </p>
+                  )}
+                  <div className="bg-white/5 rounded-lg p-3 border border-amber-400/20 mt-2">
+                    <p className="text-amber-100">
+                      ⏱️ Her bölüm için <strong className="text-white text-[15px]">{timeLabel}</strong> sürem var.
+                    </p>
+                    <p className="text-white/60 text-[11.5px] mt-1 italic">
+                      ({isLise
+                        ? 'Lise düzeyinde orijinal MEB standardı 2 dakikadır.'
+                        : 'Ortaokul düzeyinde orijinal MEB standardı 3 dakikadır.'})
+                    </p>
+                  </div>
+                  <p className="text-white/70 text-[12px]">
+                    Toplam <strong>{sections.length} bölüm</strong> × {timeLabel} ≈ <strong>{Math.ceil((sections.length * timePerSection) / 60)} dakika</strong> aktif test süresi
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="bg-gradient-to-br from-cyan-500/15 to-blue-500/10 border border-cyan-400/30 rounded-2xl p-6 backdrop-blur-xl">
           <h2 className="text-[20px] sm:text-[24px] font-extrabold text-white mb-4">
             🔍 Burdon Dikkat Testi
@@ -245,8 +303,7 @@ export default function BurdonTestBoard({
             <div>
               <h3 className="text-cyan-300 font-bold text-[15px] mb-1.5">⏱️ Süre</h3>
               <p>
-                Her bölüm için <strong>{Math.floor(timePerSection / 60)} dakika {timePerSection % 60 > 0 ? `${timePerSection % 60} saniye` : ''}</strong>{' '}
-                sürem var. Süre dolunca o bölüm otomatik biter ve sıradakine geçilir.
+                Her bölüm için <strong>{timeLabel}</strong> sürem var. Süre dolunca o bölüm otomatik biter ve sıradakine geçilir.
                 Aralarda kısa bir nefes verilir.
               </p>
             </div>
