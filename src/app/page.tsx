@@ -156,7 +156,7 @@ export default function LandingPage() {
             <div className="relative w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
               <Sparkles className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-[13px] font-bold text-[#0f2847] dark:text-slate-100 tracking-tight">10 Bilimsel Test · Detaylı Analiz · 4 Panel</span>
+            <span className="text-[13px] font-bold text-[#0f2847] dark:text-slate-100 tracking-tight">11 Bilimsel Test · Detaylı Analiz · 4 Panel</span>
           </div>
 
           <h1 data-testid="hero-title" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#0f2847] dark:text-slate-100 leading-tight tracking-tight max-w-4xl mx-auto">
