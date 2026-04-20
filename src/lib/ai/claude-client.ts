@@ -66,23 +66,22 @@ ${tail}
 Şimdi yukarıdaki son kısımdan KESİNTİSİZCE devam et ve raporu tamamla:`;
 
   try {
-    const response = await client.messages.create({
+    // Continuation çağrısı da streaming kullanmalı — büyük raporlar 10 dk aşabilir
+    const stream = client.messages.stream({
       model: CLAUDE_MODEL,
       max_tokens: CONTINUATION_MAX_TOKENS,
       temperature: options.temperature,
       messages: [{ role: 'user', content: continuationPrompt }],
     });
+    const response = await stream.finalMessage();
 
     const content = response.content[0];
     if (content.type !== 'text') {
       return { text: truncatedText, stillTruncated: true };
     }
 
-    // Birleştirme: orijinal + devam (araya bir boşluk)
-    // Devamın başında boşluk/yeni satır varsa temizle
     const continuation = content.text.trimStart();
     const merged = truncatedText + '\n' + continuation;
-
     const stillTruncated = response.stop_reason === 'max_tokens';
     return { text: merged, stillTruncated };
   } catch (err) {
@@ -116,12 +115,17 @@ export async function generateAIReport(
   let lastError = '';
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const response = await client.messages.create({
+      // STREAMING — Anthropic SDK 10 dakikadan uzun isteklerde streaming zorunlu kılıyor
+      // Büyük raporlar (harmanlanmış, entegre) bu sınırı aşabiliyor.
+      // .stream() ile açıp finalMessage() ile tam mesajı topluyoruz.
+      const stream = client.messages.stream({
         model: CLAUDE_MODEL,
         max_tokens: maxTokens,
         temperature,
         messages: [{ role: 'user', content: prompt }],
       });
+
+      const response = await stream.finalMessage();
 
       const content = response.content[0];
       if (content.type !== 'text') {
@@ -140,7 +144,6 @@ export async function generateAIReport(
           finalText = continuation.text;
 
           if (continuation.stillTruncated) {
-            // Devam çağrısı da kesildi — kullanıcıya bildir ama mevcut metni dön
             console.warn('[claude] Continuation çağrısı da kesildi.');
             finalText += '\n\n---\n\n*ℹ️ **Not:** Rapor çok uzun olduğu için sisteme sığmayacak şekilde üretildi. Daha az test seçerek veya "Yenile" butonuyla yeniden deneyebilirsiniz.*';
           } else {
