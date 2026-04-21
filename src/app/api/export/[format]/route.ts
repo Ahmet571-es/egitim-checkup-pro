@@ -12,6 +12,12 @@ export async function GET(
     const testResultId = searchParams.get('test_result_id');
     const classId = searchParams.get('class_id');
     const reportType = searchParams.get('report_type') ?? 'AI Analiz Raporu';
+    // FAZ 2C: Infografik tema (ogretmen/ogrenci/ebeveyn). Varsayılan 'ogretmen'.
+    const audienceParam = searchParams.get('audience');
+    const audience: 'ogretmen' | 'ogrenci' | 'ebeveyn' =
+      audienceParam === 'ogrenci' || audienceParam === 'ebeveyn'
+        ? audienceParam
+        : 'ogretmen';
 
     const supabase = await createClient();
 
@@ -172,6 +178,7 @@ export async function GET(
       studentName: student?.full_name ?? 'Öğrenci',
       testName: testResult.test_type,
       reportType,
+      audience,
       generatedAt: testResult.ai_report_generated_at ?? undefined,
     };
 

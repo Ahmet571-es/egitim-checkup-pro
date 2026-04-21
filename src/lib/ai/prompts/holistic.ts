@@ -6,6 +6,7 @@
 import type { RiskResult } from '@/lib/services/riskScore';
 import type { PatternInsight } from '@/lib/services/correlation';
 import type { CareerMatchResult } from '@/lib/services/careerMatch';
+import { INFOGRAPHIC_INSTRUCTIONS } from './_infographic-instructions';
 
 interface HolisticPromptParams {
   studentName: string;
@@ -498,5 +499,6 @@ Kurallar:
 - Tabloyla **kesin yön vermiyoruz, seçenek sunuyoruz** imajını ver
 - Liste sonunda "öğrencinin kendi deneyimi önemli" vurgusu yap
 ` : ''}
-` : ''}`;
+` : ''}
+${INFOGRAPHIC_INSTRUCTIONS}`;
 }

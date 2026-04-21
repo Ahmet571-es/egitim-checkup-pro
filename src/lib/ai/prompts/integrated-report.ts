@@ -3,6 +3,8 @@
  * Orijinal Python: teacher_view.py → build_integrated_report_prompt()
  */
 
+import { INFOGRAPHIC_INSTRUCTIONS } from './_infographic-instructions';
+
 export type IntegratedReportType = 'ogretmen' | 'ogrenci' | 'ebeveyn';
 
 interface IntegratedReportParams {
@@ -142,7 +144,8 @@ Eğer birden fazla test çözülmüşse, testler arası şu bağlantıları kont
 - Holland + Çoklu Zekâ → kariyer yönlendirmesi sentezi
 Bu korelasyonları FİNAL SENTEZ bölümünde vurgula.
 
-Şimdi ${studentName} için ${aud.title} RAPORUNU yukarıdaki sıralama ve kurallara uygun olarak oluştur.`;
+Şimdi ${studentName} için ${aud.title} RAPORUNU yukarıdaki sıralama ve kurallara uygun olarak oluştur.
+${INFOGRAPHIC_INSTRUCTIONS}`;
 }
 
 

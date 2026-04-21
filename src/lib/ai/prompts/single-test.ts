@@ -4,6 +4,7 @@
  */
 
 import { getTestSpecificGuidance } from './test-specific';
+import { INFOGRAPHIC_INSTRUCTIONS } from './_infographic-instructions';
 
 interface SingleTestPromptParams {
   studentName: string;
@@ -238,5 +239,6 @@ ${testGuidance}
 
 *Bu rapor, EĞİTİM CHECK UP Pro psikometrik değerlendirme sistemi tarafından, yapay zeka destekli analiz altyapısıyla üretilmiştir. Bu rapor klinik tanı içermez.*
 
-*Dil: Türkçe. Üslup: Profesyonel, sıcak, yapıcı, dengeli ve gerçekçi.*`;
+*Dil: Türkçe. Üslup: Profesyonel, sıcak, yapıcı, dengeli ve gerçekçi.*
+${INFOGRAPHIC_INSTRUCTIONS}`;
 }

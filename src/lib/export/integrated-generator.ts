@@ -28,6 +28,46 @@ import {
   PageBreak,
 } from 'docx';
 
+// ── FAZ 2C: Infografik blok parser + render ──
+import { parseReport, type InfographicAudience } from '@/lib/report/infographic-blocks';
+import { infographicToPdf } from './pdf-generator';
+import { infographicToDocx } from './docx-generator';
+
+// ── FAZ 2C: Wrapper'lar — parser + blok render dispatch ──
+function markdownToPdfContent(
+  markdown: string,
+  accentColor: string,
+  audience: InfographicAudience = 'ogretmen'
+): Array<Record<string, unknown>> {
+  const segments = parseReport(markdown);
+  const out: Array<Record<string, unknown>> = [];
+  for (const seg of segments) {
+    if (seg.kind === 'text') {
+      out.push(...textSegmentToPdfContent(seg.text, accentColor));
+    } else {
+      out.push(infographicToPdf(seg.block, audience));
+    }
+  }
+  return out;
+}
+
+function markdownToDocxParagraphs(
+  markdown: string,
+  accentColor: string,
+  audience: InfographicAudience = 'ogretmen'
+): Array<Paragraph | Table> {
+  const segments = parseReport(markdown);
+  const out: Array<Paragraph | Table> = [];
+  for (const seg of segments) {
+    if (seg.kind === 'text') {
+      out.push(...textSegmentToDocxParagraphs(seg.text, accentColor));
+    } else {
+      out.push(...infographicToDocx(seg.block, audience));
+    }
+  }
+  return out;
+}
+
 export interface IntegratedExportMeta {
   studentName: string;
   generatedAt?: string;
@@ -40,6 +80,7 @@ interface ReportSection {
   icon: string;
   color: string; // hex
   text: string;
+  audience?: InfographicAudience;
 }
 
 // ── PDF ──
@@ -67,7 +108,7 @@ function getPrinter(): any {
 }
 
 // Markdown → pdfmake content (colored headers)
-function markdownToPdfContent(markdown: string, accentColor: string): Array<Record<string, unknown>> {
+function textSegmentToPdfContent(markdown: string, accentColor: string): Array<Record<string, unknown>> {
   const content: Array<Record<string, unknown>> = [];
   const lines = markdown.split('\n');
 
@@ -195,9 +236,9 @@ export function generateIntegratedPdf(
         : new Date().toLocaleDateString('tr-TR');
 
       const sections: ReportSection[] = [
-        { label: 'Öğretmen / Koç Raporu', icon: '👩‍🏫', color: '#0f2847', text: reports.ogretmen },
-        { label: 'Öğrenci Raporu', icon: '🎓', color: '#7c3aed', text: reports.ogrenci },
-        { label: 'Ebeveyn Raporu', icon: '👨‍👩‍👦', color: '#ec4899', text: reports.ebeveyn },
+        { label: 'Öğretmen / Koç Raporu', icon: '👩‍🏫', color: '#0f2847', audience: 'ogretmen' as const, text: reports.ogretmen },
+        { label: 'Öğrenci Raporu', icon: '🎓', color: '#7c3aed', audience: 'ogrenci' as const, text: reports.ogrenci },
+        { label: 'Ebeveyn Raporu', icon: '👨‍👩‍👦', color: '#ec4899', audience: 'ebeveyn' as const, text: reports.ebeveyn },
       ];
 
       // Build content array
@@ -282,7 +323,7 @@ export function generateIntegratedPdf(
             margin: [0, 0, 0, 15],
           },
           // Rapor içeriği
-          ...markdownToPdfContent(section.text, section.color),
+          ...markdownToPdfContent(section.text, section.color, section.audience),
         );
       }
 
@@ -360,7 +401,7 @@ export function generateIntegratedPdf(
 
 // ── DOCX ──
 
-function markdownToDocxParagraphs(markdown: string, accentColor: string): Paragraph[] {
+function textSegmentToDocxParagraphs(markdown: string, accentColor: string): Paragraph[] {
   const paragraphs: Paragraph[] = [];
   const lines = markdown.split('\n');
 
@@ -516,10 +557,10 @@ export async function generateIntegratedDocx(
   reports: { ogretmen: string; ogrenci: string; ebeveyn: string },
   meta: IntegratedExportMeta
 ): Promise<Buffer> {
-  const sections: { label: string; color: string; text: string }[] = [
-    { label: 'Öğretmen / Koç Raporu', color: '0F2847', text: reports.ogretmen },
-    { label: 'Öğrenci Raporu', color: '7C3AED', text: reports.ogrenci },
-    { label: 'Ebeveyn Raporu', color: 'EC4899', text: reports.ebeveyn },
+  const sections: { label: string; color: string; text: string; audience: InfographicAudience }[] = [
+    { label: 'Öğretmen / Koç Raporu', color: '0F2847', audience: 'ogretmen' as const, text: reports.ogretmen },
+    { label: 'Öğrenci Raporu', color: '7C3AED', audience: 'ogrenci' as const, text: reports.ogrenci },
+    { label: 'Ebeveyn Raporu', color: 'EC4899', audience: 'ebeveyn' as const, text: reports.ebeveyn },
   ];
 
   // Cover page children
@@ -568,7 +609,7 @@ export async function generateIntegratedDocx(
       }),
       new Paragraph({ text: '', spacing: { after: 200 } }),
       // Content
-      ...markdownToDocxParagraphs(section.text, `#${section.color}`),
+      ...markdownToDocxParagraphs(section.text, `#${section.color}`, section.audience),
     ],
   }));
 

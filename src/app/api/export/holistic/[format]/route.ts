@@ -19,6 +19,12 @@ export async function GET(
     const { format } = await params;
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    // FAZ 2C: Infografik tema
+    const audienceParam = searchParams.get('audience');
+    const audience: 'ogretmen' | 'ogrenci' | 'ebeveyn' =
+      audienceParam === 'ogrenci' || audienceParam === 'ebeveyn'
+        ? audienceParam
+        : 'ogretmen';
 
     if (!id) {
       return NextResponse.json({ error: 'id zorunludur.' }, { status: 400 });
@@ -86,6 +92,7 @@ export async function GET(
       studentName: student?.full_name ?? 'Öğrenci',
       testName: `Harmanlanmış Rapor (${hr.test_count} test)`,
       reportType: 'Bütüncül Çoklu Test Analizi',
+      audience,
       generatedAt: hr.generated_at ?? undefined,
     };
 

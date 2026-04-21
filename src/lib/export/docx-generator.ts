@@ -15,6 +15,20 @@ import {
   AlignmentType,
   ShadingType,
 } from 'docx';
+import {
+  parseReport,
+  AUDIENCE_PALETTES,
+  resolveStatColor,
+  resolveInsightColor,
+  insightLabel,
+  type InfographicBlock,
+  type InfographicAudience,
+  type StatBlock,
+  type RingBlock,
+  type InsightBlock,
+  type BarsBlock,
+  type GridBlock,
+} from '@/lib/report/infographic-blocks';
 
 export interface DocxMetadata {
   studentName: string;
@@ -22,10 +36,290 @@ export interface DocxMetadata {
   schoolName?: string;
   reportType?: string;
   generatedAt?: string;
+  /** FAZ 2C: infografik tema */
+  audience?: InfographicAudience;
 }
 
-// Markdown'ı docx paragraflarına dönüştür
-function markdownToDocx(markdown: string): Paragraph[] {
+// ─── FAZ 2C: DOCX için infografik blok renderları ────────────────────────────
+/** #rrggbb → RRGGBB (docx için hex format, # olmadan) */
+function hex(color: string): string {
+  return color.replace('#', '').toUpperCase();
+}
+
+function statToDocx(block: StatBlock, audience: InfographicAudience): Table {
+  const palette = AUDIENCE_PALETTES[audience];
+  const color = hex(resolveStatColor(palette, block.theme));
+  const value = block.value + (block.unit ? ' ' + block.unit : '');
+
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: {
+      top: { style: BorderStyle.SINGLE, size: 4, color },
+      bottom: { style: BorderStyle.SINGLE, size: 4, color },
+      left: { style: BorderStyle.SINGLE, size: 4, color },
+      right: { style: BorderStyle.SINGLE, size: 4, color },
+      insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+      insideVertical: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+    },
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({
+            shading: { type: ShadingType.CLEAR, color: 'auto', fill: 'F9FAFB' },
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: block.label.toUpperCase(),
+                    size: 16,
+                    bold: true,
+                    color: '6B7280',
+                  }),
+                ],
+                spacing: { before: 120, after: 60 },
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({ text: value, size: 44, bold: true, color }),
+                ],
+                spacing: { after: 120 },
+              }),
+            ],
+          }),
+        ],
+      }),
+    ],
+  });
+}
+
+function ringToDocx(block: RingBlock, audience: InfographicAudience): Paragraph[] {
+  const palette = AUDIENCE_PALETTES[audience];
+  const pct = Math.round((block.value / block.max) * 100);
+  const color = hex(pct >= 70 ? palette.success : pct >= 40 ? palette.primary : palette.warning);
+
+  // Visual progress: [████████░░░░] karakterleriyle
+  const filled = Math.round((pct / 100) * 20);
+  const bar = '█'.repeat(filled) + '░'.repeat(20 - filled);
+
+  return [
+    new Paragraph({
+      children: [
+        new TextRun({ text: block.label, bold: true, size: 22 }),
+        new TextRun({ text: '   ' + pct + '%  (' + block.value + '/' + block.max + ')', bold: true, color, size: 22 }),
+      ],
+      spacing: { before: 120, after: 60 },
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: bar, color, size: 22 })],
+      spacing: { after: 60 },
+    }),
+    ...(block.caption
+      ? [new Paragraph({
+          children: [new TextRun({ text: block.caption, italics: true, color: '6B7280', size: 18 })],
+          spacing: { after: 120 },
+        })]
+      : []),
+  ];
+}
+
+function insightToDocx(block: InsightBlock, audience: InfographicAudience): Table {
+  const palette = AUDIENCE_PALETTES[audience];
+  const color = hex(resolveInsightColor(palette, block.type));
+
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    columnWidths: [100, 8900],
+    borders: {
+      top: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+      bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+      left: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+      right: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+      insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+      insideVertical: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+    },
+    rows: [
+      new TableRow({
+        children: [
+          // Sol renkli şerit
+          new TableCell({
+            width: { size: 100, type: WidthType.DXA },
+            shading: { type: ShadingType.CLEAR, color: 'auto', fill: color },
+            children: [new Paragraph({ text: '' })],
+          }),
+          // İçerik
+          new TableCell({
+            shading: { type: ShadingType.CLEAR, color: 'auto', fill: 'FAFAFA' },
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: insightLabel(block.type).toUpperCase() + (block.title ? '  •  ' + block.title : ''),
+                    bold: true,
+                    color,
+                    size: 20,
+                  }),
+                ],
+                spacing: { before: 120, after: 60 },
+              }),
+              new Paragraph({
+                children: [new TextRun({ text: block.content, size: 20 })],
+                spacing: { after: 120 },
+              }),
+            ],
+          }),
+        ],
+      }),
+    ],
+  });
+}
+
+function barsToDocx(block: BarsBlock, audience: InfographicAudience): Array<Paragraph | Table> {
+  const palette = AUDIENCE_PALETTES[audience];
+  const colors = [palette.primary, palette.secondary, palette.accent, palette.info].map(hex);
+  const maxVal = Math.max(
+    ...block.items.map((i) => i.max ?? 100),
+    ...block.items.map((i) => i.value)
+  );
+
+  const out: Array<Paragraph | Table> = [];
+  if (block.title) {
+    out.push(
+      new Paragraph({
+        children: [new TextRun({ text: block.title, bold: true, size: 22 })],
+        spacing: { before: 120, after: 80 },
+      })
+    );
+  }
+
+  for (let i = 0; i < block.items.length; i++) {
+    const it = block.items[i];
+    const color = colors[i % colors.length];
+    const filled = Math.round((it.value / maxVal) * 20);
+    const bar = '█'.repeat(Math.max(1, filled)) + '░'.repeat(Math.max(0, 20 - filled));
+
+    out.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: it.label.padEnd(25, ' ').slice(0, 25), size: 20 }),
+          new TextRun({ text: '  ' + bar + '  ', color, size: 20 }),
+          new TextRun({ text: String(it.value), bold: true, size: 20 }),
+        ],
+        spacing: { after: 40 },
+      })
+    );
+  }
+  // Küçük alt boşluk
+  out.push(new Paragraph({ text: '', spacing: { after: 100 } }));
+  return out;
+}
+
+function gridToDocx(block: GridBlock, audience: InfographicAudience): Table {
+  const cols = block.cols;
+  const cellWidth = Math.floor(9000 / cols);
+
+  const rows: TableRow[] = [];
+  for (let i = 0; i < block.children.length; i += cols) {
+    const rowStats = block.children.slice(i, i + cols);
+    const cells: TableCell[] = [];
+    for (let c = 0; c < cols; c++) {
+      const stat = rowStats[c];
+      if (stat) {
+        const palette = AUDIENCE_PALETTES[audience];
+        const color = hex(resolveStatColor(palette, stat.theme));
+        const value = stat.value + (stat.unit ? ' ' + stat.unit : '');
+        cells.push(
+          new TableCell({
+            width: { size: cellWidth, type: WidthType.DXA },
+            shading: { type: ShadingType.CLEAR, color: 'auto', fill: 'F9FAFB' },
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 4, color },
+              bottom: { style: BorderStyle.SINGLE, size: 4, color },
+              left: { style: BorderStyle.SINGLE, size: 4, color },
+              right: { style: BorderStyle.SINGLE, size: 4, color },
+            },
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: stat.label.toUpperCase(),
+                    size: 14,
+                    bold: true,
+                    color: '6B7280',
+                  }),
+                ],
+                spacing: { before: 100, after: 40 },
+              }),
+              new Paragraph({
+                children: [new TextRun({ text: value, size: 32, bold: true, color })],
+                spacing: { after: 100 },
+              }),
+            ],
+          })
+        );
+      } else {
+        cells.push(
+          new TableCell({
+            width: { size: cellWidth, type: WidthType.DXA },
+            children: [new Paragraph({ text: '' })],
+            borders: {
+              top: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+              bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+              left: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+              right: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+            },
+          })
+        );
+      }
+    }
+    rows.push(new TableRow({ children: cells }));
+  }
+
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows,
+  });
+}
+
+function infographicToDocx(
+  block: InfographicBlock,
+  audience: InfographicAudience
+): Array<Paragraph | Table> {
+  switch (block.kind) {
+    case 'stat':
+      return [statToDocx(block, audience), new Paragraph({ text: '', spacing: { after: 100 } })];
+    case 'ring':
+      return ringToDocx(block, audience);
+    case 'insight':
+      return [insightToDocx(block, audience), new Paragraph({ text: '', spacing: { after: 100 } })];
+    case 'bars':
+      return barsToDocx(block, audience);
+    case 'grid':
+      return [gridToDocx(block, audience), new Paragraph({ text: '', spacing: { after: 100 } })];
+  }
+}
+
+/** FAZ 2C: integrated-generator vb. dış modüllerin blokları render etmesi için. */
+export { infographicToDocx };
+
+// Markdown'ı docx paragraflarına dönüştür (FAZ 2C: blok-aware)
+function markdownToDocx(
+  markdown: string,
+  audience: InfographicAudience = 'ogretmen'
+): Array<Paragraph | Table> {
+  const segments = parseReport(markdown);
+  const out: Array<Paragraph | Table> = [];
+  for (const seg of segments) {
+    if (seg.kind === 'block') {
+      out.push(...infographicToDocx(seg.block, audience));
+    } else {
+      out.push(...textSegmentToDocx(seg.text));
+    }
+  }
+  return out;
+}
+
+// Eski markdownToDocx — artık metin parçalarına uygulanıyor
+function textSegmentToDocx(markdown: string): Paragraph[] {
   const paragraphs: Paragraph[] = [];
   const lines = markdown.split('\n');
 
@@ -301,7 +595,7 @@ export async function generateReportDocx(reportText: string, meta: DocxMetadata)
           createInfoTable(meta),
           new Paragraph({ text: '', spacing: { after: 400 } }),
           // Rapor içeriği
-          ...markdownToDocx(reportText),
+          ...markdownToDocx(reportText, meta.audience ?? 'ogretmen'),
           // Alt not
           new Paragraph({
             children: [

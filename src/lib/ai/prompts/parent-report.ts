@@ -4,6 +4,8 @@
  * Empati dili ve umut verici kapanış
  */
 
+import { INFOGRAPHIC_INSTRUCTIONS } from './_infographic-instructions';
+
 interface ParentReportPromptParams {
   studentName: string;
   studentAge: number | string;
@@ -133,7 +135,8 @@ ${JSON.stringify(testDataList, null, 2)}
 
 ---
 
-*Bu rapor, Eğitim Check-Up Pro tarafından veliler için hazırlanmıştır. Klinik tanı içermez.*`;
+*Bu rapor, Eğitim Check-Up Pro tarafından veliler için hazırlanmıştır. Klinik tanı içermez.*
+${INFOGRAPHIC_INSTRUCTIONS}`;
 }
 
 /**

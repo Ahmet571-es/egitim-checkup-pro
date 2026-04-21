@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { parseReport, type InfographicAudience } from '@/lib/report/infographic-blocks';
+import InfographicBlockRenderer from '@/components/infographic/InfographicBlockRenderer';
 
 /**
  * Renkli, zengin AI rapor render bileşeni.
@@ -13,6 +15,10 @@ import React from 'react';
  * - Madde işaretlerini renkli ikonlarla
  * - Risk seviyesi (🔴 🟡 🟢) badge'leri
  * - Bold (**), italic (*), inline code (`)
+ *
+ * FAZ 2C — Infografik blokları (parseReport tarafından çıkartılır):
+ *   [!stat ...], [!ring ...], [!insight]...[/!insight],
+ *   [!bars]...[/!bars], [!grid cols="N"]...[/!grid]
  */
 
 type Block =
@@ -283,18 +289,41 @@ export default function ReportRenderer({
   text,
   scores,      // eski API uyumluluğu — şu an kullanılmıyor ama type compat
   testType,    // eski API uyumluluğu — şu an kullanılmıyor ama type compat
+  audience,    // FAZ 2C: infografik blokları için tema (ogretmen/ogrenci/ebeveyn)
 }: {
   text: string;
   scores?: Record<string, unknown>;
   testType?: string;
+  audience?: InfographicAudience;
 }) {
   // İleride scores/testType ile rapor başına grafik üretmek için opsiyonel
   void scores; void testType;
   if (!text || !text.trim()) return <p className="text-gray-400 dark:text-slate-500 italic">Rapor içeriği boş.</p>;
-  const blocks = parseBlocks(text);
+
+  // FAZ 2C: Önce infografik bloklarını ayır; metin parçaları eski parseBlocks
+  // ile işlenir, blok parçaları InfographicBlockRenderer ile render edilir.
+  const segments = parseReport(text);
+
   return (
     <div className="report-renderer">
-      {blocks.map((b, i) => <RenderBlock key={i} block={b} idx={i} />)}
+      {segments.map((seg, si) => {
+        if (seg.kind === 'block') {
+          return (
+            <InfographicBlockRenderer
+              key={`ig-${si}`}
+              block={seg.block}
+              audience={audience}
+            />
+          );
+        }
+        // Metin segmenti: eski parseBlocks ile işle
+        const blocks = parseBlocks(seg.text);
+        return (
+          <React.Fragment key={`tx-${si}`}>
+            {blocks.map((b, i) => <RenderBlock key={`${si}-${i}`} block={b} idx={i} />)}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 }
