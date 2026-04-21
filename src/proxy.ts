@@ -16,13 +16,14 @@ function generateCSRFToken(): string {
 }
 
 // Oturum gerektirmeyen public yollar
-const PUBLIC_PATHS = ['/', '/login', '/login/ogretmen', '/register', '/register/ogretmen', '/kvkk', '/pricing', '/forgot-password', '/yonetici'];
+const PUBLIC_PATHS = ['/', '/login', '/login/ogretmen', '/register', '/register/ogretmen', '/register/veli', '/kvkk', '/pricing', '/forgot-password', '/yonetici'];
 
 const ROLE_PREFIX_MAP: Record<string, UserRole> = {
   '/admin': 'admin',
   '/school': 'school_admin',
   '/teacher': 'teacher',
   '/student': 'student',
+  '/parent': 'parent',
 };
 
 const ROLE_HOME: Record<UserRole, string> = {
@@ -30,7 +31,7 @@ const ROLE_HOME: Record<UserRole, string> = {
   school_admin: '/school/dashboard',
   teacher: '/teacher/dashboard',
   student: '/student/dashboard',
-  parent: '/login',
+  parent: '/parent/dashboard',
 };
 
 export async function proxy(request: NextRequest) {

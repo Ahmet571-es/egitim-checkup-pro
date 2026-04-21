@@ -1,12 +1,18 @@
 /**
  * Veli Paneli E2E Testleri
- * TÜMÜ SKIP: /parent/* route henüz codebase'te yok (veli paneli inşa edilmemiş).
- * Parent panel inşa edildiğinde describe.skip → describe yapıp aktive et.
- * Eğitim Check-Up Pro — Faz 6
+ *
+ * FAZ 3B: /parent/* route'ları ve /register/veli inşa edildi.
+ *   - Access control testleri aktif (tüm /parent/* login redirect etmeli)
+ *   - /register/veli public — oturum gerektirmemeli
+ *
+ * Authenticated smoke test'ler (gerçek veli hesabı ile çocuk ekleme, rapor
+ * indirme vb.) ayrı bir file'da, manuel credential ile çalıştırılır.
+ *
+ * Eğitim Check-Up Pro — Faz 3B (Veli Paneli)
  */
 import { test, expect } from '@playwright/test';
 
-test.describe.skip('Veli Paneli — Erişim Kontrolleri', () => {
+test.describe('Veli Paneli — Erişim Kontrolleri (Anonim)', () => {
   test('Veli dashboard → giriş gerektirmeli', async ({ page }) => {
     await page.goto('/parent/dashboard');
     await page.waitForURL('**/login**', { timeout: 15_000 });
@@ -30,23 +36,45 @@ test.describe.skip('Veli Paneli — Erişim Kontrolleri', () => {
     await page.waitForURL('**/login**', { timeout: 15_000 });
     await expect(page).toHaveURL(/\/login/);
   });
-});
 
-test.describe.skip('Veli Paneli — URL Parametreleri', () => {
-  test('Sonuçlar sayfası ?child parametresi formatı', async ({ page }) => {
-    // Login'e yönlense de URL formatını test ediyoruz
-    const testChildId = '00000000-0000-0000-0000-000000000001';
-    await page.goto(`/parent/results?child=${testChildId}`);
-    const url = page.url();
-    // Ya login sayfasında ya da results sayfasında
-    expect(url).toMatch(/login|results/);
+  test('my-children auto_code param ile bile → giriş gerektirmeli', async ({ page }) => {
+    await page.goto('/parent/my-children?auto_code=ABC123');
+    await page.waitForURL('**/login**', { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/login/);
   });
 });
 
-test.describe.skip('Veli Paneli — Sidebar Navigasyonu', () => {
-  // Giriş yapılı durumda çalışır (gerçek Supabase bağlantısı gerekli)
-  test.skip('Sidebar nav item\'ları', async ({ page }) => {
-    // Bu test gerçek Supabase bağlantısı ile çalışır
-    // loginAs(page, 'parent') ile aktif edilebilir
+test.describe('Veli Kayıt — Public Erişim', () => {
+  test('/register/veli açılıyor (login redirect yok)', async ({ page }) => {
+    const res = await page.goto('/register/veli');
+    expect(res?.status()).toBe(200);
+    await expect(page).toHaveURL(/\/register\/veli/);
+    // Sayfa içeriği yüklendi mi? "Veli" kelimesi başlıkta veya formda olmalı
+    await expect(page.locator('body')).toContainText(/veli/i);
+  });
+
+  test('/register/veli formu alanları içeriyor', async ({ page }) => {
+    await page.goto('/register/veli');
+    // Input sayısı en az 5 olmalı (ad, soyad, email, şifre, kod)
+    const inputs = await page.locator('input').count();
+    expect(inputs).toBeGreaterThanOrEqual(5);
+  });
+});
+
+test.describe('Veli API — Yetkisiz Erişim', () => {
+  test('/api/parent/link-child anonim → 401 veya 403', async ({ request }) => {
+    const res = await request.post('/api/parent/link-child', {
+      data: { student_code: 'ABC123' },
+    });
+    // CSRF koruması 403 de dönebilir. Her ikisi de "yetkisiz" anlamında geçerli.
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('/api/parent/link-child geçersiz kod formatı → 400/401/403', async ({ request }) => {
+    const res = await request.post('/api/parent/link-child', {
+      data: { student_code: 'xyz' },
+    });
+    // Auth'suz: 401/403. Auth'lu olsaydı 400 beklerdik.
+    expect([400, 401, 403]).toContain(res.status());
   });
 });
