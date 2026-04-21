@@ -48,6 +48,13 @@ export async function POST(request: NextRequest) {
     if (callerProfile.role === 'student' && user.id !== student_id) {
       return NextResponse.json({ error: 'Yalnızca kendi raporunuzu üretebilirsiniz.' }, { status: 403 });
     }
+    // Veli AI rapor üretemez — maliyet ve scope.
+    if (callerProfile.role === 'parent') {
+      return NextResponse.json(
+        { error: 'Bu işlem veliler için kullanılabilir değil. Raporlar öğretmen/yönetici tarafından üretilir.' },
+        { status: 403 },
+      );
+    }
 
     // ── RATE LIMIT (dakikada max 3 istek) ──
     const rl = checkRateLimit(`generate:${user.id}`, 3, 60_000);

@@ -66,7 +66,6 @@ test.describe('Veli API — Yetkisiz Erişim', () => {
     const res = await request.post('/api/parent/link-child', {
       data: { student_code: 'ABC123' },
     });
-    // CSRF koruması 403 de dönebilir. Her ikisi de "yetkisiz" anlamında geçerli.
     expect([401, 403]).toContain(res.status());
   });
 
@@ -74,7 +73,6 @@ test.describe('Veli API — Yetkisiz Erişim', () => {
     const res = await request.post('/api/parent/link-child', {
       data: { student_code: 'xyz' },
     });
-    // Auth'suz: 401/403. Auth'lu olsaydı 400 beklerdik.
     expect([400, 401, 403]).toContain(res.status());
   });
 
@@ -85,6 +83,44 @@ test.describe('Veli API — Yetkisiz Erişim', () => {
 
   test('/api/export/pdf anonim → 401', async ({ request }) => {
     const res = await request.get('/api/export/pdf?test_result_id=00000000-0000-0000-0000-000000000000&audience=ebeveyn');
+    expect([401, 403]).toContain(res.status());
+  });
+});
+
+test.describe('Rapor API — Veli Yetki Koruması (Anonim)', () => {
+  // Bu testler anonim olarak çalışır; auth eksikse 401/403 beklenir.
+  // Auth'lu veli testleri parent-authed.spec.ts'e gider.
+
+  test('/api/reports/generate anonim → 401 veya 403', async ({ request }) => {
+    const res = await request.post('/api/reports/generate', {
+      data: { student_id: '00000000-0000-0000-0000-000000000000', report_type: 'holistic' },
+    });
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('/api/reports/holistic (list) anonim → 401 veya 403', async ({ request }) => {
+    const res = await request.post('/api/reports/holistic', {
+      data: { studentId: '00000000-0000-0000-0000-000000000000' },
+    });
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('/api/reports/holistic/[id] DELETE anonim → 401 veya 403', async ({ request }) => {
+    const res = await request.delete('/api/reports/holistic/00000000-0000-0000-0000-000000000000');
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('/api/reports/integrated POST anonim → 401 veya 403', async ({ request }) => {
+    const res = await request.post('/api/reports/integrated', {
+      data: { student_id: '00000000-0000-0000-0000-000000000000' },
+    });
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('/api/reports/integrated PUT anonim → 401 veya 403', async ({ request }) => {
+    const res = await request.put('/api/reports/integrated', {
+      data: { student_id: '00000000-0000-0000-0000-000000000000' },
+    });
     expect([401, 403]).toContain(res.status());
   });
 });

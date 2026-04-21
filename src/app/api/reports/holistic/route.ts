@@ -37,6 +37,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Yalnızca kendi raporlarınızı görebilirsiniz.' }, { status: 403 });
     }
 
+    // Veli: sadece kendi çocuklarının raporlarını görebilir
+    if (callerProfile.role === 'parent') {
+      const { data: link } = await admin
+        .from('parent_students')
+        .select('id')
+        .eq('parent_id', user.id)
+        .eq('student_id', studentId)
+        .maybeSingle();
+      if (!link) {
+        return NextResponse.json(
+          { error: 'Yalnızca kendi çocuğunuzun raporlarını görebilirsiniz.' },
+          { status: 403 },
+        );
+      }
+    }
+
     // Öğretmen/yönetici için okul bazlı kontrol
     if (callerProfile.role !== 'admin' && callerProfile.role !== 'student') {
       const { data: student } = await admin

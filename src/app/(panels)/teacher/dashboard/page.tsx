@@ -19,12 +19,13 @@ export default async function Page() {
 
   let studentCount = 0;
   let resultCount = 0;
+  let teacherId: string | null = null;
 
   try {
     // Giriş yapan öğretmenin id'si
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    const teacherId = user?.id;
+    teacherId = user?.id ?? null;
 
     if (teacherId) {
       const admin = createAdminClient();
@@ -56,6 +57,6 @@ export default async function Page() {
   }
 
   return (
-    <DashboardClient firstName={firstName} studentCount={studentCount} resultCount={resultCount} />
+    <DashboardClient firstName={firstName} studentCount={studentCount} resultCount={resultCount} teacherId={teacherId} />
   );
 }

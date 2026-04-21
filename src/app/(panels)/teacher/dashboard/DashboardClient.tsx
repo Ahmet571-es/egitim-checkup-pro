@@ -3,13 +3,15 @@
 import { Users, FileCheck2 } from 'lucide-react';
 import WelcomeBanner from '@/components/ui/WelcomeBanner';
 import TiltStatCard from '@/components/ui/TiltStatCard';
+import ParentNotes from '@/components/teacher/ParentNotes';
 
 export default function DashboardClient({
-  firstName, studentCount, resultCount,
+  firstName, studentCount, resultCount, teacherId,
 }: {
   firstName: string;
   studentCount: number;
   resultCount: number;
+  teacherId: string | null;
 }) {
   return (
     <div>
@@ -41,6 +43,13 @@ export default function DashboardClient({
           helperText="Toplam çözüm"
         />
       </div>
+
+      {/* Veli Notları — FAZ 3B: öğretmen dashboard'ında veli mesajları */}
+      {teacherId && (
+        <div className="mt-6">
+          <ParentNotes teacherId={teacherId} />
+        </div>
+      )}
     </div>
   );
 }

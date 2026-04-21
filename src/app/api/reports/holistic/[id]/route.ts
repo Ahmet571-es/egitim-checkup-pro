@@ -40,6 +40,10 @@ export async function DELETE(
     if (callerProfile.role === 'student') {
       return NextResponse.json({ error: 'Bu işlem için yetkiniz yok.' }, { status: 403 });
     }
+    // Veli rapor silemez (salt-okunur yetki)
+    if (callerProfile.role === 'parent') {
+      return NextResponse.json({ error: 'Bu işlem için yetkiniz yok.' }, { status: 403 });
+    }
 
     // Raporu çek ve okul kontrolü yap
     const { data: report, error: fetchErr } = await admin

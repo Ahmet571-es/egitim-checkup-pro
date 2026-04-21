@@ -50,6 +50,12 @@ export async function POST(request: NextRequest) {
     if (callerProfile.role === 'student' && user.id !== student_id) {
       return NextResponse.json({ error: 'Yetkisiz erişim.' }, { status: 403 });
     }
+    if (callerProfile.role === 'parent') {
+      return NextResponse.json(
+        { error: 'Bu işlem veliler için kullanılabilir değil.' },
+        { status: 403 },
+      );
+    }
 
     // ── RATE LIMIT (dakikada max 3 istek) ──
     const rl = checkRateLimit(`integrated:${user.id}`, 3, 60_000);
@@ -272,6 +278,12 @@ export async function PUT(request: NextRequest) {
     }
     if (callerProfile.role === 'student' && user.id !== student_id) {
       return NextResponse.json({ error: 'Yetkisiz erişim.' }, { status: 403 });
+    }
+    if (callerProfile.role === 'parent') {
+      return NextResponse.json(
+        { error: 'Bu işlem veliler için kullanılabilir değil.' },
+        { status: 403 },
+      );
     }
 
     // ── RATE LIMIT (dakikada max 3 istek) ──
