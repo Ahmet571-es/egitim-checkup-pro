@@ -2,13 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Heart, User, Lock, Mail, Key, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { User, Lock, Mail, Key, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import AuthLayout from '@/components/ui/AuthLayout';
 
 export default function VeliRegisterPage() {
-  const router = useRouter();
   const supabase = createClient();
   const [form, setForm] = useState({
     firstName: '',
@@ -81,6 +79,7 @@ export default function VeliRegisterPage() {
 
   return (
     <AuthLayout
+      role="parent"
       title="Veli Hesabı Oluştur"
       subtitle="Çocuğunuzun gelişimini takip etmek için kayıt olun"
     >

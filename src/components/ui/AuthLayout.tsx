@@ -9,11 +9,12 @@ import Link from 'next/link';
 import { GraduationCap, Sparkles } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-type AuthRole = 'student' | 'teacher';
+type AuthRole = 'student' | 'teacher' | 'parent';
 
 const GRADIENTS: Record<AuthRole, string> = {
   student: 'from-violet-500 via-purple-500 to-fuchsia-600',
   teacher: 'from-emerald-500 via-teal-500 to-cyan-600',
+  parent: 'from-pink-500 via-rose-500 to-fuchsia-500',
 };
 
 const AMBIENT: Record<AuthRole, { a: string; b: string }> = {
@@ -25,11 +26,16 @@ const AMBIENT: Record<AuthRole, { a: string; b: string }> = {
     a: 'from-emerald-200/40 to-teal-200/30',
     b: 'from-cyan-200/30 to-sky-200/20',
   },
+  parent: {
+    a: 'from-pink-200/40 to-rose-200/30',
+    b: 'from-fuchsia-200/30 to-pink-200/20',
+  },
 };
 
 const BADGES: Record<AuthRole, string> = {
   student: 'Öğrenci Girişi',
   teacher: 'Öğretmen Girişi',
+  parent: 'Veli Girişi',
 };
 
 interface AuthLayoutProps {
