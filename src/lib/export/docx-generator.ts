@@ -70,7 +70,7 @@ function statToDocx(block: StatBlock, audience: InfographicAudience): Table {
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: block.label.toUpperCase(),
+                    text: block.label.toLocaleUpperCase("tr-TR"),
                     size: 16,
                     bold: true,
                     color: '6B7280',
@@ -153,7 +153,7 @@ function insightToDocx(block: InsightBlock, audience: InfographicAudience): Tabl
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: insightLabel(block.type).toUpperCase() + (block.title ? '  •  ' + block.title : ''),
+                    text: insightLabel(block.type).toLocaleUpperCase("tr-TR") + (block.title ? '  •  ' + block.title : ''),
                     bold: true,
                     color,
                     size: 20,
@@ -241,7 +241,7 @@ function gridToDocx(block: GridBlock, audience: InfographicAudience): Table {
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: stat.label.toUpperCase(),
+                    text: stat.label.toLocaleUpperCase("tr-TR"),
                     size: 14,
                     bold: true,
                     color: '6B7280',

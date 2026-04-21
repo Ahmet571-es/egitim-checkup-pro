@@ -75,7 +75,7 @@ function statToPdf(block: StatBlock, audience: InfographicAudience): PdfContentN
       body: [[
         {
           stack: [
-            { text: block.label.toUpperCase(), fontSize: 8, color: '#6b7280', bold: true, margin: [0, 0, 0, 3] },
+            { text: block.label.toLocaleUpperCase("tr-TR"), fontSize: 8, color: '#6b7280', bold: true, margin: [0, 0, 0, 3] },
             { text: value, fontSize: 22, color, bold: true },
           ],
           fillColor: color + '0d',
@@ -140,7 +140,7 @@ function insightToPdf(block: InsightBlock, audience: InfographicAudience): PdfCo
             {
               columns: [
                 {
-                  text: insightLabel(block.type).toUpperCase(),
+                  text: insightLabel(block.type).toLocaleUpperCase("tr-TR"),
                   fontSize: 8,
                   color,
                   bold: true,
