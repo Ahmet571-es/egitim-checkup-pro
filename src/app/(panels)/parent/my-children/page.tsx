@@ -126,14 +126,22 @@ function MyChildrenContent() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase
+    const { data: deleted, error } = await supabase
       .from('parent_students')
       .delete()
       .eq('parent_id', user.id)
-      .eq('student_id', childId);
+      .eq('student_id', childId)
+      .select(); // etkilenen satırları geri al ki RLS silent-block'u yakalayabilelim
 
     if (error) {
       toast.error('Hata', error.message);
+      return;
+    }
+    if (!deleted || deleted.length === 0) {
+      // RLS silent-block olmuş olabilir (DELETE policy eksik) veya
+      // zaten başka bir tab'da silinmiş. Kullanıcıya dürüst mesaj:
+      toast.error('Bağ kaldırılamadı', 'Yetkilendirme hatası olabilir. Sayfayı yenileyip tekrar dene.');
+      load();
       return;
     }
     toast.success('Bağ kaldırıldı');

@@ -146,12 +146,20 @@ export default function LoginPage() {
       title="Giriş Yap"
       subtitle="E-posta/kullanıcı adı ve şifrenizle giriş yapın"
       footer={
-        <p className="text-[13px] text-gray-500">
-          Hesabınız yok mu?{' '}
-          <Link href="/register" className="text-violet-600 font-extrabold hover:text-violet-700 hover:underline transition">
-            Kayıt Olun →
-          </Link>
-        </p>
+        <div className="space-y-2 text-[13px] text-gray-500">
+          <p>
+            Hesabınız yok mu?{' '}
+            <Link href="/register" className="text-violet-600 font-extrabold hover:text-violet-700 hover:underline transition">
+              Öğrenci Kayıt →
+            </Link>
+          </p>
+          <p>
+            Veli misiniz?{' '}
+            <Link href="/register/veli" className="text-pink-600 font-extrabold hover:text-pink-700 hover:underline transition">
+              Veli Hesabı Oluştur →
+            </Link>
+          </p>
+        </div>
       }
     >
       {fromRegister && email && !error && (
