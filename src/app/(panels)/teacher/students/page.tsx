@@ -154,15 +154,197 @@ export default function StudentsPage() {
   const totalStudents = activeStudentCount + graduatedCount;
   const totalSchools = new Set([...Object.keys(active), ...Object.keys(graduated)]).size;
 
+  // ─── UNASSIGNED STUDENTS (FAZ 2B) ───
+  const [tab, setTab] = useState<'mine' | 'unassigned'>('mine');
+  const [unassignedList, setUnassignedList] = useState<Array<{
+    id: string;
+    full_name: string;
+    email: string;
+    grade: string | null;
+    is_graduated: boolean;
+  }>>([]);
+  const [unassignedLoading, setUnassignedLoading] = useState(false);
+  const [unassignedSearch, setUnassignedSearch] = useState('');
+  const [unassignedSearchDeb, setUnassignedSearchDeb] = useState('');
+  const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [unassignedError, setUnassignedError] = useState('');
+
+  // Unassigned arama debounce
+  useEffect(() => {
+    const t = setTimeout(() => setUnassignedSearchDeb(unassignedSearch), 300);
+    return () => clearTimeout(t);
+  }, [unassignedSearch]);
+
+  // Unassigned tab açıkken veri çek
+  useEffect(() => {
+    if (tab !== 'unassigned') return;
+    let cancelled = false;
+    (async () => {
+      setUnassignedLoading(true);
+      setUnassignedError('');
+      try {
+        const res = await secureFetch('/api/teacher/students', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'unassigned', search: unassignedSearchDeb }),
+        });
+        const data = await res.json();
+        if (cancelled) return;
+        if (!res.ok) {
+          setUnassignedError(data.error || 'Liste yüklenemedi.');
+        } else {
+          setUnassignedList(data.students || []);
+        }
+      } catch {
+        if (!cancelled) setUnassignedError('Bağlantı hatası.');
+      }
+      if (!cancelled) setUnassignedLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [tab, unassignedSearchDeb]);
+
+  // Öğrenciyi kendine al
+  const claimStudent = async (studentId: string, studentName: string) => {
+    if (!confirm(`"${studentName}" öğrencisini kendi öğrenci listenize almak istediğinizden emin misiniz?`)) return;
+    setClaimingId(studentId);
+    setUnassignedError('');
+    try {
+      const res = await secureFetch('/api/teacher/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'claim_student', student_id: studentId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setUnassignedError(data.error || 'İşlem başarısız.');
+        setClaimingId(null);
+        return;
+      }
+      // Listeden çıkar
+      setUnassignedList((prev) => prev.filter((s) => s.id !== studentId));
+      setClaimingId(null);
+    } catch {
+      setUnassignedError('Bağlantı hatası.');
+      setClaimingId(null);
+    }
+  };
+
   return (
     <div>
       <WelcomeBanner
         role="teacher"
         title="Öğrencilerim"
-        subtitle="Öğrenciler okul → sınıf → şube → ad-soyad sırasıyla otomatik gruplanır. Mezunlar ayrı bir klasörde listelenir."
+        subtitle="Atanmış öğrencileriniz sınıf bazında gruplanır. Atanmamış öğrencileri ikinci sekmeden kendinize alabilirsiniz."
         badge="Öğrenci Yönetimi"
         emoji="👥"
       />
+
+      {/* Sekme bar (FAZ 2B) */}
+      <div className="mb-5 flex items-center gap-2 bg-white/80 dark:bg-slate-800/60 backdrop-blur rounded-2xl border border-white/50 dark:border-slate-700/60 p-1.5 shadow-sm">
+        <button
+          onClick={() => setTab('mine')}
+          className={`flex-1 py-2.5 px-3 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-2 ${
+            tab === 'mine'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md'
+              : 'text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-700/50'
+          }`}
+        >
+          <Users className="w-4 h-4" /> Atanmış Öğrenciler
+        </button>
+        <button
+          onClick={() => setTab('unassigned')}
+          className={`flex-1 py-2.5 px-3 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-2 ${
+            tab === 'unassigned'
+              ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md'
+              : 'text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-700/50'
+          }`}
+        >
+          <Inbox className="w-4 h-4" /> Atanmamış Öğrenciler
+        </button>
+      </div>
+
+      {/* Atanmamış Öğrenciler sekmesi */}
+      {tab === 'unassigned' && (
+        <div>
+          <div className="mb-4 p-4 rounded-2xl bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 text-[13px] text-violet-800">
+            <p className="font-bold mb-1">Atanmamış öğrenciler</p>
+            <p className="text-[12px] text-violet-700">
+              Henüz hiçbir öğretmene atanmamış öğrencileri burada görürsünüz. İhtiyacınız olanları &ldquo;Bana Al&rdquo; butonuyla kendi listenize ekleyebilirsiniz.
+            </p>
+          </div>
+
+          {/* Arama */}
+          <div className="mb-4 relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              value={unassignedSearch}
+              onChange={(e) => setUnassignedSearch(e.target.value)}
+              placeholder="Öğrenci ara (ad-soyad veya email)..."
+              className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+            />
+          </div>
+
+          {unassignedError && (
+            <div className="mb-4 p-3.5 rounded-2xl bg-red-50 border border-red-200 flex items-center gap-2 text-sm text-red-700">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span className="font-medium">{unassignedError}</span>
+            </div>
+          )}
+
+          {unassignedLoading ? (
+            <CardGridSkeleton count={4} />
+          ) : unassignedList.length === 0 ? (
+            <div className="rounded-3xl bg-white dark:bg-slate-800/60 border border-gray-100 dark:border-slate-700/60 p-10 text-center">
+              <Inbox className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <h3 className="text-[15px] font-bold text-gray-700 dark:text-slate-200 mb-1">
+                {unassignedSearch ? 'Arama sonucu yok' : 'Atanmamış öğrenci yok'}
+              </h3>
+              <p className="text-[13px] text-gray-500 dark:text-slate-400">
+                {unassignedSearch ? 'Farklı bir arama deneyin.' : 'Tüm öğrenciler bir öğretmene atanmış durumda.'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {unassignedList.map((s) => (
+                <div key={s.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md shrink-0 text-white font-extrabold">
+                    {(s.full_name || '?').trim().charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-[14px] font-bold text-gray-800 truncate">
+                      {s.full_name || '(isim yok)'}
+                    </h3>
+                    <div className="text-[12px] text-gray-500 truncate">{s.email}</div>
+                    <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-400">
+                      {s.is_graduated ? (
+                        <span className="flex items-center gap-1 text-amber-600"><Award className="w-3 h-3" /> Mezun</span>
+                      ) : s.grade ? (
+                        <span>{s.grade}. sınıf</span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => claimStudent(s.id, s.full_name)}
+                    disabled={claimingId === s.id}
+                    className="px-3 py-2 rounded-lg text-[12px] font-bold bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 shrink-0"
+                  >
+                    {claimingId === s.id ? (
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <GraduationCap className="w-3.5 h-3.5" />
+                    )}
+                    Bana Al
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Atanmış Öğrenciler sekmesi (mevcut içerik) */}
+      {tab === 'mine' && <>
 
       {/* Premium Stats */}
       {!loading && (
@@ -543,6 +725,7 @@ export default function StudentsPage() {
           )}
         </div>
       )}
+      </>}
     </div>
   );
 }

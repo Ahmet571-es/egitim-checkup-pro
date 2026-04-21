@@ -252,6 +252,113 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // ─────────────────────────────────────────────────────────
+    // APPROVED_TEACHERS: Atama dropdown'u için onaylı öğretmen listesi
+    // ─────────────────────────────────────────────────────────
+    if (action === 'approved_teachers') {
+      const { data: teachers, error: tErr } = await admin
+        .from('profiles')
+        .select('id, full_name, branch, email')
+        .eq('role', 'teacher')
+        .eq('is_approved', true)
+        .order('full_name');
+
+      if (tErr) {
+        return NextResponse.json({ error: tErr.message }, { status: 500 });
+      }
+
+      return NextResponse.json({ teachers: teachers || [] });
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // BULK_ASSIGN: Toplu öğretmen atama (admin)
+    // Body: { student_ids: string[], teacher_id: string | null }
+    // teacher_id === null → atamayı kaldır
+    // ─────────────────────────────────────────────────────────
+    if (action === 'bulk_assign') {
+      const { student_ids, teacher_id } = body as {
+        student_ids: string[];
+        teacher_id: string | null;
+      };
+
+      if (!Array.isArray(student_ids) || student_ids.length === 0) {
+        return NextResponse.json(
+          { error: 'En az bir öğrenci seçmeniz gerekir.' },
+          { status: 400 }
+        );
+      }
+
+      // teacher_id null ise atamayı kaldır; değilse geçerli bir öğretmen olmalı
+      if (teacher_id !== null) {
+        const { data: teacher } = await admin
+          .from('profiles')
+          .select('id, role, is_approved')
+          .eq('id', teacher_id)
+          .maybeSingle();
+
+        if (!teacher || teacher.role !== 'teacher') {
+          return NextResponse.json(
+            { error: 'Geçerli bir öğretmen seçin.' },
+            { status: 400 }
+          );
+        }
+
+        if (!teacher.is_approved) {
+          return NextResponse.json(
+            { error: 'Onaylanmamış öğretmene öğrenci atanamaz.' },
+            { status: 400 }
+          );
+        }
+      }
+
+      // Öğrencilerin geçerli olduğunu doğrula (her biri student olmalı)
+      const { data: targetStudents } = await admin
+        .from('profiles')
+        .select('id, role, full_name')
+        .in('id', student_ids);
+
+      const validStudentIds = (targetStudents || [])
+        .filter((s) => s.role === 'student')
+        .map((s) => s.id);
+
+      // Batch metadata update — her öğrenci için mevcut metadata'yı oku, spread et
+      const updated: string[] = [];
+      const failed: { id: string; reason: string }[] = [];
+
+      for (const sid of validStudentIds) {
+        try {
+          const { data: authData } = await admin.auth.admin.getUserById(sid);
+          const currentMeta = authData?.user?.user_metadata || {};
+
+          const { error: updErr } = await admin.auth.admin.updateUserById(sid, {
+            user_metadata: {
+              ...currentMeta,
+              assigned_teacher_id: teacher_id, // null veya string
+            },
+          });
+
+          if (updErr) {
+            failed.push({ id: sid, reason: updErr.message });
+          } else {
+            updated.push(sid);
+          }
+        } catch (err) {
+          failed.push({
+            id: sid,
+            reason: err instanceof Error ? err.message : 'unknown',
+          });
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        updated_count: updated.length,
+        failed_count: failed.length,
+        failed,
+        action: teacher_id ? 'assigned' : 'unassigned',
+      });
+    }
+
     return NextResponse.json({ error: 'Geçersiz action.' }, { status: 400 });
   } catch (err) {
     console.error('[admin/users] unexpected error:', err);

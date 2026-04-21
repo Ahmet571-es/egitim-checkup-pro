@@ -534,6 +534,114 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ logs });
     }
 
+    // ═══ UNASSIGNED: Hiçbir öğretmene atanmamış öğrencilerin listesi ═══
+    // Her öğretmen kendi panelinden "Bana al" yapabilsin
+    if (action === 'unassigned') {
+      const { search } = body as { search?: string };
+
+      // Tüm öğrenciler
+      const { data: profiles } = await admin
+        .from('profiles')
+        .select('id, full_name, email, grade, is_graduated, created_at')
+        .eq('role', 'student')
+        .order('created_at', { ascending: false });
+
+      // Auth metadata ile assigned_teacher_id çek
+      const { data: { users: authUsers } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const metaMap = new Map<string, Record<string, unknown>>();
+      (authUsers || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
+
+      // Sadece ataması olmayan veya boş olanlar
+      let rows = (profiles || []).filter((p) => {
+        const meta = metaMap.get(p.id) || {};
+        const tid = (meta.assigned_teacher_id as string | undefined);
+        return !tid || tid.trim() === '';
+      }).map((p) => ({
+        id: p.id,
+        full_name: p.full_name || '',
+        email: p.email || '',
+        grade: p.grade || null,
+        is_graduated: !!p.is_graduated,
+        created_at: p.created_at,
+      }));
+
+      // Arama
+      if (search && search.trim()) {
+        const q = search.trim().toLowerCase();
+        rows = rows.filter(
+          (r) =>
+            r.full_name.toLowerCase().includes(q) ||
+            r.email.toLowerCase().includes(q)
+        );
+      }
+
+      return NextResponse.json({
+        students: rows,
+        total: rows.length,
+      });
+    }
+
+    // ═══ CLAIM: Öğretmen atanmamış bir öğrenciyi kendine atar ═══
+    if (action === 'claim_student') {
+      const { student_id } = body as { student_id: string };
+
+      if (!student_id) {
+        return NextResponse.json({ error: 'student_id zorunlu' }, { status: 400 });
+      }
+
+      // Öğretmen onaylı mı kontrol et
+      const { data: teacherProfile } = await admin
+        .from('profiles')
+        .select('is_approved')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!teacherProfile?.is_approved) {
+        return NextResponse.json(
+          { error: 'Onaylanmamış öğretmenler öğrenci alamaz.' },
+          { status: 403 }
+        );
+      }
+
+      // Öğrenci geçerli mi + atamasız mı
+      const { data: studentProfile } = await admin
+        .from('profiles')
+        .select('id, role, full_name')
+        .eq('id', student_id)
+        .maybeSingle();
+
+      if (!studentProfile || studentProfile.role !== 'student') {
+        return NextResponse.json({ error: 'Öğrenci bulunamadı.' }, { status: 404 });
+      }
+
+      // Mevcut atama kontrolü
+      const { data: authStudent } = await admin.auth.admin.getUserById(student_id);
+      const currentMeta = (authStudent?.user?.user_metadata || {}) as Record<string, unknown>;
+      const existingTeacher = currentMeta.assigned_teacher_id as string | undefined;
+
+      if (existingTeacher && existingTeacher.trim() !== '' && existingTeacher !== user.id) {
+        return NextResponse.json(
+          { error: 'Bu öğrenci başka bir öğretmene atanmış. Yönetici aracılığıyla transfer gereklidir.' },
+          { status: 409 }
+        );
+      }
+
+      // Atamayı yap
+      const { error: updErr } = await admin.auth.admin.updateUserById(student_id, {
+        user_metadata: { ...currentMeta, assigned_teacher_id: user.id },
+      });
+
+      if (updErr) {
+        return NextResponse.json({ error: updErr.message }, { status: 500 });
+      }
+
+      return NextResponse.json({
+        success: true,
+        student_id,
+        student_name: studentProfile.full_name,
+      });
+    }
+
     return NextResponse.json({ error: 'Geçersiz action' }, { status: 400 });
   } catch (err) {
     console.error('[teacher/students API]', err);
