@@ -51,13 +51,16 @@ export async function POST(request: Request) {
     });
 
     if (!result.success) {
-      console.warn('[send-code] email failed:', result.error);
-      // E-posta servisi yoksa kodu doğrudan döndür (test modu)
-      return NextResponse.json({
-        success: true,
-        message: 'E-posta servisi aktif değil. Kod ekranda gösteriliyor.',
-        fallback_code: code,
-      });
+      // Güvenlik: kodu response'ta ASLA döndürme. Sadece server log'a yaz.
+      // (KVKK + yetkisiz kayıt önleme: herkese açık endpoint herhangi bir email için kod veremez.)
+      console.warn('[send-code] email failed for %s: %s', email.toLowerCase().trim(), result.error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'E-posta servisi geçici olarak kullanılamıyor. Lütfen daha sonra tekrar deneyin.',
+        },
+        { status: 503 }
+      );
     }
 
     return NextResponse.json({ success: true, message: 'Doğrulama kodu e-posta adresinize gönderildi.' });

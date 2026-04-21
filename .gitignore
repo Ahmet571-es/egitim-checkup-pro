@@ -66,3 +66,4 @@ CLAUDE.md
 DEPLOY_ALL.ps1
 SUPABASE_SQL_FIXES.sql
 ALL_MIGRATIONS_*.sql
+test-results/
