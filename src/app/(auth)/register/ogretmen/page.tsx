@@ -143,13 +143,7 @@ export default function TeacherRegisterPage() {
     try {
       const supabase = createClient();
       const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`;
-
-      // Türkçe karakter dönüşümü
-      const trMap: Record<string, string> = { 'ç':'c','Ç':'c','ğ':'g','Ğ':'g','ı':'i','İ':'i','ö':'o','Ö':'o','ş':'s','Ş':'s','ü':'u','Ü':'u' };
-      const toAscii = (s: string) => s.replace(/[çÇğĞıİöÖşŞüÜ]/g, c => trMap[c] || c);
-      const ad = toAscii(form.firstName.trim().toLowerCase()).replace(/[^a-z]/g, '');
-      const soyad = toAscii(form.lastName.trim().toLowerCase()).replace(/[^a-z]/g, '');
-      const authEmail = `${ad}_${soyad}@ogretmen.egitimcheckup.com`;
+      const authEmail = form.email.trim().toLowerCase();
 
       const { error: authError } = await supabase.auth.signUp({
         email: authEmail,
@@ -161,7 +155,7 @@ export default function TeacherRegisterPage() {
             branch: form.branch,
             school_name: form.schoolName.trim(),
             phone: form.phone.replace(/\D/g, ''),
-            real_email: form.email.trim().toLowerCase(),
+            real_email: authEmail,
             is_approved: false,
           },
         },
@@ -181,10 +175,9 @@ export default function TeacherRegisterPage() {
       // Oturumu kapat (onay bekleyecek)
       await supabase.auth.signOut();
 
-      // Giriş bilgilerini localStorage'a kaydet
+      // Giriş bilgilerini localStorage'a kaydet (login sayfasında otomatik doldurulsun)
       if (typeof window !== 'undefined') {
-        const username = `${form.firstName.trim().toLowerCase()}_${form.lastName.trim().toLowerCase()}`;
-        localStorage.setItem('ecup_username', username);
+        localStorage.setItem('ecup_teacher_email', authEmail);
       }
 
       setStep(4);

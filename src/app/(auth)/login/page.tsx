@@ -3,17 +3,17 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AtSign, Lock, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_PATHS } from '@/types';
 import type { UserRole } from '@/types';
 import AuthLayout from '@/components/ui/AuthLayout';
 
-const STORAGE_KEY_USERNAME = 'ecup_username';
+const STORAGE_KEY_EMAIL = 'ecup_email';
 const STORAGE_KEY_REMEMBER = 'ecup_remember';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -26,28 +26,28 @@ export default function LoginPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const oldStored = localStorage.getItem(STORAGE_KEY_USERNAME);
     const savedRemember = localStorage.getItem(STORAGE_KEY_REMEMBER);
+    const oldStored = localStorage.getItem(STORAGE_KEY_EMAIL);
     if (savedRemember === 'true' && oldStored) {
-      setUsername(oldStored);
+      setEmail(oldStored);
       setRememberMe(true);
     } else if (oldStored) {
-      localStorage.removeItem(STORAGE_KEY_USERNAME);
+      localStorage.removeItem(STORAGE_KEY_EMAIL);
     }
 
-    const regUsername = localStorage.getItem('ecup_just_registered');
-    if (regUsername) {
-      setUsername(regUsername);
+    const regEmail = localStorage.getItem('ecup_just_registered_email');
+    if (regEmail) {
+      setEmail(regEmail);
       setFromRegister(true);
-      localStorage.removeItem('ecup_just_registered');
+      localStorage.removeItem('ecup_just_registered_email');
     }
   }, []);
 
-  const handleUsernameChange = (val: string) => {
-    const clean = val.toLowerCase().replace(/\s/g, '');
-    setUsername(clean);
+  const handleEmailChange = (val: string) => {
+    const clean = val.trim().toLowerCase();
+    setEmail(clean);
     if (rememberMe && typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY_USERNAME, clean);
+      localStorage.setItem(STORAGE_KEY_EMAIL, clean);
     }
   };
 
@@ -56,16 +56,11 @@ export default function LoginPage() {
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEY_REMEMBER, String(checked));
       if (checked) {
-        localStorage.setItem(STORAGE_KEY_USERNAME, username);
+        localStorage.setItem(STORAGE_KEY_EMAIL, email);
       } else {
-        localStorage.removeItem(STORAGE_KEY_USERNAME);
+        localStorage.removeItem(STORAGE_KEY_EMAIL);
       }
     }
-  };
-
-  const usernameToEmail = (val: string) => {
-    const clean = val.trim().toLowerCase().replace(/\s/g, '');
-    return `${clean}@ogrenci.egitimcheckup.com`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,14 +68,13 @@ export default function LoginPage() {
     if (submittingRef.current) return;
     submittingRef.current = true;
 
-    if (password.trim().length < 6) {
-      setError('Şifre en az 6 karakter olmalı (boşluklar sayılmaz).');
+    if (!email.trim() || !email.includes('@')) {
+      setError('Geçerli bir e-posta adresi girin.');
       submittingRef.current = false;
       return;
     }
-
-    if (!username.trim()) {
-      setError('Kullanıcı adı girin.');
+    if (password.trim().length < 6) {
+      setError('Şifre en az 6 karakter olmalı.');
       submittingRef.current = false;
       return;
     }
@@ -91,13 +85,15 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient();
-      const email = usernameToEmail(username);
-      const { error: authError, data } = await supabase.auth.signInWithPassword({ email, password });
+      const { error: authError, data } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
 
       if (authError) {
         setError(
           authError.message === 'Invalid login credentials'
-            ? 'Kullanıcı adı veya şifre hatalı.'
+            ? 'E-posta veya şifre hatalı.'
             : authError.message
         );
         setLoading(false);
@@ -106,7 +102,7 @@ export default function LoginPage() {
       }
 
       if (typeof window !== 'undefined' && rememberMe) {
-        localStorage.setItem(STORAGE_KEY_USERNAME, username);
+        localStorage.setItem(STORAGE_KEY_EMAIL, email.trim().toLowerCase());
       }
 
       let role: UserRole | undefined = data.user?.user_metadata?.role as UserRole | undefined;
@@ -141,7 +137,7 @@ export default function LoginPage() {
     <AuthLayout
       role="student"
       title="Giriş Yap"
-      subtitle="Kullanıcı adınız ve şifrenizle giriş yapın"
+      subtitle="E-postanız ve şifrenizle giriş yapın"
       footer={
         <p className="text-[13px] text-gray-500">
           Hesabınız yok mu?{' '}
@@ -151,7 +147,7 @@ export default function LoginPage() {
         </p>
       }
     >
-      {fromRegister && username && !error && (
+      {fromRegister && email && !error && (
         <div className="mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex items-center gap-2 text-sm text-emerald-700">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span className="font-medium">Kayıt başarılı! Şifrenizi girerek giriş yapabilirsiniz.</span>
@@ -170,21 +166,21 @@ export default function LoginPage() {
         <input type="password" name="prevent_autofill_pass" style={{ display: 'none' }} tabIndex={-1} />
 
         <div>
-          <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Kullanıcı Adı</label>
+          <label className="block text-[13px] font-bold text-gray-700 mb-1.5">E-posta Adresi</label>
           <div className="relative group">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md shrink-0 pointer-events-none">
-              <AtSign className="w-4 h-4 text-white" />
+              <Mail className="w-4 h-4 text-white" />
             </div>
             <input
-              type="text"
-              value={username}
-              onChange={(e) => handleUsernameChange(e.target.value)}
-              placeholder="ad_soyad_XXXX"
+              type="email"
+              value={email}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              placeholder="ornek@email.com"
               maxLength={100}
               name="ecup_user_login"
               className="w-full pl-14 pr-4 py-3.5 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
               required
-              autoComplete="nope"
+              autoComplete="email"
             />
           </div>
         </div>
@@ -204,7 +200,7 @@ export default function LoginPage() {
               name="ecup_pass_login"
               className="w-full pl-14 pr-12 py-3.5 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
               required
-              autoComplete="new-password"
+              autoComplete="current-password"
             />
             <button
               type="button"
@@ -224,7 +220,7 @@ export default function LoginPage() {
             onChange={(e) => handleRememberChange(e.target.checked)}
             className="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
           />
-          <span className="text-[13px] text-gray-600 font-medium group-hover:text-gray-800 transition">Kullanıcı adımı hatırla</span>
+          <span className="text-[13px] text-gray-600 font-medium group-hover:text-gray-800 transition">E-postamı hatırla</span>
         </label>
 
         <button

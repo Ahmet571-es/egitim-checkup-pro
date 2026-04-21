@@ -3,22 +3,20 @@
 import { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { User, Lock, ArrowRight, AlertCircle, Eye, EyeOff, Clock } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff, Clock } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_PATHS } from '@/types';
 import type { UserRole } from '@/types';
 import AuthLayout from '@/components/ui/AuthLayout';
 
-function toAscii(s: string): string {
-  const map: Record<string, string> = { 'ç':'c','Ç':'c','ğ':'g','Ğ':'g','ı':'i','İ':'i','ö':'o','Ö':'o','ş':'s','Ş':'s','ü':'u','Ü':'u' };
-  return s.replace(/[çÇğĞıİöÖşŞüÜ]/g, c => map[c] || c);
-}
+const STORAGE_KEY_EMAIL = 'ecup_teacher_email';
+const STORAGE_KEY_REMEMBER = 'ecup_teacher_remember';
 
 function TeacherLoginInner() {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [pendingMsg, setPendingMsg] = useState(false);
@@ -26,18 +24,52 @@ function TeacherLoginInner() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // Onay bekliyor query param'ı (register'dan yönlendirme)
     if (searchParams.get('pending') === '1') {
       setPendingMsg(true);
     }
+
+    // Kayıt sonrası otomatik doldurulan email (tek seferlik)
+    const justRegistered = localStorage.getItem('ecup_teacher_email');
+    const savedRemember = localStorage.getItem(STORAGE_KEY_REMEMBER);
+
+    if (justRegistered) {
+      setEmail(justRegistered);
+      localStorage.removeItem('ecup_teacher_email');
+    }
+
+    if (savedRemember === 'true') {
+      setRememberMe(true);
+      const savedEmail = localStorage.getItem(STORAGE_KEY_EMAIL);
+      if (savedEmail && !justRegistered) setEmail(savedEmail);
+    }
   }, [searchParams]);
+
+  const handleEmailChange = (val: string) => {
+    setEmail(val.trim().toLowerCase());
+  };
+
+  const handleRememberChange = (checked: boolean) => {
+    setRememberMe(checked);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY_REMEMBER, String(checked));
+      if (checked) {
+        localStorage.setItem(STORAGE_KEY_EMAIL, email);
+      } else {
+        localStorage.removeItem(STORAGE_KEY_EMAIL);
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submittingRef.current) return;
     submittingRef.current = true;
 
-    if (!firstName.trim() || !lastName.trim()) {
-      setError('Ad ve soyad alanlarını doldurun.');
+    if (!email.trim() || !email.includes('@')) {
+      setError('Geçerli bir e-posta adresi girin.');
       submittingRef.current = false;
       return;
     }
@@ -53,19 +85,16 @@ function TeacherLoginInner() {
 
     try {
       const supabase = createClient();
-      const ad = toAscii(firstName.trim().toLowerCase()).replace(/[^a-z]/g, '');
-      const soyad = toAscii(lastName.trim().toLowerCase()).replace(/[^a-z]/g, '');
-      const authEmail = `${ad}_${soyad}@ogretmen.egitimcheckup.com`;
 
       const { error: authError, data } = await supabase.auth.signInWithPassword({
-        email: authEmail,
+        email: email.trim().toLowerCase(),
         password,
       });
 
       if (authError) {
         setError(
           authError.message === 'Invalid login credentials'
-            ? 'Ad-soyad veya şifre hatalı.'
+            ? 'E-posta veya şifre hatalı.'
             : authError.message
         );
         setLoading(false);
@@ -81,6 +110,10 @@ function TeacherLoginInner() {
         setLoading(false);
         submittingRef.current = false;
         return;
+      }
+
+      if (typeof window !== 'undefined' && rememberMe) {
+        localStorage.setItem(STORAGE_KEY_EMAIL, email.trim().toLowerCase());
       }
 
       let role: UserRole | undefined = data.user?.user_metadata?.role as UserRole | undefined;
@@ -107,7 +140,7 @@ function TeacherLoginInner() {
     <AuthLayout
       role="teacher"
       title="Öğretmen Girişi"
-      subtitle="Ad-Soyad ve 7 haneli şifrenizle giriş yapın"
+      subtitle="E-posta ve 7 haneli şifrenizle giriş yapın"
       footer={
         <p className="text-[13px] text-gray-500">
           Hesabınız yok mu?{' '}
@@ -138,34 +171,20 @@ function TeacherLoginInner() {
         <input type="text" name="prevent_autofill" style={{ display: 'none' }} tabIndex={-1} />
         <input type="password" name="prevent_autofill_pw" style={{ display: 'none' }} tabIndex={-1} />
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Ad</label>
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md pointer-events-none">
-                <User className="w-4 h-4 text-white" />
-              </div>
-              <input
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Adınız"
-                className="w-full pl-14 pr-3 py-3.5 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
-                required
-                autoComplete="nope"
-              />
+        <div>
+          <label className="block text-[13px] font-bold text-gray-700 mb-1.5">E-posta Adresi</label>
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md pointer-events-none">
+              <Mail className="w-4 h-4 text-white" />
             </div>
-          </div>
-          <div>
-            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Soyad</label>
             <input
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Soyadınız"
-              className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
+              type="email"
+              value={email}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              placeholder="ornek@email.com"
+              className="w-full pl-14 pr-3 py-3.5 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
               required
-              autoComplete="nope"
+              autoComplete="email"
             />
           </div>
         </div>
@@ -186,7 +205,7 @@ function TeacherLoginInner() {
               maxLength={7}
               className="w-full pl-14 pr-12 py-3.5 rounded-xl border border-gray-200 bg-white text-sm font-mono font-bold tracking-wider focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
               required
-              autoComplete="new-password"
+              autoComplete="current-password"
             />
             <button
               type="button"
@@ -202,6 +221,16 @@ function TeacherLoginInner() {
             Kayıt olurken belirlediğiniz 7 haneli şifre
           </p>
         </div>
+
+        <label className="flex items-center gap-2.5 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => handleRememberChange(e.target.checked)}
+            className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+          />
+          <span className="text-[13px] text-gray-600 font-medium group-hover:text-gray-800 transition">E-postamı hatırla</span>
+        </label>
 
         <button
           type="submit"
