@@ -51,11 +51,20 @@ export async function loginAs(page: Page, role: keyof typeof TEST_USERS): Promis
   if (!user) throw new Error(`Bilinmeyen rol: ${role}`);
 
   await page.goto('/login');
-  await page.waitForSelector('input[type="email"]', { timeout: 10_000 });
 
-  await page.fill('input[type="email"]', user.email);
-  await page.fill('input[type="password"]', user.password);
-  await page.click('button[type="submit"]');
+  // KVKK cookie consent (varsa) kabul et
+  const consent = page.locator('button:has-text("Kabul Et")').first();
+  if (await consent.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    await consent.click();
+    await page.waitForTimeout(300);
+  }
+
+  // Login formu autofill-prevention için type="text" kullanıyor
+  // Gerçek input'lar: name="ecup_user_login" ve name="ecup_pass_login"
+  await page.waitForSelector('input[name="ecup_user_login"]', { timeout: 10_000 });
+  await page.fill('input[name="ecup_user_login"]', user.email);
+  await page.fill('input[name="ecup_pass_login"]', user.password);
+  await page.click('button[type="submit"]:has-text("Giriş")');
 
   // Dashboard'a yönlenme bekle
   await page.waitForURL(`**${user.path}**`, { timeout: 15_000 });
