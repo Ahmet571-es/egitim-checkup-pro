@@ -44,6 +44,43 @@ export async function GET(
       }
     }
 
+    // Veli: sadece kendi çocuklarının verisini export edebilir.
+    // studentId VEYA testResultId üzerinden parent_students doğrulaması yapılır.
+    if (callerProfile.role === 'parent') {
+      if (classId) {
+        return NextResponse.json({ error: 'Sınıf bazlı dışa aktarım yetkiniz yok.' }, { status: 403 });
+      }
+
+      // Doğrulanacak çocuk kimliğini belirle
+      let targetStudentId: string | null = studentId;
+      if (!targetStudentId && testResultId) {
+        const { data: tr } = await supabase
+          .from('test_results')
+          .select('student_id')
+          .eq('id', testResultId)
+          .maybeSingle();
+        targetStudentId = tr?.student_id ?? null;
+      }
+
+      if (!targetStudentId) {
+        return NextResponse.json({ error: 'Hedef öğrenci belirlenemedi.' }, { status: 400 });
+      }
+
+      const { data: link } = await supabase
+        .from('parent_students')
+        .select('id')
+        .eq('parent_id', user.id)
+        .eq('student_id', targetStudentId)
+        .maybeSingle();
+
+      if (!link) {
+        return NextResponse.json(
+          { error: 'Yalnızca kendi çocuğunuzun verilerini dışa aktarabilirsiniz.' },
+          { status: 403 },
+        );
+      }
+    }
+
     // Öğretmen/school_admin: sınıfın kendi okuluna ait olduğunu doğrula
     if (classId && callerProfile.school_id && ['teacher', 'school_admin'].includes(callerProfile.role)) {
       const { data: classCheck } = await supabase

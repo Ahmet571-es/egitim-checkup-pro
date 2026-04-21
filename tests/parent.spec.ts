@@ -77,4 +77,14 @@ test.describe('Veli API — Yetkisiz Erişim', () => {
     // Auth'suz: 401/403. Auth'lu olsaydı 400 beklerdik.
     expect([400, 401, 403]).toContain(res.status());
   });
+
+  test('/api/export/holistic/pdf anonim → 401', async ({ request }) => {
+    const res = await request.get('/api/export/holistic/pdf?id=00000000-0000-0000-0000-000000000000&audience=ebeveyn');
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('/api/export/pdf anonim → 401', async ({ request }) => {
+    const res = await request.get('/api/export/pdf?test_result_id=00000000-0000-0000-0000-000000000000&audience=ebeveyn');
+    expect([401, 403]).toContain(res.status());
+  });
 });

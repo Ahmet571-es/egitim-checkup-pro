@@ -83,7 +83,9 @@ function ResultsContent() {
 
   const downloadReport = async (resultId: string, format: 'pdf' | 'docx') => {
     try {
-      const res = await fetch(`/api/export/holistic/${format}?result_id=${resultId}&audience=ebeveyn`);
+      // Generic export endpoint: test_result_id per single test result.
+      // audience=ebeveyn → PDF/Word'da ebeveyn-friendly infografik teması.
+      const res = await fetch(`/api/export/${format}?test_result_id=${resultId}&audience=ebeveyn`);
       if (!res.ok) {
         const data = await res.json().catch(() => ({ error: 'Rapor indirilemedi.' }));
         toast.error('İndirme başarısız', data.error || 'Bilinmeyen hata.');

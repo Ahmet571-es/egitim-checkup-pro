@@ -69,6 +69,21 @@ export async function GET(
       if (hr.student_id !== user.id) {
         return NextResponse.json({ error: 'Yalnızca kendi raporlarınızı indirebilirsiniz.' }, { status: 403 });
       }
+    } else if (callerProfile.role === 'parent') {
+      // Veli: sadece kendi çocuklarının raporunu indirebilir.
+      // parent_students üzerinden doğrulama.
+      const { data: link } = await admin
+        .from('parent_students')
+        .select('id')
+        .eq('parent_id', user.id)
+        .eq('student_id', hr.student_id)
+        .maybeSingle();
+      if (!link) {
+        return NextResponse.json(
+          { error: 'Yalnızca kendi çocuğunuzun raporlarını indirebilirsiniz.' },
+          { status: 403 },
+        );
+      }
     } else {
       // Öğretmen/yönetici: cross-school
       if (callerProfile.role !== 'admin' && callerProfile.school_id && hr.school_id && hr.school_id !== callerProfile.school_id) {
