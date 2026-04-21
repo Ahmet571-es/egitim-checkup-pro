@@ -8,17 +8,17 @@ import { loginAs, TEST_USERS } from './helpers/auth';
 test.describe('Auth — Giriş Sayfası', () => {
   test('Giriş sayfası render edilmeli', async ({ page }) => {
     await page.goto('/login');
-    await expect(page.locator('input[type="email"]')).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('input[type="password"]')).toBeVisible();
+    await expect(page.locator('input[name="ecup_user_login"]')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('input[name="ecup_pass_login"]')).toBeVisible();
     await expect(page.locator('button[type="submit"]')).toBeVisible();
   });
 
   test('Hatalı giriş → hata mesajı göstermeli', async ({ page }) => {
     await page.goto('/login');
-    await page.waitForSelector('input[type="email"]', { timeout: 10_000 });
+    await page.waitForSelector('input[name="ecup_user_login"]', { timeout: 10_000 });
 
-    await page.fill('input[type="email"]', 'yanlis@email.com');
-    await page.fill('input[type="password"]', 'yanlisSifre123');
+    await page.fill('input[name="ecup_user_login"]', 'yanlis@email.com');
+    await page.fill('input[name="ecup_pass_login"]', 'yanlisSifre123');
     await page.click('button[type="submit"]');
 
     // Hata mesajı bekliyoruz — birden fazla olası selector
@@ -33,7 +33,7 @@ test.describe('Auth — Giriş Sayfası', () => {
     await page.goto('/register');
     await page.waitForLoadState('networkidle');
 
-    const emailInput = page.locator('input[type="email"]');
+    const emailInput = page.locator('input[name="ecup_user_login"]');
     await expect(emailInput).toBeVisible({ timeout: 10_000 });
   });
 
@@ -43,7 +43,7 @@ test.describe('Auth — Giriş Sayfası', () => {
     await page.click('button[type="submit"]');
 
     // HTML5 form validasyonu veya hata mesajı
-    const emailInput = page.locator('input[type="email"]');
+    const emailInput = page.locator('input[name="ecup_user_login"]');
     const isValid = await emailInput.evaluate((el: HTMLInputElement) => el.validity.valid);
     expect(isValid).toBe(false);
   });
@@ -62,7 +62,7 @@ test.describe('Auth — Öğrenci Girişi', () => {
   test('Öğrenci girişi yönlendirme', async ({ page }) => {
     // Bu test gerçek Supabase bağlantısı olmadan "placeholder" mod'da çalışır
     await page.goto('/login');
-    await page.waitForSelector('input[type="email"]', { timeout: 10_000 });
+    await page.waitForSelector('input[name="ecup_user_login"]', { timeout: 10_000 });
 
     // Test ortamında direkt URL ile kontrol et
     const currentUrl = page.url();
@@ -105,7 +105,7 @@ test.describe('Auth — Kayıt Formu Doğrulaması', () => {
     const submitBtn = page.locator('button[type="submit"]').first();
     if (await submitBtn.isVisible()) {
       await submitBtn.click();
-      const emailInput = page.locator('input[type="email"]').first();
+      const emailInput = page.locator('input[name="ecup_user_login"]').first();
       if (await emailInput.isVisible()) {
         const isValid = await emailInput.evaluate((el: HTMLInputElement) => el.validity.valid);
         expect(isValid).toBe(false);
