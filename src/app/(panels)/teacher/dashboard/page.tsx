@@ -1,8 +1,13 @@
 /**
  * Öğretmen Dashboard — sade, animasyonlu
  * Hoş geldin + 2 stat kartı
+ *
+ * FAZ 2D: Öğrenci sayısı = sadece bu öğretmene atanmış olanlar
+ * (user_metadata.assigned_teacher_id = user.id)
+ * Test sonuçları da sadece atanmış öğrencilerin testleri sayılır.
  */
 import { getCurrentProfile } from '@/lib/actions/auth';
+import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import DashboardClient from './DashboardClient';
 
@@ -16,18 +21,36 @@ export default async function Page() {
   let resultCount = 0;
 
   try {
-    const admin = createAdminClient();
-    const { count: sc } = await admin
-      .from('profiles')
-      .select('id', { count: 'exact', head: true })
-      .eq('role', 'student');
-    studentCount = sc || 0;
+    // Giriş yapan öğretmenin id'si
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const teacherId = user?.id;
 
-    const { count: rc } = await admin
-      .from('test_results')
-      .select('id', { count: 'exact', head: true })
-      .not('completed_at', 'is', null);
-    resultCount = rc || 0;
+    if (teacherId) {
+      const admin = createAdminClient();
+
+      // Atanmış öğrencileri auth.users metadata'dan bul
+      const { data: { users: authUsers } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const myStudentIds = (authUsers || [])
+        .filter((u) => {
+          const meta = (u.user_metadata || {}) as Record<string, unknown>;
+          return (meta.assigned_teacher_id as string | undefined) === teacherId
+            && (meta.role as string) === 'student';
+        })
+        .map((u) => u.id);
+
+      studentCount = myStudentIds.length;
+
+      // Test sonuçları — sadece atanmış öğrencilerin tamamlanmış testleri
+      if (myStudentIds.length > 0) {
+        const { count: rc } = await admin
+          .from('test_results')
+          .select('id', { count: 'exact', head: true })
+          .in('student_id', myStudentIds)
+          .not('completed_at', 'is', null);
+        resultCount = rc || 0;
+      }
+    }
   } catch (e) {
     console.error('[teacher dashboard count]', e);
   }
