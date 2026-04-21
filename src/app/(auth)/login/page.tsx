@@ -68,8 +68,9 @@ export default function LoginPage() {
     if (submittingRef.current) return;
     submittingRef.current = true;
 
-    if (!email.trim() || !email.includes('@')) {
-      setError('Geçerli bir e-posta adresi girin.');
+    const input = email.trim().toLowerCase();
+    if (!input) {
+      setError('E-posta veya kullanıcı adınızı girin.');
       submittingRef.current = false;
       return;
     }
@@ -85,15 +86,21 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient();
+
+      // Geri uyum: email formatı ise direkt kullan, yoksa eski sentetik email'e çevir
+      const loginEmail = input.includes('@')
+        ? input
+        : `${input.replace(/\s/g, '')}@ogrenci.egitimcheckup.com`;
+
       const { error: authError, data } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+        email: loginEmail,
         password,
       });
 
       if (authError) {
         setError(
           authError.message === 'Invalid login credentials'
-            ? 'E-posta veya şifre hatalı.'
+            ? 'Bilgileriniz hatalı. Eski hesabınız varsa kullanıcı adınızı girmeyi deneyin.'
             : authError.message
         );
         setLoading(false);
@@ -137,7 +144,7 @@ export default function LoginPage() {
     <AuthLayout
       role="student"
       title="Giriş Yap"
-      subtitle="E-postanız ve şifrenizle giriş yapın"
+      subtitle="E-posta/kullanıcı adı ve şifrenizle giriş yapın"
       footer={
         <p className="text-[13px] text-gray-500">
           Hesabınız yok mu?{' '}
@@ -172,17 +179,18 @@ export default function LoginPage() {
               <Mail className="w-4 h-4 text-white" />
             </div>
             <input
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => handleEmailChange(e.target.value)}
-              placeholder="ornek@email.com"
+              placeholder="E-posta veya kullanıcı adınız"
               maxLength={100}
               name="ecup_user_login"
               className="w-full pl-14 pr-4 py-3.5 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
               required
-              autoComplete="email"
+              autoComplete="username"
             />
           </div>
+          <p className="text-[11.5px] text-gray-400 mt-1.5 pl-1">Eski kullanıcıysanız kullanıcı adınızla da giriş yapabilirsiniz.</p>
         </div>
 
         <div>

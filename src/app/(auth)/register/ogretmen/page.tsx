@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { GraduationCap, User, Lock, Building, Phone, Mail, ArrowRight, ArrowLeft, AlertCircle, CheckCircle2, Eye, EyeOff, ShieldCheck, BookOpen } from 'lucide-react';
+import { GraduationCap, User, Lock, Phone, Mail, ArrowRight, ArrowLeft, AlertCircle, CheckCircle2, Eye, EyeOff, ShieldCheck, BookOpen } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import AuthLayout from '@/components/ui/AuthLayout';
 
@@ -35,7 +35,7 @@ function validatePassword(pw: string): { valid: boolean; errors: string[] } {
 export default function TeacherRegisterPage() {
   const [step, setStep] = useState(1); // 1: Bilgiler, 2: E-posta Doğrula, 3: Şifre, 4: Başarılı
   const [form, setForm] = useState({
-    firstName: '', lastName: '', branch: '', schoolName: '', phone: '',
+    firstName: '', lastName: '', branch: '', phone: '',
     email: '', password: '', verificationCode: '',
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -63,7 +63,6 @@ export default function TeacherRegisterPage() {
   const validateStep1 = () => {
     if (!form.firstName.trim() || !form.lastName.trim()) return 'Ad ve soyad zorunludur.';
     if (!form.branch) return 'Branş seçimi zorunludur.';
-    if (!form.schoolName.trim()) return 'Çalıştığınız kurum zorunludur.';
     const digits = form.phone.replace(/\D/g, '');
     if (digits.length < 10) return 'Geçerli bir telefon numarası girin.';
     return null;
@@ -153,7 +152,6 @@ export default function TeacherRegisterPage() {
             full_name: fullName,
             role: 'teacher',
             branch: form.branch,
-            school_name: form.schoolName.trim(),
             phone: form.phone.replace(/\D/g, ''),
             real_email: authEmail,
             is_approved: false,
@@ -276,13 +274,6 @@ export default function TeacherRegisterPage() {
                     <option value="">Branşınızı seçin</option>
                     {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
                   </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Çalıştığınız Kurum <span className="text-red-500">*</span></label>
-                <div className="relative">
-                  <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input type="text" value={form.schoolName} onChange={e => update('schoolName', e.target.value)} placeholder="Okul / kurum adı" className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" />
                 </div>
               </div>
               <div>
