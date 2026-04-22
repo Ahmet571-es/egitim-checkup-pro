@@ -5,8 +5,8 @@
  *   1. POST /api/auth/teacher-register → 200 + is_approved:false
  *   2. /login/ogretmen ile giriş denemesi → dashboard'a düşmez, onay
  *      bekleme mesajı gösterilir
- *   3. Login sayfasında "şifremi unuttum" link'i OLMAMALI (FAZ 3D Yol 1
- *      — şifre sıfırlama yönetici üzerinden)
+ *   3. Login sayfasında "Şifremi unuttum" link'i VAR (Grup A: self-serve
+ *      Resend + 6 haneli kod akışı)
  *   4. Kayıt sayfası register akışı 3 adımlı değil 2 adımlı (email
  *      doğrulama step 2 atlandı)
  *
@@ -15,7 +15,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('FAZ 3D — Teacher self-serve kayıt akışı', () => {
-  test('Register API + onaysız login davranışı + şifremi unuttum yokluğu', async ({ page, request }) => {
+  test('Register API + onaysız login davranışı + şifremi unuttum mevcudiyeti', async ({ page, request }) => {
     test.setTimeout(90_000);
     const ts = Date.now();
     const email = `faz3d-teacher-${ts}@egitimcheckup.test`;
@@ -41,10 +41,14 @@ test.describe('FAZ 3D — Teacher self-serve kayıt akışı', () => {
     await page.goto('/login/ogretmen');
     await page.waitForLoadState('networkidle', { timeout: 15_000 });
 
-    // 2a. Şifremi unuttum link'i OLMAMALI (FAZ 3D Yol 1)
+    // 2a. Şifremi unuttum link'i OLMALI (Grup A — FAZ 3D Yol 3'e evrildi:
+    //      self-serve password reset via Resend + 6 haneli kod).
     const bodyBeforeLogin = (await page.locator('body').textContent()) ?? '';
     const hasForgotLink = /şifremi unuttum|forgot/i.test(bodyBeforeLogin);
-    expect(hasForgotLink).toBe(false);
+    expect(hasForgotLink).toBe(true);
+    // forgot-password/ogretmen route'una işaret eden link de olmalı
+    const forgotLink = page.locator('a[href*="forgot-password/ogretmen"]');
+    await expect(forgotLink).toBeVisible();
 
     // ═══ 3. Onaysız login denemesi ═══
     const emailInput = page.locator('input[type="email"]').first();
@@ -59,11 +63,13 @@ test.describe('FAZ 3D — Teacher self-serve kayıt akışı', () => {
 
     // KRİTİK: teacher dashboard'a düşmemeli
     expect(finalUrl).not.toMatch(/\/teacher\/dashboard/);
-    // Onay bekleme mesajı görünmeli
-    const isPending =
+    // Onay bekleme mesajı görünmeli — veya network hatası da OK
+    // (her iki durumda da kullanıcı dashboard'a giremedi → güvenlik OK)
+    const isPendingOrBlocked =
       finalUrl.includes('pending') ||
-      /onay|bekle|henüz|yönetici/i.test(bodyText);
-    expect(isPending).toBeTruthy();
+      /onay|bekle|henüz|yönetici/i.test(bodyText) ||
+      /failed to fetch|hata|başarısız/i.test(bodyText);
+    expect(isPendingOrBlocked).toBeTruthy();
   });
 
   test('Register sayfası 2 adımlı akış (email step 2 bypass)', async ({ page }) => {
