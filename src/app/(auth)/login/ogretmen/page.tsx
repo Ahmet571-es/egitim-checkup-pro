@@ -219,7 +219,9 @@ function TeacherLoginInner() {
           </div>
           <p className="text-[11.5px] text-gray-500 mt-1.5 flex items-center gap-1">
             <AlertCircle className="w-3 h-3 text-amber-500" />
-            Şifrenizi unuttuysanız okul yöneticinize başvurun
+            <Link href="/forgot-password/ogretmen" className="text-emerald-600 hover:text-emerald-700 font-semibold underline">
+              Şifremi unuttum
+            </Link>
           </p>
         </div>
 
