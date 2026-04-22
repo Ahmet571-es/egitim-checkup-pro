@@ -7,6 +7,7 @@ const navItems: NavItem[] = [
   { label: 'Çocuklarım', href: '/parent/my-children', icon: 'my-children' },
   { label: 'Sonuçlar', href: '/parent/results', icon: 'results' },
   { label: 'Mesajlar', href: '/parent/messages', icon: 'messages' },
+  { label: 'Ayarlar', href: '/parent/settings', icon: 'settings' },
 ];
 
 export default function ParentLayout({ children }: { children: React.ReactNode }) {

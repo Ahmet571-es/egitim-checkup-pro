@@ -54,6 +54,12 @@ test.describe('Veli Paneli — Erişim Kontrolleri (Anonim)', () => {
     await page.waitForURL('**/login**', { timeout: 15_000 });
     await expect(page).toHaveURL(/\/login/);
   });
+
+  test('Ayarlar sayfası → giriş gerektirmeli', async ({ page }) => {
+    await page.goto('/parent/settings');
+    await page.waitForURL('**/login**', { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/login/);
+  });
 });
 
 test.describe('Veli Kayıt — Public Erişim', () => {
@@ -117,6 +123,18 @@ test.describe('Veli API — Yetkisiz Erişim', () => {
         student_id: '00000000-0000-0000-0000-000000000001',
         note: 'test',
       },
+    });
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('/api/parent/notification-preferences GET anonim → 401', async ({ request }) => {
+    const res = await request.get('/api/parent/notification-preferences');
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('/api/parent/notification-preferences PUT anonim → 401 veya 403', async ({ request }) => {
+    const res = await request.put('/api/parent/notification-preferences', {
+      data: { email_teacher_note: false },
     });
     expect([401, 403]).toContain(res.status());
   });
