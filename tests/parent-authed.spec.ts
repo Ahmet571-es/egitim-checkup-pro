@@ -32,18 +32,12 @@
  * Eğitim Check-Up Pro — Faz 3B (Authenticated Smoke)
  */
 import { test, expect } from '@playwright/test';
-import { TEST_USERS } from './helpers/auth';
+import { loginAs } from './helpers/auth';
 
-const PARENT = TEST_USERS.parent;
-
-test.describe.skip('Veli Paneli — Authenticated Smoke', () => {
+test.describe('Veli Paneli — Authenticated Smoke', () => {
   test.beforeEach(async ({ page }) => {
-    // Login
-    await page.goto('/login');
-    await page.locator('input[type="email"]').fill(PARENT.email);
-    await page.locator('input[type="password"]').fill(PARENT.password);
-    await page.locator('button[type="submit"], button:has-text("Giriş")').first().click();
-    await page.waitForURL('**/parent/dashboard**', { timeout: 15_000 });
+    // loginAs helper autofill-prevention'lı input'ları doğru hedefliyor
+    await loginAs(page, 'parent');
   });
 
   test('Dashboard render edilmeli + veli adı görünmeli', async ({ page }) => {
@@ -64,9 +58,21 @@ test.describe.skip('Veli Paneli — Authenticated Smoke', () => {
     await expect(page).toHaveURL(/\/parent\/results/);
   });
 
+  test('Mesajlar sayfasına gidilebiliyor', async ({ page }) => {
+    await page.goto('/parent/messages');
+    await expect(page).toHaveURL(/\/parent\/messages/);
+  });
+
+  test('Ayarlar sayfasına gidilebiliyor', async ({ page }) => {
+    await page.goto('/parent/settings');
+    await expect(page).toHaveURL(/\/parent\/settings/);
+    // Bildirim toggle başlığı görünmeli
+    await expect(page.locator('body')).toContainText(/bildirim|tercih/i);
+  });
+
   test('Sidebar nav item\'ları görünüyor', async ({ page }) => {
     await page.goto('/parent/dashboard');
-    // 3 nav item: Dashboard, Çocuklarım, Sonuçlar
+    // 5 nav item: Dashboard, Çocuklarım, Sonuçlar, Mesajlar, Ayarlar
     await expect(page.locator('nav').getByText('Dashboard')).toBeVisible();
     await expect(page.locator('nav').getByText('Çocuklarım')).toBeVisible();
     await expect(page.locator('nav').getByText('Sonuçlar')).toBeVisible();
@@ -85,20 +91,13 @@ test.describe.skip('Veli Paneli — Authenticated Smoke', () => {
   });
 });
 
-test.describe.skip('Veli Paneli — Öğrenci kodu ile çocuk ekleme (gerçek akış)', () => {
+test.describe('Veli Paneli — Öğrenci kodu ile çocuk ekleme (gerçek akış)', () => {
   /**
    * Bu test gerçek bir student_code değerine ihtiyaç duyar.
    * TEST_STUDENT_CODE env var'ı tanımlıysa kullanır.
-   *
-   * Koşmak için:
-   *   TEST_STUDENT_CODE=ABC123 CI=1 BASE_URL=... npx playwright test tests/parent-authed.spec.ts
    */
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login');
-    await page.locator('input[type="email"]').fill(PARENT.email);
-    await page.locator('input[type="password"]').fill(PARENT.password);
-    await page.locator('button[type="submit"], button:has-text("Giriş")').first().click();
-    await page.waitForURL('**/parent/dashboard**', { timeout: 15_000 });
+    await loginAs(page, 'parent');
   });
 
   test('Çocuklarım sayfasından kod ile çocuk eklenebiliyor', async ({ page }) => {
