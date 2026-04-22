@@ -63,6 +63,17 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Mesajlar alınamadı.' }, { status: 500 });
     }
 
+    // Öğretmen cevaplarını (reply_to IS NOT NULL) okundu olarak işaretle
+    const unreadReplyIds = (notes ?? [])
+      .filter((n) => !n.is_read && n.reply_to !== null)
+      .map((n) => n.id);
+    if (unreadReplyIds.length > 0) {
+      await admin
+        .from('parent_teacher_notes')
+        .update({ is_read: true })
+        .in('id', unreadReplyIds);
+    }
+
     return NextResponse.json({ success: true, notes: notes ?? [] });
   } catch (err) {
     console.error('[parent/notes] exception:', err);

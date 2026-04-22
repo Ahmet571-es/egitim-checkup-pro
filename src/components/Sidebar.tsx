@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -80,7 +80,30 @@ interface SidebarProps {
 /** Premium Sidebar — glass bg, gradient active state, avatar with online pulse */
 export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: SidebarProps) {
   const [open, setOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const pathname = usePathname();
+
+  // Okunmamış mesaj sayısını çek — sadece parent/teacher rollerinde anlamlı
+  useEffect(() => {
+    if (role !== 'parent' && role !== 'teacher') return;
+
+    const fetchUnread = async () => {
+      try {
+        const res = await fetch('/api/messages/unread-count');
+        if (res.ok) {
+          const data = await res.json();
+          setUnreadCount(Number(data.count) || 0);
+        }
+      } catch {
+        // sessiz
+      }
+    };
+
+    fetchUnread();
+    // Her 30 saniyede bir güncelle — canlı yakınlıkta ama maliyet düşük
+    const id = setInterval(fetchUnread, 30_000);
+    return () => clearInterval(id);
+  }, [role, pathname]); // pathname değişince de refresh (mesajlar sayfasına girince okunmuş sayılır)
   const accent = ACCENT[role];
 
   const handleLogout = async () => {
@@ -158,6 +181,13 @@ export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: Si
               </div>
 
               <span className="flex-1 truncate">{item.label}</span>
+              {unreadCount > 0 &&
+                ((role === 'parent' && iconKey === 'messages') ||
+                 (role === 'teacher' && iconKey === 'dashboard')) && (
+                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-gradient-to-r from-rose-500 to-red-500 text-white text-[10px] font-extrabold shadow-sm">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
               {isActive && <ChevronRight className={`w-3.5 h-3.5 ${accent.activeText} opacity-70`} />}
             </Link>
           );

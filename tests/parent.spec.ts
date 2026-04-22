@@ -138,6 +138,16 @@ test.describe('Veli API — Yetkisiz Erişim', () => {
     });
     expect([401, 403]).toContain(res.status());
   });
+
+  test('/api/messages/unread-count anonim → count:0 (graceful)', async ({ request }) => {
+    // Bu endpoint auth'suz kullanıcılara da 200 + count:0 döner
+    // (sidebar polling her zaman yüklendiğinde hata patlatmasın diye)
+    const res = await request.get('/api/messages/unread-count');
+    expect(res.status()).toBe(200);
+    const data = await res.json();
+    expect(data).toHaveProperty('count');
+    expect(Number(data.count)).toBe(0);
+  });
 });
 
 test.describe('Rapor API — Veli Yetki Koruması (Anonim)', () => {
