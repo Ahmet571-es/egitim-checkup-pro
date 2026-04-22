@@ -21,20 +21,18 @@ test.describe('Veli Onay Mekanizması — API erişim + auth', () => {
     expect(res.status()).toBe(401);
   });
 
-  test('/api/teacher/approve-parent — auth yok → 401', async ({ request }) => {
+  test('/api/teacher/approve-parent — auth/CSRF yok → 401 veya 403', async ({ request }) => {
     const res = await request.post('/api/teacher/approve-parent', {
       data: { link_id: 'fake-id', action: 'approve' },
     });
-    expect(res.status()).toBe(401);
+    // CSRF middleware önce 403 döndürüyor (beklenen). Auth olsa 401.
+    expect([401, 403]).toContain(res.status());
   });
 
-  test('/api/teacher/approve-parent — body eksik field → 400 (auth geçince)', async ({ request }) => {
-    // Bu test auth'suz 401 döner — ama auth yapmadığımız için 401'ı
-    // kabul ediyoruz. Asıl body validation iç katmanda, yukarıdaki
-    // test auth duvarını kanıtlıyor.
+  test('/api/teacher/approve-parent — boş body → 400/401/403', async ({ request }) => {
     const res = await request.post('/api/teacher/approve-parent', {
       data: {},
     });
-    expect([400, 401]).toContain(res.status());
+    expect([400, 401, 403]).toContain(res.status());
   });
 });
