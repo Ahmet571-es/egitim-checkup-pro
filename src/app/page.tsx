@@ -126,7 +126,7 @@ export default function LandingPage() {
           : 'bg-white/60 dark:bg-slate-800/40 backdrop-blur-xl border-white/40 dark:border-slate-700/60'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" aria-label="Ana sayfaya git" className="flex items-center gap-2.5 hover:scale-[1.03] transition-transform duration-200">
+          <Link href="/" aria-label="Ana sayfaya git" className="flex items-center gap-2.5 min-h-[44px] hover:scale-[1.03] transition-transform duration-200">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
@@ -373,10 +373,10 @@ export default function LandingPage() {
               <span className="text-sm font-bold text-[#0f2847] dark:text-slate-100">Eğitim Check-Up</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-slate-400">
-              <Link href="/kvkk" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors flex items-center gap-1">
+              <Link href="/kvkk" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors inline-flex items-center gap-1 py-2.5 min-h-[44px]">
                 <Shield className="w-3.5 h-3.5" /> KVKK
               </Link>
-              <a href="mailto:info@egitimcheckup.com" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors flex items-center gap-1">
+              <a href="mailto:info@egitimcheckup.com" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors inline-flex items-center gap-1 py-2.5 min-h-[44px]">
                 <Mail className="w-3.5 h-3.5" /> info@egitimcheckup.com
               </a>
             </div>

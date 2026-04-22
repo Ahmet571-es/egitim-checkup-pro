@@ -83,7 +83,7 @@ export default function AuthLayout({
 
       <div className={`relative w-full ${wide ? 'max-w-2xl' : 'max-w-md'} auth-enter`}>
         {/* Logo */}
-        <Link href="/" className="flex items-center justify-center gap-3 mb-7 group">
+        <Link href="/" className="flex items-center justify-center gap-3 mb-7 group min-h-[44px]">
           <div className={`relative w-12 h-12 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all`}>
             <GraduationCap className="w-6 h-6 text-white relative z-10" />
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 to-transparent" />

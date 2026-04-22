@@ -47,13 +47,13 @@ export default function CookieConsent() {
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={handleAccept}
-            className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-md hover:shadow-lg transition-all"
+            className="px-5 py-2.5 min-h-[44px] rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-md hover:shadow-lg transition-all"
           >
             Kabul Et
           </button>
           <button
             onClick={() => setVisible(false)}
-            className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+            className="p-2.5 min-w-[44px] min-h-[44px] rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all flex items-center justify-center"
             aria-label="Kapat"
           >
             <X className="w-4 h-4" />
