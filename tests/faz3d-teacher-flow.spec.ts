@@ -19,8 +19,8 @@ test.describe('FAZ 3D — Teacher self-serve kayıt akışı', () => {
     test.setTimeout(90_000);
     const ts = Date.now();
     const email = `faz3d-teacher-${ts}@egitimcheckup.test`;
-    // Teacher şifre kuralı: 7 karakter, [A-Z][a-z][0-9]{5}
-    const password = 'Tb' + String(ts).slice(-5);
+    // Yeni password kuralı: 8+ karakter, harf+rakam karışık
+    const password = 'Test' + String(ts).slice(-6);
 
     // ═══ 1. Register API ═══
     const registerRes = await request.post('/api/auth/teacher-register', {

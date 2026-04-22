@@ -13,23 +13,24 @@ const BRANCHES = [
   'Fizik', 'Kimya', 'Biyoloji', 'Tarih', 'Coğrafya', 'Felsefe', 'Edebiyat', 'Diğer',
 ];
 
-// Şifre kuralları doğrulama
+// Şifre kuralları — standart 8+ karakter + karmaşıklık
+// Eski kural (7 karakter, [A-Z][a-z][0-9]{5}) kaldırıldı — çok kısıtlayıcı
+// ve zayıf şifrelere yol açıyordu (Ab12345 gibi kolay tahmin edilebilir).
 function validatePassword(pw: string): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
-  if (pw.length !== 7) errors.push('Şifre tam olarak 7 karakter olmalıdır.');
-  if (pw.length > 0 && !/^[A-Z]/.test(pw)) errors.push('Şifre büyük harfle başlamalıdır (A-Z).');
-  if (pw.length >= 2 && !/^[A-Z][a-z]/.test(pw)) errors.push('İkinci karakter farklı bir küçük harf olmalıdır (a-z).');
-  if (pw.length >= 2 && pw[1] && pw[0].toLowerCase() === pw[1]) errors.push('İkinci harf, birinci harften farklı olmalıdır.');
-  if (pw.length >= 3 && !/^[A-Z][a-z][0-9]/.test(pw.slice(0, 3))) errors.push('Üçüncü karakterden itibaren rakam girilmelidir.');
-  if (pw.length === 7 && /^[A-Z][a-z]\d+$/.test(pw) === false && pw.length === 7) {
-    // Check remaining chars are digits
-    const remaining = pw.slice(2);
-    if (!/^\d+$/.test(remaining) && remaining.length > 0) errors.push('3. karakterden sonra sadece rakam olmalıdır.');
+  if (pw.length < 8) errors.push('Şifre en az 8 karakter olmalıdır.');
+  if (pw.length > 72) errors.push('Şifre en fazla 72 karakter olabilir.');
+  if (pw.length > 0 && !/[A-Za-z]/.test(pw)) errors.push('Şifre en az bir harf içermeli.');
+  if (pw.length > 0 && !/[0-9]/.test(pw)) errors.push('Şifre en az bir rakam içermeli.');
+  if (/^(\d+|[a-zA-Z]+)$/.test(pw)) {
+    errors.push('Şifre sadece harflerden veya sadece rakamlardan oluşamaz.');
   }
-  if (/^\d+$/.test(pw)) errors.push('Şifre tamamen rakamlardan oluşamaz.');
-  if (/^[a-zA-Z]+$/.test(pw)) errors.push('Şifre tamamen harflerden oluşamaz.');
-  if (pw.startsWith('0')) errors.push('Şifre 0 ile başlayamaz.');
-  return { valid: errors.length === 0 && pw.length === 7, errors };
+  // Çok yaygın olanları reddet
+  const lower = pw.toLowerCase();
+  if (['12345678', 'password', 'qwerty12', 'admin123', '11111111'].includes(lower)) {
+    errors.push('Bu şifre çok yaygın. Daha güçlü bir şifre seçin.');
+  }
+  return { valid: errors.length === 0, errors };
 }
 
 export default function TeacherRegisterPage() {
@@ -359,28 +360,24 @@ export default function TeacherRegisterPage() {
                 <p className="text-[13px] font-bold text-blue-800 mb-2">Şifre Kuralları:</p>
                 <ul className="space-y-1 text-[12px] text-blue-700">
                   <li className="flex items-start gap-1.5">
-                    <span className={form.password.length === 7 ? 'text-emerald-500' : 'text-gray-400'}>●</span>
-                    Tam olarak <strong>7 karakter</strong> olmalı
+                    <span className={form.password.length >= 8 ? 'text-emerald-500' : 'text-gray-400'}>●</span>
+                    En az <strong>8 karakter</strong>
                   </li>
                   <li className="flex items-start gap-1.5">
-                    <span className={/^[A-Z]/.test(form.password) ? 'text-emerald-500' : 'text-gray-400'}>●</span>
-                    <strong>Büyük harfle</strong> başlamalı (Örn: <strong>A</strong>, <strong>K</strong>, <strong>M</strong>)
+                    <span className={/[A-Za-z]/.test(form.password) ? 'text-emerald-500' : 'text-gray-400'}>●</span>
+                    En az <strong>bir harf</strong>
                   </li>
                   <li className="flex items-start gap-1.5">
-                    <span className={/^[A-Z][a-z]/.test(form.password) && form.password[0]?.toLowerCase() !== form.password[1] ? 'text-emerald-500' : 'text-gray-400'}>●</span>
-                    İkinci karakter <strong>farklı bir küçük harf</strong> olmalı (Örn: A<strong>b</strong>, K<strong>z</strong>)
+                    <span className={/[0-9]/.test(form.password) ? 'text-emerald-500' : 'text-gray-400'}>●</span>
+                    En az <strong>bir rakam</strong>
                   </li>
                   <li className="flex items-start gap-1.5">
-                    <span className={form.password.length >= 3 && /^\d+$/.test(form.password.slice(2)) ? 'text-emerald-500' : 'text-gray-400'}>●</span>
-                    Geri kalan <strong>5 karakter rakam</strong> olmalı (Örn: Ab<strong>12345</strong>)
-                  </li>
-                  <li className="flex items-start gap-1.5">
-                    <span className={!form.password.startsWith('0') || form.password.length === 0 ? 'text-emerald-500' : 'text-gray-400'}>●</span>
-                    Şifre <strong>0 ile başlayamaz</strong>
+                    <span className={form.password.length > 0 && !/^(\d+|[a-zA-Z]+)$/.test(form.password) ? 'text-emerald-500' : 'text-gray-400'}>●</span>
+                    Sadece harf veya sadece rakam <strong>olmamalı</strong>
                   </li>
                 </ul>
                 <div className="mt-3 p-2 bg-blue-100 rounded-lg text-center">
-                  <p className="text-[11px] text-blue-600">Örnek şifreler: <strong>Ab12345</strong> · <strong>Kz98765</strong> · <strong>Mf55412</strong></p>
+                  <p className="text-[11px] text-blue-600">İpucu: Güçlü şifre için büyük/küçük harf, rakam ve sembol karıştırın.</p>
                 </div>
               </div>
 
@@ -392,13 +389,13 @@ export default function TeacherRegisterPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={form.password}
                     onChange={e => {
-                      const val = e.target.value.slice(0, 7);
+                      const val = e.target.value.slice(0, 72);
                       update('password', val);
                     }}
-                    placeholder="Örn: Ab12345"
-                    maxLength={7}
-                    className={`w-full pl-11 pr-11 py-3 rounded-xl border bg-white/60 text-sm font-mono text-lg tracking-wider focus:outline-none focus:ring-2 transition-all ${
-                      form.password.length === 7
+                    placeholder="En az 8 karakter"
+                    maxLength={72}
+                    className={`w-full pl-11 pr-11 py-3 rounded-xl border bg-white/60 text-sm focus:outline-none focus:ring-2 transition-all ${
+                      form.password.length >= 8
                         ? pwResult.valid
                           ? 'border-emerald-300 focus:ring-emerald-500/30'
                           : 'border-red-300 focus:ring-red-500/30'
@@ -415,7 +412,7 @@ export default function TeacherRegisterPage() {
                     {pwResult.valid ? '✓ Şifre kurallara uygun!' : pwResult.errors[0]}
                   </p>
                 )}
-                <p className="text-[11px] text-gray-400 mt-1">{form.password.length}/7 karakter</p>
+                <p className="text-[11px] text-gray-400 mt-1">{form.password.length} karakter</p>
               </div>
 
               <div className="flex gap-3">

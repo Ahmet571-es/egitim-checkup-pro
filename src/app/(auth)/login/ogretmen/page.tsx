@@ -73,8 +73,8 @@ function TeacherLoginInner() {
       submittingRef.current = false;
       return;
     }
-    if (password.length !== 7) {
-      setError('Şifre 7 karakter olmalıdır.');
+    if (password.length < 6) {
+      setError('Şifre en az 6 karakter olmalıdır.');
       submittingRef.current = false;
       return;
     }
@@ -140,7 +140,7 @@ function TeacherLoginInner() {
     <AuthLayout
       role="teacher"
       title="Öğretmen Girişi"
-      subtitle="E-posta ve 7 haneli şifrenizle giriş yapın"
+      subtitle="E-posta ve şifrenizle giriş yapın"
       footer={
         <p className="text-[13px] text-gray-500">
           Hesabınız yok mu?{' '}
@@ -191,7 +191,7 @@ function TeacherLoginInner() {
 
         <div>
           <label className="block text-[13px] font-bold text-gray-700 mb-1.5">
-            Şifre <span className="text-gray-400 font-normal">(7 haneli)</span>
+            Şifre
           </label>
           <div className="relative">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center shadow-md pointer-events-none">
@@ -200,10 +200,10 @@ function TeacherLoginInner() {
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={(e) => setPassword(e.target.value.slice(0, 7))}
-              placeholder="Örn: Ab12345"
-              maxLength={7}
-              className="w-full pl-14 pr-12 py-3.5 rounded-xl border border-gray-200 bg-white text-sm font-mono font-bold tracking-wider focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
+              onChange={(e) => setPassword(e.target.value.slice(0, 72))}
+              placeholder="Şifreniz"
+              maxLength={72}
+              className="w-full pl-14 pr-12 py-3.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
               required
               autoComplete="current-password"
             />
@@ -218,7 +218,7 @@ function TeacherLoginInner() {
           </div>
           <p className="text-[11.5px] text-gray-500 mt-1.5 flex items-center gap-1">
             <AlertCircle className="w-3 h-3 text-amber-500" />
-            Kayıt olurken belirlediğiniz 7 haneli şifre
+            Şifrenizi unuttuysanız okul yöneticinize başvurun
           </p>
         </div>
 
