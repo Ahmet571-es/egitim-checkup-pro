@@ -104,6 +104,9 @@ export async function POST(request: Request) {
       .eq('id', created.user.id);
 
     // Çocuk bağlantısını kur (studentId varsa)
+    // Not: parent_students.approved_at migration varsa NULL olarak yazılır
+    // ve öğretmen onayı beklenir. Migration yoksa kolon yok,
+    // defaultlar eskisi gibi çalışır.
     if (studentId) {
       const { error: linkErr } = await admin
         .from('parent_students')
@@ -114,10 +117,29 @@ export async function POST(request: Request) {
       }
     }
 
+    // Bağlantının onay bekleyip beklemediğini kontrol et
+    // (migration varsa approved_at NULL demek bekliyor)
+    let approvalPending = false;
+    if (studentId) {
+      const { data: linkCheck } = await admin
+        .from('parent_students')
+        .select('*')
+        .eq('parent_id', created.user.id)
+        .eq('student_id', studentId)
+        .maybeSingle();
+      // Kolon varsa ve null ise → pending
+      if (linkCheck && 'approved_at' in linkCheck) {
+        approvalPending = linkCheck.approved_at === null;
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Kaydınız tamamlandı. Giriş yapabilirsiniz.',
+      message: approvalPending
+        ? 'Kaydınız tamamlandı. Öğretmen bağlantıyı onaylayınca çocuğunuzun verisine tam erişim sağlanacak.'
+        : 'Kaydınız tamamlandı. Giriş yapabilirsiniz.',
       child_linked: !!studentId,
+      approval_pending: approvalPending,
     });
   } catch (err) {
     console.error('[parent-register] exception:', err);

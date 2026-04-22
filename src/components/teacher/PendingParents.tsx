@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { UserCheck, UserX, Mail, Loader2, CheckCircle2 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 interface PendingLink {
   id: string;
@@ -20,16 +21,19 @@ interface PendingLink {
  * öğretmen bu bağlantıyı onaylamadan veli çocuğun verisine tam
  * erişim alamamalı.
  *
+ * Realtime: parent_students INSERT'leri dinler — yeni bağlantı
+ * olduğunda listeyi yeniler. Öğretmenin dashboard'u açık dursa bile
+ * anında görür.
+ *
  * Migration (parent_students.approved_at) çalıştırılmadıysa
- * endpoint boş liste döner — widget gizlenir (kullanıcı rahatsız
- * olmasın).
+ * endpoint boş liste döner — widget gizlenir.
  */
 export default function PendingParents() {
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState<PendingLink[]>([]);
   const [acting, setActing] = useState<string | null>(null);
 
-  const fetchPending = async () => {
+  const fetchPending = useCallback(async () => {
     try {
       const res = await fetch('/api/teacher/pending-parents');
       const data = await res.json();
@@ -40,11 +44,36 @@ export default function PendingParents() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchPending();
-  }, []);
+  }, [fetchPending]);
+
+  // Realtime: yeni veli kaydı → listeyi yenile
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel('pending-parents-watcher')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'parent_students',
+        },
+        () => {
+          // Yeni bağlantı var — endpoint'i tekrar çağır
+          // (server zaten yetki + filter uyguluyor)
+          fetchPending();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchPending]);
 
   const handleAction = async (linkId: string, action: 'approve' | 'reject') => {
     setActing(linkId);

@@ -86,16 +86,23 @@ export default function VeliRegisterPage() {
     }
 
     // Başarılı giriş → dashboard veya my-children
-    setSuccess(
-      registerData.child_linked
-        ? 'Kayıt başarılı! Panele yönlendiriliyorsun...'
-        : 'Kayıt başarılı! Çocuğunuzu eklemek için yönlendiriliyorsun...',
-    );
+    // API'den gelen approval_pending flag'ine göre mesajı özelleştir
+    if (registerData.approval_pending) {
+      setSuccess(
+        'Kayıt başarılı! Bağlantınız öğretmen onayı bekliyor. Panele yönlendiriliyorsun...',
+      );
+    } else {
+      setSuccess(
+        registerData.child_linked
+          ? 'Kayıt başarılı! Panele yönlendiriliyorsun...'
+          : 'Kayıt başarılı! Çocuğunuzu eklemek için yönlendiriliyorsun...',
+      );
+    }
     setTimeout(() => {
       window.location.href = registerData.child_linked
         ? '/parent/dashboard'
         : '/parent/my-children';
-    }, 800);
+    }, 1200);
   };
 
   return (
