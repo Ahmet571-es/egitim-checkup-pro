@@ -49,15 +49,20 @@ for (const viewport of VIEWPORTS) {
           .toBeLessThanOrEqual(dims.clientWidth + 5);
 
         // 2. Dokunma hedefleri — görünür button/link'ler
+        // İnline text içindeki linkler (display: inline) 44px kuralından
+        // muaftır — çevrelerindeki metin alanı dokunma için yeterli.
         const smallTargets = await page.evaluate(() => {
           const results: { tag: string; text: string; w: number; h: number }[] = [];
           document.querySelectorAll('button, a').forEach((el) => {
             const rect = (el as HTMLElement).getBoundingClientRect();
             if (rect.width === 0 || rect.height === 0) return; // hidden
+
+            // Computed display kontrolü — inline ise muaf
+            const display = window.getComputedStyle(el).display;
+            if (display === 'inline' || display === 'contents') return;
+
             if (rect.width < 40 || rect.height < 40) {
               const text = ((el as HTMLElement).innerText || '').trim().slice(0, 30);
-              // Çok küçük ikon butonlar (chevron, close, eye) istisna — içinde text yoksa
-              // dar bir ölçü kabul edilebilir. Sadece text içeren küçükleri yakala.
               if (text.length > 0) {
                 results.push({
                   tag: el.tagName.toLowerCase(),
