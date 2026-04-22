@@ -80,6 +80,34 @@ export default function ParentNotes({ teacherId }: ParentNotesProps) {
     loadNotes();
   }, [loadNotes]);
 
+  // Realtime subscription — veliden yeni mesaj geldiğinde liste anında
+  // güncellensin. loadNotes() çağrısı eager full-refresh yapar (parent +
+  // student join gerektiği için payload.new tek başına yeterli değil).
+  useEffect(() => {
+    if (!teacherId) return;
+    const supabase = createClient();
+
+    const channel = supabase
+      .channel(`teacher-notes:${teacherId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'parent_teacher_notes',
+          filter: `teacher_id=eq.${teacherId}`,
+        },
+        () => {
+          loadNotes();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [teacherId, loadNotes]);
+
   const handleReply = async (parentId: string, studentId: string, noteId: string) => {
     if (!replyText.trim()) return;
     setSending(true);

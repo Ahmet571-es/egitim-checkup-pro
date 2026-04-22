@@ -86,6 +86,52 @@ function MessagesContent() {
     else setLoading(false);
   }, [selectedChildId, loadNotes]);
 
+  // Realtime subscription — öğretmenden yeni mesaj geldiğinde UI anında
+  // güncellensin. Polling'e kıyasla <1sn gecikmeyle mesaj görünür.
+  useEffect(() => {
+    if (!selectedChildId) return;
+
+    let active = true;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const setupChannel = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !active) return;
+
+      channel = supabase
+        .channel(`parent-notes:${user.id}:${selectedChildId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'parent_teacher_notes',
+            filter: `parent_id=eq.${user.id}`,
+          },
+          (payload) => {
+            const row = payload.new as Note;
+            // Sadece şu an görüntülenen çocuğun mesajlarını ekle
+            if (row.student_id !== selectedChildId) return;
+            // Zaten listede varsa atla (idempotent)
+            setNotes((prev) => {
+              if (prev.some((n) => n.id === row.id)) return prev;
+              return [...prev, row].sort((a, b) =>
+                a.created_at.localeCompare(b.created_at),
+              );
+            });
+          },
+        )
+        .subscribe();
+    };
+
+    setupChannel();
+
+    return () => {
+      active = false;
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [selectedChildId, supabase]);
+
   const send = async () => {
     const body = draft.trim();
     if (!body || body.length < 3 || !selectedChildId) return;

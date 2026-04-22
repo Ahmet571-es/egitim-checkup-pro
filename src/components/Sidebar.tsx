@@ -83,13 +83,17 @@ export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: Si
   const [unreadCount, setUnreadCount] = useState(0);
   const pathname = usePathname();
 
-  // Okunmamış mesaj sayısını çek — sadece parent/teacher rollerinde anlamlı
+  // Okunmamış mesaj sayısını çek — sadece parent/teacher rollerinde anlamlı.
+  // Realtime subscription + pathname değişimiyle refresh.
   useEffect(() => {
     if (role !== 'parent' && role !== 'teacher') return;
+
+    let active = true;
 
     const fetchUnread = async () => {
       try {
         const res = await fetch('/api/messages/unread-count');
+        if (!active) return;
         if (res.ok) {
           const data = await res.json();
           setUnreadCount(Number(data.count) || 0);
@@ -100,9 +104,37 @@ export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: Si
     };
 
     fetchUnread();
-    // Her 30 saniyede bir güncelle — canlı yakınlıkta ama maliyet düşük
-    const id = setInterval(fetchUnread, 30_000);
-    return () => clearInterval(id);
+
+    // Realtime: parent_teacher_notes INSERT/UPDATE → count değişebilir
+    const supabase = createClient();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !active) return;
+
+      const filterCol = role === 'parent' ? 'parent_id' : 'teacher_id';
+      channel = supabase
+        .channel(`sidebar-unread:${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // INSERT (yeni mesaj) VE UPDATE (is_read=true)
+            schema: 'public',
+            table: 'parent_teacher_notes',
+            filter: `${filterCol}=eq.${user.id}`,
+          },
+          () => {
+            fetchUnread();
+          },
+        )
+        .subscribe();
+    })();
+
+    return () => {
+      active = false;
+      if (channel) supabase.removeChannel(channel);
+    };
   }, [role, pathname]); // pathname değişince de refresh (mesajlar sayfasına girince okunmuş sayılır)
   const accent = ACCENT[role];
 
