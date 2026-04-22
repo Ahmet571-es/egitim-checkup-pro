@@ -36,6 +36,7 @@ export default function SchoolTeachersPage() {
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
   const [schoolId, setSchoolId] = useState<string | null>(null);
+  const [tab, setTab] = useState<'active' | 'pending'>('active');
 
   const supabase = createClient();
 
@@ -175,10 +176,89 @@ export default function SchoolTeachersPage() {
     load();
   };
 
-  const filtered = teachers.filter((t) =>
-    t.full_name.toLocaleLowerCase('tr-TR').includes(search.toLocaleLowerCase('tr-TR')) ||
-    t.email.toLocaleLowerCase('tr-TR').includes(search.toLocaleLowerCase('tr-TR')),
-  );
+  const filtered = teachers
+    .filter((t) => {
+      // tab filtresi: 'active' = onaylı (is_approved !== false), 'pending' = onaysız (is_approved === false)
+      if (tab === 'pending') return t.is_approved === false;
+      return t.is_approved !== false;
+    })
+    .filter((t) =>
+      t.full_name.toLocaleLowerCase('tr-TR').includes(search.toLocaleLowerCase('tr-TR')) ||
+      t.email.toLocaleLowerCase('tr-TR').includes(search.toLocaleLowerCase('tr-TR')),
+    );
+
+  const pendingCount = teachers.filter((t) => t.is_approved === false).length;
+  const activeCount = teachers.filter((t) => t.is_approved !== false).length;
+
+  const approveTeacher = async (t: Profile) => {
+    try {
+      const res = await secureFetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle_approval', user_id: t.id, approved: true }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Hata');
+      toast.success('Öğretmen onaylandı', `${t.full_name} artık giriş yapabilir.`);
+      load();
+    } catch (e) {
+      toast.error('Hata', e instanceof Error ? e.message : 'Onay yapılamadı');
+    }
+  };
+
+  const rejectTeacher = async (t: Profile) => {
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Öğretmeni reddet',
+      description: `"${t.full_name}" kaydını tamamen silmek üzeresin. Öğretmen yeniden kayıt olmak zorunda kalır.`,
+      confirmLabel: 'Reddet ve Sil',
+    });
+    if (!ok) return;
+    try {
+      const res = await secureFetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_user', user_id: t.id }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Hata');
+      toast.success('Öğretmen silindi');
+      load();
+    } catch (e) {
+      toast.error('Hata', e instanceof Error ? e.message : 'Silinemedi');
+    }
+  };
+
+  const generateTempPassword = async (t: Profile) => {
+    // 12 karakter rastgele (büyük harf + küçük harf + rakam)
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let temp = '';
+    for (let i = 0; i < 12; i++) {
+      temp += chars[Math.floor(Math.random() * chars.length)];
+    }
+    try {
+      const res = await secureFetch('/api/admin/reset-teacher-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teacher_id: t.id, password: temp }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Hata');
+
+      // Ekranda bir kez göster (prompt/alert yerine modal daha iyi olurdu ama
+      // basit ve garantili çözüm: alert. Öğretmene WhatsApp ile iletilecek.)
+      window.prompt(
+        `Geçici şifre oluşturuldu. Aşağıdaki şifreyi öğretmene iletin:\n\n` +
+        `${t.full_name} (${t.email})\n\n` +
+        `Bu şifre yalnızca şu an gösterilecek — kapatırsanız bir daha göremezsiniz. ` +
+        `Öğretmen ilk girişte yeni şifre belirlemeli.`,
+        temp,
+      );
+      toast.success('Geçici şifre oluşturuldu', 'Öğretmene WhatsApp ile iletebilirsiniz.');
+    } catch (e) {
+      toast.error('Hata', e instanceof Error ? e.message : 'Şifre oluşturulamadı');
+    }
+  };
 
   const closeModal = () => { setModal(null); setErr(''); setActiveTeacher(null); };
 
@@ -197,6 +277,38 @@ export default function SchoolTeachersPage() {
           </ActionButton>
         }
       />
+
+      <div className="mb-4 flex gap-2 flex-wrap">
+        <button
+          onClick={() => setTab('active')}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+            tab === 'active'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md'
+              : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:border-emerald-400'
+          }`}
+        >
+          Aktif Öğretmenler
+          <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] ${
+            tab === 'active' ? 'bg-white/20' : 'bg-gray-100 dark:bg-slate-700'
+          }`}>{activeCount}</span>
+        </button>
+        <button
+          onClick={() => setTab('pending')}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all relative ${
+            tab === 'pending'
+              ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md'
+              : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:border-amber-400'
+          }`}
+        >
+          Onay Bekleyenler
+          <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] ${
+            tab === 'pending' ? 'bg-white/20' : pendingCount > 0 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 dark:bg-slate-700'
+          }`}>{pendingCount}</span>
+          {pendingCount > 0 && tab !== 'pending' && (
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+          )}
+        </button>
+      </div>
 
       <div className="mb-5 max-w-md">
         <SearchBar role="school_admin" value={search} onChange={setSearch} placeholder="Öğretmen ara (ad, e-posta)..." />
@@ -270,28 +382,57 @@ export default function SchoolTeachersPage() {
 
                   {/* Actions */}
                   <div className="mt-4 flex items-center gap-1.5">
-                    <button
-                      onClick={() => openAssign(t)}
-                      title="Sınıflara Ata"
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 text-[12px] font-bold transition active:scale-95 border border-sky-100"
-                    >
-                      <BookMarked className="w-3.5 h-3.5" />
-                      Ata
-                    </button>
-                    <button
-                      onClick={() => openReset(t)}
-                      title="Şifre Sıfırla"
-                      className="inline-flex items-center justify-center p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 transition active:scale-95 border border-amber-100"
-                    >
-                      <KeyRound className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => remove(t.id, t.full_name)}
-                      title="Pasife Al"
-                      className="inline-flex items-center justify-center p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition active:scale-95 border border-red-100"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {t.is_approved === false ? (
+                      <>
+                        <button
+                          onClick={() => approveTeacher(t)}
+                          title="Onayla"
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-[12px] font-bold transition active:scale-95 shadow-sm"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Onayla
+                        </button>
+                        <button
+                          onClick={() => generateTempPassword(t)}
+                          title="Geçici Şifre Oluştur"
+                          className="inline-flex items-center justify-center p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 transition active:scale-95 border border-amber-100"
+                        >
+                          <KeyRound className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => rejectTeacher(t)}
+                          title="Reddet ve Sil"
+                          className="inline-flex items-center justify-center p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition active:scale-95 border border-red-100"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => openAssign(t)}
+                          title="Sınıflara Ata"
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 text-[12px] font-bold transition active:scale-95 border border-sky-100"
+                        >
+                          <BookMarked className="w-3.5 h-3.5" />
+                          Ata
+                        </button>
+                        <button
+                          onClick={() => openReset(t)}
+                          title="Şifre Sıfırla"
+                          className="inline-flex items-center justify-center p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 transition active:scale-95 border border-amber-100"
+                        >
+                          <KeyRound className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => remove(t.id, t.full_name)}
+                          title="Pasife Al"
+                          className="inline-flex items-center justify-center p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition active:scale-95 border border-red-100"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

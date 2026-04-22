@@ -150,6 +150,79 @@ test.describe('Veli API — Yetkisiz Erişim', () => {
   });
 });
 
+test.describe('Self-serve Kayıt API — Public', () => {
+  // Bu endpoint'ler PUBLIC — anonim kullanıcılar kayıt oluşturabilir.
+  // Validasyon + çalıştırılabilirlik testi.
+
+  test('/api/auth/teacher-register geçersiz email → 400', async ({ request }) => {
+    const res = await request.post('/api/auth/teacher-register', {
+      data: {
+        full_name: 'Test Öğretmen',
+        email: 'not-an-email',
+        password: 'Test1234',
+      },
+    });
+    expect(res.status()).toBe(400);
+    const data = await res.json();
+    expect(String(data.error || '')).toMatch(/e-posta|email/i);
+  });
+
+  test('/api/auth/teacher-register kısa şifre → 400', async ({ request }) => {
+    const res = await request.post('/api/auth/teacher-register', {
+      data: {
+        full_name: 'Test Öğretmen',
+        email: `t-${Date.now()}@egitimcheckup.test`,
+        password: '12',
+      },
+    });
+    expect(res.status()).toBe(400);
+  });
+
+  test('/api/auth/teacher-register boş ad → 400', async ({ request }) => {
+    const res = await request.post('/api/auth/teacher-register', {
+      data: { full_name: '', email: `t2-${Date.now()}@egitimcheckup.test`, password: 'Test1234' },
+    });
+    expect(res.status()).toBe(400);
+  });
+
+  test('/api/auth/parent-register geçersiz email → 400', async ({ request }) => {
+    const res = await request.post('/api/auth/parent-register', {
+      data: {
+        full_name: 'Test Veli',
+        email: 'not-an-email',
+        password: 'Test1234',
+      },
+    });
+    expect(res.status()).toBe(400);
+  });
+
+  test('/api/auth/parent-register yanlış öğrenci kodu → 404', async ({ request }) => {
+    const res = await request.post('/api/auth/parent-register', {
+      data: {
+        full_name: 'Test Veli',
+        email: `p-${Date.now()}@egitimcheckup.test`,
+        password: 'Test1234',
+        student_code: 'ZZZZZZ', // geçerli format ama olmayan kod
+      },
+    });
+    expect(res.status()).toBe(404);
+    const data = await res.json();
+    expect(String(data.error || '')).toMatch(/bulunamadı|öğrenci/i);
+  });
+
+  test('/api/auth/parent-register geçersiz kod formatı → 400', async ({ request }) => {
+    const res = await request.post('/api/auth/parent-register', {
+      data: {
+        full_name: 'Test Veli',
+        email: `p2-${Date.now()}@egitimcheckup.test`,
+        password: 'Test1234',
+        student_code: 'abc', // format yanlış
+      },
+    });
+    expect(res.status()).toBe(400);
+  });
+});
+
 test.describe('Rapor API — Veli Yetki Koruması (Anonim)', () => {
   // Bu testler anonim olarak çalışır; auth eksikse 401/403 beklenir.
   // Auth'lu veli testleri parent-authed.spec.ts'e gider.

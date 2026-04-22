@@ -137,38 +137,34 @@ export default function TeacherRegisterPage() {
 
     setLoading(true);
     try {
-      const supabase = createClient();
       const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`;
       const authEmail = form.email.trim().toLowerCase();
 
-      const { error: authError } = await supabase.auth.signUp({
-        email: authEmail,
-        password: form.password,
-        options: {
-          data: {
-            full_name: fullName,
-            role: 'teacher',
-            branch: form.branch,
-            phone: form.phone.replace(/\D/g, ''),
-            real_email: authEmail,
-            is_approved: false,
-          },
-        },
+      // Yeni self-serve kayıt — Supabase built-in email HİÇ tetiklenmez
+      // (2/saat rate limit tamamen bypass edilir).
+      const res = await fetch('/api/auth/teacher-register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: fullName,
+          email: authEmail,
+          password: form.password,
+          branch: form.branch,
+          phone: form.phone.replace(/\D/g, ''),
+        }),
       });
+      const data = await res.json().catch(() => ({}));
 
-      if (authError) {
-        if (authError.message.includes('already registered')) {
+      if (!res.ok) {
+        if (res.status === 409) {
           setError('Bu e-posta adresi zaten kayıtlı.');
         } else {
-          setError(authError.message);
+          setError(data.error || 'Kayıt oluşturulamadı.');
         }
         setLoading(false);
         submittingRef.current = false;
         return;
       }
-
-      // Oturumu kapat (onay bekleyecek)
-      await supabase.auth.signOut();
 
       // Giriş bilgilerini localStorage'a kaydet (login sayfasında otomatik doldurulsun)
       if (typeof window !== 'undefined') {
@@ -281,7 +277,7 @@ export default function TeacherRegisterPage() {
                 </div>
               </div>
               <button
-                onClick={() => { const err = validateStep1(); if (err) { setError(err); } else { setError(''); setStep(2); } }}
+                onClick={() => { const err = validateStep1(); if (err) { setError(err); } else { setError(''); setStep(3); } }}
                 className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all flex items-center justify-center gap-2"
               >
                 Devam Et <ArrowRight className="w-4 h-4" />
@@ -423,7 +419,7 @@ export default function TeacherRegisterPage() {
               </div>
 
               <div className="flex gap-3">
-                <button onClick={() => { setStep(2); setError(''); }} className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-1">
+                <button onClick={() => { setStep(1); setError(''); }} className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-1">
                   <ArrowLeft className="w-4 h-4" /> Geri
                 </button>
                 <button

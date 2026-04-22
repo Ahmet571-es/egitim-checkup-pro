@@ -9,6 +9,8 @@ export interface Profile {
   school_id: string | null;
   phone: string;
   is_active: boolean;
+  is_approved?: boolean;
+  branch?: string | null;
   grade: string | null;
   is_graduated: boolean;
   created_at: string;

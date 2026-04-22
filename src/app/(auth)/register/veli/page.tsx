@@ -42,39 +42,60 @@ export default function VeliRegisterPage() {
     setLoading(true);
 
     const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
-    const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
-      email: form.email.trim().toLowerCase(),
-      password: form.password,
-      options: { data: { full_name: fullName, role: 'parent' } },
-    });
+    const code = form.studentCode.trim().toUpperCase();
 
-    if (signUpErr) {
-      setError(signUpErr.message || 'Kayıt oluşturulamadı.');
+    // Yeni self-serve kayıt API'si — Supabase built-in email tetiklenmez
+    let registerRes: Response;
+    try {
+      registerRes = await fetch('/api/auth/parent-register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: fullName,
+          email: form.email.trim().toLowerCase(),
+          password: form.password,
+          student_code: code,
+        }),
+      });
+    } catch {
+      setError('Bağlantı hatası. Lütfen tekrar deneyin.');
       setLoading(false);
       return;
     }
 
-    // Eğer session hemen oluşmuşsa (email autoconfirm açık) → my-children'a kod ile yönlendir.
-    // Oluşmamışsa → kullanıcıya e-posta doğrulaması mesajı göster.
-    const hasSession = !!signUpData.session;
-    const code = form.studentCode.trim().toUpperCase();
-
-    if (hasSession) {
-      // my-children sayfası auto_code param'ını görüp otomatik link çağırır
-      // (proxy middleware o sayfayı görünce CSRF cookie'yi set eder, auth'lu çağrı mümkün olur)
-      setSuccess('Kayıt başarılı! Çocuğunuza bağlanılıyor...');
-      setTimeout(() => {
-        window.location.href = `/parent/my-children?auto_code=${encodeURIComponent(code)}`;
-      }, 800);
+    const registerData = await registerRes.json().catch(() => ({}));
+    if (!registerRes.ok) {
+      setError(registerData.error || 'Kayıt oluşturulamadı.');
+      setLoading(false);
       return;
     }
 
-    // Session yok → email onay akışı
+    // Hesap oluştu + çocuk bağlandı → otomatik giriş yapmak için signInWithPassword
+    const { error: signInErr } = await supabase.auth.signInWithPassword({
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
+    });
+
+    if (signInErr) {
+      // Hesap oluştu ama otomatik giriş fail — kullanıcıya login'e yönlendir
+      setSuccess('Hesabınız oluşturuldu. Giriş sayfasına yönlendiriliyorsun...');
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 1200);
+      return;
+    }
+
+    // Başarılı giriş → dashboard veya my-children
     setSuccess(
-      `Hesabın oluşturuldu. E-posta adresine doğrulama bağlantısı gönderildi. ` +
-      `Onayladıktan sonra giriş yapıp "Çocuklarım" sayfasından öğrenci kodunu (${code}) girerek bağlantıyı tamamlayabilirsin.`,
+      registerData.child_linked
+        ? 'Kayıt başarılı! Panele yönlendiriliyorsun...'
+        : 'Kayıt başarılı! Çocuğunuzu eklemek için yönlendiriliyorsun...',
     );
-    setLoading(false);
+    setTimeout(() => {
+      window.location.href = registerData.child_linked
+        ? '/parent/dashboard'
+        : '/parent/my-children';
+    }, 800);
   };
 
   return (
