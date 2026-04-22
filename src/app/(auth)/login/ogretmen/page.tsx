@@ -212,6 +212,7 @@ function TeacherLoginInner() {
               onClick={() => setShowPassword(v => !v)}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
               tabIndex={-1}
+              aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>

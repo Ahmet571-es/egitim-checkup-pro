@@ -125,6 +125,7 @@ export default function VeliRegisterPage() {
                     type="text"
                     value={form.firstName}
                     onChange={(e) => update('firstName', e.target.value)}
+                    aria-label="Ad"
                     className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-400"
                   />
                 </div>
@@ -137,6 +138,7 @@ export default function VeliRegisterPage() {
                     type="text"
                     value={form.lastName}
                     onChange={(e) => update('lastName', e.target.value)}
+                    aria-label="Soyad"
                     className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-400"
                   />
                 </div>
@@ -153,6 +155,7 @@ export default function VeliRegisterPage() {
                   value={form.email}
                   onChange={(e) => update('email', e.target.value)}
                   placeholder="ornek@email.com"
+                  aria-label="E-posta"
                   className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-400"
                 />
               </div>
@@ -168,6 +171,7 @@ export default function VeliRegisterPage() {
                   value={form.password}
                   onChange={(e) => update('password', e.target.value)}
                   placeholder="En az 6 karakter"
+                  aria-label="Şifre"
                   className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-400"
                 />
                 <button
@@ -194,6 +198,7 @@ export default function VeliRegisterPage() {
                   onChange={(e) => update('studentCode', e.target.value.replace(/[^A-Z0-9]/gi, '').slice(0, 6).toUpperCase())}
                   placeholder="ABC123"
                   maxLength={6}
+                  aria-label="Öğrenci kodu"
                   className="w-full pl-10 pr-3 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 text-sm text-center text-base font-bold tracking-[0.35em] font-mono text-pink-700 dark:text-pink-300 focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-400"
                 />
               </div>

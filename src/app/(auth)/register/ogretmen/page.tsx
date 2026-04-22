@@ -252,19 +252,19 @@ export default function TeacherRegisterPage() {
                   <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Ad <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input type="text" value={form.firstName} onChange={e => update('firstName', e.target.value)} placeholder="Ad" className="w-full pl-11 pr-3 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" />
+                    <input type="text" value={form.firstName} onChange={e => update('firstName', e.target.value)} placeholder="Ad" aria-label="Ad" className="w-full pl-11 pr-3 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Soyad <span className="text-red-500">*</span></label>
-                  <input type="text" value={form.lastName} onChange={e => update('lastName', e.target.value)} placeholder="Soyad" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" />
+                  <input type="text" value={form.lastName} onChange={e => update('lastName', e.target.value)} placeholder="Soyad" aria-label="Soyad" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" />
                 </div>
               </div>
               <div>
                 <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Branş <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <BookOpen className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <select value={form.branch} onChange={e => update('branch', e.target.value)} className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all">
+                  <select value={form.branch} onChange={e => update('branch', e.target.value)} aria-label="Branş" className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all">
                     <option value="">Branşınızı seçin</option>
                     {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
                   </select>
@@ -274,7 +274,7 @@ export default function TeacherRegisterPage() {
                 <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Telefon <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input type="tel" value={form.phone} onChange={e => update('phone', e.target.value)} placeholder="05XX XXX XX XX" className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" />
+                  <input type="tel" value={form.phone} onChange={e => update('phone', e.target.value)} placeholder="05XX XXX XX XX" aria-label="Telefon" className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" />
                 </div>
               </div>
               <button
@@ -299,6 +299,7 @@ export default function TeacherRegisterPage() {
                     onChange={e => update('email', e.target.value)}
                     placeholder="ornek@email.com"
                     disabled={codeSent}
+                    aria-label="E-posta"
                     className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all disabled:opacity-60"
                   />
                 </div>
@@ -328,6 +329,7 @@ export default function TeacherRegisterPage() {
                         onChange={e => update('verificationCode', e.target.value.replace(/\D/g, '').slice(0, 6))}
                         placeholder="6 haneli kod"
                         maxLength={6}
+                        aria-label="Doğrulama kodu"
                         className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm text-center text-lg font-bold tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                       />
                     </div>
@@ -394,6 +396,7 @@ export default function TeacherRegisterPage() {
                     }}
                     placeholder="En az 8 karakter"
                     maxLength={72}
+                    aria-label="Şifre"
                     className={`w-full pl-11 pr-11 py-3 rounded-xl border bg-white/60 text-sm focus:outline-none focus:ring-2 transition-all ${
                       form.password.length >= 8
                         ? pwResult.valid
@@ -403,7 +406,7 @@ export default function TeacherRegisterPage() {
                     }`}
                     autoComplete="new-password"
                   />
-                  <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors" tabIndex={-1}>
+                  <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors" tabIndex={-1} aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}>
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
