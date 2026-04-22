@@ -228,6 +228,11 @@ export default function LoginPage() {
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
+          <p className="text-[11.5px] text-gray-500 mt-1.5 text-right">
+            <Link href="/forgot-password/ogrenci" className="text-sky-600 hover:text-sky-700 font-semibold underline">
+              Şifremi unuttum
+            </Link>
+          </p>
         </div>
 
         <label className="flex items-center gap-2.5 cursor-pointer group">

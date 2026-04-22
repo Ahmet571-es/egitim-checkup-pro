@@ -14,6 +14,12 @@ test.describe('Şifremi Unuttum — Public erişim + Validation', () => {
     await expect(page.locator('body')).toContainText(/şifre|unutum|sıfırla|sifre/i);
   });
 
+  test('/forgot-password/ogrenci → public erişilebilir', async ({ page }) => {
+    await page.goto('/forgot-password/ogrenci');
+    await expect(page).toHaveURL(/\/forgot-password\/ogrenci/);
+    await expect(page.locator('body')).toContainText(/şifre|unutum|sıfırla|sifre/i);
+  });
+
   test('/api/auth/password-reset-send geçersiz email → 400', async ({ request }) => {
     const res = await request.post('/api/auth/password-reset-send', {
       data: { email: 'not-an-email' },
