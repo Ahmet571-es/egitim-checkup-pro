@@ -103,6 +103,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Not gönderilemedi.' }, { status: 500 });
     }
 
+    // E-posta bildirimi (sessiz — kayıt akışını bozmaz)
+    try {
+      const { sendParentNoteToTeacherEmail } = await import('@/lib/email/triggers');
+      await sendParentNoteToTeacherEmail({
+        teacherId: assignedTeacherId,
+        parentId: user.id,
+        studentId,
+        notePreview: note,
+      });
+    } catch (e) {
+      console.warn('[parent/send-note] email fail:', e);
+    }
+
     return NextResponse.json({
       success: true,
       id: inserted?.id,

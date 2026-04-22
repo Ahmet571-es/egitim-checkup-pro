@@ -256,7 +256,46 @@ export function reportReadyEmailTemplate(params: {
   };
 }
 
-/** 5. Lisans Süresi Dolmak Üzere (Okul Yöneticisine) */
+/** 7. Öğretmenden Veliye Not (FAZ 3C — Mesajlaşma) */
+export function teacherNoteEmailTemplate(params: {
+  parentName: string;
+  teacherName: string;
+  studentName: string;
+  notePreview: string;
+  messagesUrl?: string;
+}): { subject: string; html: string } {
+  const messagesUrl = params.messagesUrl ?? `${BASE_URL}/parent/messages`;
+
+  // Güvenli preview: 200 karakter + HTML escape
+  const escape = (s: string) => s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+  const preview = escape(params.notePreview.slice(0, 200)) +
+    (params.notePreview.length > 200 ? '…' : '');
+
+  const content = `
+    <h1 style="margin:0 0 8px;color:#0f2847;font-size:24px;font-weight:800;">Öğretmenden Yeni Mesaj 💬</h1>
+    <p style="margin:0 0 20px;color:#64748b;font-size:15px;line-height:1.6;">
+      Merhaba <strong style="color:#0f2847;">${escape(params.parentName)}</strong>,<br/>
+      <strong>${escape(params.teacherName)}</strong> size <strong>${escape(params.studentName)}</strong> için bir mesaj gönderdi.
+    </p>
+    ${infoBox(`
+      <p style="margin:0 0 6px;color:#9d174d;font-size:13px;font-weight:700;">📨 Mesaj</p>
+      <p style="margin:0;color:#374151;font-size:14px;line-height:1.7;white-space:pre-wrap;">${preview}</p>
+    `, '#fdf2f8', '#ec4899')}
+    <p style="margin:20px 0 12px;color:#64748b;font-size:13px;line-height:1.6;">
+      Tam mesajı okumak ve yanıtlamak için aşağıdaki butonu kullanın.
+    </p>
+    ${ctaButton('Mesajı Görüntüle', messagesUrl, '#ec4899')}
+  `;
+
+  return {
+    subject: `${params.teacherName} size mesaj gönderdi — ${params.studentName}`,
+    html: wrapLayout(content, `${params.teacherName} öğretmenden yeni bir mesajınız var.`),
+  };
+}
 export function licenseExpiringEmailTemplate(params: {
   adminName: string;
   schoolName: string;

@@ -11,6 +11,7 @@ import {
   reportReadyEmailTemplate,
   licenseExpiringEmailTemplate,
   licenseExpiredEmailTemplate,
+  teacherNoteEmailTemplate,
 } from './templates';
 import { ROLE_LABELS } from '@/types';
 import type { UserRole } from '@/types';
@@ -215,5 +216,96 @@ export async function sendLicenseExpiredEmail(schoolId: string): Promise<void> {
     console.log(`[email/license-expired] Gönderildi → ${admin.email}`);
   } catch (err) {
     console.error('[email/license-expired] Hata:', err);
+  }
+}
+
+/**
+ * FAZ 3C — Öğretmen veliye not yazdığında e-posta bildirimi.
+ * notification_preferences.email_teacher_note flag'i respektedilir.
+ */
+export async function sendTeacherNoteEmail(params: {
+  parentId: string;
+  teacherId: string;
+  studentId: string;
+  notePreview: string;
+}): Promise<void> {
+  try {
+    const supabase = await createClient();
+
+    // Bildirim tercihi kontrolü (default TRUE, ama kullanıcı kapatmışsa gönderme)
+    const { data: pref } = await supabase
+      .from('notification_preferences')
+      .select('email_teacher_note')
+      .eq('user_id', params.parentId)
+      .maybeSingle();
+    if (pref && pref.email_teacher_note === false) {
+      return; // Sessizce atla — kullanıcı tercihi
+    }
+
+    const [parent, teacher, student] = await Promise.all([
+      getProfile(params.parentId),
+      getProfile(params.teacherId),
+      getProfile(params.studentId),
+    ]);
+    if (!parent?.email) return;
+
+    const { subject, html } = teacherNoteEmailTemplate({
+      parentName: parent.full_name ?? 'Sayın Veli',
+      teacherName: teacher?.full_name ?? 'Öğretmen',
+      studentName: student?.full_name ?? 'Çocuğunuz',
+      notePreview: params.notePreview,
+      messagesUrl: `${BASE_URL}/parent/messages?child=${params.studentId}`,
+    });
+
+    await sendEmail({ to: parent.email, subject, html });
+    console.log(`[email/teacher-note] Gönderildi → ${parent.email}`);
+  } catch (err) {
+    console.error('[email/teacher-note] Hata:', err);
+  }
+}
+
+/**
+ * FAZ 3C — Veli öğretmene not yazdığında e-posta bildirimi.
+ */
+export async function sendParentNoteToTeacherEmail(params: {
+  teacherId: string;
+  parentId: string;
+  studentId: string;
+  notePreview: string;
+}): Promise<void> {
+  try {
+    const [teacher, parent, student] = await Promise.all([
+      getProfile(params.teacherId),
+      getProfile(params.parentId),
+      getProfile(params.studentId),
+    ]);
+    if (!teacher?.email) return;
+
+    // Template parent-side için yazıldı ama alanları simetrik, alanları
+    // dolduran taraflar için tersine çevirebiliriz: parent adı 'senden',
+    // teacher adı 'alıcı' olarak kullanılabilir ama template metni "öğretmen
+    // size not gönderdi" diyor. Bunu bozmamak için teacher'a yönelik ayrı
+    // bir subject/preview ile gönderiyoruz, içerik test-completed pattern'ı
+    // ile temsili.
+    const { testCompletedEmailTemplate } = await import('./templates');
+    const { subject, html } = testCompletedEmailTemplate({
+      teacherName: teacher.full_name ?? 'Öğretmen',
+      studentName: `${student?.full_name ?? 'Öğrenci'} için ${parent?.full_name ?? 'Veli'} mesajı`,
+      testName: params.notePreview.slice(0, 120) + (params.notePreview.length > 120 ? '…' : ''),
+      completedAt: new Date().toLocaleString('tr-TR', {
+        day: '2-digit', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+      }),
+      resultsUrl: `${BASE_URL}/teacher/dashboard`,
+    });
+
+    await sendEmail({
+      to: teacher.email,
+      subject: `📨 ${parent?.full_name ?? 'Veli'} size mesaj gönderdi — ${student?.full_name ?? 'öğrenci'}`,
+      html,
+    });
+    console.log(`[email/parent-note] Gönderildi → ${teacher.email}`);
+  } catch (err) {
+    console.error('[email/parent-note] Hata:', err);
   }
 }

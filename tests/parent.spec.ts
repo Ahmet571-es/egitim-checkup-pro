@@ -109,6 +109,17 @@ test.describe('Veli API — Yetkisiz Erişim', () => {
     const res = await request.get('/api/parent/notes?student_id=00000000-0000-0000-0000-000000000000');
     expect([401, 403]).toContain(res.status());
   });
+
+  test('/api/teacher/reply-note anonim → 401 veya 403', async ({ request }) => {
+    const res = await request.post('/api/teacher/reply-note', {
+      data: {
+        parent_id: '00000000-0000-0000-0000-000000000000',
+        student_id: '00000000-0000-0000-0000-000000000001',
+        note: 'test',
+      },
+    });
+    expect([401, 403]).toContain(res.status());
+  });
 });
 
 test.describe('Rapor API — Veli Yetki Koruması (Anonim)', () => {

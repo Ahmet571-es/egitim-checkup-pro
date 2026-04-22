@@ -84,19 +84,30 @@ export default function ParentNotes({ teacherId }: ParentNotesProps) {
     if (!replyText.trim()) return;
     setSending(true);
 
-    const supabase = createClient();
-    const { error } = await supabase.from('parent_teacher_notes').insert({
-      parent_id: parentId,
-      teacher_id: teacherId,
-      student_id: studentId,
-      note: replyText.trim(),
-      reply_to: noteId,
-    });
-
-    if (!error) {
-      setReplyText('');
-      setReplyTo(null);
-      await loadNotes();
+    try {
+      const csrf = typeof document !== 'undefined'
+        ? document.cookie.split('; ').find((c) => c.startsWith('csrf_token='))?.split('=')[1]
+        : undefined;
+      const res = await fetch('/api/teacher/reply-note', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrf ? { 'x-csrf-token': csrf } : {}),
+        },
+        body: JSON.stringify({
+          parent_id: parentId,
+          student_id: studentId,
+          note: replyText.trim(),
+          reply_to: noteId,
+        }),
+      });
+      if (res.ok) {
+        setReplyText('');
+        setReplyTo(null);
+        await loadNotes();
+      }
+    } catch (e) {
+      console.error('[ParentNotes] reply error:', e);
     }
     setSending(false);
   };
