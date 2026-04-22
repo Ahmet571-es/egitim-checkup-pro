@@ -42,6 +42,18 @@ test.describe('Veli Paneli — Erişim Kontrolleri (Anonim)', () => {
     await page.waitForURL('**/login**', { timeout: 15_000 });
     await expect(page).toHaveURL(/\/login/);
   });
+
+  test('Mesajlar sayfası → giriş gerektirmeli', async ({ page }) => {
+    await page.goto('/parent/messages');
+    await page.waitForURL('**/login**', { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/login/);
+  });
+
+  test('Mesajlar sayfası child parametre ile → giriş gerektirmeli', async ({ page }) => {
+    await page.goto('/parent/messages?child=00000000-0000-0000-0000-000000000001');
+    await page.waitForURL('**/login**', { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/login/);
+  });
 });
 
 test.describe('Veli Kayıt — Public Erişim', () => {
@@ -83,6 +95,18 @@ test.describe('Veli API — Yetkisiz Erişim', () => {
 
   test('/api/export/pdf anonim → 401', async ({ request }) => {
     const res = await request.get('/api/export/pdf?test_result_id=00000000-0000-0000-0000-000000000000&audience=ebeveyn');
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('/api/parent/send-note anonim → 401 veya 403', async ({ request }) => {
+    const res = await request.post('/api/parent/send-note', {
+      data: { student_id: '00000000-0000-0000-0000-000000000000', note: 'test' },
+    });
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('/api/parent/notes anonim → 401 veya 403', async ({ request }) => {
+    const res = await request.get('/api/parent/notes?student_id=00000000-0000-0000-0000-000000000000');
     expect([401, 403]).toContain(res.status());
   });
 });
