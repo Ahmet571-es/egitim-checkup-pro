@@ -4,6 +4,7 @@ import { Users, FileCheck2 } from 'lucide-react';
 import WelcomeBanner from '@/components/ui/WelcomeBanner';
 import TiltStatCard from '@/components/ui/TiltStatCard';
 import ParentNotes from '@/components/teacher/ParentNotes';
+import PendingParents from '@/components/teacher/PendingParents';
 
 export default function DashboardClient({
   firstName, studentCount, resultCount, teacherId,
@@ -42,6 +43,11 @@ export default function DashboardClient({
           delay={180}
           helperText="Toplam çözüm"
         />
+      </div>
+
+      {/* Onay bekleyen veli bağlantıları — patron'un isteği */}
+      <div className="mt-6">
+        <PendingParents />
       </div>
 
       {/* Veli Notları — FAZ 3B: öğretmen dashboard'ında veli mesajları */}

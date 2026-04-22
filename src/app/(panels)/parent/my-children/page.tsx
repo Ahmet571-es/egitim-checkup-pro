@@ -17,6 +17,7 @@ interface Child {
   full_name: string;
   email: string;
   student_code: string | null;
+  approval_pending?: boolean; // öğretmen onayı bekleniyor mu
 }
 
 function MyChildrenContent() {
@@ -37,12 +38,19 @@ function MyChildrenContent() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // select('*') — migration uygulanmadıysa approved_at kolonu yok,
+    // o durumda undefined döner ve hepsi "onaylı" kabul edilir
+    // (mevcut bağlantıların hepsi onaylı sayılır)
     const { data: links } = await supabase
       .from('parent_students')
-      .select('student_id')
+      .select('*')
       .eq('parent_id', user.id);
 
-    const childIds = (links || []).map((l: { student_id: string }) => l.student_id);
+    const linkRows = (links ?? []) as Array<{
+      student_id: string;
+      approved_at?: string | null;
+    }>;
+    const childIds = linkRows.map((l) => l.student_id);
     if (childIds.length === 0) {
       setChildren([]);
       setLoading(false);
@@ -54,7 +62,16 @@ function MyChildrenContent() {
       .select('id, full_name, email, student_code')
       .in('id', childIds);
 
-    setChildren((kids || []) as Child[]);
+    // approved_at bilgisini child'a merge et
+    const pendingMap = new Map(
+      linkRows.map((l) => [l.student_id, l.approved_at === null]),
+    );
+    const enriched = (kids ?? []).map((k) => ({
+      ...k,
+      approval_pending: pendingMap.get(k.id) ?? false,
+    })) as Child[];
+
+    setChildren(enriched);
     setLoading(false);
   }, [supabase]);
 
@@ -201,12 +218,20 @@ function MyChildrenContent() {
                 {c.full_name}
               </h3>
               <p className="text-xs text-gray-500 dark:text-slate-400 mb-3 truncate">{c.email}</p>
-              {c.student_code && (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-pink-100/70 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 text-[11px] font-bold font-mono tracking-wider">
-                  <Key className="w-3 h-3" />
-                  {c.student_code}
-                </div>
-              )}
+              <div className="flex flex-wrap items-center gap-2">
+                {c.student_code && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-pink-100/70 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 text-[11px] font-bold font-mono tracking-wider">
+                    <Key className="w-3 h-3" />
+                    {c.student_code}
+                  </div>
+                )}
+                {c.approval_pending && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-[11px] font-bold" title="Öğretmen onayı bekleniyor">
+                    <AlertCircle className="w-3 h-3" />
+                    Öğretmen onayı bekleniyor
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
