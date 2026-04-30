@@ -7,13 +7,14 @@ import { secureFetch } from '@/lib/csrf-client';
 import ReportRenderer from '@/components/ReportRenderer';
 import TestAnswersViewer from '@/components/teacher/TestAnswersViewer';
 import GeneticReportsSection from '@/components/GeneticReportsSection';
+import HolisticAttachmentsPanel from '@/components/teacher/HolisticAttachmentsPanel';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import {
   ArrowLeft, GraduationCap, CheckCircle2, Circle, Bell, AlertCircle,
   FileText, BookOpen, X, Send, Loader2, Sparkles, Eye, Download, RefreshCw,
   Brain, Layers, Shield, Link2, Briefcase, Lock, TrendingUp,
   Trash2, ChevronDown, ChevronUp, AlertTriangle, CheckSquare, Square,
-  UserPlus, ArrowRightLeft, Search
+  UserPlus, ArrowRightLeft, Search, Paperclip
 } from 'lucide-react';
 
 const TEST_LABELS: Record<string, string> = {
@@ -133,6 +134,8 @@ export default function StudentDetailPage() {
   const [holisticSelected, setHolisticSelected] = useState<Set<string>>(new Set());
   const [holisticConfirmOpen, setHolisticConfirmOpen] = useState(false);
   const [holisticHistoryOpen, setHolisticHistoryOpen] = useState(false);
+  // Faz 6: hangi holistic raporlar için "Genetik Ek'leri" panel'i açık
+  const [attachExpandedFor, setAttachExpandedFor] = useState<Set<string>>(new Set());
   const [integrated, setIntegrated] = useState<IntegratedReport | null>(null);
 
   // ═══ Entegre 3'lü Rapor — Test Seçim Modalı + Geçmiş ═══
@@ -1077,6 +1080,33 @@ export default function StudentDetailPage() {
                                       {busyKey === 'holistic-delete-' + hr.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
                                     </button>
                                   </div>
+                                </div>
+
+                                {/* Faz 6: Genetik Ek'ler toggle */}
+                                <div className="mt-2 pt-2 border-t border-purple-100 dark:border-purple-900/30">
+                                  <button
+                                    onClick={() => {
+                                      setAttachExpandedFor((prev) => {
+                                        const next = new Set(prev);
+                                        if (next.has(hr.id)) next.delete(hr.id);
+                                        else next.add(hr.id);
+                                        return next;
+                                      });
+                                    }}
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 text-[11px] font-bold hover:bg-violet-100 transition border border-violet-200"
+                                    aria-expanded={attachExpandedFor.has(hr.id)}
+                                  >
+                                    <Paperclip className="w-3 h-3" />
+                                    {attachExpandedFor.has(hr.id) ? 'Genetik Ek\'leri Gizle' : 'Genetik PDF Ek\'le (Sürükle-Bırak)'}
+                                    {attachExpandedFor.has(hr.id) ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  </button>
+
+                                  {attachExpandedFor.has(hr.id) && (
+                                    <HolisticAttachmentsPanel
+                                      holisticReportId={hr.id}
+                                      studentId={student.id}
+                                    />
+                                  )}
                                 </div>
                               </div>
                             ))}

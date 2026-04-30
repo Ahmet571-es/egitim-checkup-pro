@@ -115,7 +115,13 @@ export async function GET(
     if (format === 'pdf') {
       const { generateReportPdf } = await import('@/lib/export/pdf-generator');
       const buffer = await generateReportPdf(hr.report_text, meta);
-      return new NextResponse(new Uint8Array(buffer), {
+
+      // Faz 6: Genetik PDF eklerini sona ek sayfa olarak göm.
+      // Tablo yoksa veya ek yoksa orijinal buffer döner.
+      const { mergeGeneticAttachments } = await import('@/lib/export/pdf-merger');
+      const finalPdfBytes = await mergeGeneticAttachments(buffer, hr.id, admin);
+
+      return new NextResponse(new Uint8Array(finalPdfBytes), {
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': `attachment; filename="${safeName}_harmanlanmis_rapor_${dateLabel}.pdf"`,
