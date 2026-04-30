@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { secureFetch } from '@/lib/csrf-client';
 import ReportRenderer from '@/components/ReportRenderer';
 import TestAnswersViewer from '@/components/teacher/TestAnswersViewer';
+import GeneticReportsSection from '@/components/GeneticReportsSection';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import {
   ArrowLeft, GraduationCap, CheckCircle2, Circle, Bell, AlertCircle,
@@ -671,6 +672,9 @@ export default function StudentDetailPage() {
           <CheckCircle2 className="w-4 h-4 shrink-0" />{success}
         </div>
       )}
+
+      {/* Faz 5: Genetik Rapor Yönetimi (KVKK m.6 - öğretmen sadece görüntüleme/indirme) */}
+      <GeneticReportsSection studentId={student.id} studentName={student.full_name} />
 
       {/* Sekmeler */}
       <div className="flex gap-2 mb-4 bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-1.5 shadow-sm">
