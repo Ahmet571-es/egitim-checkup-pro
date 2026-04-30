@@ -8,6 +8,7 @@ import ReportRenderer from '@/components/ReportRenderer';
 import TestAnswersViewer from '@/components/teacher/TestAnswersViewer';
 import GeneticReportsSection from '@/components/GeneticReportsSection';
 import HolisticAttachmentsPanel from '@/components/teacher/HolisticAttachmentsPanel';
+import StudentProgressPanel from '@/components/teacher/StudentProgressPanel';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import {
   ArrowLeft, GraduationCap, CheckCircle2, Circle, Bell, AlertCircle,
@@ -136,6 +137,8 @@ export default function StudentDetailPage() {
   const [holisticHistoryOpen, setHolisticHistoryOpen] = useState(false);
   // Faz 6: hangi holistic raporlar için "Genetik Ek'leri" panel'i açık
   const [attachExpandedFor, setAttachExpandedFor] = useState<Set<string>>(new Set());
+  // Faz 7: Gelişim paneli açık/kapalı
+  const [progressExpanded, setProgressExpanded] = useState(false);
   const [integrated, setIntegrated] = useState<IntegratedReport | null>(null);
 
   // ═══ Entegre 3'lü Rapor — Test Seçim Modalı + Geçmiş ═══
@@ -768,6 +771,35 @@ export default function StudentDetailPage() {
             </div>
           ) : (
             <>
+              {/* Faz 7: Gelişim Görüntüleme — collapsible */}
+              <div className="bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-50 dark:from-sky-950/20 dark:via-cyan-950/20 dark:to-blue-950/20 rounded-2xl border border-sky-200 dark:border-sky-900/40 shadow-sm overflow-hidden mb-6">
+                <button
+                  onClick={() => setProgressExpanded((v) => !v)}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-sky-100/50 dark:hover:bg-sky-950/40 transition-colors"
+                  aria-expanded={progressExpanded}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-cyan-600 flex items-center justify-center text-white shadow-md">
+                      <TrendingUp className="w-4 h-4" />
+                    </div>
+                    <div className="text-left">
+                      <h3 className="text-[14px] font-extrabold text-[#0f2847] dark:text-slate-100">
+                        Gelişim Görüntüleme
+                      </h3>
+                      <p className="text-[11px] text-gray-600 dark:text-slate-400 mt-0.5">
+                        Zaman içinde test skorlarındaki değişim, delta tablosu ve AI yorumu
+                      </p>
+                    </div>
+                  </div>
+                  {progressExpanded ? <ChevronUp className="w-4 h-4 text-sky-600" /> : <ChevronDown className="w-4 h-4 text-sky-600" />}
+                </button>
+                {progressExpanded && (
+                  <div className="px-4 pb-4">
+                    <StudentProgressPanel studentId={student.id} />
+                  </div>
+                )}
+              </div>
+
               {/* Test bazlı tekil raporlar */}
               <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm overflow-hidden mb-6">
                 <div className="px-4 py-3 bg-gradient-to-r from-sky-50 to-blue-50 border-b border-sky-100">
