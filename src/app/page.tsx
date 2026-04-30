@@ -14,13 +14,13 @@ import { useScrollReveal, useCountUp } from '@/hooks/useScrollReveal';
 const TESTS = [
   { name: 'Enneagram Kişilik', desc: '9 kişilik tipi derinlemesine analizi', count: '180 soru', icon: Brain, color: 'from-violet-500 to-purple-600', border: 'border-l-violet-500' },
   { name: 'VARK Öğrenme Stilleri', desc: 'Görsel, İşitsel, Okuma-Yazma, Kinestetik', count: '16 soru', icon: Eye, color: 'from-sky-500 to-blue-600', border: 'border-l-sky-500' },
-  { name: 'Holland RIASEC', desc: '6 mesleki ilgi alanı ve kariyer yönlendirme', count: '84 soru', icon: Compass, color: 'from-emerald-500 to-teal-600', border: 'border-l-emerald-500' },
+  { name: 'Meslek Testi', desc: '6 mesleki ilgi alanı ve kariyer yönlendirme', count: '84 soru', icon: Compass, color: 'from-emerald-500 to-teal-600', border: 'border-l-emerald-500' },
   { name: 'Çoklu Zekâ', desc: '8 zekâ alanı profili çıkarma', count: '80 soru', icon: Lightbulb, color: 'from-amber-500 to-orange-600', border: 'border-l-amber-500' },
   { name: 'Sınav Kaygısı', desc: 'Kaygı düzeyi ve kaynakları analizi', count: '50 soru', icon: AlertTriangle, color: 'from-rose-500 to-red-600', border: 'border-l-rose-500' },
   { name: 'Çalışma Davranışı', desc: '7 alt kategori, verimlilik analizi', count: '73 soru', icon: BookOpen, color: 'from-indigo-500 to-blue-600', border: 'border-l-indigo-500' },
   { name: 'Akademik Analiz', desc: 'Akademik güçlü yönler ve gelişim alanları', count: '54 soru', icon: BarChart3, color: 'from-cyan-500 to-teal-600', border: 'border-l-cyan-500' },
   { name: 'Hızlı Okuma', desc: 'WPM ölçümü + okuduğunu anlama testi', count: 'Zamanlı', icon: BookOpen, color: 'from-lime-500 to-green-600', border: 'border-l-lime-500' },
-  { name: 'P2 Dikkat Testi', desc: 'Orijinal Brickenkamp 14×47 formatı', count: '658 sembol', icon: Focus, color: 'from-pink-500 to-rose-600', border: 'border-l-pink-500' },
+  { name: 'D2 Dikkat Testi', desc: 'Orijinal Brickenkamp 14×47 formatı', count: '658 sembol', icon: Focus, color: 'from-pink-500 to-rose-600', border: 'border-l-pink-500' },
   { name: 'Sağ-Sol Beyin Dominansı', desc: 'Analitik mi yaratıcı mı analizi', count: '30 soru', icon: SplitSquareHorizontal, color: 'from-fuchsia-500 to-purple-600', border: 'border-l-fuchsia-500' },
 ];
 
@@ -223,12 +223,12 @@ export default function LandingPage() {
               {[
                 { emoji: '🧠', text: 'Enneagram Kişilik', color: 'from-violet-500 to-purple-600' },
                 { emoji: '📖', text: 'VARK Öğrenme Stili', color: 'from-sky-500 to-blue-600' },
-                { emoji: '🧭', text: 'Holland Kariyer', color: 'from-emerald-500 to-teal-600' },
+                { emoji: '🧭', text: 'Meslek Testi', color: 'from-emerald-500 to-teal-600' },
                 { emoji: '🎯', text: 'Çoklu Zeka Analizi', color: 'from-amber-500 to-orange-600' },
                 { emoji: '📝', text: 'Sınav Kaygısı Ölçeği', color: 'from-rose-500 to-pink-600' },
                 { emoji: '📚', text: 'Çalışma Davranışı', color: 'from-lime-500 to-green-600' },
                 { emoji: '🔬', text: 'Akademik Analiz', color: 'from-cyan-500 to-sky-600' },
-                { emoji: '⚡', text: 'P2 Dikkat Testi', color: 'from-indigo-500 to-violet-600' },
+                { emoji: '⚡', text: 'D2 Dikkat Testi', color: 'from-indigo-500 to-violet-600' },
                 { emoji: '🧩', text: 'Sağ-Sol Beyin', color: 'from-fuchsia-500 to-pink-600' },
                 { emoji: '📖', text: 'Hızlı Okuma', color: 'from-teal-500 to-emerald-600' },
               ].map((item) => (
@@ -365,23 +365,54 @@ export default function LandingPage() {
       {/* ═══ FOOTER ═══ */}
       <footer className="border-t border-gray-200 dark:border-slate-700/50 bg-white/40 backdrop-blur-lg" ref={footer.ref}>
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 transition-all duration-500 ${footer.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Üst kısım: marka + ana linkler */}
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-6">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                 <GraduationCap className="w-4 h-4 text-white" />
               </div>
               <span className="text-sm font-bold text-[#0f2847] dark:text-slate-100">Eğitim Check-Up</span>
             </div>
-            <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-slate-400">
-              <Link href="/kvkk" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors inline-flex items-center gap-1 py-2.5 min-h-[44px]">
-                <Shield className="w-3.5 h-3.5" /> KVKK
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-500 dark:text-slate-400">
+              <Link href="/paketler" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
+                Paketler
               </Link>
-              <a href="mailto:info@egitimcheckup.com" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors inline-flex items-center gap-1 py-2.5 min-h-[44px]">
-                <Mail className="w-3.5 h-3.5" /> info@egitimcheckup.com
-              </a>
+              <Link href="/pricing" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
+                Ücretlendirme
+              </Link>
+              <Link href="/hakkimizda" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
+                Hakkımızda
+              </Link>
+              <Link href="/iletisim" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
+                İletişim
+              </Link>
             </div>
-            <p className="text-xs text-gray-400 dark:text-slate-500">© 2026 Eğitim Check-Up. Tüm hakları saklıdır.</p>
           </div>
+
+          {/* Yasal linkler — küçük puntolarla */}
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-gray-400 dark:text-slate-500 border-t border-gray-100 dark:border-slate-800/60 pt-5">
+            <Link href="/kvkk" className="hover:text-[#0f2847] dark:text-slate-300 transition-colors inline-flex items-center gap-1 py-1.5 min-h-[36px]">
+              <Shield className="w-3 h-3" /> KVKK
+            </Link>
+            <span className="text-gray-300 dark:text-slate-700">·</span>
+            <Link href="/gizlilik-politikasi" className="hover:text-[#0f2847] dark:text-slate-300 transition-colors py-1.5 min-h-[36px]">
+              Gizlilik Politikası
+            </Link>
+            <span className="text-gray-300 dark:text-slate-700">·</span>
+            <Link href="/mesafeli-satis-sozlesmesi" className="hover:text-[#0f2847] dark:text-slate-300 transition-colors py-1.5 min-h-[36px]">
+              Mesafeli Satış Sözleşmesi
+            </Link>
+            <span className="text-gray-300 dark:text-slate-700">·</span>
+            <Link href="/iade-ve-teslimat-sartlari" className="hover:text-[#0f2847] dark:text-slate-300 transition-colors py-1.5 min-h-[36px]">
+              İade ve Teslimat Şartları
+            </Link>
+            <span className="text-gray-300 dark:text-slate-700">·</span>
+            <a href="mailto:info@egitimcheckup.com" className="hover:text-[#0f2847] dark:text-slate-300 transition-colors inline-flex items-center gap-1 py-1.5 min-h-[36px]">
+              <Mail className="w-3 h-3" /> info@egitimcheckup.com
+            </a>
+          </div>
+
+          <p className="text-xs text-gray-400 dark:text-slate-500 text-center mt-5">© 2026 Eğitim Check-Up. Tüm hakları saklıdır.</p>
         </div>
       </footer>
     </div>
