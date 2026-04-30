@@ -14,6 +14,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { secureFetch } from '@/lib/csrf-client';
 import { createClient } from '@/lib/supabase/client';
+import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import {
   FileText, Upload, Download, Trash2, AlertCircle, CheckCircle2, X,
   Lock, Loader2, Calendar, User as UserIcon, Plus, Shield
@@ -50,6 +52,8 @@ function formatDate(iso: string): string {
 }
 
 export default function GeneticReportsSection({ studentId, studentName }: Props) {
+  const toast = useToast();
+  const { confirm } = useConfirm();
   const [role, setRole] = useState<string | null>(null);
   const [roleChecked, setRoleChecked] = useState(false);
   const [reports, setReports] = useState<Report[]>([]);
@@ -134,7 +138,7 @@ export default function GeneticReportsSection({ studentId, studentName }: Props)
       const res = await fetch(`/api/genetic-reports/${reportId}/download`);
       const data = await res.json();
       if (!res.ok || !data.signed_url) {
-        alert(data.error || 'İndirme bağlantısı oluşturulamadı.');
+        toast.error('İndirme başarısız', data.error || 'İndirme bağlantısı oluşturulamadı.');
         return;
       }
       // Yeni sekme/indirme
@@ -146,7 +150,7 @@ export default function GeneticReportsSection({ studentId, studentName }: Props)
       link.click();
       document.body.removeChild(link);
     } catch {
-      alert('Bağlantı hatası.');
+      toast.error('Bağlantı hatası', 'Lütfen tekrar deneyin.');
     } finally {
       setActionId(null);
     }
@@ -154,7 +158,14 @@ export default function GeneticReportsSection({ studentId, studentName }: Props)
 
   // ── Silme ──
   const handleDelete = async (reportId: string, filename: string) => {
-    if (!confirm(`"${filename}" raporunu silmek istediğinize emin misiniz?\n\nKVKK m.7 silme hakkı kapsamındadır. Geri alınamaz.`)) return;
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Genetik raporu sil',
+      description: `"${filename}" raporunu kalıcı olarak silmek istediğinize emin misiniz? KVKK m.7 silme hakkı kapsamındadır. Bu işlem geri alınamaz.`,
+      confirmLabel: 'Sil',
+    });
+    if (!ok) return;
+
     setActionId(reportId);
     try {
       const res = await secureFetch(`/api/genetic-reports/${reportId}`, {
@@ -162,13 +173,14 @@ export default function GeneticReportsSection({ studentId, studentName }: Props)
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Silinemedi.');
+        toast.error('Silme başarısız', data.error || 'Bilinmeyen hata.');
         return;
       }
       // Listeyi yenile
       setReports((prev) => prev.filter((r) => r.id !== reportId));
+      toast.success('Rapor silindi', `"${filename}" başarıyla silindi.`);
     } catch {
-      alert('Bağlantı hatası.');
+      toast.error('Bağlantı hatası', 'Lütfen tekrar deneyin.');
     } finally {
       setActionId(null);
     }
@@ -189,8 +201,8 @@ export default function GeneticReportsSection({ studentId, studentName }: Props)
       setFile(null);
       return;
     }
-    if (f && f.size > 10 * 1024 * 1024) {
-      setUploadError('Dosya boyutu 10 MB sınırını aşıyor.');
+    if (f && f.size > 4 * 1024 * 1024) {
+      setUploadError('Dosya boyutu 4 MB sınırını aşıyor.');
       setFile(null);
       return;
     }
@@ -224,6 +236,7 @@ export default function GeneticReportsSection({ studentId, studentName }: Props)
       setUploadOpen(false);
       resetUploadForm();
       loadList();
+      toast.success('Rapor yüklendi', `"${file.name}" başarıyla yüklendi.`);
     } catch {
       setUploadError('Bağlantı hatası.');
     } finally {
@@ -261,7 +274,7 @@ export default function GeneticReportsSection({ studentId, studentName }: Props)
       </div>
 
       {/* KVKK uyarı banner'ı */}
-      <div className="mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 flex items-start gap-2">
+      <div className="mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 flex items-start gap-2" role="status" aria-label="KVKK uyarısı">
         <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
         <p className="text-[12px] text-amber-800 dark:text-amber-300 leading-relaxed">
           Genetik veriler 6698 sayılı KVKK madde 6 kapsamında özel nitelikli kişisel veridir.
@@ -397,7 +410,7 @@ export default function GeneticReportsSection({ studentId, studentName }: Props)
               {/* Dosya seçim */}
               <div>
                 <label className="block text-[12px] font-bold text-gray-700 dark:text-slate-300 mb-1.5">
-                  PDF Dosyası <span className="text-rose-500">*</span> <span className="text-gray-400 font-normal">(max 10 MB)</span>
+                  PDF Dosyası <span className="text-rose-500">*</span> <span className="text-gray-400 font-normal">(max 4 MB)</span>
                 </label>
                 <input
                   ref={fileInputRef}

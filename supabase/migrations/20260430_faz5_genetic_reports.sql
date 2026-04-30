@@ -35,7 +35,7 @@ BEGIN
       notes           TEXT,
 
       CONSTRAINT genetic_reports_file_size_positive CHECK (file_size > 0),
-      CONSTRAINT genetic_reports_file_size_max CHECK (file_size <= 10485760)  -- 10 MB
+      CONSTRAINT genetic_reports_file_size_max CHECK (file_size <= 4194304)  -- 4 MB (Vercel API body limit)
     );
 
     COMMENT ON TABLE genetic_reports IS 'KVKK m.6 özel nitelikli kişisel veri. Erişim sıkı kontrollü.';
@@ -74,17 +74,19 @@ CREATE POLICY "service_role_full_access"
 
 -- ----- 4) Storage bucket: genetic-reports (private) -----
 -- Bucket private. Erişim sadece signed URL ile (API endpoint'inden üretilir).
+-- file_size_limit 4 MB — Vercel API route body size limit ile uyumlu.
+-- Tipik genetik raporlar 1-3 MB civarında olur, bu yeterli.
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (
   'genetic-reports',
   'genetic-reports',
   false,
-  10485760,                               -- 10 MB max
+  4194304,                                -- 4 MB max
   ARRAY['application/pdf']                -- sadece PDF
 )
 ON CONFLICT (id) DO UPDATE SET
   public = false,
-  file_size_limit = 10485760,
+  file_size_limit = 4194304,
   allowed_mime_types = ARRAY['application/pdf'];
 
 -- ----- 5) Storage bucket policy'leri — sadece service role -----
