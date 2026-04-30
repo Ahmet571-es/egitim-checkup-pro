@@ -1,13 +1,20 @@
-'use client';
 /**
  * Faz 1: Hizmet Paketleri sayfası
  * Public page — proxy.ts PUBLIC_PATHS içerisinde '/paketler' eklenmiş.
+ * Server component (interactivity yok) — SEO için metadata export edilebilir.
  */
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   ArrowLeft, ArrowRight, Sparkles, Brain, GraduationCap, Target, Compass, Crown,
   CheckCircle2, Mail, Shield
 } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Hizmet Paketleri | Eğitim Check-Up',
+  description: 'Okul öncesinden üniversiteye kadar 5 farklı paket: Potansiyel & Mizaç, Akademik Performans, Sınav Strateji, Kariyer & Gelecek ve VIP Tam Kapsamlı.',
+  alternates: { canonical: 'https://egitim-checkup.com/paketler' },
+};
 
 type Package = {
   id: string;

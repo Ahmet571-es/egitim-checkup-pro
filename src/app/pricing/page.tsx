@@ -1,13 +1,20 @@
-'use client';
 /**
  * Faz 1: Ücretlendirme sayfası
  * Public page — proxy.ts PUBLIC_PATHS içerisinde '/pricing' önceden mevcut.
+ * Server component (interactivity yok).
  */
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   ArrowLeft, ArrowRight, Receipt, Sparkles, Crown, Tag, GraduationCap,
   Mail, Shield, Package
 } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Ücretlendirme | Eğitim Check-Up',
+  description: '10 tekil test ücreti, 2 ek hizmet ve sınırlı süreli kampanyalı Toplu Rapor fiyatlandırması. Şeffaf, KDV dahil ve esnek paketler.',
+  alternates: { canonical: 'https://egitim-checkup.com/pricing' },
+};
 
 type SinglePrice = { name: string; priceTry: number };
 
@@ -24,8 +31,13 @@ const SINGLE_TESTS: SinglePrice[] = [
   { name: 'Öğrenme Stilleri Testi', priceTry: 500 },
 ];
 
-const EXTRA_SERVICES: SinglePrice[] = [
-  { name: 'Toplu Rapor', priceTry: 16000 },
+type ExtraService = SinglePrice & {
+  originalPriceTry?: number;
+  campaignBadge?: string;
+};
+
+const EXTRA_SERVICES: ExtraService[] = [
+  { name: 'Toplu Rapor', priceTry: 14000, originalPriceTry: 16000, campaignBadge: 'KAMPANYALI' },
   { name: 'Uzman Seansı + Rapor', priceTry: 20000 },
 ];
 
@@ -147,14 +159,24 @@ export default function PricingPage() {
 
         <div className="grid sm:grid-cols-2 gap-4">
           {EXTRA_SERVICES.map((s) => (
-            <div key={s.name} className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm p-6 hover:-translate-y-0.5 hover:shadow-lg transition-all">
+            <div key={s.name} className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm p-6 hover:-translate-y-0.5 hover:shadow-lg transition-all">
+              {s.campaignBadge && (
+                <div className="absolute top-4 right-4 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[10px] font-extrabold tracking-widest shadow-sm">
+                  {s.campaignBadge}
+                </div>
+              )}
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <h3 className="text-base font-extrabold text-[#0f2847]">{s.name}</h3>
               </div>
-              <div className="text-2xl font-extrabold text-emerald-600">₺{formatPrice(s.priceTry)}</div>
+              <div className="flex items-baseline gap-2">
+                <div className="text-2xl font-extrabold text-emerald-600">₺{formatPrice(s.priceTry)}</div>
+                {s.originalPriceTry && (
+                  <div className="text-sm text-gray-400 line-through">₺{formatPrice(s.originalPriceTry)}</div>
+                )}
+              </div>
             </div>
           ))}
         </div>

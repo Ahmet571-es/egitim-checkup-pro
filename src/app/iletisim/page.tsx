@@ -1,16 +1,23 @@
-'use client';
 /**
  * Faz 1: İletişim sayfası
  * Public page — proxy.ts PUBLIC_PATHS içerisinde '/iletisim' eklenmiş.
+ * Server component (interactivity yok).
  *
  * NOT: İletişim formu Faz 4'te Resend entegrasyonu ile aktive olacak.
  * Şimdilik doğrudan e-posta linki ile çalışır.
  */
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   ArrowLeft, GraduationCap, Mail, Shield, MapPin, Phone, MessageCircle,
   Sparkles, Clock, Users
 } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'İletişim | Eğitim Check-Up',
+  description: 'Eğitim Check-Up Pro ile iletişime geçin. Sorularınız, paket bilgisi ve kurumsal işbirlikleri için 1 iş günü içinde dönüş yapıyoruz.',
+  alternates: { canonical: 'https://egitim-checkup.com/iletisim' },
+};
 
 export default function ContactPage() {
   return (

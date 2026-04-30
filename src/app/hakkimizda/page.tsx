@@ -1,13 +1,20 @@
-'use client';
 /**
  * Faz 1: Hakkımızda sayfası
  * Public page — proxy.ts PUBLIC_PATHS içerisinde '/hakkimizda' eklenmiş.
+ * Server component (interactivity yok).
  */
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   ArrowLeft, GraduationCap, Mail, Shield, Brain, Heart, Target, Award,
   Users, BookOpen, Sparkles
 } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Hakkımızda | Eğitim Check-Up',
+  description: 'Eğitim Check-Up Pro: Psikometrik testler ve yapay zekâ analizi ile öğrencilerin potansiyellerini, öğrenme stillerini ve ihtiyaçlarını anlamak için tasarlanmış bilimsel bir platform.',
+  alternates: { canonical: 'https://egitim-checkup.com/hakkimizda' },
+};
 
 const VALUES = [
   {
