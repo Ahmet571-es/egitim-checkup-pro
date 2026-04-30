@@ -43,23 +43,39 @@ interface SchoolWithCount extends School {
 export default async function Page() {
   const supabase = await createClient();
 
-  const { data: schoolsRaw, error } = await supabase
-    .from('schools')
-    .select('*')
-    .order('created_at', { ascending: false });
+  // Graceful fetch — hata olursa boş dizi döner, sayfa yine render olur
+  let schoolsRaw: School[] | null = null;
+  try {
+    const { data, error } = await supabase
+      .from('schools')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error('[admin/licenses] schools sorgu hatası:', error.message);
+    } else {
+      schoolsRaw = data as School[] | null;
+    }
+  } catch (e) {
+    console.error('[admin/licenses] schools exception:', e instanceof Error ? e.message : e);
+  }
 
-  const schools: SchoolWithCount[] = (schoolsRaw as School[] | null) || [];
+  const schools: SchoolWithCount[] = schoolsRaw || [];
 
   if (schools.length > 0) {
     await Promise.all(
       schools.map(async (s) => {
-        const { count } = await supabase
-          .from('profiles')
-          .select('id', { count: 'exact', head: true })
-          .eq('school_id', s.id)
-          .eq('role', 'student')
-          .eq('is_active', true);
-        s.student_count = count || 0;
+        try {
+          const { count } = await supabase
+            .from('profiles')
+            .select('id', { count: 'exact', head: true })
+            .eq('school_id', s.id)
+            .eq('role', 'student')
+            .eq('is_active', true);
+          s.student_count = count || 0;
+        } catch (e) {
+          console.error(`[admin/licenses] student count for ${s.id}:`, e instanceof Error ? e.message : e);
+          s.student_count = 0;
+        }
       }),
     );
   }
@@ -122,11 +138,7 @@ export default async function Page() {
           <span className="font-bold text-[#0f2847] dark:text-slate-100">{total} okul listeleniyor</span>
         </div>
 
-        {error && (
-          <div className="p-5 text-sm text-red-600">Hata: {error.message}</div>
-        )}
-
-        {total === 0 && !error && (
+        {total === 0 && (
           <div className="p-8">
             <EmptyState
               role="admin"

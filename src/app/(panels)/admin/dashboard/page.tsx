@@ -15,15 +15,34 @@ export default async function Page() {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
 
-  const [schoolsRes, usersRes, teachersRes, resultsRes] = await Promise.all([
-    supabase.from('schools').select('id', { count: 'exact', head: true }),
-    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_active', true),
-    supabase
-      .from('profiles')
-      .select('id', { count: 'exact', head: true })
-      .eq('role', 'teacher')
-      .eq('is_active', true),
-    supabase.from('test_results').select('id', { count: 'exact', head: true }),
+  // Graceful query helper — hata olursa 0 döner, sayfa yine render olur
+  async function safeCount(
+    table: 'schools' | 'profiles' | 'test_results',
+    filters: Array<[string, string | boolean]> = [],
+  ): Promise<number> {
+    try {
+      let q = supabase.from(table).select('id', { count: 'exact', head: true });
+      for (const [k, v] of filters) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        q = q.eq(k, v as any);
+      }
+      const { count, error } = await q;
+      if (error) {
+        console.error(`[admin/dashboard] ${table} sorgu hatası:`, error.message);
+        return 0;
+      }
+      return count || 0;
+    } catch (e) {
+      console.error(`[admin/dashboard] ${table} exception:`, e instanceof Error ? e.message : e);
+      return 0;
+    }
+  }
+
+  const [schoolsCount, usersCount, teachersCount, resultsCount] = await Promise.all([
+    safeCount('schools'),
+    safeCount('profiles', [['is_active', true]]),
+    safeCount('profiles', [['role', 'teacher'], ['is_active', true]]),
+    safeCount('test_results'),
   ]);
 
   const firstName = (profile?.full_name || 'Yönetici').split(' ')[0];
@@ -31,7 +50,7 @@ export default async function Page() {
   const stats = [
     {
       label: 'Toplam Okul',
-      value: schoolsRes.count || 0,
+      value: schoolsCount,
       href: '/admin/schools',
       icon: Building2,
       gradient: 'from-amber-500 to-orange-600',
@@ -39,7 +58,7 @@ export default async function Page() {
     },
     {
       label: 'Toplam Kullanıcı',
-      value: usersRes.count || 0,
+      value: usersCount,
       href: '/admin/users',
       icon: Users,
       gradient: 'from-sky-500 to-blue-600',
@@ -47,7 +66,7 @@ export default async function Page() {
     },
     {
       label: 'Toplam Öğretmen',
-      value: teachersRes.count || 0,
+      value: teachersCount,
       href: '/admin/users',
       icon: GraduationCap,
       gradient: 'from-emerald-500 to-teal-600',
@@ -55,7 +74,7 @@ export default async function Page() {
     },
     {
       label: 'Tamamlanan Test',
-      value: resultsRes.count || 0,
+      value: resultsCount,
       href: '#',
       icon: FileCheck2,
       gradient: 'from-violet-500 to-purple-600',
