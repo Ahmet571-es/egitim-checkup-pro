@@ -6,7 +6,7 @@ import {
   GraduationCap, Brain, Eye, Compass, Lightbulb, AlertTriangle,
   BookOpen, BarChart3, Focus, SplitSquareHorizontal, ArrowRight,
   CheckCircle2, Sparkles, Users, FileText, ChevronRight, Mail, Shield,
-  Zap, TrendingUp, Award, UserCheck, School, ClipboardList
+  Zap, TrendingUp, Award, UserCheck, School, ClipboardList, Heart
 } from 'lucide-react';
 import { useScrollReveal, useCountUp } from '@/hooks/useScrollReveal';
 
@@ -201,6 +201,15 @@ export default function LandingPage() {
               <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl pointer-events-none group-hover:bg-white/30 transition" />
               <Shield className="w-5 h-5 relative z-10 group-hover:rotate-12 transition-transform duration-300" />
               <span className="relative z-10">YÖNETİCİ GİRİŞİ</span>
+              <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
+            </Link>
+
+            <Link href="/login/veli"
+              className="touch-feedback group relative px-8 py-4 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-fuchsia-500 text-white font-extrabold shadow-xl shadow-pink-500/40 hover:shadow-2xl hover:shadow-pink-500/50 hover:scale-[1.05] hover:-translate-y-0.5 active:scale-[0.97] transition-all flex items-center gap-2.5 text-[14.5px] tracking-wide overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none" />
+              <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl pointer-events-none group-hover:bg-white/30 transition" />
+              <Heart className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-300" />
+              <span className="relative z-10">VELİ GİRİŞİ</span>
               <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>

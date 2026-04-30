@@ -23,6 +23,31 @@ interface Result {
   ai_report: string | null;
 }
 
+// Faz 3: Test isim map'i — DB key'lerini veli'nin gördüğü etikete dönüştürür.
+// Öğretmen panelindeki TEST_LABELS ile tutarlı (holland → "Meslek Testi", p2 → "D2 Dikkat").
+const TEST_LABELS: Record<string, string> = {
+  enneagram: 'Enneagram Kişilik',
+  vark: 'VARK Öğrenme Stilleri',
+  holland: 'Meslek Testi',
+  coklu_zeka: 'Çoklu Zekâ',
+  'coklu-zeka': 'Çoklu Zekâ',
+  sinav_kaygisi: 'Sınav Kaygısı',
+  'sinav-kaygisi': 'Sınav Kaygısı',
+  calisma_davranisi: 'Çalışma Davranışı',
+  'calisma-davranisi': 'Çalışma Davranışı',
+  akademik_analiz: 'Akademik Analiz',
+  'akademik-analiz': 'Akademik Analiz',
+  hizli_okuma: 'Hızlı Okuma',
+  'hizli-okuma': 'Hızlı Okuma',
+  d2_dikkat: 'D2 Dikkat Testi',
+  'd2-dikkat': 'D2 Dikkat Testi',
+  sag_sol_beyin: 'Sağ-Sol Beyin Dominansı',
+  'sag-sol-beyin': 'Sağ-Sol Beyin Dominansı',
+};
+
+const labelFor = (testType: string): string =>
+  TEST_LABELS[testType] || testType.replace(/[_-]/g, ' ');
+
 function ResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -187,8 +212,8 @@ function ResultsContent() {
                     <FileText className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 dark:text-slate-100 text-base capitalize">
-                      {r.test_type.replace(/_/g, ' ')}
+                    <h3 className="font-bold text-gray-900 dark:text-slate-100 text-base">
+                      {labelFor(r.test_type)}
                     </h3>
                     <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
                       <Calendar className="w-3 h-3" />
