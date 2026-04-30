@@ -6,6 +6,7 @@ import type { NavItem } from '@/types';
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/teacher/dashboard', icon: 'dashboard' },
   { label: 'Öğrencilerim', href: '/teacher/students', icon: 'students' },
+  { label: 'AI Koç', href: '/teacher/coach', icon: 'coach' },
 ];
 
 export default function TeacherLayout({ children }: { children: React.ReactNode }) {
