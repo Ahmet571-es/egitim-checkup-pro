@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { secureFetch } from '@/lib/csrf-client';
 import {
   FolderOpen, ChevronRight, GraduationCap, AlertCircle, Users, Bell, Award, Search, X,
-  School, Layers, Inbox
+  School, Layers, Inbox, UserPlus
 } from 'lucide-react';
 import WelcomeBanner from '@/components/ui/WelcomeBanner';
 import { CardGridSkeleton, StatCardsGrid } from '@/components/ui/Skeleton';
+import AddStudentModal from '@/components/teacher/AddStudentModal';
 
 interface StudentRow {
   id: string;
@@ -38,6 +39,11 @@ export default function StudentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [highlightedStudentId, setHighlightedStudentId] = useState<string | null>(null);
   const studentRefs = useRef<Map<string, HTMLAnchorElement>>(new Map());
+
+  // Faz 2: Öğrenci Ekle modal'ı
+  const [showAddModal, setShowAddModal] = useState(false);
+  // Modal başarılı olunca listeyi yenilemek için key
+  const [refreshKey, setRefreshKey] = useState(0);
 
   interface FlatStudent {
     student: StudentRow;
@@ -143,7 +149,7 @@ export default function StudentsPage() {
       }
       setLoading(false);
     })();
-  }, []);
+  }, [refreshKey]);
 
   const activeStudentCount = Object.values(active).reduce(
     (sum, gradeMap) => sum + Object.values(gradeMap).reduce(
@@ -238,6 +244,16 @@ export default function StudentsPage() {
         badge="Öğrenci Yönetimi"
         emoji="👥"
       />
+
+      {/* Faz 2: Yeni öğrenci ekleme butonu */}
+      <div className="mb-5 flex items-center justify-end">
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-[13px] font-bold shadow-md shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all"
+        >
+          <UserPlus className="w-4 h-4" /> Öğrenci Ekle
+        </button>
+      </div>
 
       {/* Sekme bar (FAZ 2B) */}
       <div className="mb-5 flex items-center gap-2 bg-white/80 dark:bg-slate-800/60 backdrop-blur rounded-2xl border border-white/50 dark:border-slate-700/60 p-1.5 shadow-sm">
@@ -726,6 +742,13 @@ export default function StudentsPage() {
         </div>
       )}
       </>}
+
+      {/* Faz 2: Öğrenci Ekle modal'ı */}
+      <AddStudentModal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={() => setRefreshKey((k) => k + 1)}
+      />
     </div>
   );
 }

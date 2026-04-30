@@ -42,7 +42,7 @@ interface IntegratedReport {
 const TEST_LABELS: Record<string, string> = {
   enneagram: 'Enneagram Kişilik',
   vark: 'VARK Öğrenme Stilleri',
-  holland: 'Holland RIASEC',
+  holland: 'Meslek Testi',
   'coklu-zeka': 'Çoklu Zekâ',
   'sinav-kaygisi': 'Sınav Kaygısı',
   'calisma-davranisi': 'Çalışma Davranışı',

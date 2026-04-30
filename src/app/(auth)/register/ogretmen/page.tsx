@@ -2,16 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { GraduationCap, User, Lock, Phone, Mail, ArrowRight, ArrowLeft, AlertCircle, CheckCircle2, Eye, EyeOff, ShieldCheck, BookOpen } from 'lucide-react';
+import { GraduationCap, User, Lock, Phone, Mail, ArrowRight, ArrowLeft, AlertCircle, CheckCircle2, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import AuthLayout from '@/components/ui/AuthLayout';
-
-const BRANCHES = [
-  'Türkçe', 'Matematik', 'Fen Bilimleri', 'Sosyal Bilgiler', 'İngilizce',
-  'Almanca', 'Müzik', 'Görsel Sanatlar', 'Beden Eğitimi', 'Teknoloji ve Tasarım',
-  'Din Kültürü', 'Rehberlik', 'Sınıf Öğretmeni', 'Okul Öncesi', 'Bilişim Teknolojileri',
-  'Fizik', 'Kimya', 'Biyoloji', 'Tarih', 'Coğrafya', 'Felsefe', 'Edebiyat', 'Diğer',
-];
 
 // Şifre kuralları — standart 8+ karakter + karmaşıklık
 // Eski kural (7 karakter, [A-Z][a-z][0-9]{5}) kaldırıldı — çok kısıtlayıcı
@@ -36,7 +29,7 @@ function validatePassword(pw: string): { valid: boolean; errors: string[] } {
 export default function TeacherRegisterPage() {
   const [step, setStep] = useState(1); // 1: Bilgiler, 2: E-posta Doğrula, 3: Şifre, 4: Başarılı
   const [form, setForm] = useState({
-    firstName: '', lastName: '', branch: '', phone: '',
+    firstName: '', lastName: '', phone: '',
     email: '', password: '', verificationCode: '',
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -63,7 +56,6 @@ export default function TeacherRegisterPage() {
   // ADIM 1 doğrulama
   const validateStep1 = () => {
     if (!form.firstName.trim() || !form.lastName.trim()) return 'Ad ve soyad zorunludur.';
-    if (!form.branch) return 'Branş seçimi zorunludur.';
     const digits = form.phone.replace(/\D/g, '');
     if (digits.length < 10) return 'Geçerli bir telefon numarası girin.';
     return null;
@@ -150,7 +142,6 @@ export default function TeacherRegisterPage() {
           full_name: fullName,
           email: authEmail,
           password: form.password,
-          branch: form.branch,
           phone: form.phone.replace(/\D/g, ''),
         }),
       });
@@ -258,16 +249,6 @@ export default function TeacherRegisterPage() {
                 <div>
                   <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Soyad <span className="text-red-500">*</span></label>
                   <input type="text" value={form.lastName} onChange={e => update('lastName', e.target.value)} placeholder="Soyad" aria-label="Soyad" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Branş <span className="text-red-500">*</span></label>
-                <div className="relative">
-                  <BookOpen className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <select value={form.branch} onChange={e => update('branch', e.target.value)} aria-label="Branş" className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all">
-                    <option value="">Branşınızı seçin</option>
-                    {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
-                  </select>
                 </div>
               </div>
               <div>

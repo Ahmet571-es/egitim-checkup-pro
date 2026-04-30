@@ -642,6 +642,128 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // ═══ CREATE: Öğretmen yeni öğrenci hesabı oluşturur ═══
+    // FAZ 2: Öğretmen paneli "Öğrenci Ekle" özelliği
+    if (action === 'create') {
+      const { full_name, email, password, grade, section } = body as {
+        full_name?: string;
+        email?: string;
+        password?: string;
+        grade?: string;
+        section?: string;
+      };
+
+      // ── Validasyon ──
+      const cleanName = (full_name || '').trim();
+      const cleanEmail = (email || '').trim().toLowerCase();
+      const cleanGrade = (grade || '').toString().trim();
+      const cleanSection = (section || '').trim();
+
+      if (!cleanName) {
+        return NextResponse.json({ error: 'Ad-soyad zorunludur.' }, { status: 400 });
+      }
+      if (!cleanEmail || !cleanEmail.includes('@') || cleanEmail.length < 5) {
+        return NextResponse.json({ error: 'Geçerli bir e-posta girin.' }, { status: 400 });
+      }
+      if (!password || password.length < 8) {
+        return NextResponse.json({ error: 'Şifre en az 8 karakter olmalı.' }, { status: 400 });
+      }
+      if (!cleanGrade) {
+        return NextResponse.json({ error: 'Sınıf zorunludur.' }, { status: 400 });
+      }
+
+      // Öğretmen onaylı mı?
+      const { data: teacherProfile } = await admin
+        .from('profiles')
+        .select('is_approved, school_id, full_name')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!teacherProfile?.is_approved) {
+        return NextResponse.json(
+          { error: 'Onaylanmamış öğretmenler öğrenci ekleyemez.' },
+          { status: 403 }
+        );
+      }
+
+      const teacherSchoolId = teacherProfile.school_id;
+
+      // Öğretmenin okul adını çek (user_metadata'da school_name için)
+      let schoolName: string | null = null;
+      if (teacherSchoolId) {
+        const { data: school } = await admin
+          .from('schools')
+          .select('name')
+          .eq('id', teacherSchoolId)
+          .maybeSingle();
+        schoolName = school?.name || null;
+      }
+
+      // Email zaten kayıtlı mı?
+      const { data: { users: existingUsers } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const emailExists = (existingUsers || []).some(
+        (u) => u.email?.toLowerCase() === cleanEmail
+      );
+      if (emailExists) {
+        return NextResponse.json({ error: 'Bu e-posta zaten kayıtlı.' }, { status: 409 });
+      }
+
+      // Auth user oluştur
+      const { data: newUser, error: createErr } = await admin.auth.admin.createUser({
+        email: cleanEmail,
+        password,
+        email_confirm: true, // Mail doğrulamayı atla — öğretmen şifreyi öğrenciye iletecek
+        user_metadata: {
+          full_name: cleanName,
+          role: 'student',
+          school_id: teacherSchoolId,
+          school_name: schoolName,
+          assigned_teacher_id: user.id,
+          assigned_teacher_name: teacherProfile.full_name,
+          grade: cleanGrade,
+          section: cleanSection || null,
+          created_by_teacher: true,
+        },
+      });
+
+      if (createErr || !newUser?.user) {
+        console.error('[teacher/students/create] auth user error', createErr);
+        return NextResponse.json(
+          { error: createErr?.message || 'Kullanıcı oluşturulamadı.' },
+          { status: 500 }
+        );
+      }
+
+      // profiles tablosuna insert
+      const { error: profileErr } = await admin
+        .from('profiles')
+        .insert({
+          id: newUser.user.id,
+          full_name: cleanName,
+          grade: cleanGrade,
+          school_id: teacherSchoolId,
+          role: 'student',
+        });
+
+      if (profileErr) {
+        // Profile başarısızsa auth user'ı geri al (rollback)
+        console.error('[teacher/students/create] profile insert error', profileErr);
+        await admin.auth.admin.deleteUser(newUser.user.id).catch(() => {});
+        return NextResponse.json(
+          { error: 'Profil oluşturulamadı: ' + profileErr.message },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        student_id: newUser.user.id,
+        student_name: cleanName,
+        student_email: cleanEmail,
+        message: 'Öğrenci başarıyla eklendi. Giriş bilgilerini öğrenciye iletmeyi unutmayın.',
+      });
+    }
+
     return NextResponse.json({ error: 'Geçersiz action' }, { status: 400 });
   } catch (err) {
     console.error('[teacher/students API]', err);

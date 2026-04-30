@@ -39,7 +39,7 @@ const TEST_COLORS: Record<string, string> = {
 const TEST_LABELS: Record<string, string> = {
   enneagram: 'Enneagram',
   vark: 'VARK',
-  holland: 'Holland',
+  holland: 'Meslek Testi',
   'coklu-zeka': 'Coklu Zeka',
   'sinav-kaygisi': 'Sinav Kaygisi',
   'calisma-davranisi': 'Calisma Davranisi',

@@ -15,13 +15,13 @@ import { ListSkeleton } from '@/components/ui/Skeleton';
 const TEST_LABELS: Record<string, string> = {
   enneagram: 'Enneagram Kişilik',
   vark: 'VARK Öğrenme Stilleri',
-  holland: 'Holland RIASEC',
+  holland: 'Meslek Testi',
   coklu_zeka: 'Çoklu Zekâ', 'coklu-zeka': 'Çoklu Zekâ',
   sinav_kaygisi: 'Sınav Kaygısı', 'sinav-kaygisi': 'Sınav Kaygısı',
   calisma_davranisi: 'Çalışma Davranışı', 'calisma-davranisi': 'Çalışma Davranışı',
   akademik_analiz: 'Akademik Analiz', 'akademik-analiz': 'Akademik Analiz',
   hizli_okuma: 'Hızlı Okuma', 'hizli-okuma': 'Hızlı Okuma',
-  d2_dikkat: 'P2 Dikkat Testi', 'd2-dikkat': 'P2 Dikkat Testi',
+  d2_dikkat: 'D2 Dikkat Testi', 'd2-dikkat': 'D2 Dikkat Testi',
   burdon_dikkat: 'Burdon Dikkat', 'burdon-dikkat': 'Burdon Dikkat',
   sag_sol_beyin: 'Sağ-Sol Beyin', 'sag-sol-beyin': 'Sağ-Sol Beyin',
 };

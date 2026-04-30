@@ -151,14 +151,14 @@ const SUMMARY_ONLY = new Set(['d2-dikkat', 'burdon-dikkat', 'hizli-okuma']);
 const TEST_NAME_MAP: Record<string, string> = {
   'enneagram': 'Enneagram Kişilik Testi',
   'vark': 'VARK Öğrenme Stilleri',
-  'holland': 'Holland RIASEC',
+  'holland': 'Meslek Testi',
   'coklu-zeka': 'Çoklu Zekâ Testi',
   'sinav-kaygisi': 'Sınav Kaygısı Ölçeği',
   'calisma-davranisi': 'Çalışma Davranışı',
   'akademik-analiz': 'Akademik Analiz',
   'sag-sol-beyin': 'Sağ-Sol Beyin',
   'hizli-okuma': 'Hızlı Okuma',
-  'd2-dikkat': 'P2 Dikkat Testi',
+  'd2-dikkat': 'D2 Dikkat Testi',
   'burdon-dikkat': 'Burdon Dikkat Testi',
 };
 
