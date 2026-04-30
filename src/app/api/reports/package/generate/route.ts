@@ -1,0 +1,287 @@
+/**
+ * POST /api/reports/package/generate
+ *
+ * Faz 9: Paket bazlı bütüncül rapor üretici (3 versiyon).
+ *
+ * Body: { student_id, package_type }
+ *
+ * Akış:
+ *   1. Yetki: admin/school_admin/teacher (öğrenci + veli reddedilir — KVKK + scope)
+ *   2. Öğrenci scope kontrolü
+ *   3. Paket testlerinin tamamlanmış olup olmadığı kontrolü
+ *   4. Test verilerini çek
+ *   5. 3 ayrı prompt → 3 paralel Claude çağrısı
+ *   6. Her birini holistic_reports'a kaydet (audience + package_type ile)
+ *   7. Response: 3 raporun id'leri
+ *
+ * KVKK matrisi prompt'larda zorlanmış:
+ *   - teacher: tam veri, akademik dil
+ *   - parent: skorlar var, ham cevap yok, kesin teşhis yok
+ *   - student: skor yok, etiketleme yok, "henüz" çerçeve
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { generateAIReport } from '@/lib/ai/claude-client';
+import {
+  buildTeacherPackageReport,
+  buildParentPackageReport,
+  buildStudentPackageReport,
+  type PackageReportContext,
+} from '@/lib/ai/prompts/package-reports';
+import { PACKAGES, checkPackageCompletion, type PackageType } from '@/lib/packages';
+
+export const runtime = 'nodejs';
+export const maxDuration = 300; // 3 versiyonu paralel üreteceğiz, 300s yeterli
+
+const TEST_LABELS: Record<string, string> = {
+  enneagram: 'Enneagram Kişilik',
+  vark: 'VARK Öğrenme Stilleri',
+  holland: 'Meslek Testi',
+  coklu_zeka: 'Çoklu Zekâ',
+  'coklu-zeka': 'Çoklu Zekâ',
+  sinav_kaygisi: 'Sınav Kaygısı',
+  'sinav-kaygisi': 'Sınav Kaygısı',
+  calisma_davranisi: 'Çalışma Davranışı',
+  'calisma-davranisi': 'Çalışma Davranışı',
+  akademik_analiz: 'Akademik Analiz',
+  'akademik-analiz': 'Akademik Analiz',
+  hizli_okuma: 'Hızlı Okuma',
+  'hizli-okuma': 'Hızlı Okuma',
+  d2_dikkat: 'D2 Dikkat Testi',
+  'd2-dikkat': 'D2 Dikkat Testi',
+  sag_sol_beyin: 'Sağ-Sol Beyin Dominansı',
+  'sag-sol-beyin': 'Sağ-Sol Beyin Dominansı',
+};
+const labelFor = (k: string) => TEST_LABELS[k] || k.replace(/[_-]/g, ' ');
+
+function calculateAge(birthDate: string | null | undefined): number | undefined {
+  if (!birthDate) return undefined;
+  try {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age >= 0 && age < 100 ? age : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json().catch(() => ({}));
+    const { student_id: studentId, package_type: packageType } = body;
+
+    if (!studentId || !packageType) {
+      return NextResponse.json(
+        { error: 'student_id ve package_type zorunlu.' },
+        { status: 400 },
+      );
+    }
+
+    if (!PACKAGES[packageType as PackageType]) {
+      return NextResponse.json(
+        { error: `Geçersiz paket: ${packageType}` },
+        { status: 400 },
+      );
+    }
+    const pkg = PACKAGES[packageType as PackageType];
+
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 });
+    }
+
+    const admin = createAdminClient();
+    const { data: callerProfile } = await admin
+      .from('profiles')
+      .select('id, role, school_id, full_name')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (!callerProfile) {
+      return NextResponse.json({ error: 'Profil bulunamadı.' }, { status: 403 });
+    }
+
+    // KVKK: öğrenci ve veli kendi raporlarını ÜRETEMEZ. Sadece görüntüleyebilir.
+    if (callerProfile.role === 'student' || callerProfile.role === 'parent') {
+      return NextResponse.json(
+        { error: 'Bu işlem için yetkiniz yok.' },
+        { status: 403 },
+      );
+    }
+    if (!['admin', 'school_admin', 'teacher'].includes(callerProfile.role || '')) {
+      return NextResponse.json({ error: 'Yetkisiz rol.' }, { status: 403 });
+    }
+
+    // ── Öğrenci kontrolü + scope ──
+    const { data: student } = await admin
+      .from('profiles')
+      .select('id, role, full_name, school_id, grade, birth_date')
+      .eq('id', studentId)
+      .maybeSingle();
+
+    if (!student || student.role !== 'student') {
+      return NextResponse.json({ error: 'Öğrenci bulunamadı.' }, { status: 404 });
+    }
+
+    if (callerProfile.role === 'school_admin') {
+      if (
+        !callerProfile.school_id ||
+        student.school_id !== callerProfile.school_id
+      ) {
+        return NextResponse.json(
+          { error: 'Bu öğrenciye erişim yetkiniz yok.' },
+          { status: 403 },
+        );
+      }
+    } else if (callerProfile.role === 'teacher') {
+      const { data: studentAuth } = await admin.auth.admin.getUserById(studentId);
+      const assignedTeacherId = studentAuth?.user?.user_metadata?.assigned_teacher_id;
+      if (assignedTeacherId !== user.id) {
+        return NextResponse.json(
+          { error: 'Bu öğrenci size atanmış değil.' },
+          { status: 403 },
+        );
+      }
+    }
+
+    // ── Tamamlanma kontrolü ──
+    const { data: results } = await admin
+      .from('test_results')
+      .select('test_type, scores, ai_report, created_at')
+      .eq('student_id', studentId)
+      .order('created_at', { ascending: false });
+
+    const completedTypes = (results || []).map((r) => r.test_type);
+    const completion = checkPackageCompletion(packageType as PackageType, completedTypes);
+
+    if (!completion.complete) {
+      return NextResponse.json(
+        {
+          error: `Paket için eksik test(ler) var: ${completion.missing.map(labelFor).join(', ')}`,
+          missing: completion.missing,
+          covered: completion.covered,
+        },
+        { status: 400 },
+      );
+    }
+
+    // ── Test verilerini hazırla (her test için en son sonuç) ──
+    type TestResultRow = {
+      test_type: string;
+      scores: Record<string, unknown> | null;
+      ai_report: string | null;
+      created_at: string;
+    };
+    const latestByType = new Map<string, TestResultRow>();
+    for (const r of (results || []) as TestResultRow[]) {
+      if (!latestByType.has(r.test_type)) latestByType.set(r.test_type, r);
+    }
+
+    // Paketin gerçekten kullandığı testleri filtrele (aynı testin variant'larından sadece bir tanesi)
+    const usedTypes = completion.covered;
+    const testData = usedTypes
+      .map((tt) => {
+        const r = latestByType.get(tt);
+        if (!r) return null;
+        return {
+          test_label: labelFor(tt),
+          test_type: tt,
+          scores: (r.scores as Record<string, unknown>) || {},
+          ai_report: r.ai_report,
+          date: r.created_at
+            ? new Date(r.created_at).toLocaleDateString('tr-TR', {
+                year: 'numeric', month: 'short', day: 'numeric',
+              })
+            : undefined,
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
+
+    const studentAge = calculateAge(student.birth_date as string | null | undefined);
+
+    const ctx: PackageReportContext = {
+      studentName: student.full_name || 'Öğrenci',
+      studentAge,
+      studentGrade: student.grade,
+      packageDef: pkg,
+      testData,
+    };
+
+    // ── 3 versiyonu PARALEL üret (Promise.all) ──
+    const teacherPrompt = buildTeacherPackageReport(ctx);
+    const parentPrompt = buildParentPackageReport(ctx, callerProfile.full_name || undefined);
+    const studentPrompt = buildStudentPackageReport(ctx);
+
+    const [teacherText, parentText, studentText] = await Promise.all([
+      generateAIReport(teacherPrompt, { maxTokens: 4000, temperature: 0.4, enableContinuation: true }),
+      generateAIReport(parentPrompt, { maxTokens: 3000, temperature: 0.4, enableContinuation: true }),
+      generateAIReport(studentPrompt, { maxTokens: 2000, temperature: 0.5, enableContinuation: false }),
+    ]);
+
+    // ── 3 raporu DB'ye kaydet ──
+    const reportsToInsert = [
+      {
+        student_id: studentId,
+        school_id: student.school_id,
+        report_text: teacherText,
+        selected_test_types: usedTypes,
+        test_count: usedTypes.length,
+        audience: 'teacher',
+        package_type: packageType,
+      },
+      {
+        student_id: studentId,
+        school_id: student.school_id,
+        report_text: parentText,
+        selected_test_types: usedTypes,
+        test_count: usedTypes.length,
+        audience: 'parent',
+        package_type: packageType,
+      },
+      {
+        student_id: studentId,
+        school_id: student.school_id,
+        report_text: studentText,
+        selected_test_types: usedTypes,
+        test_count: usedTypes.length,
+        audience: 'student',
+        package_type: packageType,
+      },
+    ];
+
+    const { data: inserted, error: insertErr } = await admin
+      .from('holistic_reports')
+      .insert(reportsToInsert)
+      .select('id, audience, generated_at');
+
+    if (insertErr) {
+      console.error('[package/generate] insert error', insertErr);
+      return NextResponse.json(
+        { error: 'Raporlar kaydedilemedi: ' + insertErr.message },
+        { status: 500 },
+      );
+    }
+
+    // Response: 3 raporun id'leri ve audience'ları
+    const reportMap: Record<string, string> = {};
+    for (const r of inserted || []) {
+      reportMap[r.audience] = r.id;
+    }
+
+    return NextResponse.json({
+      success: true,
+      package: pkg.label,
+      reports: reportMap,
+      message: `${pkg.label} paketi için 3 versiyon başarıyla üretildi.`,
+    });
+  } catch (err) {
+    console.error('[package/generate]', err);
+    const msg = err instanceof Error ? err.message : 'Sunucu hatası.';
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}

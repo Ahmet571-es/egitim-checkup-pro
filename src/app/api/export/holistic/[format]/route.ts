@@ -56,7 +56,7 @@ export async function GET(
     // Harmanlanmış raporu çek (admin — RLS bypass)
     const { data: hr, error: hrErr } = await admin
       .from('holistic_reports')
-      .select('id, student_id, school_id, report_text, selected_test_types, test_count, generated_at')
+      .select('id, student_id, school_id, report_text, selected_test_types, test_count, generated_at, audience, package_type')
       .eq('id', id)
       .single();
 
@@ -68,6 +68,13 @@ export async function GET(
     if (callerProfile.role === 'student') {
       if (hr.student_id !== user.id) {
         return NextResponse.json({ error: 'Yalnızca kendi raporlarınızı indirebilirsiniz.' }, { status: 403 });
+      }
+      // Faz 9: paket raporu ise sadece 'student' audience erişilebilir
+      if (hr.audience && hr.audience !== 'student') {
+        return NextResponse.json(
+          { error: 'Bu rapor versiyonu öğrencilere yönelik değil.' },
+          { status: 403 },
+        );
       }
     } else if (callerProfile.role === 'parent') {
       // Veli: sadece kendi çocuklarının raporunu indirebilir.
@@ -84,11 +91,19 @@ export async function GET(
           { status: 403 },
         );
       }
+      // Faz 9: paket raporu ise sadece 'parent' audience erişilebilir
+      if (hr.audience && hr.audience !== 'parent') {
+        return NextResponse.json(
+          { error: 'Bu rapor versiyonu velilere yönelik değil.' },
+          { status: 403 },
+        );
+      }
     } else {
       // Öğretmen/yönetici: cross-school
       if (callerProfile.role !== 'admin' && callerProfile.school_id && hr.school_id && hr.school_id !== callerProfile.school_id) {
         return NextResponse.json({ error: 'Bu rapor sizin okulunuza ait değil.' }, { status: 403 });
       }
+      // Öğretmen/yönetici tüm audience'lara erişebilir (Faz 9: 3 versiyonu da görür)
     }
 
     // Öğrenci adını çek
@@ -117,14 +132,26 @@ export async function GET(
       const buffer = await generateReportPdf(hr.report_text, meta);
 
       // Faz 6: Genetik PDF eklerini sona ek sayfa olarak göm.
-      // Tablo yoksa veya ek yoksa orijinal buffer döner.
-      const { mergeGeneticAttachments } = await import('@/lib/export/pdf-merger');
-      const finalPdfBytes = await mergeGeneticAttachments(buffer, hr.id, admin);
+      // Faz 9 KVKK m.6 kritik: SADECE 'teacher' audience'da genetik PDF gömülür.
+      // 'parent' ve 'student' versiyonlarına ASLA gömülmez (özel kategori veri).
+      // audience NULL ise eski Faz 6 raporu — genetik gömme davranışı korunur.
+      const shouldEmbedGenetic = !hr.audience || hr.audience === 'teacher';
+
+      let finalPdfBytes: Uint8Array;
+      if (shouldEmbedGenetic) {
+        const { mergeGeneticAttachments } = await import('@/lib/export/pdf-merger');
+        finalPdfBytes = await mergeGeneticAttachments(buffer, hr.id, admin);
+      } else {
+        finalPdfBytes = new Uint8Array(buffer);
+      }
+
+      const audienceSuffix = hr.audience ? `_${hr.audience}` : '';
+      const pkgSuffix = hr.package_type ? `_${hr.package_type}` : '';
 
       return new NextResponse(new Uint8Array(finalPdfBytes), {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="${safeName}_harmanlanmis_rapor_${dateLabel}.pdf"`,
+          'Content-Disposition': `attachment; filename="${safeName}_harmanlanmis_rapor${pkgSuffix}${audienceSuffix}_${dateLabel}.pdf"`,
         },
       });
     }
