@@ -241,20 +241,37 @@ export default function AddStudentModal({ open, onClose, onSuccess }: AddStudent
                 </div>
               </div>
 
-              <button
-                onClick={onClose}
-                className="w-full py-3 rounded-xl bg-[#0f2847] hover:bg-[#1a3a5f] text-white font-extrabold transition-colors"
-              >
-                Kapat
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    // Form'u sıfırla, success'i kapat — yeni öğrenci ekleme akışına dön
+                    setForm({ full_name: '', email: '', password: '', grade: '', section: '' });
+                    setSuccess(null);
+                    setError('');
+                    setShowPassword(false);
+                  }}
+                  className="flex-1 py-3 rounded-xl border border-emerald-200 hover:bg-emerald-50 text-emerald-700 text-sm font-bold transition-colors flex items-center justify-center gap-2"
+                >
+                  <UserPlus className="w-4 h-4" /> Yeni Öğrenci Ekle
+                </button>
+                <button
+                  onClick={onClose}
+                  className="flex-1 py-3 rounded-xl bg-[#0f2847] hover:bg-[#1a3a5f] text-white font-extrabold transition-colors"
+                >
+                  Kapat
+                </button>
+              </div>
             </div>
           )}
 
           {/* FORM STATE */}
           {!success && (
-            <div className="space-y-4">
+            <form
+              onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
+              className="space-y-4"
+            >
               {error && (
-                <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-start gap-2">
+                <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-start gap-2" role="alert">
                   <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                   <p className="text-[13px] text-rose-800">{error}</p>
                 </div>
@@ -272,6 +289,7 @@ export default function AddStudentModal({ open, onClose, onSuccess }: AddStudent
                     value={form.full_name}
                     onChange={(e) => update('full_name', e.target.value)}
                     placeholder="Ali Yılmaz"
+                    aria-required="true"
                     className="w-full pl-11 pr-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                     autoFocus
                   />
@@ -290,6 +308,7 @@ export default function AddStudentModal({ open, onClose, onSuccess }: AddStudent
                     value={form.email}
                     onChange={(e) => update('email', e.target.value)}
                     placeholder="ogrenci@okul.com"
+                    aria-required="true"
                     className="w-full pl-11 pr-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                   />
                 </div>
@@ -307,6 +326,8 @@ export default function AddStudentModal({ open, onClose, onSuccess }: AddStudent
                     value={form.password}
                     onChange={(e) => update('password', e.target.value)}
                     placeholder="••••••••"
+                    aria-required="true"
+                    minLength={8}
                     className="w-full pl-11 pr-20 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all font-mono"
                   />
                   <button
@@ -338,6 +359,7 @@ export default function AddStudentModal({ open, onClose, onSuccess }: AddStudent
                     <select
                       value={form.grade}
                       onChange={(e) => update('grade', e.target.value)}
+                      aria-required="true"
                       className="w-full pl-11 pr-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                     >
                       <option value="">Seçin</option>
@@ -368,13 +390,14 @@ export default function AddStudentModal({ open, onClose, onSuccess }: AddStudent
               {/* Submit */}
               <div className="pt-2 flex items-center gap-3">
                 <button
+                  type="button"
                   onClick={onClose}
                   className="flex-1 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-bold transition-colors"
                 >
                   İptal
                 </button>
                 <button
-                  onClick={handleSubmit}
+                  type="submit"
                   disabled={loading}
                   className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-extrabold shadow-lg shadow-emerald-500/25 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all"
                 >
@@ -385,7 +408,7 @@ export default function AddStudentModal({ open, onClose, onSuccess }: AddStudent
                   )}
                 </button>
               </div>
-            </div>
+            </form>
           )}
         </div>
       </div>
