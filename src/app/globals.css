@@ -493,6 +493,19 @@ html {
     opacity: 1;
     animation: none;
   }
+  /* Hero background video — reduced motion'da poster'a düşür */
+  .hero-video-bg video {
+    display: none !important;
+  }
+  .hero-video-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('/videos/hero-poster.jpg');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.25;
+  }
 }
 
 /* ═══ FAZ 7: ERİŞİLEBİLİRLİK ═══ */

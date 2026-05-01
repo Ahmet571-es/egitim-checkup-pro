@@ -138,6 +138,32 @@ export default function LandingPage() {
 
       {/* ═══ HERO ═══ */}
       <section className="relative overflow-hidden">
+        {/* ── Background video (yalnızca desktop md+, mobile'da poster) ── */}
+        <div
+          className="absolute inset-0 pointer-events-none overflow-hidden hero-video-bg"
+          aria-hidden="true"
+        >
+          <video
+            className="hidden md:block absolute inset-0 w-full h-full object-cover opacity-30"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            poster="/videos/hero-poster.jpg"
+          >
+            <source src="/videos/hero-bg.webm" type="video/webm" />
+            <source src="/videos/hero-bg.mp4" type="video/mp4" />
+          </video>
+          {/* Mobile: video yerine sadece poster (data tasarrufu) */}
+          <div
+            className="md:hidden absolute inset-0 bg-cover bg-center opacity-20"
+            style={{ backgroundImage: 'url(/videos/hero-poster.jpg)' }}
+          />
+          {/* Okunabilirlik için soft beyaz/koyu overlay (videonun üzerinde, mevcut blob'ların altında) */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/85 via-white/70 to-white/90 dark:from-slate-950/85 dark:via-slate-950/70 dark:to-slate-950/90" />
+        </div>
+
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute w-[800px] h-[800px] top-[-200px] right-[-200px] opacity-30"
                style={{ background: 'conic-gradient(from 0deg at 50% 50%, #10b98122, #3b82f622, #8b5cf622, #10b98122)', animation: 'mesh-rotate 20s linear infinite', filter: 'blur(80px)' }} />
