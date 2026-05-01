@@ -734,16 +734,21 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // profiles tablosuna insert
+      // profiles tablosuna ek bilgileri yaz
+      // NOT: handle_new_user trigger'ı auth.users insert'i sonrası profile satırını
+      // otomatik olarak oluşturuyor. Biz UPSERT ile sadece eksik field'ları doldurup
+      // emin olalım.
       const { error: profileErr } = await admin
         .from('profiles')
-        .insert({
+        .upsert({
           id: newUser.user.id,
           full_name: cleanName,
           email: cleanEmail,
           grade: cleanGrade,
           school_id: teacherSchoolId,
           role: 'student',
+        }, {
+          onConflict: 'id',
         });
 
       if (profileErr) {
