@@ -387,6 +387,18 @@ export default function AddStudentModal({ open, onClose, onSuccess }: AddStudent
                 </div>
               </div>
 
+              {/* KVKK Bilgilendirme */}
+              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 flex items-start gap-2">
+                <svg className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+                  <strong>KVKK uyarısı:</strong> Öğrenci adı, e-posta ve sınıf bilgisi 6698 sayılı KVKK kapsamında
+                  kişisel veridir. Bu bilgiler eğitim amaçlı kullanılır, üçüncü kişilerle paylaşılmaz.
+                  Geçici şifreyi öğrenciye iletmeyi ve mümkünse ilk girişte şifreyi değiştirmesini öneririz.
+                </p>
+              </div>
+
               {/* Submit */}
               <div className="pt-2 flex items-center gap-3">
                 <button

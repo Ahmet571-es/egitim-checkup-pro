@@ -38,6 +38,13 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // FAZ 1 fix: /login/yonetici → /yonetici (eski Streamlit pattern'i, kullanıcı doğru sayfaya gitsin)
+  async redirects() {
+    return [
+      { source: '/login/yonetici', destination: '/yonetici', permanent: true },
+      { source: '/login/admin', destination: '/yonetici', permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;
