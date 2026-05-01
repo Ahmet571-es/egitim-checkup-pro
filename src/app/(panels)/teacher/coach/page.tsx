@@ -55,7 +55,29 @@ export default function TeacherCoachPage() {
           return;
         }
 
-        setStudents(data.students || []);
+        // API response { active: {schoolName: {gradeKey: {sectionKey: [...]}}}, graduated: {...} } veya
+        // { students: [...] } formatında olabilir — ikisini de destekle
+        let flatStudents: Student[] = [];
+
+        if (Array.isArray(data.students)) {
+          flatStudents = data.students;
+        } else {
+          // Nested format — düzleştir
+          const active = data.active || {};
+          const graduated = data.graduated || {};
+          for (const school of Object.keys(active)) {
+            for (const grade of Object.keys(active[school])) {
+              for (const section of Object.keys(active[school][grade])) {
+                flatStudents.push(...active[school][grade][section]);
+              }
+            }
+          }
+          for (const school of Object.keys(graduated)) {
+            flatStudents.push(...graduated[school]);
+          }
+        }
+
+        setStudents(flatStudents);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Bir hata oluştu.');
       } finally {
