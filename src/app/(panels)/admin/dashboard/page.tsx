@@ -1,178 +1,69 @@
 /**
- * Admin Dashboard — Premium
- * WelcomeBanner + Premium TiltStatCards + Analytics
- *
- * NOT: Tüm sayfa top-level try/catch içinde — hiçbir durumda 500 dönmez.
- * Hata varsa graceful fallback render edilir, console'a loglanır.
+ * Admin Dashboard — DİAGNOSTİK MOD (minimal)
  */
-import { Building2, Users, GraduationCap, FileCheck2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentProfile } from '@/lib/actions/auth';
-import AdminAnalyticsSection from './AdminAnalyticsSection';
-import WelcomeBanner from '@/components/ui/WelcomeBanner';
-import TiltStatCard from '@/components/ui/TiltStatCard';
 
 export const dynamic = 'force-dynamic';
 
-interface DashboardData {
-  firstName: string;
-  schoolsCount: number;
-  usersCount: number;
-  teachersCount: number;
-  resultsCount: number;
-  errorMessage: string | null;
-}
-
-async function loadDashboardData(): Promise<DashboardData> {
-  const result: DashboardData = {
-    firstName: 'Yönetici',
-    schoolsCount: 0,
-    usersCount: 0,
-    teachersCount: 0,
-    resultsCount: 0,
-    errorMessage: null,
-  };
+export default async function Page() {
+  let firstName = 'Yönetici';
+  let stats = { schools: 0, users: 0, teachers: 0, results: 0 };
+  let errMsg = '';
 
   try {
     const profile = await getCurrentProfile();
-    if (profile?.full_name) {
-      result.firstName = profile.full_name.split(' ')[0];
-    }
+    if (profile?.full_name) firstName = profile.full_name.split(' ')[0];
   } catch (e) {
-    console.error('[admin/dashboard] getCurrentProfile hatası:', e instanceof Error ? e.message : e);
+    errMsg += `getCurrentProfile: ${e instanceof Error ? e.message : e}\n`;
   }
 
-  let supabase: Awaited<ReturnType<typeof createClient>> | null = null;
   try {
-    supabase = await createClient();
-  } catch (e) {
-    console.error('[admin/dashboard] createClient hatası:', e instanceof Error ? e.message : e);
-    result.errorMessage = 'Veritabanı bağlantısı kurulamadı.';
-    return result;
-  }
-
-  async function safeCount(
-    table: 'schools' | 'profiles' | 'test_results',
-    filters: Array<[string, string | boolean]> = [],
-  ): Promise<number> {
-    if (!supabase) return 0;
-    try {
-      let q = supabase.from(table).select('id', { count: 'exact', head: true });
-      for (const [k, v] of filters) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        q = q.eq(k, v as any);
-      }
-      const { count, error } = await q;
-      if (error) {
-        console.error(`[admin/dashboard] ${table} sorgu hatası:`, error.message);
-        return 0;
-      }
-      return count || 0;
-    } catch (e) {
-      console.error(`[admin/dashboard] ${table} exception:`, e instanceof Error ? e.message : e);
-      return 0;
-    }
-  }
-
-  const counts = await Promise.all([
-    safeCount('schools'),
-    safeCount('profiles', [['is_active', true]]),
-    safeCount('profiles', [['role', 'teacher'], ['is_active', true]]),
-    safeCount('test_results'),
-  ]);
-
-  result.schoolsCount = counts[0];
-  result.usersCount = counts[1];
-  result.teachersCount = counts[2];
-  result.resultsCount = counts[3];
-
-  return result;
-}
-
-export default async function Page() {
-  let data: DashboardData;
-  try {
-    data = await loadDashboardData();
-  } catch (e) {
-    console.error('[admin/dashboard] FATAL:', e instanceof Error ? e.message : e);
-    data = {
-      firstName: 'Yönetici',
-      schoolsCount: 0,
-      usersCount: 0,
-      teachersCount: 0,
-      resultsCount: 0,
-      errorMessage: 'Veriler yüklenirken beklenmeyen bir hata oluştu.',
+    const supabase = await createClient();
+    const [s, u, t, r] = await Promise.all([
+      supabase.from('schools').select('id', { count: 'exact', head: true }),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'teacher').eq('is_active', true),
+      supabase.from('test_results').select('id', { count: 'exact', head: true }),
+    ]);
+    stats = {
+      schools: s.count || 0,
+      users: u.count || 0,
+      teachers: t.count || 0,
+      results: r.count || 0,
     };
+  } catch (e) {
+    errMsg += `sorgu: ${e instanceof Error ? e.message : e}\n`;
   }
-
-  const stats = [
-    {
-      label: 'Toplam Okul',
-      value: data.schoolsCount,
-      href: '/admin/schools',
-      icon: Building2,
-      gradient: 'from-amber-500 to-orange-600',
-      helperText: 'Okulları yönet',
-    },
-    {
-      label: 'Toplam Kullanıcı',
-      value: data.usersCount,
-      href: '/admin/users',
-      icon: Users,
-      gradient: 'from-sky-500 to-blue-600',
-      helperText: 'Kullanıcıları yönet',
-    },
-    {
-      label: 'Toplam Öğretmen',
-      value: data.teachersCount,
-      href: '/admin/users',
-      icon: GraduationCap,
-      gradient: 'from-emerald-500 to-teal-600',
-      helperText: 'Öğretmenleri gör',
-    },
-    {
-      label: 'Tamamlanan Test',
-      value: data.resultsCount,
-      href: '#',
-      icon: FileCheck2,
-      gradient: 'from-violet-500 to-purple-600',
-      helperText: 'Test istatistikleri',
-    },
-  ];
 
   return (
-    <div>
-      <WelcomeBanner
-        role="admin"
-        title={`Hoş geldiniz, ${data.firstName}!`}
-        subtitle="Platformdaki tüm okulları, kullanıcıları ve sistem metriklerini buradan yönetebilirsiniz."
-        badge="Platform Kontrolü"
-        emoji="⚡"
-      />
-
-      {data.errorMessage && (
-        <div className="mb-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
-          ⚠ {data.errorMessage} — istatistikler kısmen veya tamamen 0 görünebilir.
-        </div>
+    <div style={{ padding: 24 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 16 }}>
+        Hoş geldiniz, {firstName}!
+      </h1>
+      {errMsg && (
+        <pre style={{ background: '#fee', padding: 12, marginBottom: 16, fontSize: 12 }}>
+          {errMsg}
+        </pre>
       )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {stats.map((s, idx) => (
-          <TiltStatCard
-            key={s.label}
-            href={s.href}
-            label={s.label}
-            value={s.value}
-            gradient={s.gradient}
-            icon={s.icon}
-            delay={100 + idx * 80}
-            helperText={s.helperText}
-          />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+        {[
+          { label: 'Okul', value: stats.schools },
+          { label: 'Kullanıcı', value: stats.users },
+          { label: 'Öğretmen', value: stats.teachers },
+          { label: 'Test Sonucu', value: stats.results },
+        ].map((s) => (
+          <div key={s.label} style={{
+            padding: 16, borderRadius: 12, background: '#f9fafb', border: '1px solid #e5e7eb',
+          }}>
+            <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 'bold' }}>
+              {s.label}
+            </div>
+            <div style={{ fontSize: 32, fontWeight: 'bold', color: '#0f2847', marginTop: 4 }}>
+              {s.value}
+            </div>
+          </div>
         ))}
-      </div>
-
-      <div className="mt-6">
-        <AdminAnalyticsSection />
       </div>
     </div>
   );
