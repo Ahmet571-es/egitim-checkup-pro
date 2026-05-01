@@ -35,7 +35,18 @@ export default function TeacherCoachPage() {
         }
 
         // Mevcut /api/teacher/students endpoint'i kullan (action: 'list' tipi)
-        const res = await fetch('/api/teacher/students');
+        // CSRF token cookie'den okunur
+        const csrfMatch = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+        const csrf = csrfMatch ? decodeURIComponent(csrfMatch[1]) : '';
+
+        const res = await fetch('/api/teacher/students', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(csrf ? { 'x-csrf-token': csrf } : {}),
+          },
+          body: JSON.stringify({ action: 'list' }),
+        });
         const data = await res.json();
 
         if (!res.ok) {

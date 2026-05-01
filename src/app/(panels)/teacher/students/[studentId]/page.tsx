@@ -800,6 +800,35 @@ export default function StudentDetailPage() {
       {/* YAPILAN TESTLER + RAPORLAR */}
       {tab === 'done' && (
         <div>
+          {/* Faz 7: Gelişim Görüntüleme — collapsible (her zaman görünür, içeride veri yoksa graceful mesaj) */}
+          <div className="bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-50 dark:from-sky-950/20 dark:via-cyan-950/20 dark:to-blue-950/20 rounded-2xl border border-sky-200 dark:border-sky-900/40 shadow-sm overflow-hidden mb-6">
+            <button
+              onClick={() => setProgressExpanded((v) => !v)}
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-sky-100/50 dark:hover:bg-sky-950/40 transition-colors"
+              aria-expanded={progressExpanded}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-cyan-600 flex items-center justify-center text-white shadow-md">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-[14px] font-extrabold text-[#0f2847] dark:text-slate-100">
+                    Gelişim Görüntüleme
+                  </h3>
+                  <p className="text-[11px] text-gray-600 dark:text-slate-400 mt-0.5">
+                    Zaman içinde test skorlarındaki değişim, delta tablosu ve AI yorumu
+                  </p>
+                </div>
+              </div>
+              {progressExpanded ? <ChevronUp className="w-4 h-4 text-sky-600" /> : <ChevronDown className="w-4 h-4 text-sky-600" />}
+            </button>
+            {progressExpanded && (
+              <div className="px-4 pb-4">
+                <StudentProgressPanel studentId={student.id} />
+              </div>
+            )}
+          </div>
+
           {completed.length === 0 ? (
             <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-12 text-center shadow-sm">
               <p className="text-5xl mb-3">📭</p>
@@ -807,34 +836,6 @@ export default function StudentDetailPage() {
             </div>
           ) : (
             <>
-              {/* Faz 7: Gelişim Görüntüleme — collapsible */}
-              <div className="bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-50 dark:from-sky-950/20 dark:via-cyan-950/20 dark:to-blue-950/20 rounded-2xl border border-sky-200 dark:border-sky-900/40 shadow-sm overflow-hidden mb-6">
-                <button
-                  onClick={() => setProgressExpanded((v) => !v)}
-                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-sky-100/50 dark:hover:bg-sky-950/40 transition-colors"
-                  aria-expanded={progressExpanded}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-cyan-600 flex items-center justify-center text-white shadow-md">
-                      <TrendingUp className="w-4 h-4" />
-                    </div>
-                    <div className="text-left">
-                      <h3 className="text-[14px] font-extrabold text-[#0f2847] dark:text-slate-100">
-                        Gelişim Görüntüleme
-                      </h3>
-                      <p className="text-[11px] text-gray-600 dark:text-slate-400 mt-0.5">
-                        Zaman içinde test skorlarındaki değişim, delta tablosu ve AI yorumu
-                      </p>
-                    </div>
-                  </div>
-                  {progressExpanded ? <ChevronUp className="w-4 h-4 text-sky-600" /> : <ChevronDown className="w-4 h-4 text-sky-600" />}
-                </button>
-                {progressExpanded && (
-                  <div className="px-4 pb-4">
-                    <StudentProgressPanel studentId={student.id} />
-                  </div>
-                )}
-              </div>
 
               {/* Test bazlı tekil raporlar */}
               <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 shadow-sm overflow-hidden mb-6">
