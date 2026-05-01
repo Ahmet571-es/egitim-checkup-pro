@@ -699,3 +699,35 @@ html.large-font .text-[13.5px] { font-size: 1rem !important; }
   0% { opacity: 0; transform: translateY(20px) scale(0.96); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* ═══ HERO DİNAMİK METİN/BADGE ANİMASYONLARI ═══ */
+
+/* Soft pulse — badge ikonu için */
+@keyframes pulse-soft {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.12); opacity: 0.85; }
+}
+
+/* Badge'in üzerinde sürekli akan ışıltı çizgisi */
+@keyframes hero-shimmer-anim {
+  0% { transform: translateX(-200%) skewX(-12deg); }
+  100% { transform: translateX(200%) skewX(-12deg); }
+}
+.hero-shimmer {
+  animation: hero-shimmer-anim 3.5s ease-in-out infinite;
+}
+
+/* Trust rozet öğeleri — sıralı yumuşak pulse (KVKK > Detaylı > Bilimsel) */
+@keyframes trust-pulse {
+  0%, 70%, 100% { opacity: 0.85; transform: translateY(0); }
+  35% { opacity: 1; transform: translateY(-2px); }
+}
+.hero-trust-item {
+  animation: trust-pulse 4s ease-in-out infinite;
+}
+
+/* Hero başlık için subtle parıltı */
+.hero-title-shadow {
+  filter: drop-shadow(0 0 30px rgba(245, 158, 11, 0.15));
+}
+

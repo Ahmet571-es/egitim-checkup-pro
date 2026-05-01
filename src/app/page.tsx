@@ -138,13 +138,13 @@ export default function LandingPage() {
 
       {/* ═══ HERO ═══ */}
       <section className="relative overflow-hidden">
-        {/* ── Background video (hem desktop hem mobile) ── */}
+        {/* ── Background video — belirgin, sıcak ton ile harmanlanmış ── */}
         <div
           className="absolute inset-0 pointer-events-none overflow-hidden hero-video-bg"
           aria-hidden="true"
         >
           <video
-            className="absolute inset-0 w-full h-full object-cover opacity-60"
+            className="absolute inset-0 w-full h-full object-cover opacity-90"
             autoPlay
             loop
             muted
@@ -155,44 +155,52 @@ export default function LandingPage() {
             <source src="/videos/hero-bg.webm" type="video/webm" />
             <source src="/videos/hero-bg.mp4" type="video/mp4" />
           </video>
-          {/* Hafif overlay — metin okunaklığı için minimum gerekli */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-white/40 to-white/65 dark:from-slate-950/70 dark:via-slate-950/55 dark:to-slate-950/75" />
+          {/* Sıcak amber harmanlama — sayfa ile video aynı tonu paylaşsın */}
+          <div className="absolute inset-0 bg-gradient-to-b from-amber-50/30 via-orange-100/15 to-amber-100/40 mix-blend-soft-light" />
+          {/* Metin okunabilirliği için kademeli koyu gradient (sadece üstte ve altta hafif) */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/30 dark:from-black/40 dark:via-black/20 dark:to-black/50" />
+          {/* Vignette efekti — kenarları hafif koyulaştır, merkez net kalsın */}
+          <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.25) 100%)' }} />
         </div>
 
+        {/* Sayfa ile video tonunu eşitleyen warm blob'lar (eski cool yeşil yerine) */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute w-[800px] h-[800px] top-[-200px] right-[-200px] opacity-30"
-               style={{ background: 'conic-gradient(from 0deg at 50% 50%, #10b98122, #3b82f622, #8b5cf622, #10b98122)', animation: 'mesh-rotate 20s linear infinite', filter: 'blur(80px)' }} />
+          <div className="absolute w-[800px] h-[800px] top-[-200px] right-[-200px] opacity-40"
+               style={{ background: 'conic-gradient(from 0deg at 50% 50%, #f59e0b22, #fb923c33, #ec489922, #f59e0b22)', animation: 'mesh-rotate 20s linear infinite', filter: 'blur(80px)' }} />
         </div>
-        <div className="absolute top-[-200px] right-[-150px] w-[700px] h-[700px] rounded-full bg-gradient-to-br from-emerald-200/40 to-teal-200/20 blur-3xl pointer-events-none blob-float" />
-        <div className="absolute bottom-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-blue-200/30 to-indigo-200/15 blur-3xl pointer-events-none blob-float-delay" />
-        <div className="absolute top-[40%] left-[60%] w-[300px] h-[300px] rounded-full bg-gradient-to-br from-violet-200/20 to-purple-200/10 blur-3xl pointer-events-none blob-float-delay2" />
-        {/* Aurora flowing lights */}
-        <div className="absolute top-[10%] left-[-20%] w-[900px] h-[300px] bg-gradient-to-r from-emerald-300/15 via-teal-200/10 to-cyan-300/15 blur-3xl pointer-events-none aurora rounded-full" />
-        <div className="absolute bottom-[5%] right-[-15%] w-[700px] h-[250px] bg-gradient-to-r from-blue-300/10 via-violet-200/10 to-purple-300/10 blur-3xl pointer-events-none aurora-delay rounded-full" />
+        <div className="absolute top-[-200px] right-[-150px] w-[700px] h-[700px] rounded-full bg-gradient-to-br from-amber-300/30 to-orange-300/20 blur-3xl pointer-events-none blob-float" />
+        <div className="absolute bottom-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-rose-300/25 to-pink-300/15 blur-3xl pointer-events-none blob-float-delay" />
+        <div className="absolute top-[40%] left-[60%] w-[300px] h-[300px] rounded-full bg-gradient-to-br from-yellow-300/20 to-amber-200/10 blur-3xl pointer-events-none blob-float-delay2" />
+        {/* Aurora flowing lights — warm tones */}
+        <div className="absolute top-[10%] left-[-20%] w-[900px] h-[300px] bg-gradient-to-r from-amber-300/20 via-orange-200/15 to-rose-300/20 blur-3xl pointer-events-none aurora rounded-full" />
+        <div className="absolute bottom-[5%] right-[-15%] w-[700px] h-[250px] bg-gradient-to-r from-pink-300/15 via-amber-200/10 to-orange-300/15 blur-3xl pointer-events-none aurora-delay rounded-full" />
         <FloatingParticles />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-28 text-center">
-          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-md mb-8 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/10 to-emerald-500/0 -skew-x-12 group-hover:translate-x-full transition-transform duration-700" style={{ transform: 'translateX(-100%)' }} />
-            <div className="relative w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
+          {/* Badge — shimmer + bounce-in */}
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/95 dark:bg-slate-800/85 backdrop-blur-xl border-2 border-amber-200/80 dark:border-amber-700/60 shadow-2xl shadow-amber-500/30 mb-8 relative overflow-hidden group hero-badge-shimmer">
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-400/30 to-orange-500/0 -skew-x-12 hero-shimmer pointer-events-none" />
+            <div className="relative w-6 h-6 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-md animate-[pulse-soft_2s_ease-in-out_infinite]">
               <Sparkles className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-[13px] font-bold text-[#0f2847] dark:text-slate-100 tracking-tight">11 Bilimsel Test · Detaylı Analiz · 4 Panel</span>
+            <span className="text-[13px] font-extrabold text-[#0f2847] dark:text-slate-100 tracking-tight">11 Bilimsel Test · Detaylı Analiz · 4 Panel</span>
           </div>
 
-          <h1 data-testid="hero-title" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#0f2847] dark:text-slate-100 leading-tight tracking-tight max-w-4xl mx-auto">
-            <span className="hero-word-1 inline-block animate-[float-text_3s_ease-in-out_infinite]">Öğrencilerinizi </span>
+          {/* Başlık — beyaz/altın kontrast + drop-shadow + dinamik animasyon */}
+          <h1 data-testid="hero-title" className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight max-w-4xl mx-auto hero-title-shadow">
+            <span className="hero-word-1 inline-block animate-[float-text_3s_ease-in-out_infinite] text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)]">Öğrencilerinizi </span>
             <br className="hidden sm:block" />
-            <span className="hero-word-2 hero-word-3 inline-block bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_4s_ease-in-out_infinite] hover:scale-[1.05] transition-transform duration-500 cursor-default">
+            <span className="hero-word-2 hero-word-3 inline-block bg-gradient-to-r from-amber-300 via-yellow-200 to-orange-300 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_4s_ease-in-out_infinite] hover:scale-[1.05] transition-transform duration-500 cursor-default drop-shadow-[0_4px_16px_rgba(245,158,11,0.4)]">
               Gerçekten Tanıyın
             </span>
           </h1>
 
-          <div className="hero-subtitle mt-6 text-lg sm:text-xl text-gray-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed min-h-[56px] flex flex-wrap items-center justify-center gap-x-1.5">
+          {/* Subtitle — TypingText sıcak amber, üzeri okunaklı */}
+          <div className="hero-subtitle mt-6 text-lg sm:text-xl text-white/95 dark:text-slate-100 max-w-2xl mx-auto leading-relaxed min-h-[56px] flex flex-wrap items-center justify-center gap-x-1.5 font-semibold drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
             <span>Psikometrik testler ile öğrencilerinizin</span>
             <TypingText
-              words={['potansiyeli keşfedin', 'kariyer yolunu çizin', 'gelişimi takip edin', 'öğrenme stilini belirleyin']}
-              className="text-emerald-600 font-semibold"
+              words={['potansiyeli keşfedin', 'kariyer yolunu çizin', 'gelişimi takip edin', 'öğrenme stilini belirleyin', 'mizacını anlayın', 'güçlü yönlerini bulun']}
+              className="text-amber-300 font-extrabold drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
             />
           </div>
 
@@ -235,12 +243,18 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="hero-trust mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-gray-400 dark:text-slate-500">
-            <span className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /> KVKK Uyumlu</span>
-            <span className="hidden sm:inline w-1 h-1 rounded-full bg-gray-300" />
-            <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Detaylı Analiz Raporları</span>
-            <span className="hidden sm:inline w-1 h-1 rounded-full bg-gray-300" />
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Bilimsel Temelli</span>
+          <div className="hero-trust mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-white/95 dark:text-slate-100 font-bold drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]">
+            <span className="flex items-center gap-1.5 hero-trust-item" style={{ animationDelay: '0s' }}>
+              <Shield className="w-3.5 h-3.5 text-amber-300" /> KVKK Uyumlu
+            </span>
+            <span className="hidden sm:inline w-1 h-1 rounded-full bg-white/60" />
+            <span className="flex items-center gap-1.5 hero-trust-item" style={{ animationDelay: '0.6s' }}>
+              <Zap className="w-3.5 h-3.5 text-amber-300" /> Detaylı Analiz Raporları
+            </span>
+            <span className="hidden sm:inline w-1 h-1 rounded-full bg-white/60" />
+            <span className="flex items-center gap-1.5 hero-trust-item" style={{ animationDelay: '1.2s' }}>
+              <CheckCircle2 className="w-3.5 h-3.5 text-amber-300" /> Bilimsel Temelli
+            </span>
           </div>
         </div>
       </section>
