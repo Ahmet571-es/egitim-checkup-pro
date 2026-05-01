@@ -181,6 +181,7 @@ function ParentLoginInner() {
             </div>
             <input
               type="email"
+              name="parent_email"
               value={email}
               onChange={(e) => handleEmailChange(e.target.value)}
               placeholder="ornek@email.com"
@@ -201,6 +202,7 @@ function ParentLoginInner() {
             </div>
             <input
               type={showPassword ? 'text' : 'password'}
+              name="parent_password"
               value={password}
               onChange={(e) => setPassword(e.target.value.slice(0, 72))}
               placeholder="Şifreniz"
