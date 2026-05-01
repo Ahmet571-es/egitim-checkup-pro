@@ -1,8 +1,10 @@
 /**
- * Admin Dashboard — DİAGNOSTİK MOD (minimal)
+ * Admin Dashboard — DİAGNOSTİK ADIM 1: TiltStatCard ekle
  */
+import { Building2, Users, GraduationCap, FileCheck2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentProfile } from '@/lib/actions/auth';
+import TiltStatCard from '@/components/ui/TiltStatCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,21 +50,19 @@ export default async function Page() {
       )}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
         {[
-          { label: 'Okul', value: stats.schools },
-          { label: 'Kullanıcı', value: stats.users },
-          { label: 'Öğretmen', value: stats.teachers },
-          { label: 'Test Sonucu', value: stats.results },
-        ].map((s) => (
-          <div key={s.label} style={{
-            padding: 16, borderRadius: 12, background: '#f9fafb', border: '1px solid #e5e7eb',
-          }}>
-            <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 'bold' }}>
-              {s.label}
-            </div>
-            <div style={{ fontSize: 32, fontWeight: 'bold', color: '#0f2847', marginTop: 4 }}>
-              {s.value}
-            </div>
-          </div>
+          { label: 'Okul', value: stats.schools, icon: Building2, gradient: 'from-amber-500 to-orange-600' },
+          { label: 'Kullanıcı', value: stats.users, icon: Users, gradient: 'from-sky-500 to-blue-600' },
+          { label: 'Öğretmen', value: stats.teachers, icon: GraduationCap, gradient: 'from-emerald-500 to-teal-600' },
+          { label: 'Test Sonucu', value: stats.results, icon: FileCheck2, gradient: 'from-violet-500 to-purple-600' },
+        ].map((s, idx) => (
+          <TiltStatCard
+            key={s.label}
+            label={s.label}
+            value={s.value}
+            icon={s.icon}
+            gradient={s.gradient}
+            delay={100 + idx * 80}
+          />
         ))}
       </div>
     </div>
