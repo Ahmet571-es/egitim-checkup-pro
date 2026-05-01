@@ -138,30 +138,25 @@ export default function LandingPage() {
 
       {/* ═══ HERO ═══ */}
       <section className="relative overflow-hidden">
-        {/* ── Background video (yalnızca desktop md+, mobile'da poster) ── */}
+        {/* ── Background video (hem desktop hem mobile) ── */}
         <div
           className="absolute inset-0 pointer-events-none overflow-hidden hero-video-bg"
           aria-hidden="true"
         >
           <video
-            className="hidden md:block absolute inset-0 w-full h-full object-cover opacity-30"
+            className="absolute inset-0 w-full h-full object-cover opacity-60"
             autoPlay
             loop
             muted
             playsInline
-            preload="metadata"
+            preload="auto"
             poster="/videos/hero-poster.jpg"
           >
             <source src="/videos/hero-bg.webm" type="video/webm" />
             <source src="/videos/hero-bg.mp4" type="video/mp4" />
           </video>
-          {/* Mobile: video yerine sadece poster (data tasarrufu) */}
-          <div
-            className="md:hidden absolute inset-0 bg-cover bg-center opacity-20"
-            style={{ backgroundImage: 'url(/videos/hero-poster.jpg)' }}
-          />
-          {/* Okunabilirlik için soft beyaz/koyu overlay (videonun üzerinde, mevcut blob'ların altında) */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/85 via-white/70 to-white/90 dark:from-slate-950/85 dark:via-slate-950/70 dark:to-slate-950/90" />
+          {/* Hafif overlay — metin okunaklığı için minimum gerekli */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-white/40 to-white/65 dark:from-slate-950/70 dark:via-slate-950/55 dark:to-slate-950/75" />
         </div>
 
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
