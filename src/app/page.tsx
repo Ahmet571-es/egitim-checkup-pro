@@ -224,33 +224,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ ANIMATED MARQUEE ═══ */}
-      <section className="relative -mt-6 z-10 overflow-hidden py-6">
-        <div className="flex animate-marquee whitespace-nowrap gap-6">
-          {[...Array(2)].map((_, setIdx) => (
-            <div key={setIdx} className="flex gap-6 shrink-0">
-              {[
-                { emoji: '🧠', text: 'Enneagram Kişilik', color: 'from-violet-500 to-purple-600' },
-                { emoji: '📖', text: 'VARK Öğrenme Stili', color: 'from-sky-500 to-blue-600' },
-                { emoji: '🧭', text: 'Meslek Testi', color: 'from-emerald-500 to-teal-600' },
-                { emoji: '🎯', text: 'Çoklu Zeka Analizi', color: 'from-amber-500 to-orange-600' },
-                { emoji: '📝', text: 'Sınav Kaygısı Ölçeği', color: 'from-rose-500 to-pink-600' },
-                { emoji: '📚', text: 'Çalışma Davranışı', color: 'from-lime-500 to-green-600' },
-                { emoji: '🔬', text: 'Akademik Analiz', color: 'from-cyan-500 to-sky-600' },
-                { emoji: '⚡', text: 'D2 Dikkat Testi', color: 'from-indigo-500 to-violet-600' },
-                { emoji: '🧩', text: 'Sağ-Sol Beyin', color: 'from-fuchsia-500 to-pink-600' },
-                { emoji: '📖', text: 'Hızlı Okuma', color: 'from-teal-500 to-emerald-600' },
-              ].map((item) => (
-                <div key={`${setIdx}-${item.text}`} className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r ${item.color} text-white text-[13px] font-bold shadow-lg hover:scale-105 transition-transform cursor-default`}>
-                  <span className="text-lg">{item.emoji}</span>
-                  {item.text}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* ═══ HIGHLIGHTS ═══ */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24" ref={highlights.ref}>
         <div className={`text-center mb-14 transition-all duration-500 ${highlights.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
