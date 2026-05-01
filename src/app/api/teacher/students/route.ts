@@ -740,6 +740,7 @@ export async function POST(req: NextRequest) {
         .insert({
           id: newUser.user.id,
           full_name: cleanName,
+          email: cleanEmail,
           grade: cleanGrade,
           school_id: teacherSchoolId,
           role: 'student',
