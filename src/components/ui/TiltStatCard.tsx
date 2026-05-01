@@ -1,10 +1,12 @@
 'use client';
 
 /**
- * Premium TiltStatCard — 3D tilt, count-up, shimmer, icon pulse, gradient ring
- * tüm dashboard'larda kullanılır
+ * TiltStatCard — Premium istatistik kartı
+ *
+ * REFACTOR (2026-04-30): styled-jsx kaldırıldı (server component import
+ * uyumsuzluğu için), animation globals.css'e taşındı. 3D tilt ve
+ * count-up animasyonları korunuyor.
  */
-
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, TrendingUp } from 'lucide-react';
@@ -18,14 +20,16 @@ interface TiltStatCardProps {
   icon: LucideIcon;
   delay?: number;
   helperText?: string;
-  /** Numeric count-up devre dışı */
   disableCountUp?: boolean;
 }
 
 function CountUp({ end, duration = 1200 }: { end: number; duration?: number }) {
   const [val, setVal] = useState(0);
   useEffect(() => {
-    if (end === 0) { setVal(0); return; }
+    if (end === 0) {
+      setVal(0);
+      return;
+    }
     const start = performance.now();
     let raf = 0;
     const tick = (now: number) => {
@@ -79,18 +83,6 @@ export default function TiltStatCard({
         animationDelay: `${delay}ms`,
       }}
     >
-      {/* Gradient ring border on hover */}
-      <div
-        className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{
-          background: `linear-gradient(135deg, var(--tw-gradient-stops)) border-box`,
-          WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
-          WebkitMaskComposite: 'xor',
-          maskComposite: 'exclude',
-          padding: '2px',
-        }}
-      />
-
       {/* Shine follow-cursor */}
       <div
         className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -109,7 +101,6 @@ export default function TiltStatCard({
         <div className="flex items-start justify-between mb-5">
           <div className={`relative w-12 h-12 rounded-2xl bg-gradient-to-br ${gradient} text-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300`}>
             <Icon className="w-6 h-6 relative z-10" />
-            {/* Icon pulse glow */}
             <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-60 blur-xl transition-opacity duration-300`} />
           </div>
           <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-slate-700/60 group-hover:bg-[#0f2847] dark:group-hover:bg-slate-600 flex items-center justify-center transition-colors shrink-0">
