@@ -717,17 +717,82 @@ html.large-font .text-[13.5px] { font-size: 1rem !important; }
   animation: hero-shimmer-anim 3.5s ease-in-out infinite;
 }
 
-/* Trust rozet öğeleri — sıralı yumuşak pulse (KVKK > Detaylı > Bilimsel) */
-@keyframes trust-pulse {
-  0%, 70%, 100% { opacity: 0.85; transform: translateY(0); }
-  35% { opacity: 1; transform: translateY(-2px); }
+/* ═══ HOLOGRAFİK YÜKSELME — videodaki tablet hologramlarının hareketi ═══ */
+
+/* Hologram yükselme döngüsü — tablet'ten süzülen ikonların hareketi
+   Aşağıdan yukarı + hafif scale + amber glow nabzı (10sn döngü, video ile senkron) */
+@keyframes holo-rise {
+  0% {
+    transform: translateY(8px) scale(0.98);
+    filter: drop-shadow(0 0 0 rgba(245, 158, 11, 0));
+  }
+  25% {
+    transform: translateY(-4px) scale(1.02);
+    filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.4));
+  }
+  50% {
+    transform: translateY(-8px) scale(1.03);
+    filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.55));
+  }
+  75% {
+    transform: translateY(-4px) scale(1.02);
+    filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.4));
+  }
+  100% {
+    transform: translateY(8px) scale(0.98);
+    filter: drop-shadow(0 0 0 rgba(245, 158, 11, 0));
+  }
+}
+
+/* Hologram glow nabzı — opacity ve renk dalgalanması (video ikonlarındaki parlama) */
+@keyframes holo-glow {
+  0%, 100% {
+    text-shadow:
+      0 2px 12px rgba(0, 0, 0, 0.6),
+      0 0 20px rgba(245, 158, 11, 0.2),
+      0 0 40px rgba(251, 191, 36, 0.1);
+  }
+  50% {
+    text-shadow:
+      0 2px 12px rgba(0, 0, 0, 0.7),
+      0 0 30px rgba(245, 158, 11, 0.5),
+      0 0 60px rgba(251, 191, 36, 0.3);
+  }
+}
+
+/* Hologram süzülme — yukarı doğru yumuşak hareket (badge için) */
+@keyframes holo-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  33% { transform: translateY(-5px) scale(1.015); }
+  66% { transform: translateY(-3px) scale(1.01); }
+}
+
+/* Trust rozetleri — sıralı yükseliş dalgası
+   Her rozet sırayla yukarı süzülür, bir glow nabzı yapar, sonra geri iner */
+@keyframes trust-rise-pulse {
+  0%, 80%, 100% {
+    opacity: 0.85;
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 0 rgba(251, 191, 36, 0));
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.05);
+    filter: drop-shadow(0 0 14px rgba(251, 191, 36, 0.7));
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.02);
+    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.4));
+  }
 }
 .hero-trust-item {
-  animation: trust-pulse 4s ease-in-out infinite;
+  animation: trust-rise-pulse 5s ease-in-out infinite;
 }
 
 /* Hero başlık için subtle parıltı */
 .hero-title-shadow {
   filter: drop-shadow(0 0 30px rgba(245, 158, 11, 0.15));
 }
+
 
