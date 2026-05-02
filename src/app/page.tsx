@@ -178,10 +178,7 @@ export default function LandingPage() {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-28 text-center">
           {/* Badge — holographic float (videodaki tablet'ten ilk hologram çıkışı gibi) */}
-          <div
-            className="hero-badge inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/95 dark:bg-slate-800/85 backdrop-blur-xl border-2 border-amber-200/80 dark:border-amber-700/60 shadow-2xl shadow-amber-500/30 mb-8 relative overflow-hidden group hero-badge-shimmer"
-            style={{ animation: 'holo-float 5s ease-in-out infinite, holo-glow 5s ease-in-out infinite' }}
-          >
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/95 dark:bg-slate-800/85 backdrop-blur-xl border-2 border-amber-200/80 dark:border-amber-700/60 shadow-2xl shadow-amber-500/30 mb-8 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-400/30 to-orange-500/0 -skew-x-12 hero-shimmer pointer-events-none" />
             <div className="relative w-6 h-6 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-md animate-[pulse-soft_2s_ease-in-out_infinite]">
               <Sparkles className="w-3.5 h-3.5 text-white" />
@@ -191,36 +188,17 @@ export default function LandingPage() {
 
           {/* Başlık — holografik yükselme, iki kelime stagger ile (videodaki ikonların sırayla çıkması) */}
           <h1 data-testid="hero-title" className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight max-w-4xl mx-auto hero-title-shadow">
-            <span
-              className="hero-word-1 inline-block text-white"
-              style={{
-                animation: 'holo-rise 6s ease-in-out infinite, holo-glow 6s ease-in-out infinite',
-                animationDelay: '0s',
-              }}
-            >
+            <span className="hero-word-1 inline-block text-white">
               Öğrencilerinizi
             </span>
             <br className="hidden sm:block" />
-            <span
-              className="hero-word-2 hero-word-3 inline-block bg-gradient-to-r from-amber-300 via-yellow-200 to-orange-300 bg-clip-text text-transparent bg-[length:200%_auto] cursor-default"
-              style={{
-                animation: 'holo-rise 6s ease-in-out infinite, gradient-shift 4s ease-in-out infinite',
-                animationDelay: '0.8s',
-                filter: 'drop-shadow(0 4px 16px rgba(245, 158, 11, 0.5))',
-              }}
-            >
+            <span className="hero-word-2 hero-word-3 inline-block bg-gradient-to-r from-amber-300 via-yellow-200 to-orange-300 bg-clip-text text-transparent bg-[length:200%_auto] cursor-default" style={{ filter: 'drop-shadow(0 4px 16px rgba(245, 158, 11, 0.5))' }}>
               Gerçekten Tanıyın
             </span>
           </h1>
 
           {/* Subtitle — daha sonra yükselen üçüncü hologram */}
-          <div
-            className="hero-subtitle mt-6 text-lg sm:text-xl text-white/95 dark:text-slate-100 max-w-2xl mx-auto leading-relaxed min-h-[56px] flex flex-wrap items-center justify-center gap-x-1.5 font-semibold"
-            style={{
-              animation: 'holo-float 7s ease-in-out infinite, holo-glow 7s ease-in-out infinite',
-              animationDelay: '1.6s',
-            }}
-          >
+          <div className="hero-subtitle mt-6 text-lg sm:text-xl text-white/95 dark:text-slate-100 max-w-2xl mx-auto leading-relaxed min-h-[56px] flex flex-wrap items-center justify-center gap-x-1.5 font-semibold">
             <span>Psikometrik testler ile öğrencilerinizin</span>
             <TypingText
               words={['potansiyeli keşfedin', 'kariyer yolunu çizin', 'gelişimi takip edin', 'öğrenme stilini belirleyin', 'mizacını anlayın', 'güçlü yönlerini bulun']}
