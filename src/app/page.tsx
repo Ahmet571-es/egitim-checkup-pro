@@ -138,7 +138,7 @@ export default function LandingPage() {
 
       {/* ═══ HERO ═══ */}
       <section className="relative overflow-hidden">
-        {/* ── Background video — belirgin, sıcak ton ile harmanlanmış ── */}
+        {/* ── Background video — sade overlay (jank yok) ── */}
         <div
           className="absolute inset-0 pointer-events-none overflow-hidden hero-video-bg"
           aria-hidden="true"
@@ -155,22 +155,13 @@ export default function LandingPage() {
             <source src="/videos/hero-bg.webm" type="video/webm" />
             <source src="/videos/hero-bg.mp4" type="video/mp4" />
           </video>
-          {/* Sıcak amber harmanlama — sayfa ile video aynı tonu paylaşsın */}
-          <div className="absolute inset-0 bg-gradient-to-b from-amber-50/30 via-orange-100/15 to-amber-100/40 mix-blend-soft-light" />
-          {/* Metin okunabilirliği için kademeli koyu gradient (sadece üstte ve altta hafif) */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/30 dark:from-black/40 dark:via-black/20 dark:to-black/50" />
-          {/* Vignette efekti — kenarları hafif koyulaştır, merkez net kalsın */}
-          <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.25) 100%)' }} />
+          {/* Tek katmanlı kademeli koyu gradient — metin okunaklılığı için yeterli */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/35 dark:from-black/40 dark:via-black/20 dark:to-black/55" />
         </div>
 
-        {/* Sayfa ile video tonunu eşitleyen warm blob'lar (eski cool yeşil yerine) */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute w-[800px] h-[800px] top-[-200px] right-[-200px] opacity-40"
-               style={{ background: 'conic-gradient(from 0deg at 50% 50%, #f59e0b22, #fb923c33, #ec489922, #f59e0b22)', animation: 'mesh-rotate 20s linear infinite', filter: 'blur(80px)' }} />
-        </div>
+        {/* Sayfa ile video tonunu eşitleyen warm blob'lar (GPU dostu, sadece transform) */}
         <div className="absolute top-[-200px] right-[-150px] w-[700px] h-[700px] rounded-full bg-gradient-to-br from-amber-300/30 to-orange-300/20 blur-3xl pointer-events-none blob-float" />
         <div className="absolute bottom-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-rose-300/25 to-pink-300/15 blur-3xl pointer-events-none blob-float-delay" />
-        <div className="absolute top-[40%] left-[60%] w-[300px] h-[300px] rounded-full bg-gradient-to-br from-yellow-300/20 to-amber-200/10 blur-3xl pointer-events-none blob-float-delay2" />
         {/* Aurora flowing lights — warm tones */}
         <div className="absolute top-[10%] left-[-20%] w-[900px] h-[300px] bg-gradient-to-r from-amber-300/20 via-orange-200/15 to-rose-300/20 blur-3xl pointer-events-none aurora rounded-full" />
         <div className="absolute bottom-[5%] right-[-15%] w-[700px] h-[250px] bg-gradient-to-r from-pink-300/15 via-amber-200/10 to-orange-300/15 blur-3xl pointer-events-none aurora-delay rounded-full" />
@@ -250,11 +241,11 @@ export default function LandingPage() {
               <Shield className="w-3.5 h-3.5 text-amber-300" /> KVKK Uyumlu
             </span>
             <span className="hidden sm:inline w-1 h-1 rounded-full bg-white/60" />
-            <span className="flex items-center gap-1.5 hero-trust-item" style={{ animationDelay: '0.7s' }}>
+            <span className="flex items-center gap-1.5 hero-trust-item" style={{ animationDelay: '0.4s' }}>
               <Zap className="w-3.5 h-3.5 text-amber-300" /> Detaylı Analiz Raporları
             </span>
             <span className="hidden sm:inline w-1 h-1 rounded-full bg-white/60" />
-            <span className="flex items-center gap-1.5 hero-trust-item" style={{ animationDelay: '1.4s' }}>
+            <span className="flex items-center gap-1.5 hero-trust-item" style={{ animationDelay: '0.8s' }}>
               <CheckCircle2 className="w-3.5 h-3.5 text-amber-300" /> Bilimsel Temelli
             </span>
           </div>

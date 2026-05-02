@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 import OfflineBanner from '@/components/OfflineBanner';
 import AccessibilityToggle from '@/components/ui/AccessibilityToggle';
-import CookieConsent from '@/components/CookieConsent';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
 import CommandPalette from '@/components/ui/CommandPalette';
@@ -47,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
               <CommandPalette />
               <AccessibilityToggle />
-              <CookieConsent />
+              {/* CookieConsent kaldırıldı — KVKK Politikası footer'daki link üzerinden erişilebilir */}
             </ConfirmProvider>
           </ToastProvider>
         </ThemeProvider>
