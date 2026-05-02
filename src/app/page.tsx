@@ -118,7 +118,31 @@ export default function LandingPage() {
   const footer = useScrollReveal(0.1);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f0f5ff] via-[#f8fafc] to-[#f0fdf8]">
+    <div className="min-h-screen relative">
+      {/* ═══ GLOBAL BACKGROUND VIDEO — tüm sayfa boyunca arka planda fixed ═══ */}
+      <div
+        className="fixed inset-0 pointer-events-none overflow-hidden hero-video-bg"
+        style={{ zIndex: 0 }}
+        aria-hidden="true"
+      >
+        <video
+          className="absolute inset-0 w-full h-full object-cover opacity-90"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          poster="/videos/hero-poster.jpg"
+        >
+          <source src="/videos/hero-bg.webm" type="video/webm" />
+          <source src="/videos/hero-bg.mp4" type="video/mp4" />
+        </video>
+        {/* Tek katmanlı kademeli koyu gradient — metin okunaklılığı için yeterli */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/20 to-black/40 dark:from-black/40 dark:via-black/35 dark:to-black/55" />
+      </div>
+
+      {/* Tüm içerik video'nun üzerinde (z-index 10) */}
+      <div className="relative" style={{ zIndex: 10 }}>
       {/* ═══ NAVBAR ═══ */}
       <nav className={`sticky top-0 z-50 border-b transition-all duration-300 ${
         navScrolled
@@ -138,27 +162,6 @@ export default function LandingPage() {
 
       {/* ═══ HERO ═══ */}
       <section className="relative overflow-hidden">
-        {/* ── Background video — sade overlay (jank yok) ── */}
-        <div
-          className="absolute inset-0 pointer-events-none overflow-hidden hero-video-bg"
-          aria-hidden="true"
-        >
-          <video
-            className="absolute inset-0 w-full h-full object-cover opacity-90"
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            poster="/videos/hero-poster.jpg"
-          >
-            <source src="/videos/hero-bg.webm" type="video/webm" />
-            <source src="/videos/hero-bg.mp4" type="video/mp4" />
-          </video>
-          {/* Tek katmanlı kademeli koyu gradient — metin okunaklılığı için yeterli */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/35 dark:from-black/40 dark:via-black/20 dark:to-black/55" />
-        </div>
-
         {/* Sayfa ile video tonunu eşitleyen warm blob'lar (GPU dostu, sadece transform) */}
         <div className="absolute top-[-200px] right-[-150px] w-[700px] h-[700px] rounded-full bg-gradient-to-br from-amber-300/30 to-orange-300/20 blur-3xl pointer-events-none blob-float" />
         <div className="absolute bottom-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-rose-300/25 to-pink-300/15 blur-3xl pointer-events-none blob-float-delay" />
@@ -255,8 +258,8 @@ export default function LandingPage() {
       {/* ═══ HIGHLIGHTS ═══ */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24" ref={highlights.ref}>
         <div className={`text-center mb-14 transition-all duration-500 ${highlights.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847] dark:text-slate-100">Neden Eğitim Check-Up?</h2>
-          <p className="mt-3 text-gray-500 dark:text-slate-400 text-lg max-w-xl mx-auto">Öğrencilerinizi tanımanın en kapsamlı ve akıllı yolu</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold inline-block bg-gradient-to-r from-amber-300 via-yellow-200 to-orange-300 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_4s_ease-in-out_infinite] drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">Neden Eğitim Check-Up?</h2>
+          <p className="mt-3 text-white/90 dark:text-slate-300 text-lg max-w-xl mx-auto font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] animate-[float-text_3s_ease-in-out_infinite]">Öğrencilerinizi tanımanın en kapsamlı ve akıllı yolu</p>
         </div>
         <div className="grid sm:grid-cols-3 gap-5">
           {HIGHLIGHTS.map((h, i) => (
@@ -278,8 +281,8 @@ export default function LandingPage() {
       {/* ═══ TESTS ═══ */}
       <section id="testler" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 scroll-mt-20" ref={tests.ref}>
         <div className={`text-center mb-14 transition-all duration-500 ${tests.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847] dark:text-slate-100">Testlerimiz</h2>
-          <p className="mt-3 text-gray-500 dark:text-slate-400 text-lg max-w-xl mx-auto">Bilimsel temelli 11 farklı psikometrik test ile kapsamlı öğrenci profili</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold inline-block bg-gradient-to-r from-amber-300 via-yellow-200 to-orange-300 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_4s_ease-in-out_infinite] drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">Testlerimiz</h2>
+          <p className="mt-3 text-white/90 dark:text-slate-300 text-lg max-w-xl mx-auto font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] animate-[float-text_3s_ease-in-out_infinite]">Bilimsel temelli 11 farklı psikometrik test ile kapsamlı öğrenci profili</p>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           {TESTS.map((t, i) => (
@@ -308,8 +311,8 @@ export default function LandingPage() {
       {/* ═══ HOW IT WORKS ═══ */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-24" ref={steps.ref}>
         <div className={`text-center mb-14 transition-all duration-500 ${steps.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847] dark:text-slate-100">Nasıl Çalışır?</h2>
-          <p className="mt-3 text-gray-500 dark:text-slate-400 text-lg">3 adımda profesyonel öğrenci analizi</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold inline-block bg-gradient-to-r from-amber-300 via-yellow-200 to-orange-300 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_4s_ease-in-out_infinite] drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">Nasıl Çalışır?</h2>
+          <p className="mt-3 text-white/90 dark:text-slate-300 text-lg font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] animate-[float-text_3s_ease-in-out_infinite]">3 adımda profesyonel öğrenci analizi</p>
         </div>
         <div className="grid sm:grid-cols-3 gap-6 relative">
           <div className="hidden sm:block absolute top-[56px] left-[16.7%] right-[16.7%] h-[2px] overflow-hidden z-0">
@@ -337,8 +340,8 @@ export default function LandingPage() {
       {/* ═══ TRUST BADGES (Animated) ═══ */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
         <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0f2847] dark:text-slate-100">Güvenle Kullanın</h2>
-          <p className="mt-3 text-gray-500 dark:text-slate-400 text-lg">Eğitim psikolojisi standartlarına uygun altyapı</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold inline-block bg-gradient-to-r from-amber-300 via-yellow-200 to-orange-300 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_4s_ease-in-out_infinite] drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">Güvenle Kullanın</h2>
+          <p className="mt-3 text-white/90 dark:text-slate-300 text-lg font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] animate-[float-text_3s_ease-in-out_infinite]">Eğitim psikolojisi standartlarına uygun altyapı</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
@@ -364,11 +367,11 @@ export default function LandingPage() {
 
       {/* ═══ CTA BANNER ═══ */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0f2847] via-[#1a3a5c] to-[#0f2847] p-10 sm:p-14 text-center shadow-2xl">
-          <div className="absolute top-[-50px] right-[-50px] w-[200px] h-[200px] rounded-full bg-emerald-500/10 blur-2xl" />
-          <div className="absolute bottom-[-30px] left-[-30px] w-[150px] h-[150px] rounded-full bg-teal-500/10 blur-2xl" />
-          <h2 className="relative text-2xl sm:text-3xl font-extrabold text-white mb-4">Öğrencilerinizin Potansiyelini Keşfedin</h2>
-          <p className="relative text-gray-300 max-w-lg mx-auto">Bilimsel testler ve detaylı analizler ile her öğrenciyi bireysel olarak tanıyın.</p>
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0f2847]/85 via-[#1a3a5c]/80 to-[#0f2847]/85 backdrop-blur-md border border-white/10 p-10 sm:p-14 text-center shadow-2xl">
+          <div className="absolute top-[-50px] right-[-50px] w-[200px] h-[200px] rounded-full bg-amber-500/15 blur-2xl" />
+          <div className="absolute bottom-[-30px] left-[-30px] w-[150px] h-[150px] rounded-full bg-orange-500/15 blur-2xl" />
+          <h2 className="relative text-2xl sm:text-3xl font-extrabold inline-block bg-gradient-to-r from-amber-300 via-yellow-200 to-orange-300 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_4s_ease-in-out_infinite] mb-4">Öğrencilerinizin Potansiyelini Keşfedin</h2>
+          <p className="relative text-white/90 max-w-lg mx-auto font-semibold animate-[float-text_3s_ease-in-out_infinite]">Bilimsel testler ve detaylı analizler ile her öğrenciyi bireysel olarak tanıyın.</p>
         </div>
       </section>
 
@@ -425,6 +428,7 @@ export default function LandingPage() {
           <p className="text-xs text-gray-400 dark:text-slate-500 text-center mt-5">© 2026 Eğitim Check-Up. Tüm hakları saklıdır.</p>
         </div>
       </footer>
+      </div>{/* /content wrapper */}
     </div>
   );
 }
