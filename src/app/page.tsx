@@ -376,56 +376,56 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ FOOTER ═══ */}
-      <footer className="border-t border-gray-200 dark:border-slate-700/50 bg-white/40 backdrop-blur-lg" ref={footer.ref}>
+      <footer className="border-t border-white/15" ref={footer.ref}>
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 transition-all duration-500 ${footer.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           {/* Üst kısım: marka + ana linkler */}
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-6">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
                 <GraduationCap className="w-4 h-4 text-white" />
               </div>
-              <span className="text-sm font-bold text-[#0f2847] dark:text-slate-100">Eğitim Check-Up</span>
+              <span className="text-sm font-extrabold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">Eğitim Check-Up</span>
             </div>
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-500 dark:text-slate-400">
-              <Link href="/paketler" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white font-bold drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
+              <Link href="/paketler" className="footer-link hover:text-amber-300 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
                 Paketler
               </Link>
-              <Link href="/pricing" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
+              <Link href="/pricing" className="footer-link hover:text-amber-300 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
                 Ücretlendirme
               </Link>
-              <Link href="/hakkimizda" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
+              <Link href="/hakkimizda" className="footer-link hover:text-amber-300 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
                 Hakkımızda
               </Link>
-              <Link href="/iletisim" className="footer-link hover:text-[#0f2847] dark:text-slate-100 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
+              <Link href="/iletisim" className="footer-link hover:text-amber-300 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
                 İletişim
               </Link>
             </div>
           </div>
 
           {/* Yasal linkler — küçük puntolarla */}
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-gray-400 dark:text-slate-500 border-t border-gray-100 dark:border-slate-800/60 pt-5">
-            <Link href="/kvkk" className="hover:text-[#0f2847] dark:text-slate-300 transition-colors inline-flex items-center gap-1 py-1.5 min-h-[36px]">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-white/95 font-semibold drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)] border-t border-white/15 pt-5">
+            <Link href="/kvkk" className="hover:text-amber-300 transition-colors inline-flex items-center gap-1 py-1.5 min-h-[36px]">
               <Shield className="w-3 h-3" /> KVKK
             </Link>
-            <span className="text-gray-300 dark:text-slate-700">·</span>
-            <Link href="/gizlilik-politikasi" className="hover:text-[#0f2847] dark:text-slate-300 transition-colors py-1.5 min-h-[36px]">
+            <span className="text-white/40">·</span>
+            <Link href="/gizlilik-politikasi" className="hover:text-amber-300 transition-colors py-1.5 min-h-[36px]">
               Gizlilik Politikası
             </Link>
-            <span className="text-gray-300 dark:text-slate-700">·</span>
-            <Link href="/mesafeli-satis-sozlesmesi" className="hover:text-[#0f2847] dark:text-slate-300 transition-colors py-1.5 min-h-[36px]">
+            <span className="text-white/40">·</span>
+            <Link href="/mesafeli-satis-sozlesmesi" className="hover:text-amber-300 transition-colors py-1.5 min-h-[36px]">
               Mesafeli Satış Sözleşmesi
             </Link>
-            <span className="text-gray-300 dark:text-slate-700">·</span>
-            <Link href="/iade-ve-teslimat-sartlari" className="hover:text-[#0f2847] dark:text-slate-300 transition-colors py-1.5 min-h-[36px]">
+            <span className="text-white/40">·</span>
+            <Link href="/iade-ve-teslimat-sartlari" className="hover:text-amber-300 transition-colors py-1.5 min-h-[36px]">
               İade ve Teslimat Şartları
             </Link>
-            <span className="text-gray-300 dark:text-slate-700">·</span>
-            <a href="mailto:info@egitimcheckup.com" className="hover:text-[#0f2847] dark:text-slate-300 transition-colors inline-flex items-center gap-1 py-1.5 min-h-[36px]">
+            <span className="text-white/40">·</span>
+            <a href="mailto:info@egitimcheckup.com" className="hover:text-amber-300 transition-colors inline-flex items-center gap-1 py-1.5 min-h-[36px]">
               <Mail className="w-3 h-3" /> info@egitimcheckup.com
             </a>
           </div>
 
-          <p className="text-xs text-gray-400 dark:text-slate-500 text-center mt-5">© 2026 Eğitim Check-Up. Tüm hakları saklıdır.</p>
+          <p className="text-xs text-white/85 font-semibold text-center mt-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">© 2026 Eğitim Check-Up. Tüm hakları saklıdır.</p>
         </div>
       </footer>
       </div>{/* /content wrapper */}
