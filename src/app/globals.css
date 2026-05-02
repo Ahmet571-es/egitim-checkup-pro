@@ -337,36 +337,37 @@ html {
 }
 
 /* Madde 1: Hero animation classes — intro fade-in-up + sonsuz holo-rise/glow loop
-   Tüm sonsuz animasyonlar 10 saniyelik periyotta (video loop ile senkron) */
+   NOT: Yazı animasyonları videodan bağımsız, kendi canlı tempolarında çalışır.
+   Video 10sn'lik loop'unda akar, yazılar kısa periyotlarla dinamik kalır. */
 .hero-word-1 {
   opacity: 0;
   animation:
     fade-in-up 0.6s var(--ease-out) 0ms forwards,
-    holo-rise 10s ease-in-out 600ms infinite,
-    holo-glow 10s ease-in-out 600ms infinite;
+    holo-rise 5s ease-in-out 600ms infinite,
+    holo-glow 4s ease-in-out 600ms infinite;
 }
 .hero-word-2,
 .hero-word-3 {
   opacity: 0;
   animation:
     fade-in-up 0.6s var(--ease-out) 200ms forwards,
-    holo-rise 10s ease-in-out 1400ms infinite,
-    gradient-shift 5s ease-in-out 1400ms infinite;
+    holo-rise 5s ease-in-out 1400ms infinite,
+    gradient-shift 4s ease-in-out 1400ms infinite;
 }
 .hero-subtitle {
   opacity: 0;
   animation:
     fade-in-up 0.5s var(--ease-out) 600ms forwards,
-    holo-float 10s ease-in-out 1100ms infinite,
-    holo-glow 10s ease-in-out 1100ms infinite;
+    holo-float 5s ease-in-out 1100ms infinite,
+    holo-glow 4s ease-in-out 1100ms infinite;
 }
 .hero-cta { opacity: 0; animation: scale-in 0.5s var(--ease-out) 800ms forwards; }
 .hero-badge {
   opacity: 0;
   animation:
     drop-in 0.5s var(--ease-out) 1000ms forwards,
-    holo-float 10s ease-in-out 1500ms infinite,
-    holo-glow 10s ease-in-out 1500ms infinite;
+    holo-float 4s ease-in-out 1500ms infinite,
+    holo-glow 4s ease-in-out 1500ms infinite;
 }
 
 /* Blob floats */
@@ -739,7 +740,7 @@ html.large-font .text-[13.5px] { font-size: 1rem !important; }
   100% { transform: translateX(200%) skewX(-12deg); }
 }
 .hero-shimmer {
-  animation: hero-shimmer-anim 5s ease-in-out infinite;
+  animation: hero-shimmer-anim 3.5s ease-in-out infinite;
 }
 
 /* ═══ HOLOGRAFİK YÜKSELME — videodaki tablet hologramlarının hareketi ═══ */
@@ -797,7 +798,7 @@ html.large-font .text-[13.5px] { font-size: 1rem !important; }
   66% { opacity: 1; transform: translateY(-3px) scale(1.01); }
 }
 
-/* Trust rozetleri — sıralı yükseliş dalgası (10sn periyot, video ile senkron)
+/* Trust rozetleri — sıralı yükseliş dalgası (5sn, canlı tempo)
    Her rozet sırayla yukarı süzülür, glow nabzı yapar, geri iner */
 @keyframes trust-rise-pulse {
   0%, 70%, 100% {
@@ -805,19 +806,19 @@ html.large-font .text-[13.5px] { font-size: 1rem !important; }
     transform: translateY(0) scale(1);
     filter: drop-shadow(0 0 0 rgba(251, 191, 36, 0));
   }
-  35% {
+  25% {
     opacity: 1;
     transform: translateY(-6px) scale(1.05);
     filter: drop-shadow(0 0 14px rgba(251, 191, 36, 0.7));
   }
-  50% {
+  45% {
     opacity: 1;
     transform: translateY(-3px) scale(1.02);
     filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.4));
   }
 }
 .hero-trust-item {
-  animation: trust-rise-pulse 10s ease-in-out infinite;
+  animation: trust-rise-pulse 5s ease-in-out infinite;
 }
 
 /* Hero başlık için subtle parıltı */

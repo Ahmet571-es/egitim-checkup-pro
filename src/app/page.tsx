@@ -250,11 +250,11 @@ export default function LandingPage() {
               <Shield className="w-3.5 h-3.5 text-amber-300" /> KVKK Uyumlu
             </span>
             <span className="hidden sm:inline w-1 h-1 rounded-full bg-white/60" />
-            <span className="flex items-center gap-1.5 hero-trust-item" style={{ animationDelay: '1.6s' }}>
+            <span className="flex items-center gap-1.5 hero-trust-item" style={{ animationDelay: '0.7s' }}>
               <Zap className="w-3.5 h-3.5 text-amber-300" /> Detaylı Analiz Raporları
             </span>
             <span className="hidden sm:inline w-1 h-1 rounded-full bg-white/60" />
-            <span className="flex items-center gap-1.5 hero-trust-item" style={{ animationDelay: '3.3s' }}>
+            <span className="flex items-center gap-1.5 hero-trust-item" style={{ animationDelay: '1.4s' }}>
               <CheckCircle2 className="w-3.5 h-3.5 text-amber-300" /> Bilimsel Temelli
             </span>
           </div>
