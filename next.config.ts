@@ -38,13 +38,9 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // FAZ 1 fix: /login/yonetici → /yonetici (eski Streamlit pattern'i, kullanıcı doğru sayfaya gitsin)
-  async redirects() {
-    return [
-      { source: '/login/yonetici', destination: '/yonetici', permanent: true },
-      { source: '/login/admin', destination: '/yonetici', permanent: true },
-    ];
-  },
+  // /login/yonetici artık gerçek bir sayfa olarak var (yönetici giriş formu).
+  // Eskiden /login/yonetici → /yonetici redirect'i vardı, bu döngüye sebep oldu.
+  // Şu an redirect yok — /login/yonetici doğrudan açılır.
 };
 
 export default nextConfig;
