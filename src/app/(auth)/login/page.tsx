@@ -263,10 +263,10 @@ export default function LoginPage() {
 
       <div className="mt-6 pt-6 border-t border-gray-100">
         <Link
-          href="/login/ogretmen"
-          className="flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 text-emerald-700 text-[13px] font-bold border border-emerald-200 transition-all active:scale-[0.98] group"
+          href="/register"
+          className="flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 text-violet-700 text-[13px] font-bold border border-violet-200 transition-all active:scale-[0.98] group"
         >
-          <span>Öğretmen misiniz? Öğretmen Girişi</span>
+          <span>Hesabınız yok mu? Öğrenci Kayıt</span>
           <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
         </Link>
       </div>
