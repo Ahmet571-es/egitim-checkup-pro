@@ -2,14 +2,22 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Mail, Lock, ShieldCheck, ArrowRight, ArrowLeft, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import {
+  Mail, Lock, ShieldCheck, CheckCircle2, AlertCircle,
+  ArrowRight, ArrowLeft, Eye, EyeOff,
+} from 'lucide-react';
 import AuthLayout from '@/components/ui/AuthLayout';
 
 /**
- * Öğrenci için şifremi unuttum akışı.
- * /forgot-password/ogretmen ile aynı endpoint'leri kullanır —
- * password-reset-send ve password-reset-verify endpoint'leri rol
- * ayrımı yapmaz, email üzerinden çalışır.
+ * Öğrenci Şifremi Unuttum — 3 adımlı sade akış:
+ *
+ *   1) E-posta gir → "Eğer kayıtlıysa kod gönderildi" doğrulama mesajı
+ *   2) E-postaya gelen 6 haneli kodu gir
+ *   3) Yeni şifre belirle → tamamlandı, login'e yönlendir
+ *
+ * password-reset-send ve password-reset-verify endpoint'lerini kullanır.
+ * Endpoint'ler kullanıcı enumeration'a karşı korumalıdır (email yoksa
+ * da aynı cevap döner).
  */
 export default function StudentForgotPasswordPage() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -20,11 +28,12 @@ export default function StudentForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // ── Adım 1: E-posta gir, kod gönder ──────────────────────────
   const sendCode = async () => {
     setError('');
     const trimmed = email.trim().toLowerCase();
-    if (!trimmed || !trimmed.includes('@')) {
-      setError('Geçerli bir e-posta girin.');
+    if (!trimmed || !trimmed.includes('@') || !trimmed.includes('.')) {
+      setError('Lütfen geçerli bir e-posta adresi girin.');
       return;
     }
     setLoading(true);
@@ -47,6 +56,7 @@ export default function StudentForgotPasswordPage() {
     }
   };
 
+  // ── Adım 2: Kodu doğrula (client-side format kontrolü, sonra step 3'e geç) ──
   const verifyCode = () => {
     setError('');
     if (code.length !== 6 || !/^\d{6}$/.test(code)) {
@@ -56,6 +66,7 @@ export default function StudentForgotPasswordPage() {
     setStep(3);
   };
 
+  // ── Adım 3: Yeni şifre belirle, kod ile birlikte gönder ──────
   const submitNewPassword = async () => {
     setError('');
     if (newPassword.length < 8) {
@@ -94,13 +105,25 @@ export default function StudentForgotPasswordPage() {
     <AuthLayout
       role="student"
       title="Şifremi Unuttum"
-      subtitle="Öğrenci veya veli hesabınız için yeni şifre belirleyin"
+      subtitle={
+        step === 1
+          ? 'Lütfen geçerli e-posta adresinizi girin'
+          : step === 2
+            ? 'E-posta adresinize gönderilen kodu girin'
+            : step === 3
+              ? 'Yeni şifrenizi belirleyin'
+              : 'İşlem başarıyla tamamlandı'
+      }
       footer={
-        <p className="text-[13px] text-gray-500">
-          <Link href="/login" className="text-sky-600 font-extrabold hover:text-sky-700 hover:underline transition">
-            ← Giriş sayfasına dön
+        step !== 4 && (
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-violet-600 font-semibold transition"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Giriş sayfasına dön
           </Link>
-        </p>
+        )
       }
     >
       {error && (
@@ -110,69 +133,107 @@ export default function StudentForgotPasswordPage() {
         </div>
       )}
 
+      {/* ─── ADIM 1: E-posta gir ─── */}
       {step === 1 && (
         <div className="space-y-4">
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-[13px] text-amber-800">
             Kayıtlı e-posta adresinize 6 haneli bir doğrulama kodu göndereceğiz.
           </div>
           <div>
-            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">E-posta Adresi</label>
+            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">
+              E-posta Adresi
+            </label>
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && sendCode()}
                 placeholder="ornek@email.com"
                 aria-label="E-posta"
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400"
+                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400"
                 autoComplete="email"
+                autoFocus
               />
             </div>
           </div>
           <button
             onClick={sendCode}
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm font-bold shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white text-sm font-extrabold shadow-lg shadow-violet-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-60 active:scale-[0.98]"
           >
-            {loading ? 'Gönderiliyor...' : <>Doğrulama Kodu Gönder <ArrowRight className="w-4 h-4" /></>}
+            {loading ? (
+              <>
+                <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Gönderiliyor...
+              </>
+            ) : (
+              <>Doğrula <ArrowRight className="w-4 h-4" /></>
+            )}
           </button>
         </div>
       )}
 
+      {/* ─── ADIM 2: Kod gir + "E-mail doğrulandı" mesajı ─── */}
       {step === 2 && (
         <div className="space-y-4">
-          <div className="bg-sky-50 border border-sky-200 rounded-xl p-4 text-[13px] text-sky-800">
-            <strong>{email}</strong> adresine 6 haneli kod gönderildi.
-            Gelen kutunuzu ve spam klasörünü kontrol edin.
+          {/* E-mail doğrulandı bilgi kartı */}
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0 shadow-md">
+                <CheckCircle2 className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-extrabold text-emerald-700 mb-0.5">
+                  ✓ E-posta doğrulandı
+                </p>
+                <p className="text-[12.5px] text-gray-600 mb-1">
+                  <strong className="text-gray-800 break-all">{email}</strong> adresine 6 haneli kod gönderildi.
+                </p>
+                <p className="text-[11.5px] text-gray-500">
+                  Gelen kutunuzu ve spam klasörünü kontrol edin.
+                </p>
+              </div>
+            </div>
           </div>
+
           <div>
-            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Doğrulama Kodu</label>
+            <label className="block text-[13px] font-bold text-gray-700 mb-1.5">
+              6 Haneli Doğrulama Kodu
+            </label>
             <div className="relative">
               <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
+                inputMode="numeric"
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="6 haneli kod"
+                onKeyDown={(e) => e.key === 'Enter' && code.length === 6 && verifyCode()}
+                placeholder="000000"
                 maxLength={6}
                 aria-label="Doğrulama kodu"
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-center text-lg font-bold tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400"
+                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-center text-2xl font-bold tracking-[0.5em] tabular-nums focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400"
                 autoComplete="one-time-code"
+                autoFocus
               />
+              <p className="text-[11.5px] text-gray-500 mt-1.5 text-center">
+                Kod 10 dakika içinde geçerlidir
+              </p>
             </div>
           </div>
+
           <div className="flex gap-3">
             <button
               onClick={() => { setStep(1); setError(''); setCode(''); }}
-              className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-1"
+              className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-1.5"
             >
               <ArrowLeft className="w-4 h-4" /> Geri
             </button>
             <button
               onClick={verifyCode}
               disabled={loading || code.length !== 6}
-              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm font-bold shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white text-sm font-extrabold shadow-lg shadow-violet-500/30 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
             >
               Devam <ArrowRight className="w-4 h-4" />
             </button>
@@ -180,6 +241,7 @@ export default function StudentForgotPasswordPage() {
         </div>
       )}
 
+      {/* ─── ADIM 3: Yeni şifre ─── */}
       {step === 3 && (
         <div className="space-y-4">
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-[13px] text-blue-800">
@@ -197,15 +259,17 @@ export default function StudentForgotPasswordPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value.slice(0, 72))}
-                placeholder="En az 8 karakter"
+                onKeyDown={(e) => e.key === 'Enter' && newPassword.length >= 8 && submitNewPassword()}
+                placeholder="En az 8 karakter, harf + rakam"
                 maxLength={72}
                 aria-label="Yeni şifre"
-                className="w-full pl-11 pr-11 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400"
+                className="w-full pl-11 pr-11 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400"
                 autoComplete="new-password"
+                autoFocus
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(v => !v)}
+                onClick={() => setShowPassword((v) => !v)}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 tabIndex={-1}
                 aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
@@ -217,24 +281,32 @@ export default function StudentForgotPasswordPage() {
           <div className="flex gap-3">
             <button
               onClick={() => { setStep(2); setError(''); }}
-              className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-1"
+              className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-1.5"
             >
               <ArrowLeft className="w-4 h-4" /> Geri
             </button>
             <button
               onClick={submitNewPassword}
               disabled={loading || newPassword.length < 8}
-              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm font-bold shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white text-sm font-extrabold shadow-lg shadow-violet-500/30 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
             >
-              {loading ? 'Kaydediliyor...' : <>Şifreyi Güncelle <CheckCircle2 className="w-4 h-4" /></>}
+              {loading ? (
+                <>
+                  <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Kaydediliyor...
+                </>
+              ) : (
+                <>Şifremi Değiştir <CheckCircle2 className="w-4 h-4" /></>
+              )}
             </button>
           </div>
         </div>
       )}
 
+      {/* ─── ADIM 4: Başarı ─── */}
       {step === 4 && (
         <div className="text-center py-4">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/40">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/40">
             <CheckCircle2 className="w-10 h-10 text-white" />
           </div>
           <h2 className="text-lg font-extrabold text-[#0f2847] mb-2">Şifreniz Güncellendi!</h2>
@@ -243,7 +315,7 @@ export default function StudentForgotPasswordPage() {
           </p>
           <Link
             href="/login"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm font-bold shadow-lg hover:shadow-xl transition-all"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 text-white text-sm font-bold shadow-lg hover:shadow-xl transition-all"
           >
             Giriş Sayfasına Git <ArrowRight className="w-4 h-4" />
           </Link>
