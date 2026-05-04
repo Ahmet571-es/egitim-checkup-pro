@@ -7,6 +7,7 @@ const navItems: NavItem[] = [
   { label: 'Okullar', href: '/admin/schools', icon: 'schools' },
   { label: 'Lisanslar', href: '/admin/licenses', icon: 'licenses' },
   { label: 'Kullanıcılar', href: '/admin/users', icon: 'users' },
+  { label: 'Şifre Sıfırlama', href: '/admin/password-resets', icon: 'password-resets' },
   { label: 'Ayarlar', href: '/admin/settings', icon: 'settings' },
 ];
 

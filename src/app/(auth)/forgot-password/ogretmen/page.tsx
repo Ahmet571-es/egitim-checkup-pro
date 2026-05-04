@@ -2,20 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import {
-  Mail, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft,
-} from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { Mail, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft, ShieldAlert } from 'lucide-react';
 import AuthLayout from '@/components/ui/AuthLayout';
 
 /**
- * Öğrenci Şifremi Unuttum — Supabase native reset
+ * Öğrenci Şifremi Unuttum — Manuel akış
  *
- *   1) E-posta gir + "Sıfırlama Linki Gönder"
- *      → supabase.auth.resetPasswordForEmail(email, { redirectTo: '/reset-password' })
- *      → Supabase otomatik mail atar (kendi e-posta servisi, herkese çalışır)
- *   2) Başarı ekranı: "E-postanızı kontrol edin"
- *   3) Kullanıcı maildeki linki tıklar → /reset-password sayfasına gelir → yeni şifre
+ * Kullanıcı butona basar → /api/auth/password-reset-request →
+ * password_reset_requests tablosuna talep düşer → yönetici görür → şifre değiştirir.
+ * Mail GİTMEZ. Yönetici telefon/sınıf/whatsapp ile yeni şifreyi söyler.
  */
 export default function TeacherForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -35,61 +30,52 @@ export default function TeacherForgotPasswordPage() {
 
     setLoading(true);
     try {
-      const supabase = createClient();
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmed, {
-        redirectTo: `${origin}/reset-password`,
+      const res = await fetch('/api/auth/password-reset-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmed }),
       });
-
-      if (resetError) {
-        // Rate limit hatası özel mesaj
-        if (resetError.message.toLowerCase().includes('rate') || resetError.message.toLowerCase().includes('limit')) {
-          setError('Çok fazla istek gönderildi. Lütfen 1 saat sonra tekrar deneyin.');
-        } else {
-          setError('Bir hata oluştu. Lütfen tekrar deneyin.');
-        }
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Talep oluşturulamadı.');
         setLoading(false);
         return;
       }
-
       setSent(true);
     } catch {
-      setError('Bağlantı hatası. Lütfen tekrar deneyin.');
+      setError('Bağlantı hatası. Tekrar deneyin.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Başarı ekranı
   if (sent) {
     return (
       <AuthLayout
         role="teacher"
-        title="E-postanızı Kontrol Edin"
-        subtitle="Şifre sıfırlama bağlantısı gönderildi"
+        title="Talebiniz Alındı"
+        subtitle="Yönetici en kısa sürede sizinle iletişime geçecek"
       >
         <div className="space-y-4">
           <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 text-center">
             <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/40">
-              <Mail className="w-8 h-8 text-white" />
+              <CheckCircle2 className="w-8 h-8 text-white" />
             </div>
-            <p className="text-sm font-extrabold text-emerald-700 mb-1">
-              Bağlantı gönderildi
+            <p className="text-sm font-extrabold text-emerald-700 mb-2">
+              ✓ Şifre sıfırlama talebiniz alındı
             </p>
-            <p className="text-[13px] text-gray-700 break-all mb-2">
+            <p className="text-[12.5px] text-gray-700 break-all mb-1">
               <strong>{email.trim().toLowerCase()}</strong>
-            </p>
-            <p className="text-[12.5px] text-gray-600">
-              Gelen kutunu kontrol et. <strong>Spam/Junk</strong> klasörüne de bakmayı unutma.
             </p>
           </div>
 
           <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-[12.5px] text-blue-800">
             <p className="font-semibold mb-1">📌 Sonraki adımlar:</p>
             <ol className="space-y-0.5 ml-4 list-decimal">
-              <li>E-postandaki bağlantıya tıkla</li>
-              <li>Yeni şifreni belirle</li>
-              <li>Yeni şifrenle giriş yap</li>
+              <li>Yönetici talebinizi inceleyecek</li>
+              <li>Yeni şifrenizi belirleyecek</li>
+              <li>Size şifrenizi <strong>okul/öğretmen üzerinden</strong> iletecek</li>
+              <li>Yeni şifreyle giriş yaparsınız</li>
             </ol>
           </div>
 
@@ -99,14 +85,6 @@ export default function TeacherForgotPasswordPage() {
           >
             Giriş Sayfasına Dön
           </Link>
-
-          <button
-            type="button"
-            onClick={() => { setSent(false); setEmail(''); }}
-            className="w-full py-2.5 text-[12.5px] text-gray-500 hover:text-emerald-600 font-semibold transition"
-          >
-            E-posta gelmediyse tekrar dene
-          </button>
         </div>
       </AuthLayout>
     );
@@ -116,7 +94,7 @@ export default function TeacherForgotPasswordPage() {
     <AuthLayout
       role="teacher"
       title="Şifremi Unuttum"
-      subtitle="Şifre sıfırlama bağlantısı için e-posta adresinizi girin"
+      subtitle="Yöneticiye şifre sıfırlama talebi gönderin"
       footer={
         <Link
           href="/login/ogretmen"
@@ -136,13 +114,21 @@ export default function TeacherForgotPasswordPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-[13px] text-amber-800">
-          Kayıtlı e-posta adresine bir şifre sıfırlama bağlantısı göndereceğiz.
-          E-postanı açıp bağlantıya tıklaman yeterli.
+          <div className="flex items-start gap-2">
+            <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-bold mb-1">Manuel sıfırlama</p>
+              <p className="text-[12.5px]">
+                Talebiniz yönetici paneline iletilecek. Yöneticiniz yeni şifrenizi
+                belirleyip size <strong>şahsen iletecek</strong>.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div>
           <label className="block text-[13px] font-bold text-gray-700 mb-1.5">
-            E-posta Adresi
+            Kayıtlı E-posta Adresi
           </label>
           <div className="relative">
             <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -169,7 +155,7 @@ export default function TeacherForgotPasswordPage() {
               Gönderiliyor...
             </>
           ) : (
-            <>Sıfırlama Linki Gönder <ArrowRight className="w-4 h-4" /></>
+            <>Talep Oluştur <ArrowRight className="w-4 h-4" /></>
           )}
         </button>
       </form>

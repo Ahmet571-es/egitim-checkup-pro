@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Menu, X, LogOut, LayoutDashboard, School, Key, Users, Settings,
+  Menu, X, LogOut, LayoutDashboard, School, Key, KeyRound, Users, Settings,
   BookOpen, GraduationCap, UserCheck, Heart, ClipboardList, FileText,
   BarChart3, User, Baby, ChevronRight, CreditCard, Radar, Sparkles, Trophy, Palette, MessageSquare, Shield
 } from 'lucide-react';
@@ -27,6 +27,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   branding: Palette,
   'guidance-plan': FileText,
   messages: MessageSquare,
+  'password-resets': KeyRound,
 };
 
 const ACCENT: Record<UserRole, {
