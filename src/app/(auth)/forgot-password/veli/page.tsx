@@ -9,12 +9,12 @@ import {
 import AuthLayout from '@/components/ui/AuthLayout';
 
 /**
- * Öğretmen Şifremi Unuttum — 3 adımlı sade akış:
+ * Veli Şifremi Unuttum — 3 adımlı sade akış:
  *   1) E-posta gir → "Eğer kayıtlıysa kod gönderildi" doğrulama mesajı
  *   2) E-postaya gelen 6 haneli kodu gir
  *   3) Yeni şifre belirle → tamamlandı, login'e yönlendir
  */
-export default function TeacherForgotPasswordPage() {
+export default function ParentForgotPasswordPage() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -95,7 +95,7 @@ export default function TeacherForgotPasswordPage() {
 
   return (
     <AuthLayout
-      role="teacher"
+      role="parent"
       title="Şifremi Unuttum"
       subtitle={
         step === 1
@@ -109,8 +109,8 @@ export default function TeacherForgotPasswordPage() {
       footer={
         step !== 4 && (
           <Link
-            href="/login/ogretmen"
-            className="inline-flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-emerald-600 font-semibold transition"
+            href="/login/veli"
+            className="inline-flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-pink-600 font-semibold transition"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             Giriş sayfasına dön
@@ -143,7 +143,7 @@ export default function TeacherForgotPasswordPage() {
                 onKeyDown={(e) => e.key === 'Enter' && sendCode()}
                 placeholder="ornek@email.com"
                 aria-label="E-posta"
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400"
+                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-400"
                 autoComplete="email"
                 autoFocus
               />
@@ -152,7 +152,7 @@ export default function TeacherForgotPasswordPage() {
           <button
             onClick={sendCode}
             disabled={loading}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-extrabold shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-60 active:scale-[0.98]"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white text-sm font-extrabold shadow-lg shadow-pink-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-60 active:scale-[0.98]"
           >
             {loading ? (
               <>
@@ -202,7 +202,7 @@ export default function TeacherForgotPasswordPage() {
                 placeholder="000000"
                 maxLength={6}
                 aria-label="Doğrulama kodu"
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-center text-2xl font-bold tracking-[0.5em] tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400"
+                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-center text-2xl font-bold tracking-[0.5em] tabular-nums focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-400"
                 autoComplete="one-time-code"
                 autoFocus
               />
@@ -222,7 +222,7 @@ export default function TeacherForgotPasswordPage() {
             <button
               onClick={verifyCode}
               disabled={loading || code.length !== 6}
-              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-extrabold shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white text-sm font-extrabold shadow-lg shadow-pink-500/30 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
             >
               Devam <ArrowRight className="w-4 h-4" />
             </button>
@@ -251,7 +251,7 @@ export default function TeacherForgotPasswordPage() {
                 placeholder="En az 8 karakter, harf + rakam"
                 maxLength={72}
                 aria-label="Yeni şifre"
-                className="w-full pl-11 pr-11 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400"
+                className="w-full pl-11 pr-11 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-400"
                 autoComplete="new-password"
                 autoFocus
               />
@@ -276,7 +276,7 @@ export default function TeacherForgotPasswordPage() {
             <button
               onClick={submitNewPassword}
               disabled={loading || newPassword.length < 8}
-              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-extrabold shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white text-sm font-extrabold shadow-lg shadow-pink-500/30 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
             >
               {loading ? (
                 <>
@@ -293,7 +293,7 @@ export default function TeacherForgotPasswordPage() {
 
       {step === 4 && (
         <div className="text-center py-4">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/40">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg shadow-pink-500/40">
             <CheckCircle2 className="w-10 h-10 text-white" />
           </div>
           <h2 className="text-lg font-extrabold text-[#0f2847] mb-2">Şifreniz Güncellendi!</h2>
@@ -301,8 +301,8 @@ export default function TeacherForgotPasswordPage() {
             Yeni şifrenizle giriş yapabilirsiniz.
           </p>
           <Link
-            href="/login/ogretmen"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-lg hover:shadow-xl transition-all"
+            href="/login/veli"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-rose-600 text-white text-sm font-bold shadow-lg hover:shadow-xl transition-all"
           >
             Giriş Sayfasına Git <ArrowRight className="w-4 h-4" />
           </Link>

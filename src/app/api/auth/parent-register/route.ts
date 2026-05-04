@@ -4,16 +4,14 @@ import { createAdminClient } from '@/lib/supabase/admin';
 /**
  * POST /api/auth/parent-register
  *
- * Self-serve veli kaydı — Supabase built-in email servisi
- * KULLANILMAZ (email_confirm:true). 2/saat rate limit atlanır.
+ * Self-serve veli kaydı — 2 adımlı akış (e-posta doğrulama kodu ile).
  *
- * Veli kaydında email doğrulaması YOK çünkü öğrenci kodu
- * (student_code) doğrulaması kimlik kontrolü görevini üstleniyor —
- * rastgele insan o kodu bilemez. Dolayısıyla:
- *   - is_approved: true (veli self-serve, yönetici onayı gerekmez)
- *   - student_code doğruysa → parent_students satırı oluşturulur
- *   - student_code boşsa veya yanlışsa → hesap oluşur ama çocuk bağlı değil;
- *     veli sonra /parent/my-children'dan kod ile ekleyebilir
+ * 1. Önce frontend `/api/auth/send-code` ile email'e 6 haneli kod yollar
+ * 2. Veli kodu girip bu endpoint'i çağırır:
+ *    - verification_codes tablosunda kodu doğrular (10dk TTL)
+ *    - Geçerliyse Supabase Auth'da kullanıcı oluşturur (email_confirm:true)
+ *    - student_code varsa parent_students bağlantısı kurulur
+ *    - Kod consumed olarak işaretlenir
  */
 
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -25,12 +23,14 @@ export async function POST(request: Request) {
       email?: string;
       password?: string;
       student_code?: string;
+      code?: string;
     };
 
     const fullName = (body.full_name ?? '').toString().trim();
     const email = (body.email ?? '').toString().trim().toLowerCase();
     const password = (body.password ?? '').toString();
     const studentCode = (body.student_code ?? '').toString().trim().toUpperCase();
+    const verificationCode = (body.code ?? '').toString().trim();
 
     if (!fullName || fullName.length < 3) {
       return NextResponse.json({ error: 'Ad soyad en az 3 karakter olmalı.' }, { status: 400 });
@@ -44,8 +44,28 @@ export async function POST(request: Request) {
     if (password.length > 72) {
       return NextResponse.json({ error: 'Şifre en fazla 72 karakter.' }, { status: 400 });
     }
+    if (!verificationCode || !/^\d{6}$/.test(verificationCode)) {
+      return NextResponse.json({ error: '6 haneli doğrulama kodunu girin.' }, { status: 400 });
+    }
 
     const admin = createAdminClient();
+
+    // E-posta doğrulama kodu kontrolü
+    const { data: codeRow } = await admin
+      .from('verification_codes')
+      .select('*')
+      .eq('email', email)
+      .eq('code', verificationCode)
+      .eq('used', false)
+      .gte('expires_at', new Date().toISOString())
+      .maybeSingle();
+
+    if (!codeRow) {
+      return NextResponse.json(
+        { error: 'Doğrulama kodu geçersiz veya süresi dolmuş. Yeni kod isteyin.' },
+        { status: 400 },
+      );
+    }
 
     // Öğrenci kodu varsa önce doğrula (hesap oluşturmadan önce)
     let studentId: string | null = null;
@@ -102,6 +122,12 @@ export async function POST(request: Request) {
         is_active: true,
       })
       .eq('id', created.user.id);
+
+    // Doğrulama kodunu kullanıldı olarak işaretle
+    await admin
+      .from('verification_codes')
+      .update({ used: true })
+      .eq('id', codeRow.id);
 
     // Çocuk bağlantısını kur (studentId varsa)
     // Not: parent_students.approved_at migration varsa NULL olarak yazılır

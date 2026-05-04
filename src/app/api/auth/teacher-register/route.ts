@@ -26,6 +26,7 @@ export async function POST(request: Request) {
       branch?: string;
       phone?: string;
       school_code?: string;
+      code?: string;
     };
 
     const fullName = (body.full_name ?? '').toString().trim();
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
     const branch = (body.branch ?? '').toString().trim();
     const phone = (body.phone ?? '').toString().trim();
     const schoolCode = (body.school_code ?? '').toString().trim().toUpperCase();
+    const verificationCode = (body.code ?? '').toString().trim();
 
     // Validasyonlar
     if (!fullName || fullName.length < 3) {
@@ -49,8 +51,29 @@ export async function POST(request: Request) {
       // bcrypt limit
       return NextResponse.json({ error: 'Şifre en fazla 72 karakter.' }, { status: 400 });
     }
+    if (!verificationCode || !/^\d{6}$/.test(verificationCode)) {
+      return NextResponse.json({ error: '6 haneli doğrulama kodunu girin.' }, { status: 400 });
+    }
 
     const admin = createAdminClient();
+
+    // E-posta doğrulama kodu kontrolü
+    // (Frontend sadece verify-code ile doğruluyor — burada used:true marka için
+    // tekrar kontrol edip aynı işlemi yapıyoruz. Güvenlik: client-side'a güvenme)
+    const { data: codeRow } = await admin
+      .from('verification_codes')
+      .select('*')
+      .eq('email', email)
+      .eq('code', verificationCode)
+      .gte('expires_at', new Date().toISOString())
+      .maybeSingle();
+
+    if (!codeRow) {
+      return NextResponse.json(
+        { error: 'Doğrulama kodu geçersiz veya süresi dolmuş. Yeni kod isteyin.' },
+        { status: 400 },
+      );
+    }
 
     // Okul kodu doğrulaması (varsa — opsiyonel)
     let schoolId: string | null = null;
@@ -115,6 +138,12 @@ export async function POST(request: Request) {
       // Kritik değil — user_metadata'daki is_approved=false giriş kontrolünde
       // zaten okunuyor (proxy.ts).
     }
+
+    // Doğrulama kodunu kullanıldı olarak işaretle (tek kullanımlık)
+    await admin
+      .from('verification_codes')
+      .update({ used: true })
+      .eq('id', codeRow.id);
 
     return NextResponse.json({
       success: true,

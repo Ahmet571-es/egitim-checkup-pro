@@ -143,6 +143,7 @@ export default function TeacherRegisterPage() {
           email: authEmail,
           password: form.password,
           phone: form.phone.replace(/\D/g, ''),
+          code: form.verificationCode.trim(),
         }),
       });
       const data = await res.json().catch(() => ({}));

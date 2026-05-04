@@ -223,7 +223,7 @@ function ParentLoginInner() {
           </div>
           <p className="text-[11.5px] text-gray-500 mt-1.5 flex items-center gap-1">
             <AlertCircle className="w-3 h-3 text-amber-500" />
-            <Link href="/forgot-password" className="text-pink-600 hover:text-pink-700 font-semibold underline">
+            <Link href="/forgot-password/veli" className="text-pink-600 hover:text-pink-700 font-semibold underline">
               Şifremi unuttum
             </Link>
           </p>
