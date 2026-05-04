@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ArrowLeft, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_PATHS } from '@/types';
 import type { UserRole } from '@/types';
@@ -146,20 +146,13 @@ export default function LoginPage() {
       title="Giriş Yap"
       subtitle="E-posta/kullanıcı adı ve şifrenizle giriş yapın"
       footer={
-        <div className="space-y-2 text-[13px] text-gray-500">
-          <p>
-            Hesabınız yok mu?{' '}
-            <Link href="/register" className="text-violet-600 font-extrabold hover:text-violet-700 hover:underline transition">
-              Öğrenci Kayıt →
-            </Link>
-          </p>
-          <p>
-            Veli misiniz?{' '}
-            <Link href="/register/veli" className="text-pink-600 font-extrabold hover:text-pink-700 hover:underline transition">
-              Veli Hesabı Oluştur →
-            </Link>
-          </p>
-        </div>
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-slate-100 to-gray-100 hover:from-slate-200 hover:to-gray-200 text-[#0f2847] text-[13px] font-bold border border-slate-200 transition-all active:scale-[0.98] group"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+          <span>Ana Menü</span>
+        </Link>
       }
     >
       {fromRegister && email && !error && (
