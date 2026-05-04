@@ -384,6 +384,185 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // ═══ YENİ: Onay Bekleyen / Kayıtlı Öğrenci & Veli Listeleri
+    // ═══════════════════════════════════════════════════════════
+
+    // Yardımcı: tüm auth.users metadata'sını rol+is_approved bazında çek
+    async function listUsersByRoleAndApproval(
+      role: 'student' | 'parent' | 'teacher',
+      approved: boolean
+    ) {
+      const { data: { users }, error: listErr } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      if (listErr) throw new Error(listErr.message);
+
+      const wantsApproved = approved;
+      const filtered = (users || []).filter(u => {
+        if (u.user_metadata?.role !== role) return false;
+        const ia = u.user_metadata?.is_approved;
+        if (wantsApproved) {
+          // Approved: is_approved === true (eski hesaplar için undefined → kabul)
+          return ia === true || ia === undefined;
+        } else {
+          // Pending: is_approved === false (sadece bu)
+          return ia === false;
+        }
+      });
+
+      return filtered.map(u => ({
+        id: u.id,
+        full_name: (u.user_metadata?.full_name as string) || '—',
+        email: u.email || '—',
+        phone: (u.user_metadata?.phone as string) || '—',
+        role,
+        // Öğrenci alanları
+        grade: (u.user_metadata?.grade as string) || null,
+        school_name: (u.user_metadata?.school_name as string) || '—',
+        assigned_teacher_id: (u.user_metadata?.assigned_teacher_id as string) || null,
+        // Öğretmen alanları
+        branch: (u.user_metadata?.branch as string) || null,
+        // Veli alanları
+        student_code: (u.user_metadata?.student_code as string) || null,
+        child_name: (u.user_metadata?.child_name as string) || null,
+        created_at: u.created_at,
+      }));
+    }
+
+    if (action === 'list-pending-students') {
+      try {
+        const list = await listUsersByRoleAndApproval('student', false);
+        return NextResponse.json({ users: list });
+      } catch (e) {
+        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+      }
+    }
+
+    if (action === 'list-pending-parents') {
+      try {
+        const list = await listUsersByRoleAndApproval('parent', false);
+        return NextResponse.json({ users: list });
+      } catch (e) {
+        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+      }
+    }
+
+    if (action === 'list-registered-students') {
+      try {
+        const list = await listUsersByRoleAndApproval('student', true);
+        // Atanmış öğretmen adlarını da ekle
+        const teacherIds = Array.from(new Set(list.map(u => u.assigned_teacher_id).filter(Boolean) as string[]));
+        let teacherNameMap = new Map<string, string>();
+        if (teacherIds.length > 0) {
+          const { data: tProfiles } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', teacherIds);
+          teacherNameMap = new Map((tProfiles || []).map(p => [p.id, p.full_name as string]));
+        }
+        const enriched = list.map(u => ({
+          ...u,
+          assigned_teacher_name: u.assigned_teacher_id ? (teacherNameMap.get(u.assigned_teacher_id) || '—') : null,
+        }));
+        return NextResponse.json({ users: enriched });
+      } catch (e) {
+        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+      }
+    }
+
+    if (action === 'list-registered-parents') {
+      try {
+        const list = await listUsersByRoleAndApproval('parent', true);
+        return NextResponse.json({ users: list });
+      } catch (e) {
+        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+      }
+    }
+
+    // ═══ Onay için kullanılacak: tüm onaylı öğretmen listesi (id+isim) ═══
+    if (action === 'list-approved-teachers-simple') {
+      try {
+        const teachers = await listUsersByRoleAndApproval('teacher', true);
+        return NextResponse.json({
+          teachers: teachers.map(t => ({ id: t.id, full_name: t.full_name, email: t.email, branch: t.branch })),
+        });
+      } catch (e) {
+        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+      }
+    }
+
+    // ═══ Öğrenci Onayla (+ Öğretmen Ata) ═══
+    if (action === 'approve-student') {
+      const { userId, teacherId } = body;
+      if (!userId) return NextResponse.json({ error: 'userId gerekli' }, { status: 400 });
+
+      // Mevcut metadata'yı koru, sadece is_approved + assigned_teacher_id güncelle
+      const { data: { user }, error: getErr } = await supabase.auth.admin.getUserById(userId);
+      if (getErr || !user) return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 });
+
+      const newMeta = {
+        ...user.user_metadata,
+        is_approved: true,
+        ...(teacherId ? { assigned_teacher_id: teacherId } : {}),
+      };
+
+      const { error: updateErr } = await supabase.auth.admin.updateUserById(userId, {
+        user_metadata: newMeta,
+      });
+      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+
+      // profiles tablosunda da güncelle
+      await supabase.from('profiles').update({ is_approved: true }).eq('id', userId);
+
+      return NextResponse.json({ success: true });
+    }
+
+    // ═══ Veli Onayla ═══
+    if (action === 'approve-parent') {
+      const { userId } = body;
+      if (!userId) return NextResponse.json({ error: 'userId gerekli' }, { status: 400 });
+
+      const { data: { user }, error: getErr } = await supabase.auth.admin.getUserById(userId);
+      if (getErr || !user) return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 });
+
+      const newMeta = { ...user.user_metadata, is_approved: true };
+      const { error: updateErr } = await supabase.auth.admin.updateUserById(userId, {
+        user_metadata: newMeta,
+      });
+      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+
+      await supabase.from('profiles').update({ is_approved: true }).eq('id', userId);
+
+      return NextResponse.json({ success: true });
+    }
+
+    // ═══ Öğrenci/Veli Reddet (purge) ═══
+    if (action === 'reject-student' || action === 'reject-parent') {
+      const { userId } = body;
+      if (!userId) return NextResponse.json({ error: 'userId gerekli' }, { status: 400 });
+
+      const result = await purgeUser(supabase, userId);
+      if (!result.ok) return NextResponse.json({ error: result.error }, { status: 500 });
+
+      return NextResponse.json({ success: true });
+    }
+
+    // ═══ Atanan Öğretmeni Değiştir (kayıtlı öğrenci için) ═══
+    if (action === 'reassign-student-teacher') {
+      const { userId, teacherId } = body;
+      if (!userId || !teacherId) return NextResponse.json({ error: 'userId ve teacherId gerekli' }, { status: 400 });
+
+      const { data: { user }, error: getErr } = await supabase.auth.admin.getUserById(userId);
+      if (getErr || !user) return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 });
+
+      const newMeta = { ...user.user_metadata, assigned_teacher_id: teacherId };
+      const { error: updateErr } = await supabase.auth.admin.updateUserById(userId, {
+        user_metadata: newMeta,
+      });
+      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+
+      return NextResponse.json({ success: true });
+    }
+
     return NextResponse.json({ error: 'Geçersiz action' }, { status: 400 });
   } catch (err) {
     console.error('[yonetici API]', err);

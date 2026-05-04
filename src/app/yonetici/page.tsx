@@ -8,7 +8,7 @@ import {
   GraduationCap, Shield, Lock, ArrowRight, ArrowLeft, Users, Trash2,
   Phone, MapPin, BookOpen, FileText, ChevronRight, School,
   AlertCircle, CheckCircle2, FolderOpen, User, BarChart3, X,
-  Mail, Calendar, Briefcase, Eye, EyeOff, Home
+  Mail, Calendar, Briefcase, Eye, EyeOff, Home, Search, UserPlus
 } from 'lucide-react';
 
 /* ═══ Types ═══ */
@@ -103,7 +103,7 @@ export default function YoneticiPage() {
   const [authed, setAuthed] = useState(false);
   const [authError, setAuthError] = useState('');
 
-  // Views: 'teachers' | 'pending-teachers' | 'teacher-detail' | 'student-detail' | 'report-view'
+  // Views: 'teachers' | 'pending-teachers' | 'pending-students' | 'pending-parents' | 'registered-students' | 'registered-parents' | 'teacher-detail' | 'student-detail' | 'report-view'
   const [view, setView] = useState<string>('teachers');
 
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -120,6 +120,33 @@ export default function YoneticiPage() {
   const [showGraduatesSection, setShowGraduatesSection] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | IntegratedReport | null>(null);
   const [reportType, setReportType] = useState<'single' | 'integrated'>('single');
+
+  // ═══ Yeni: Onay bekleyen ve kayıtlı öğrenci/veli listeleri ═══
+  type SimpleUser = {
+    id: string; full_name: string; email: string; phone: string; role: string;
+    grade: string | null; school_name: string; assigned_teacher_id: string | null;
+    branch: string | null; student_code: string | null; child_name: string | null;
+    created_at: string; assigned_teacher_name?: string | null;
+  };
+  type SimpleTeacher = { id: string; full_name: string; email: string; branch: string | null };
+
+  const [pendingStudents, setPendingStudents] = useState<SimpleUser[]>([]);
+  const [pendingParents, setPendingParents] = useState<SimpleUser[]>([]);
+  const [registeredStudents, setRegisteredStudents] = useState<SimpleUser[]>([]);
+  const [registeredParents, setRegisteredParents] = useState<SimpleUser[]>([]);
+  const [approvedTeachersSimple, setApprovedTeachersSimple] = useState<SimpleTeacher[]>([]);
+
+  const [searchPS, setSearchPS] = useState('');
+  const [searchPP, setSearchPP] = useState('');
+  const [searchRS, setSearchRS] = useState('');
+  const [searchRP, setSearchRP] = useState('');
+  const [searchPT, setSearchPT] = useState('');
+  const [searchRT, setSearchRT] = useState('');
+
+  // Öğretmen Ata modal state
+  const [assignModalUser, setAssignModalUser] = useState<SimpleUser | null>(null);
+  const [assignModalMode, setAssignModalMode] = useState<'approve' | 'reassign'>('approve');
+  const [assignModalSelectedTeacher, setAssignModalSelectedTeacher] = useState<string>('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -219,7 +246,8 @@ export default function YoneticiPage() {
       setAuthed(true);
       setAuthError('');
       loadTeachers(pw);
-      loadPendingTeachers(pw);
+      loadAllPending(pw);
+      loadApprovedTeachersSimple(pw);
     } else {
       setAuthError('Şifre hatalı. Lütfen tekrar deneyin.');
     }
@@ -284,6 +312,202 @@ export default function YoneticiPage() {
       setError((e as Error).message);
     }
     setLoading(false);
+  };
+
+  // ═══ Yeni: Öğrenci & Veli loader'ları ═══
+  const loadPendingStudents = async (pw: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await apiCall(pw, 'list-pending-students');
+      setPendingStudents(data.users || []);
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+  const loadPendingParents = async (pw: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await apiCall(pw, 'list-pending-parents');
+      setPendingParents(data.users || []);
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+  const loadRegisteredStudents = async (pw: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await apiCall(pw, 'list-registered-students');
+      setRegisteredStudents(data.users || []);
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+  const loadRegisteredParents = async (pw: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await apiCall(pw, 'list-registered-parents');
+      setRegisteredParents(data.users || []);
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+  const loadApprovedTeachersSimple = async (pw: string) => {
+    try {
+      const data = await apiCall(pw, 'list-approved-teachers-simple');
+      setApprovedTeachersSimple(data.teachers || []);
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+  };
+
+  // Onay bekleyenleri toplu yenile (badge için)
+  const loadAllPending = async (pw: string) => {
+    try {
+      const [s, t, p] = await Promise.all([
+        apiCall(pw, 'list-pending-students'),
+        apiCall(pw, 'list-pending-teachers'),
+        apiCall(pw, 'list-pending-parents'),
+      ]);
+      setPendingStudents(s.users || []);
+      setPendingTeachers(t.pending || []);
+      setPendingParents(p.users || []);
+    } catch { /* ignore */ }
+  };
+
+  // Öğrenci onay (atama olmadan)
+  const approveStudentOnly = async (userId: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      await apiCall(storedPw(), 'approve-student', { userId });
+      setSuccessMsg('Öğrenci onaylandı.');
+      setTimeout(() => setSuccessMsg(''), 3000);
+      loadPendingStudents(storedPw());
+      loadRegisteredStudents(storedPw());
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+
+  // Öğrenci onayla + öğretmen ata (modal'dan çağrılır)
+  const approveStudentWithTeacher = async (userId: string, teacherId: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      await apiCall(storedPw(), 'approve-student', { userId, teacherId });
+      const tName = approvedTeachersSimple.find(t => t.id === teacherId)?.full_name || 'öğretmen';
+      setSuccessMsg(`Öğrenci onaylandı ve ${tName} öğretmenine atandı.`);
+      setTimeout(() => setSuccessMsg(''), 3000);
+      setAssignModalUser(null);
+      setAssignModalSelectedTeacher('');
+      loadPendingStudents(storedPw());
+      loadRegisteredStudents(storedPw());
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+
+  // Kayıtlı öğrencinin atandığı öğretmeni değiştir
+  const reassignStudentTeacher = async (userId: string, teacherId: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      await apiCall(storedPw(), 'reassign-student-teacher', { userId, teacherId });
+      const tName = approvedTeachersSimple.find(t => t.id === teacherId)?.full_name || 'öğretmen';
+      setSuccessMsg(`Öğretmen ataması güncellendi: ${tName}`);
+      setTimeout(() => setSuccessMsg(''), 3000);
+      setAssignModalUser(null);
+      setAssignModalSelectedTeacher('');
+      loadRegisteredStudents(storedPw());
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+
+  const approveParent = async (userId: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      await apiCall(storedPw(), 'approve-parent', { userId });
+      setSuccessMsg('Veli onaylandı.');
+      setTimeout(() => setSuccessMsg(''), 3000);
+      loadPendingParents(storedPw());
+      loadRegisteredParents(storedPw());
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+
+  const rejectStudent = async (userId: string) => {
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Öğrenci başvurusunu reddet?',
+      description: 'Hesap ve tüm verileri silinecek. Bu işlem geri alınamaz.',
+      confirmLabel: 'Evet, Reddet',
+    });
+    if (!ok) return;
+    setLoading(true);
+    setError('');
+    try {
+      await apiCall(storedPw(), 'reject-student', { userId });
+      setSuccessMsg('Başvuru reddedildi.');
+      setTimeout(() => setSuccessMsg(''), 3000);
+      loadPendingStudents(storedPw());
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+
+  const rejectParent = async (userId: string) => {
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Veli başvurusunu reddet?',
+      description: 'Hesap silinecek. Bu işlem geri alınamaz.',
+      confirmLabel: 'Evet, Reddet',
+    });
+    if (!ok) return;
+    setLoading(true);
+    setError('');
+    try {
+      await apiCall(storedPw(), 'reject-parent', { userId });
+      setSuccessMsg('Başvuru reddedildi.');
+      setTimeout(() => setSuccessMsg(''), 3000);
+      loadPendingParents(storedPw());
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+
+  // Modal helper'ları
+  const openApproveStudentModal = async (u: SimpleUser) => {
+    if (approvedTeachersSimple.length === 0) {
+      await loadApprovedTeachersSimple(storedPw());
+    }
+    setAssignModalMode('approve');
+    setAssignModalSelectedTeacher('');
+    setAssignModalUser(u);
+  };
+  const openReassignTeacherModal = async (u: SimpleUser) => {
+    if (approvedTeachersSimple.length === 0) {
+      await loadApprovedTeachersSimple(storedPw());
+    }
+    setAssignModalMode('reassign');
+    setAssignModalSelectedTeacher(u.assigned_teacher_id || '');
+    setAssignModalUser(u);
   };
 
   const loadTeacherDetail = async (teacher: Teacher) => {
@@ -672,19 +896,58 @@ export default function YoneticiPage() {
           </div>
         )}
 
-        {/* Tabs */}
-        <div className="flex items-center gap-4 mb-6 border-b border-gray-200 dark:border-slate-700 pb-3">
-          <button onClick={() => { setView('teachers'); setSelectedTeacher(null); setSelectedStudent(null); }}
-            className={`text-[13px] font-semibold pb-1 transition-colors border-b-2 ${view === 'teachers' || view === 'teacher-detail' || view === 'student-detail' || view === 'report-view' ? 'text-[#0f2847] dark:text-slate-100 border-[#0f2847]' : 'text-gray-400 dark:text-slate-500 border-transparent hover:text-gray-600 dark:text-slate-300'}`}>
-            Öğretmenler <span className="text-xs text-gray-400 dark:text-slate-500 ml-1">({teachers.length})</span>
-          </button>
-          <button onClick={() => { setView('pending-teachers'); loadPendingTeachers(storedPw()); }}
-            className={`text-[13px] font-semibold pb-1 transition-colors border-b-2 flex items-center gap-1.5 ${view === 'pending-teachers' ? 'text-[#0f2847] dark:text-slate-100 border-[#0f2847]' : 'text-gray-400 dark:text-slate-500 border-transparent hover:text-gray-600 dark:text-slate-300'}`}>
-            Onay Bekleyenler
-            {pendingTeachers.length > 0 && (
-              <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">{pendingTeachers.length}</span>
-            )}
-          </button>
+        {/* Tabs — 6 klasör grubu */}
+        <div className="mb-6 border-b border-gray-200 dark:border-slate-700 pb-3 space-y-2">
+          {/* Onay Bekleyenler */}
+          <div>
+            <div className="text-[10px] font-bold text-amber-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <AlertCircle className="w-3 h-3" /> Onay Bekleyenler
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button onClick={() => { setView('pending-students'); loadPendingStudents(storedPw()); }}
+                className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${view === 'pending-students' ? 'bg-violet-100 text-violet-700 ring-1 ring-violet-300' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-300'}`}>
+                Öğrenciler
+                {pendingStudents.length > 0 && (
+                  <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-violet-500 text-white text-[10px] font-bold flex items-center justify-center">{pendingStudents.length}</span>
+                )}
+              </button>
+              <button onClick={() => { setView('pending-teachers'); loadPendingTeachers(storedPw()); }}
+                className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${view === 'pending-teachers' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-300'}`}>
+                Öğretmenler
+                {pendingTeachers.length > 0 && (
+                  <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center">{pendingTeachers.length}</span>
+                )}
+              </button>
+              <button onClick={() => { setView('pending-parents'); loadPendingParents(storedPw()); }}
+                className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${view === 'pending-parents' ? 'bg-pink-100 text-pink-700 ring-1 ring-pink-300' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-300'}`}>
+                Veliler
+                {pendingParents.length > 0 && (
+                  <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-pink-500 text-white text-[10px] font-bold flex items-center justify-center">{pendingParents.length}</span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Kayıtlılar */}
+          <div>
+            <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <CheckCircle2 className="w-3 h-3" /> Kayıtlılar
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button onClick={() => { setView('registered-students'); loadRegisteredStudents(storedPw()); loadApprovedTeachersSimple(storedPw()); }}
+                className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all ${view === 'registered-students' ? 'bg-violet-100 text-violet-700 ring-1 ring-violet-300' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-300'}`}>
+                Kayıtlı Öğrenciler
+              </button>
+              <button onClick={() => { setView('teachers'); setSelectedTeacher(null); setSelectedStudent(null); }}
+                className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all ${view === 'teachers' || view === 'teacher-detail' || view === 'student-detail' || view === 'report-view' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-300'}`}>
+                Kayıtlı Öğretmenler <span className="text-[10px] opacity-60 ml-0.5">({teachers.length})</span>
+              </button>
+              <button onClick={() => { setView('registered-parents'); loadRegisteredParents(storedPw()); }}
+                className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all ${view === 'registered-parents' ? 'bg-pink-100 text-pink-700 ring-1 ring-pink-300' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-300'}`}>
+                Kayıtlı Veliler
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Breadcrumb (detay sayfaları için) */}
@@ -784,6 +1047,309 @@ export default function YoneticiPage() {
             )}
           </div>
         )}
+
+        {/* ═══ VIEW: Pending Students ═══ */}
+        {view === 'pending-students' && (() => {
+          const filtered = pendingStudents.filter(u => {
+            if (!searchPS) return true;
+            const q = searchPS.toLowerCase();
+            return u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+          });
+          return (
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h2 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100">Onay Bekleyen Öğrenciler</h2>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-400 dark:text-slate-500 font-medium">{filtered.length} kişi</span>
+                  <button onClick={() => loadPendingStudents(storedPw())} className="text-sm text-violet-600 font-semibold hover:underline">Yenile</button>
+                </div>
+              </div>
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text" value={searchPS} onChange={e => setSearchPS(e.target.value)}
+                  placeholder="İsim veya e-posta ile ara..."
+                  className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-violet-300"
+                />
+              </div>
+              {loading ? (
+                <div className="text-center py-20 text-gray-400 dark:text-slate-500">Yükleniyor...</div>
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-20">
+                  <CheckCircle2 className="w-12 h-12 text-violet-300 mx-auto mb-3" />
+                  <p className="text-gray-400 dark:text-slate-500">{searchPS ? 'Aramayla eşleşen öğrenci yok.' : 'Onay bekleyen öğrenci başvurusu yok.'}</p>
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {filtered.map(u => (
+                    <div key={u.id} className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-violet-200 p-4 shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center text-violet-700 font-bold text-sm">
+                              {u.full_name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-bold text-[#0f2847] dark:text-slate-100">{u.full_name}</p>
+                              <p className="text-xs text-violet-600 font-semibold">Onay Bekliyor</p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+                            <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-2">
+                              <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-bold">Sınıf</p>
+                              <p className="text-xs font-semibold text-[#0f2847] dark:text-slate-100">{u.grade || '—'}</p>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-2">
+                              <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-bold">Okul</p>
+                              <p className="text-xs font-semibold text-[#0f2847] dark:text-slate-100 truncate">{u.school_name}</p>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-2">
+                              <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-bold">E-posta</p>
+                              <p className="text-xs font-semibold text-[#0f2847] dark:text-slate-100 truncate">{u.email}</p>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-2">
+                              <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-bold">Telefon</p>
+                              <p className="text-xs font-semibold text-[#0f2847] dark:text-slate-100">{u.phone}</p>
+                            </div>
+                          </div>
+                          <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-2">Başvuru: {new Date(u.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                        </div>
+                        <div className="flex sm:flex-col gap-2 shrink-0">
+                          <button onClick={() => openApproveStudentModal(u)} disabled={loading}
+                            className="flex-1 sm:w-44 py-2.5 px-3 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 text-white text-xs font-bold hover:from-violet-600 hover:to-purple-700 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60">
+                            <UserPlus className="w-4 h-4" /> Onayla & Öğretmen Ata
+                          </button>
+                          <button onClick={() => approveStudentOnly(u.id)} disabled={loading}
+                            className="flex-1 sm:w-44 py-2 px-3 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-semibold hover:bg-emerald-100 border border-emerald-200 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Sadece Onayla
+                          </button>
+                          <button onClick={() => rejectStudent(u.id)} disabled={loading}
+                            className="flex-1 sm:w-44 py-2 px-3 rounded-xl bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 border border-red-200 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60">
+                            <Trash2 className="w-3.5 h-3.5" /> Reddet
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* ═══ VIEW: Pending Parents ═══ */}
+        {view === 'pending-parents' && (() => {
+          const filtered = pendingParents.filter(u => {
+            if (!searchPP) return true;
+            const q = searchPP.toLowerCase();
+            return u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+          });
+          return (
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h2 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100">Onay Bekleyen Veliler</h2>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-400 dark:text-slate-500 font-medium">{filtered.length} kişi</span>
+                  <button onClick={() => loadPendingParents(storedPw())} className="text-sm text-pink-600 font-semibold hover:underline">Yenile</button>
+                </div>
+              </div>
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text" value={searchPP} onChange={e => setSearchPP(e.target.value)}
+                  placeholder="İsim veya e-posta ile ara..."
+                  className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                />
+              </div>
+              {loading ? (
+                <div className="text-center py-20 text-gray-400 dark:text-slate-500">Yükleniyor...</div>
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-20">
+                  <CheckCircle2 className="w-12 h-12 text-pink-300 mx-auto mb-3" />
+                  <p className="text-gray-400 dark:text-slate-500">{searchPP ? 'Aramayla eşleşen veli yok.' : 'Onay bekleyen veli başvurusu yok.'}</p>
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {filtered.map(u => (
+                    <div key={u.id} className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-pink-200 p-4 shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center text-pink-700 font-bold text-sm">
+                              {u.full_name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-bold text-[#0f2847] dark:text-slate-100">{u.full_name}</p>
+                              <p className="text-xs text-pink-600 font-semibold">Onay Bekliyor</p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+                            <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-2">
+                              <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-bold">E-posta</p>
+                              <p className="text-xs font-semibold text-[#0f2847] dark:text-slate-100 truncate">{u.email}</p>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-2">
+                              <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-bold">Telefon</p>
+                              <p className="text-xs font-semibold text-[#0f2847] dark:text-slate-100">{u.phone}</p>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-2">
+                              <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-bold">Çocuk</p>
+                              <p className="text-xs font-semibold text-[#0f2847] dark:text-slate-100 truncate">{u.child_name || '—'}</p>
+                            </div>
+                          </div>
+                          <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-2">Başvuru: {new Date(u.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                        </div>
+                        <div className="flex sm:flex-col gap-2 shrink-0">
+                          <button onClick={() => approveParent(u.id)} disabled={loading}
+                            className="flex-1 sm:w-28 py-2.5 rounded-xl bg-pink-500 text-white text-sm font-bold hover:bg-pink-600 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60">
+                            <CheckCircle2 className="w-4 h-4" /> Onayla
+                          </button>
+                          <button onClick={() => rejectParent(u.id)} disabled={loading}
+                            className="flex-1 sm:w-28 py-2.5 rounded-xl bg-red-50 text-red-600 text-sm font-semibold hover:bg-red-100 transition-all flex items-center justify-center gap-1.5 border border-red-200 disabled:opacity-60">
+                            <Trash2 className="w-4 h-4" /> Reddet
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* ═══ VIEW: Registered Students ═══ */}
+        {view === 'registered-students' && (() => {
+          const filtered = registeredStudents.filter(u => {
+            if (!searchRS) return true;
+            const q = searchRS.toLowerCase();
+            return u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+          });
+          return (
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h2 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100">Kayıtlı Öğrenciler</h2>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-400 dark:text-slate-500 font-medium">{filtered.length} öğrenci</span>
+                  <button onClick={() => loadRegisteredStudents(storedPw())} className="text-sm text-violet-600 font-semibold hover:underline">Yenile</button>
+                </div>
+              </div>
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text" value={searchRS} onChange={e => setSearchRS(e.target.value)}
+                  placeholder="İsim veya e-posta ile ara..."
+                  className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-violet-300"
+                />
+              </div>
+              {loading ? (
+                <div className="text-center py-20 text-gray-400 dark:text-slate-500">Yükleniyor...</div>
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-20">
+                  <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-400 dark:text-slate-500">{searchRS ? 'Aramayla eşleşen öğrenci yok.' : 'Henüz kayıtlı öğrenci yok.'}</p>
+                </div>
+              ) : (
+                <div className="grid gap-2">
+                  {filtered.map(u => (
+                    <div key={u.id} className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-xl border border-gray-200 dark:border-slate-700 p-3 shadow-sm hover:border-violet-300 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center text-violet-700 font-bold text-xs shrink-0">
+                          {u.full_name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm text-[#0f2847] dark:text-slate-100 truncate">{u.full_name}</p>
+                            <p className="text-[11px] text-gray-500 truncate">{u.email}</p>
+                          </div>
+                          <div className="text-xs">
+                            <span className="text-gray-400">Sınıf:</span> <span className="font-semibold text-[#0f2847] dark:text-slate-100">{u.grade || '—'}</span>
+                          </div>
+                          <div className="text-xs min-w-0">
+                            <span className="text-gray-400">Öğretmen:</span>{' '}
+                            {u.assigned_teacher_name ? (
+                              <span className="font-semibold text-emerald-700">{u.assigned_teacher_name}</span>
+                            ) : (
+                              <span className="font-semibold text-amber-600">Atanmamış</span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-gray-400">
+                            {u.phone}
+                          </div>
+                        </div>
+                        <button onClick={() => openReassignTeacherModal(u)} disabled={loading}
+                          className="shrink-0 py-1.5 px-3 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 border border-violet-200 transition-all flex items-center gap-1 disabled:opacity-60">
+                          <UserPlus className="w-3.5 h-3.5" /> {u.assigned_teacher_id ? 'Değiştir' : 'Ata'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* ═══ VIEW: Registered Parents ═══ */}
+        {view === 'registered-parents' && (() => {
+          const filtered = registeredParents.filter(u => {
+            if (!searchRP) return true;
+            const q = searchRP.toLowerCase();
+            return u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+          });
+          return (
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h2 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100">Kayıtlı Veliler</h2>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-400 dark:text-slate-500 font-medium">{filtered.length} veli</span>
+                  <button onClick={() => loadRegisteredParents(storedPw())} className="text-sm text-pink-600 font-semibold hover:underline">Yenile</button>
+                </div>
+              </div>
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text" value={searchRP} onChange={e => setSearchRP(e.target.value)}
+                  placeholder="İsim veya e-posta ile ara..."
+                  className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                />
+              </div>
+              {loading ? (
+                <div className="text-center py-20 text-gray-400 dark:text-slate-500">Yükleniyor...</div>
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-20">
+                  <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-400 dark:text-slate-500">{searchRP ? 'Aramayla eşleşen veli yok.' : 'Henüz kayıtlı veli yok.'}</p>
+                </div>
+              ) : (
+                <div className="grid gap-2">
+                  {filtered.map(u => (
+                    <div key={u.id} className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-xl border border-gray-200 dark:border-slate-700 p-3 shadow-sm hover:border-pink-300 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-pink-100 flex items-center justify-center text-pink-700 font-bold text-xs shrink-0">
+                          {u.full_name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm text-[#0f2847] dark:text-slate-100 truncate">{u.full_name}</p>
+                            <p className="text-[11px] text-gray-500 truncate">{u.email}</p>
+                          </div>
+                          <div className="text-xs min-w-0">
+                            <span className="text-gray-400">Çocuk:</span>{' '}
+                            <span className="font-semibold text-[#0f2847] dark:text-slate-100">{u.child_name || '—'}</span>
+                          </div>
+                          <div className="text-[11px] text-gray-400">
+                            {u.phone}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* ═══ VIEW: Teachers List ═══ */}
         {view === 'teachers' && (
@@ -1350,6 +1916,102 @@ export default function YoneticiPage() {
               animation: modal-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
             }
           `}</style>
+        </div>
+      )}
+
+      {/* ═══ ÖĞRETMEN ATA MODAL ═══ */}
+      {assignModalUser && (
+        <div
+          onClick={() => { setAssignModalUser(null); setAssignModalSelectedTeacher(''); }}
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full p-6 animate-modal-in max-h-[85vh] flex flex-col"
+          >
+            <div className="flex items-start gap-3 mb-4 shrink-0">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg bg-gradient-to-br from-violet-500 to-purple-700">
+                <UserPlus className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-[16px] font-extrabold text-[#0f2847] dark:text-slate-100">
+                  {assignModalMode === 'approve' ? 'Onayla & Öğretmen Ata' : 'Öğretmen Ataması Değiştir'}
+                </h3>
+                <p className="text-[13px] text-gray-600 dark:text-slate-300 mt-1">
+                  <span className="font-semibold">{assignModalUser.full_name}</span> için bir öğretmen seçin.
+                  {assignModalMode === 'approve' && ' Atama sonrası öğrenci o öğretmenin "Öğrencilerim" listesine düşecek.'}
+                </p>
+              </div>
+              <button onClick={() => { setAssignModalUser(null); setAssignModalSelectedTeacher(''); }}
+                className="text-gray-400 hover:text-gray-600 dark:text-slate-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto -mx-1 px-1">
+              {approvedTeachersSimple.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-400 dark:text-slate-500">Kayıtlı öğretmen yok. Önce öğretmen onaylayın.</p>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {approvedTeachersSimple.map(t => (
+                    <label key={t.id}
+                      className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                        assignModalSelectedTeacher === t.id
+                          ? 'border-violet-400 bg-violet-50 dark:bg-violet-900/20'
+                          : 'border-gray-200 dark:border-slate-700 hover:border-violet-200 hover:bg-gray-50 dark:hover:bg-slate-800/60'
+                      }`}>
+                      <input
+                        type="radio"
+                        name="teacher-select"
+                        checked={assignModalSelectedTeacher === t.id}
+                        onChange={() => setAssignModalSelectedTeacher(t.id)}
+                        className="w-4 h-4 text-violet-600"
+                      />
+                      <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs shrink-0">
+                        {t.full_name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-[#0f2847] dark:text-slate-100 truncate">{t.full_name}</p>
+                        <p className="text-[11px] text-gray-500 truncate">
+                          {t.branch ? `${t.branch} · ` : ''}{t.email}
+                        </p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 mt-5 pt-4 border-t border-gray-200 dark:border-slate-700 shrink-0">
+              <button
+                onClick={() => { setAssignModalUser(null); setAssignModalSelectedTeacher(''); }}
+                disabled={loading}
+                className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-slate-700/60 text-gray-700 dark:text-slate-300 text-[13px] font-bold hover:bg-gray-200 disabled:opacity-60 transition-all"
+              >
+                Vazgeç
+              </button>
+              <button
+                onClick={() => {
+                  if (!assignModalSelectedTeacher || !assignModalUser) return;
+                  if (assignModalMode === 'approve') {
+                    approveStudentWithTeacher(assignModalUser.id, assignModalSelectedTeacher);
+                  } else {
+                    reassignStudentTeacher(assignModalUser.id, assignModalSelectedTeacher);
+                  }
+                }}
+                disabled={loading || !assignModalSelectedTeacher}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-violet-500 to-purple-600 text-white text-[13px] font-extrabold shadow-md hover:shadow-lg hover:from-violet-600 hover:to-purple-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                {loading
+                  ? 'İşleniyor...'
+                  : assignModalMode === 'approve' ? 'Onayla & Ata' : 'Atamayı Güncelle'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
