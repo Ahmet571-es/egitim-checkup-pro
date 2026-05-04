@@ -22,7 +22,6 @@ function calculateAge(birthDate: string): number | null {
 }
 
 export default function RegisterPage() {
-  const [step, setStep] = useState<1 | 2>(1);
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -33,7 +32,6 @@ export default function RegisterPage() {
     password: '',
     kvkk: false,
   });
-  const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -47,9 +45,6 @@ export default function RegisterPage() {
     setForm((f) => ({ ...f, [key]: value }));
   };
 
-  // ───────────────────────────────────────────────────────────
-  // ADIM 1: Form validasyonu + kod gönderme
-  // ───────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submittingRef.current) return;
@@ -105,103 +100,47 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
+    const supabase = createClient();
+    const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`;
 
-    // Doğrulama kodu gönder
-    try {
-      const res = await fetch('/api/auth/send-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Doğrulama kodu gönderilemedi.');
-        setLoading(false);
-        submittingRef.current = false;
-        return;
+    const { error: authError } = await supabase.auth.signUp({
+      email,
+      password: form.password,
+      options: {
+        data: {
+          full_name: fullName,
+          role: 'student',
+          grade: form.isGraduated ? '' : form.grade,
+          is_graduated: form.isGraduated,
+          birth_date: form.birthDate,
+          age: calculatedAge,
+        },
+      },
+    });
+
+    if (authError) {
+      if (authError.message.includes('already registered') || authError.message.toLowerCase().includes('already')) {
+        setError('Bu e-posta adresi zaten kayıtlı.');
+      } else {
+        setError(authError.message);
       }
-      // Adım 2'ye geç
-      setStep(2);
-    } catch {
-      setError('Bağlantı hatası. Tekrar deneyin.');
-    } finally {
       setLoading(false);
       submittingRef.current = false;
-    }
-  };
-
-  // ───────────────────────────────────────────────────────────
-  // ADIM 2: Kod doğrulama + kayıt finalize
-  // ───────────────────────────────────────────────────────────
-  const verifyCodeAndRegister = async () => {
-    setError('');
-    if (code.length !== 6 || !/^\d{6}$/.test(code)) {
-      setError('6 haneli doğrulama kodunu eksiksiz girin.');
       return;
     }
 
-    setLoading(true);
-    const email = form.email.trim().toLowerCase();
-    const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`;
+    // Oturumu kapat (kullanıcı giriş sayfasından tekrar girsin)
+    await supabase.auth.signOut();
 
-    try {
-      const res = await fetch('/api/auth/student-register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          full_name: fullName,
-          email,
-          password: form.password,
-          birth_date: form.birthDate,
-          age: calculatedAge,
-          grade: form.isGraduated ? '' : form.grade,
-          is_graduated: form.isGraduated,
-          code,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || 'Kayıt tamamlanamadı.');
-        setLoading(false);
-        return;
-      }
-
-      // Başarılı — kayıt sonrası login'e yönlendirmek için email'i kaydet
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('ecup_just_registered_email', email);
-      }
-
-      setSuccess(true);
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 2000);
-    } catch {
-      setError('Bağlantı hatası. Tekrar deneyin.');
-      setLoading(false);
+    // Kayıt sonrası email'i login sayfasında otomatik doldur
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ecup_just_registered_email', email);
     }
-  };
 
-  // ───────────────────────────────────────────────────────────
-  // Kodu yeniden gönder (Adım 2 ekranındaki "yeni kod gönder" butonu)
-  // ───────────────────────────────────────────────────────────
-  const resendCode = async () => {
-    setError('');
-    setLoading(true);
-    try {
-      const res = await fetch('/api/auth/send-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email.trim().toLowerCase() }),
-      });
-      const data = await res.json();
-      if (!res.ok) setError(data.error || 'Kod gönderilemedi.');
-    } catch {
-      setError('Bağlantı hatası.');
-    } finally {
-      setLoading(false);
-    }
+    setSuccess(true);
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 2000);
   };
 
   if (success) {
@@ -238,114 +177,6 @@ export default function RegisterPage() {
     );
   }
 
-  // ───────────────────────────────────────────────────────────
-  // ADIM 2: Doğrulama kodu girme ekranı
-  // ───────────────────────────────────────────────────────────
-  if (step === 2) {
-    return (
-      <AuthLayout
-        role="student"
-        title="E-posta Doğrulaması"
-        subtitle="E-posta adresinize gönderilen 6 haneli kodu girin"
-        footer={
-          <button
-            type="button"
-            onClick={() => {
-              setStep(1);
-              setCode('');
-              setError('');
-            }}
-            className="text-[13px] text-gray-500 hover:text-violet-600 font-semibold transition"
-          >
-            ← Bilgileri düzenle
-          </button>
-        }
-      >
-        {error && (
-          <div className="mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 flex items-center gap-2 text-sm text-red-700">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span className="font-medium">{error}</span>
-          </div>
-        )}
-
-        {/* E-posta bilgi kartı */}
-        <div className="mb-5 p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
-          <div className="flex items-start gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0">
-              <Mail className="w-4 h-4 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[12px] text-gray-500 font-semibold uppercase tracking-wider">Kod gönderildi</p>
-              <p className="text-sm font-extrabold text-emerald-700 break-all">
-                {form.email.trim().toLowerCase()}
-              </p>
-              <p className="text-[12px] text-gray-600 mt-1.5">
-                E-postanı kontrol et. Spam klasörünü de kontrol etmeyi unutma.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Kod input */}
-        <div className="space-y-4">
-          <div>
-            <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">
-              6 Haneli Doğrulama Kodu <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={6}
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && code.length === 6) verifyCodeAndRegister();
-              }}
-              placeholder="000000"
-              autoFocus
-              className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 transition text-center text-2xl font-bold tracking-[0.5em] tabular-nums"
-            />
-            <p className="text-[11.5px] text-gray-500 mt-1.5 text-center">
-              Kod 10 dakika içinde geçerlidir
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={verifyCodeAndRegister}
-            disabled={loading || code.length !== 6}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-extrabold shadow-lg shadow-violet-500/30 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <>
-                <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Kayıt tamamlanıyor...
-              </>
-            ) : (
-              <>
-                <CheckCircle2 className="w-5 h-5" />
-                Onayla ve Kayıt Ol
-              </>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={resendCode}
-            disabled={loading}
-            className="w-full py-2.5 text-[12.5px] text-gray-500 hover:text-violet-600 font-semibold transition disabled:opacity-50"
-          >
-            Kodu almadın mı? Yeni kod gönder
-          </button>
-        </div>
-      </AuthLayout>
-    );
-  }
-
-  // ───────────────────────────────────────────────────────────
-  // ADIM 1: Kayıt formu (mevcut)
-  // ───────────────────────────────────────────────────────────
   return (
     <AuthLayout
       role="student"
@@ -510,10 +341,10 @@ export default function RegisterPage() {
           {loading ? (
             <>
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Doğrulama kodu gönderiliyor...
+              Kayıt yapılıyor...
             </>
           ) : (
-            <>Doğrulama Kodu Gönder <ArrowRight className="w-4 h-4" /></>
+            <>Kayıt Ol <ArrowRight className="w-4 h-4" /></>
           )}
         </button>
       </form>
