@@ -26,6 +26,11 @@ function TeacherLoginInner() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    // Her login sayfasına geliş → intro video flag'lerini temizle
+    sessionStorage.removeItem('ecup_intro_seen_student');
+    sessionStorage.removeItem('ecup_intro_seen_teacher');
+    sessionStorage.removeItem('ecup_intro_seen_parent');
+
     // Onay bekliyor query param'ı (register'dan yönlendirme)
     if (searchParams.get('pending') === '1') {
       setPendingMsg(true);

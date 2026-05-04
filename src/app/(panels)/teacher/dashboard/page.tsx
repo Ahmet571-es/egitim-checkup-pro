@@ -10,6 +10,7 @@ import { getCurrentProfile } from '@/lib/actions/auth';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import DashboardClient from './DashboardClient';
+import IntroVideoOverlay from '@/components/ui/IntroVideoOverlay';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,6 +58,13 @@ export default async function Page() {
   }
 
   return (
-    <DashboardClient firstName={firstName} studentCount={studentCount} resultCount={resultCount} teacherId={teacherId} />
+    <>
+      <IntroVideoOverlay
+        src="/videos/teacher-intro.mp4"
+        poster="/videos/teacher-intro-poster.jpg"
+        storageKey="ecup_intro_seen_teacher"
+      />
+      <DashboardClient firstName={firstName} studentCount={studentCount} resultCount={resultCount} teacherId={teacherId} />
+    </>
   );
 }

@@ -26,6 +26,12 @@ export default function LoginPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    // Her login sayfasına geliş = potansiyel yeni oturum başlangıcı
+    // → intro video flag'lerini temizle ki yeni login sonrası video tekrar oynasın
+    sessionStorage.removeItem('ecup_intro_seen_student');
+    sessionStorage.removeItem('ecup_intro_seen_teacher');
+    sessionStorage.removeItem('ecup_intro_seen_parent');
+
     const savedRemember = localStorage.getItem(STORAGE_KEY_REMEMBER);
     const oldStored = localStorage.getItem(STORAGE_KEY_EMAIL);
     if (savedRemember === 'true' && oldStored) {

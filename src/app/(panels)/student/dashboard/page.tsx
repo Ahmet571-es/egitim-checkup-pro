@@ -9,6 +9,7 @@ import { ALL_TESTS } from '@/lib/tests/index';
 import WelcomeBanner from '@/components/ui/WelcomeBanner';
 import TiltStatCard from '@/components/ui/TiltStatCard';
 import SectionCard from '@/components/ui/SectionCard';
+import IntroVideoOverlay from '@/components/ui/IntroVideoOverlay';
 
 const GrowthTimeline = dynamic(
   () => import('@/components/student/GrowthTimeline'),
@@ -89,6 +90,11 @@ export default function Page() {
 
   return (
     <div>
+      <IntroVideoOverlay
+        src="/videos/student-intro.mp4"
+        poster="/videos/student-intro-poster.jpg"
+        storageKey="ecup_intro_seen_student"
+      />
       <WelcomeBanner
         role="student"
         title={`Merhaba ${firstName}!`}

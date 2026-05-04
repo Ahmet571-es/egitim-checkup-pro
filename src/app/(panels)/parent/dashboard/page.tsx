@@ -9,6 +9,7 @@ import TiltStatCard from '@/components/ui/TiltStatCard';
 import SectionCard from '@/components/ui/SectionCard';
 import EmptyState from '@/components/ui/EmptyState';
 import { CardGridSkeleton } from '@/components/ui/Skeleton';
+import IntroVideoOverlay from '@/components/ui/IntroVideoOverlay';
 
 interface Child {
   id: string;
@@ -80,6 +81,11 @@ export default function ParentDashboardPage() {
 
   return (
     <div>
+      <IntroVideoOverlay
+        src="/videos/parent-intro.mp4"
+        poster="/videos/parent-intro-poster.jpg"
+        storageKey="ecup_intro_seen_parent"
+      />
       <WelcomeBanner
         role="parent"
         title={`Hoş geldiniz, ${parentName}`}
