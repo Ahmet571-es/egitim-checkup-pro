@@ -220,7 +220,7 @@ export default function LandingPage() {
               <ArrowRight className="w-3.5 h-3.5 sm:w-5 sm:h-5 relative z-10 group-hover:translate-x-1 transition-transform shrink-0" />
             </Link>
 
-            <Link href="/login/yonetici"
+            <Link href="/yonetici"
               className="touch-feedback group relative px-4 sm:px-8 py-3 sm:py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-extrabold shadow-xl shadow-amber-500/40 hover:shadow-2xl hover:shadow-amber-500/50 hover:scale-[1.05] hover:-translate-y-0.5 active:scale-[0.97] transition-all flex items-center justify-center gap-1.5 sm:gap-2.5 text-[12px] sm:text-[14.5px] tracking-wide overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none" />
               <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl pointer-events-none group-hover:bg-white/30 transition" />
