@@ -6,7 +6,8 @@ import { usePathname } from 'next/navigation';
 import {
   Menu, X, LogOut, LayoutDashboard, School, Key, KeyRound, Users, Settings,
   BookOpen, GraduationCap, UserCheck, Heart, ClipboardList, FileText,
-  BarChart3, User, Baby, ChevronRight, CreditCard, Radar, Sparkles, Trophy, Palette, MessageSquare, Shield
+  BarChart3, User, Baby, ChevronRight, CreditCard, Radar, Sparkles, Trophy,
+  Palette, MessageSquare, Shield, UserPlus, Hourglass,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { NavItem, UserRole } from '@/types';
@@ -28,6 +29,9 @@ const ICON_MAP: Record<string, React.ElementType> = {
   'guidance-plan': FileText,
   messages: MessageSquare,
   'password-resets': KeyRound,
+  'pending-students': Hourglass,
+  'pending-teachers': Hourglass,
+  'pending-parents': Hourglass,
 };
 
 const ACCENT: Record<UserRole, {

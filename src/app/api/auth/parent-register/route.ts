@@ -71,7 +71,7 @@ export async function POST(request: Request) {
       studentId = student.id;
     }
 
-    // Veli hesabını oluştur — Supabase email'i tetiklemez
+    // Veli hesabını oluştur — is_approved:false (yönetici onayı bekler)
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
       email,
       password,
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
       user_metadata: {
         full_name: fullName,
         role: 'parent',
-        is_approved: true, // Veliler self-serve, onay gerekmez
+        is_approved: false, // Yönetici onayı gerekli
       },
     });
 
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
       .update({
         full_name: fullName,
         role: 'parent',
-        is_approved: true,
+        is_approved: false,
         is_active: true,
       })
       .eq('id', created.user.id);

@@ -114,6 +114,16 @@ export default function LoginPage() {
         return;
       }
 
+      // is_approved kontrolü — yönetici onayı bekleniyor mu
+      const isApproved = data.user?.user_metadata?.is_approved;
+      if (isApproved === false) {
+        await supabase.auth.signOut();
+        setError('Hesabınız henüz yönetici tarafından onaylanmadı. Onaylandığında giriş yapabilirsiniz.');
+        setLoading(false);
+        submittingRef.current = false;
+        return;
+      }
+
       if (typeof window !== 'undefined' && rememberMe) {
         localStorage.setItem(STORAGE_KEY_EMAIL, email.trim().toLowerCase());
       }

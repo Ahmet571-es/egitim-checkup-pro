@@ -100,47 +100,51 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    const supabase = createClient();
     const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`;
 
-    const { error: authError } = await supabase.auth.signUp({
-      email,
-      password: form.password,
-      options: {
-        data: {
+    let res: Response;
+    try {
+      res = await fetch('/api/auth/student-register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           full_name: fullName,
-          role: 'student',
-          grade: form.isGraduated ? '' : form.grade,
-          is_graduated: form.isGraduated,
+          email,
+          password: form.password,
           birth_date: form.birthDate,
           age: calculatedAge,
-        },
-      },
-    });
+          grade: form.isGraduated ? '' : form.grade,
+          is_graduated: form.isGraduated,
+        }),
+      });
+    } catch {
+      setError('Bağlantı hatası. Lütfen tekrar deneyin.');
+      setLoading(false);
+      submittingRef.current = false;
+      return;
+    }
 
-    if (authError) {
-      if (authError.message.includes('already registered') || authError.message.toLowerCase().includes('already')) {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (res.status === 409) {
         setError('Bu e-posta adresi zaten kayıtlı.');
       } else {
-        setError(authError.message);
+        setError(data.error || 'Kayıt oluşturulamadı.');
       }
       setLoading(false);
       submittingRef.current = false;
       return;
     }
 
-    // Oturumu kapat (kullanıcı giriş sayfasından tekrar girsin)
-    await supabase.auth.signOut();
-
-    // Kayıt sonrası email'i login sayfasında otomatik doldur
+    // Login sayfasında auto-fill için
     if (typeof window !== 'undefined') {
       localStorage.setItem('ecup_just_registered_email', email);
     }
 
     setSuccess(true);
     setTimeout(() => {
-      window.location.href = '/login';
-    }, 2000);
+      window.location.href = '/login?pending=1';
+    }, 2500);
   };
 
   if (success) {

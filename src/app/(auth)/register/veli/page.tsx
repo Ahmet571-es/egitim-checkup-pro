@@ -70,39 +70,11 @@ export default function VeliRegisterPage() {
       return;
     }
 
-    // Hesap oluştu + çocuk bağlandı → otomatik giriş yapmak için signInWithPassword
-    const { error: signInErr } = await supabase.auth.signInWithPassword({
-      email: form.email.trim().toLowerCase(),
-      password: form.password,
-    });
-
-    if (signInErr) {
-      // Hesap oluştu ama otomatik giriş fail — kullanıcıya login'e yönlendir
-      setSuccess('Hesabınız oluşturuldu. Giriş sayfasına yönlendiriliyorsun...');
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 1200);
-      return;
-    }
-
-    // Başarılı giriş → dashboard veya my-children
-    // API'den gelen approval_pending flag'ine göre mesajı özelleştir
-    if (registerData.approval_pending) {
-      setSuccess(
-        'Kayıt başarılı! Bağlantınız öğretmen onayı bekliyor. Panele yönlendiriliyorsun...',
-      );
-    } else {
-      setSuccess(
-        registerData.child_linked
-          ? 'Kayıt başarılı! Panele yönlendiriliyorsun...'
-          : 'Kayıt başarılı! Çocuğunuzu eklemek için yönlendiriliyorsun...',
-      );
-    }
+    // Kayıt sonrası: yönetici onayı bekleniyor (auto-login YOK)
+    setSuccess('Kayıt başarılı! Yönetici onayı bekleniyor. Onaylandıktan sonra giriş yapabilirsiniz.');
     setTimeout(() => {
-      window.location.href = registerData.child_linked
-        ? '/parent/dashboard'
-        : '/parent/my-children';
-    }, 1200);
+      window.location.href = '/login/veli?pending=1';
+    }, 2500);
   };
 
   return (
