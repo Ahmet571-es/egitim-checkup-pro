@@ -146,13 +146,22 @@ export default function LoginPage() {
       title="Giriş Yap"
       subtitle="E-posta/kullanıcı adı ve şifrenizle giriş yapın"
       footer={
-        <Link
-          href="/"
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-slate-100 to-gray-100 hover:from-slate-200 hover:to-gray-200 text-[#0f2847] text-[13px] font-bold border border-slate-200 transition-all active:scale-[0.98] group"
-        >
-          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-          <span>Ana Menü</span>
-        </Link>
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-slate-100 to-gray-100 hover:from-slate-200 hover:to-gray-200 text-[#0f2847] text-[13px] font-bold border border-slate-200 transition-all active:scale-[0.98] group"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Ana Menü</span>
+          </Link>
+          <Link
+            href="/register"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white text-[13px] font-bold shadow-lg shadow-violet-500/30 hover:shadow-xl hover:shadow-violet-500/40 transition-all active:scale-[0.98] group"
+          >
+            <span>Öğrenci Kayıt</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
       }
     >
       {fromRegister && email && !error && (
