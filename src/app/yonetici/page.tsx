@@ -148,6 +148,27 @@ export default function YoneticiPage() {
   const [assignModalMode, setAssignModalMode] = useState<'approve' | 'reassign'>('approve');
   const [assignModalSelectedTeacher, setAssignModalSelectedTeacher] = useState<string>('');
 
+  // ═══ Yeni: Tüm Testler & Tüm Raporlar ═══
+  type AllTestRow = {
+    id: string; student_id: string; student_name: string;
+    teacher_id: string | null; teacher_name: string | null;
+    test_type: string; completed_at: string; has_report: boolean;
+  };
+  type AllReportRow = {
+    id: string; student_id: string; student_name: string;
+    teacher_id: string | null; teacher_name: string | null;
+    report_kind: 'single' | 'integrated' | 'holistic';
+    test_type: string | null; generated_at: string;
+  };
+  const [allTests, setAllTests] = useState<AllTestRow[]>([]);
+  const [allReports, setAllReports] = useState<AllReportRow[]>([]);
+  const [searchAT, setSearchAT] = useState('');
+  const [searchAR, setSearchAR] = useState('');
+  const [filterTeacherAT, setFilterTeacherAT] = useState<string>('all');
+  const [filterTeacherAR, setFilterTeacherAR] = useState<string>('all');
+  const [filterTestTypeAT, setFilterTestTypeAT] = useState<string>('all');
+  const [filterTestTypeAR, setFilterTestTypeAR] = useState<string>('all');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -508,6 +529,66 @@ export default function YoneticiPage() {
     setAssignModalMode('reassign');
     setAssignModalSelectedTeacher(u.assigned_teacher_id || '');
     setAssignModalUser(u);
+  };
+
+  // ═══ Yeni: Tüm Testler & Raporlar Loader'ları ═══
+  const loadAllTests = async (pw: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await apiCall(pw, 'list-all-tests');
+      setAllTests(data.tests || []);
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+
+  const loadAllReports = async (pw: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await apiCall(pw, 'list-all-reports');
+      setAllReports(data.reports || []);
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+
+  // Tek tıkla rapor görüntüleme: önce student-reports'tan rapor objesini çek
+  const openReportDirect = async (studentId: string, reportId: string, kind: 'single' | 'integrated') => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await apiCall(storedPw(), 'student-reports', { studentId });
+      if (kind === 'single') {
+        const r = (data.reports || []).find((x: Report) => x.id === reportId);
+        if (r) {
+          setReports(data.reports || []);
+          setIntegratedReports(data.integratedReports || []);
+          setSelectedReport(r);
+          setReportType('single');
+          setView('report-view');
+        } else {
+          setError('Rapor bulunamadı.');
+        }
+      } else {
+        const ir = (data.integratedReports || []).find((x: IntegratedReport) => x.id === reportId);
+        if (ir) {
+          setReports(data.reports || []);
+          setIntegratedReports(data.integratedReports || []);
+          setSelectedReport(ir);
+          setReportType('integrated');
+          setView('report-view');
+        } else {
+          setError('Rapor bulunamadı.');
+        }
+      }
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
   };
 
   const loadTeacherDetail = async (teacher: Teacher) => {
@@ -948,6 +1029,23 @@ export default function YoneticiPage() {
               </button>
             </div>
           </div>
+
+          {/* Test & Raporlar */}
+          <div>
+            <div className="text-[10px] font-bold text-sky-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <BarChart3 className="w-3 h-3" /> Test & Raporlar
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button onClick={() => { setView('all-tests'); loadAllTests(storedPw()); }}
+                className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all ${view === 'all-tests' ? 'bg-sky-100 text-sky-700 ring-1 ring-sky-300' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-300'}`}>
+                Yapılan Testler
+              </button>
+              <button onClick={() => { setView('all-reports'); loadAllReports(storedPw()); }}
+                className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all ${view === 'all-reports' ? 'bg-sky-100 text-sky-700 ring-1 ring-sky-300' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-300'}`}>
+                Üretilen Raporlar
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Breadcrumb (detay sayfaları için) */}
@@ -1345,6 +1443,258 @@ export default function YoneticiPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* ═══ VIEW: All Tests (Yapılan Testler) ═══ */}
+        {view === 'all-tests' && (() => {
+          // Unique öğretmen ve test türü filtreleri
+          const uniqueTeachers = Array.from(
+            new Map(allTests.filter(t => t.teacher_id).map(t => [t.teacher_id!, t.teacher_name || '—'])).entries()
+          ).sort((a, b) => a[1].localeCompare(b[1]));
+          const uniqueTestTypes = Array.from(new Set(allTests.map(t => t.test_type))).sort();
+
+          const filtered = allTests.filter(t => {
+            if (filterTeacherAT === 'unassigned' && t.teacher_id) return false;
+            if (filterTeacherAT !== 'all' && filterTeacherAT !== 'unassigned' && t.teacher_id !== filterTeacherAT) return false;
+            if (filterTestTypeAT !== 'all' && t.test_type !== filterTestTypeAT) return false;
+            if (searchAT) {
+              const q = searchAT.toLowerCase();
+              if (!t.student_name.toLowerCase().includes(q)
+                && !(t.teacher_name || '').toLowerCase().includes(q)) return false;
+            }
+            return true;
+          });
+
+          return (
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h2 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100">Yapılan Testler</h2>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-400 dark:text-slate-500 font-medium">{filtered.length} test</span>
+                  <button onClick={() => loadAllTests(storedPw())} className="text-sm text-sky-600 font-semibold hover:underline">Yenile</button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input type="text" value={searchAT} onChange={e => setSearchAT(e.target.value)}
+                    placeholder="Öğrenci veya öğretmen adı..."
+                    className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300" />
+                </div>
+                <select value={filterTeacherAT} onChange={e => setFilterTeacherAT(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300">
+                  <option value="all">Tüm öğretmenler</option>
+                  <option value="unassigned">Atanmamış öğrenciler</option>
+                  {uniqueTeachers.map(([id, name]) => (
+                    <option key={id} value={id}>{name}</option>
+                  ))}
+                </select>
+                <select value={filterTestTypeAT} onChange={e => setFilterTestTypeAT(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300">
+                  <option value="all">Tüm test türleri</option>
+                  {uniqueTestTypes.map(t => (
+                    <option key={t} value={t}>{TEST_LABELS[t] || t}</option>
+                  ))}
+                </select>
+              </div>
+
+              {loading ? (
+                <div className="text-center py-20 text-gray-400 dark:text-slate-500">Yükleniyor...</div>
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-20">
+                  <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-400 dark:text-slate-500">
+                    {searchAT || filterTeacherAT !== 'all' || filterTestTypeAT !== 'all'
+                      ? 'Filtreyle eşleşen test yok.'
+                      : 'Henüz tamamlanmış test yok.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-slate-700">
+                  <table className="w-full bg-white dark:bg-slate-800/30 text-sm">
+                    <thead className="bg-gray-50 dark:bg-slate-800/60 text-[11px] uppercase font-bold text-gray-500 dark:text-slate-400">
+                      <tr>
+                        <th className="text-left px-3 py-2">Tarih</th>
+                        <th className="text-left px-3 py-2">Öğrenci</th>
+                        <th className="text-left px-3 py-2">Atanan Öğretmen</th>
+                        <th className="text-left px-3 py-2">Test Türü</th>
+                        <th className="text-center px-3 py-2">Rapor</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-slate-700/60">
+                      {filtered.slice(0, 500).map(t => (
+                        <tr key={t.id} className="hover:bg-sky-50 dark:hover:bg-slate-800/60 transition-colors">
+                          <td className="px-3 py-2 text-[12px] text-gray-500 whitespace-nowrap">
+                            {new Date(t.completed_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                          </td>
+                          <td className="px-3 py-2 font-semibold text-[#0f2847] dark:text-slate-100">{t.student_name}</td>
+                          <td className="px-3 py-2 text-[12px]">
+                            {t.teacher_name ? (
+                              <span className="text-emerald-700 font-medium">{t.teacher_name}</span>
+                            ) : (
+                              <span className="text-amber-600 font-medium">Atanmamış</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-[12px] text-[#0f2847] dark:text-slate-100">{TEST_LABELS[t.test_type] || t.test_type}</td>
+                          <td className="px-3 py-2 text-center">
+                            {t.has_report ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
+                                <CheckCircle2 className="w-3 h-3" /> Var
+                              </span>
+                            ) : (
+                              <span className="text-[11px] text-gray-400">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {filtered.length > 500 && (
+                    <div className="px-3 py-2 bg-gray-50 dark:bg-slate-800/60 text-[11px] text-gray-500 text-center">
+                      İlk 500 sonuç gösteriliyor. Daraltmak için filtre kullanın.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* ═══ VIEW: All Reports (Üretilen Raporlar) ═══ */}
+        {view === 'all-reports' && (() => {
+          const uniqueTeachers = Array.from(
+            new Map(allReports.filter(r => r.teacher_id).map(r => [r.teacher_id!, r.teacher_name || '—'])).entries()
+          ).sort((a, b) => a[1].localeCompare(b[1]));
+          const uniqueTestTypes = Array.from(new Set(allReports.map(r => r.test_type).filter(Boolean) as string[])).sort();
+
+          const filtered = allReports.filter(r => {
+            if (filterTeacherAR === 'unassigned' && r.teacher_id) return false;
+            if (filterTeacherAR !== 'all' && filterTeacherAR !== 'unassigned' && r.teacher_id !== filterTeacherAR) return false;
+            if (filterTestTypeAR !== 'all') {
+              if (filterTestTypeAR === 'integrated' && r.report_kind !== 'integrated') return false;
+              if (filterTestTypeAR === 'holistic' && r.report_kind !== 'holistic') return false;
+              if (filterTestTypeAR !== 'integrated' && filterTestTypeAR !== 'holistic' && r.test_type !== filterTestTypeAR) return false;
+            }
+            if (searchAR) {
+              const q = searchAR.toLowerCase();
+              if (!r.student_name.toLowerCase().includes(q)
+                && !(r.teacher_name || '').toLowerCase().includes(q)) return false;
+            }
+            return true;
+          });
+
+          return (
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h2 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100">Üretilen Raporlar</h2>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-400 dark:text-slate-500 font-medium">{filtered.length} rapor</span>
+                  <button onClick={() => loadAllReports(storedPw())} className="text-sm text-sky-600 font-semibold hover:underline">Yenile</button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input type="text" value={searchAR} onChange={e => setSearchAR(e.target.value)}
+                    placeholder="Öğrenci veya öğretmen adı..."
+                    className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300" />
+                </div>
+                <select value={filterTeacherAR} onChange={e => setFilterTeacherAR(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300">
+                  <option value="all">Tüm öğretmenler</option>
+                  <option value="unassigned">Atanmamış öğrenciler</option>
+                  {uniqueTeachers.map(([id, name]) => (
+                    <option key={id} value={id}>{name}</option>
+                  ))}
+                </select>
+                <select value={filterTestTypeAR} onChange={e => setFilterTestTypeAR(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300">
+                  <option value="all">Tüm rapor türleri</option>
+                  <option value="integrated">Entegre 3'lü Raporlar</option>
+                  <option value="holistic">Bütüncül Raporlar</option>
+                  {uniqueTestTypes.map(t => (
+                    <option key={t} value={t}>{TEST_LABELS[t] || t} (Tekil)</option>
+                  ))}
+                </select>
+              </div>
+
+              {loading ? (
+                <div className="text-center py-20 text-gray-400 dark:text-slate-500">Yükleniyor...</div>
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-20">
+                  <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-400 dark:text-slate-500">
+                    {searchAR || filterTeacherAR !== 'all' || filterTestTypeAR !== 'all'
+                      ? 'Filtreyle eşleşen rapor yok.'
+                      : 'Henüz üretilmiş rapor yok.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-slate-700">
+                  <table className="w-full bg-white dark:bg-slate-800/30 text-sm">
+                    <thead className="bg-gray-50 dark:bg-slate-800/60 text-[11px] uppercase font-bold text-gray-500 dark:text-slate-400">
+                      <tr>
+                        <th className="text-left px-3 py-2">Tarih</th>
+                        <th className="text-left px-3 py-2">Öğrenci</th>
+                        <th className="text-left px-3 py-2">Atanan Öğretmen</th>
+                        <th className="text-left px-3 py-2">Rapor Türü</th>
+                        <th className="text-right px-3 py-2">İşlem</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-slate-700/60">
+                      {filtered.slice(0, 500).map(r => (
+                        <tr key={`${r.report_kind}-${r.id}`} className="hover:bg-sky-50 dark:hover:bg-slate-800/60 transition-colors">
+                          <td className="px-3 py-2 text-[12px] text-gray-500 whitespace-nowrap">
+                            {new Date(r.generated_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                          </td>
+                          <td className="px-3 py-2 font-semibold text-[#0f2847] dark:text-slate-100">{r.student_name}</td>
+                          <td className="px-3 py-2 text-[12px]">
+                            {r.teacher_name ? (
+                              <span className="text-emerald-700 font-medium">{r.teacher_name}</span>
+                            ) : (
+                              <span className="text-amber-600 font-medium">Atanmamış</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-[12px]">
+                            {r.report_kind === 'integrated' ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full font-bold">
+                                <FileText className="w-3 h-3" /> Entegre 3'lü
+                              </span>
+                            ) : r.report_kind === 'holistic' ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full font-bold">
+                                <FileText className="w-3 h-3" /> Bütüncül
+                              </span>
+                            ) : (
+                              <span className="text-[#0f2847] dark:text-slate-100">{TEST_LABELS[r.test_type || ''] || r.test_type}</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            <button
+                              onClick={() => openReportDirect(
+                                r.student_id,
+                                r.id,
+                                r.report_kind === 'integrated' ? 'integrated' : 'single'
+                              )}
+                              disabled={loading || r.report_kind === 'holistic'}
+                              className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                              Aç
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {filtered.length > 500 && (
+                    <div className="px-3 py-2 bg-gray-50 dark:bg-slate-800/60 text-[11px] text-gray-500 text-center">
+                      İlk 500 sonuç gösteriliyor. Daraltmak için filtre kullanın.
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -563,6 +563,182 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // ═══ TÜM TESTLER & RAPORLAR (öğretmen-öğrenci hiyerarşisinden bağımsız)
+    // ═══════════════════════════════════════════════════════════
+
+    // Yardımcı: Öğrenci ID'lerinden isim + atanan öğretmen haritası kur
+    async function buildStudentMap(studentIds: string[]) {
+      if (studentIds.length === 0) return new Map<string, { full_name: string; teacher_name: string | null; teacher_id: string | null }>();
+
+      // auth.users metadata (assigned_teacher_id için)
+      const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      const userMetaMap = new Map<string, Record<string, unknown>>();
+      (users || []).forEach(u => userMetaMap.set(u.id, u.user_metadata || {}));
+
+      // profiles tablosu (full_name için)
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', studentIds);
+      const profileMap = new Map((profiles || []).map(p => [p.id, p.full_name as string]));
+
+      // Atanan öğretmen ID'leri
+      const teacherIds = Array.from(new Set(
+        studentIds
+          .map(id => (userMetaMap.get(id)?.assigned_teacher_id as string) || null)
+          .filter(Boolean) as string[]
+      ));
+      let teacherNameMap = new Map<string, string>();
+      if (teacherIds.length > 0) {
+        const { data: tProfiles } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', teacherIds);
+        teacherNameMap = new Map((tProfiles || []).map(p => [p.id, p.full_name as string]));
+        // profiles'da olmayan öğretmenler için user_metadata.full_name'e fallback
+        teacherIds.forEach(tid => {
+          if (!teacherNameMap.has(tid)) {
+            const meta = userMetaMap.get(tid);
+            if (meta?.full_name) teacherNameMap.set(tid, meta.full_name as string);
+          }
+        });
+      }
+
+      const result = new Map<string, { full_name: string; teacher_name: string | null; teacher_id: string | null }>();
+      studentIds.forEach(sid => {
+        const meta = userMetaMap.get(sid) || {};
+        const tid = (meta.assigned_teacher_id as string) || null;
+        result.set(sid, {
+          full_name: profileMap.get(sid) || (meta.full_name as string) || '—',
+          teacher_id: tid,
+          teacher_name: tid ? (teacherNameMap.get(tid) || '—') : null,
+        });
+      });
+      return result;
+    }
+
+    if (action === 'list-all-tests') {
+      try {
+        const { data: tests, error } = await supabase
+          .from('test_results')
+          .select('id, student_id, test_type, completed_at, ai_report')
+          .order('completed_at', { ascending: false })
+          .limit(2000);
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+        const studentIds = Array.from(new Set((tests || []).map(t => t.student_id as string).filter(Boolean)));
+        const studentMap = await buildStudentMap(studentIds);
+
+        const enriched = (tests || []).map(t => {
+          const s = studentMap.get(t.student_id as string);
+          return {
+            id: t.id,
+            student_id: t.student_id,
+            student_name: s?.full_name || '—',
+            teacher_id: s?.teacher_id || null,
+            teacher_name: s?.teacher_name || null,
+            test_type: t.test_type,
+            completed_at: t.completed_at,
+            has_report: t.ai_report !== null,
+          };
+        });
+
+        return NextResponse.json({ tests: enriched });
+      } catch (e) {
+        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+      }
+    }
+
+    if (action === 'list-all-reports') {
+      try {
+        // Tekil raporlar (test_results.ai_report not null)
+        const { data: singles, error: sErr } = await supabase
+          .from('test_results')
+          .select('id, student_id, test_type, completed_at, ai_report_generated_at')
+          .not('ai_report', 'is', null)
+          .order('ai_report_generated_at', { ascending: false, nullsFirst: false })
+          .limit(2000);
+        if (sErr) return NextResponse.json({ error: sErr.message }, { status: 500 });
+
+        // Entegre raporlar
+        const { data: integrated, error: iErr } = await supabase
+          .from('integrated_reports')
+          .select('id, student_id, generated_at')
+          .order('generated_at', { ascending: false })
+          .limit(2000);
+        if (iErr) return NextResponse.json({ error: iErr.message }, { status: 500 });
+
+        // Holistic raporlar (varsa)
+        const { data: holistic } = await supabase
+          .from('holistic_reports')
+          .select('id, student_id, generated_at')
+          .order('generated_at', { ascending: false })
+          .limit(2000);
+
+        const allStudentIds = Array.from(new Set([
+          ...(singles || []).map(r => r.student_id as string),
+          ...(integrated || []).map(r => r.student_id as string),
+          ...(holistic || []).map(r => r.student_id as string),
+        ].filter(Boolean)));
+        const studentMap = await buildStudentMap(allStudentIds);
+
+        const reports: Array<{
+          id: string; student_id: string; student_name: string;
+          teacher_id: string | null; teacher_name: string | null;
+          report_kind: 'single' | 'integrated' | 'holistic';
+          test_type: string | null; generated_at: string;
+        }> = [];
+
+        (singles || []).forEach(r => {
+          const s = studentMap.get(r.student_id as string);
+          reports.push({
+            id: r.id as string,
+            student_id: r.student_id as string,
+            student_name: s?.full_name || '—',
+            teacher_id: s?.teacher_id || null,
+            teacher_name: s?.teacher_name || null,
+            report_kind: 'single',
+            test_type: r.test_type as string,
+            generated_at: (r.ai_report_generated_at || r.completed_at) as string,
+          });
+        });
+        (integrated || []).forEach(r => {
+          const s = studentMap.get(r.student_id as string);
+          reports.push({
+            id: r.id as string,
+            student_id: r.student_id as string,
+            student_name: s?.full_name || '—',
+            teacher_id: s?.teacher_id || null,
+            teacher_name: s?.teacher_name || null,
+            report_kind: 'integrated',
+            test_type: null,
+            generated_at: r.generated_at as string,
+          });
+        });
+        (holistic || []).forEach(r => {
+          const s = studentMap.get(r.student_id as string);
+          reports.push({
+            id: r.id as string,
+            student_id: r.student_id as string,
+            student_name: s?.full_name || '—',
+            teacher_id: s?.teacher_id || null,
+            teacher_name: s?.teacher_name || null,
+            report_kind: 'holistic',
+            test_type: null,
+            generated_at: r.generated_at as string,
+          });
+        });
+
+        // Tarih sırasına göre sırala
+        reports.sort((a, b) => new Date(b.generated_at).getTime() - new Date(a.generated_at).getTime());
+
+        return NextResponse.json({ reports });
+      } catch (e) {
+        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+      }
+    }
+
     return NextResponse.json({ error: 'Geçersiz action' }, { status: 400 });
   } catch (err) {
     console.error('[yonetici API]', err);
