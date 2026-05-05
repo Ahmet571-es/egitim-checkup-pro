@@ -32,13 +32,15 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Role check (KVKK m.6) ──
+    // Yükleme yetkisi: admin, school_admin (kendi okulu), teacher (kendi atanmış öğrencisi)
+    // Öğrenci ve veli ASLA yükleyemez.
     const role =
       (user.user_metadata?.role as string) ||
       (await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()).data?.role;
 
-    if (role !== 'admin' && role !== 'school_admin') {
+    if (role !== 'admin' && role !== 'school_admin' && role !== 'teacher') {
       return NextResponse.json(
-        { error: 'Genetik rapor yükleme yetkisi yalnızca yöneticilere aittir.' },
+        { error: 'Genetik rapor yükleme yetkisi yalnızca öğretmen ve yöneticilere aittir.' },
         { status: 403 }
       );
     }
@@ -103,7 +105,18 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
+    } else if (role === 'teacher') {
+      // Öğretmen sadece kendine atanmış öğrenciye yükleyebilir
+      const { data: studentAuth } = await admin.auth.admin.getUserById(studentId);
+      const assignedTeacherId = studentAuth?.user?.user_metadata?.assigned_teacher_id;
+      if (assignedTeacherId !== user.id) {
+        return NextResponse.json(
+          { error: 'Bu öğrenci size atanmış değil.' },
+          { status: 403 }
+        );
+      }
     }
+    // admin → tüm öğrenciler, ek scope yok
 
     // ── Storage upload ──
     const timestamp = Date.now();

@@ -715,7 +715,7 @@ export default function StudentDetailPage() {
         </div>
       )}
 
-      {/* Faz 5: Genetik Rapor Yönetimi (KVKK m.6 - öğretmen sadece görüntüleme/indirme) */}
+      {/* Faz 5: Genetik Rapor Yönetimi (KVKK m.6 - öğretmen yükleyebilir, görüntüleyebilir, silebilir) */}
       <GeneticReportsSection studentId={student.id} studentName={student.full_name} />
 
       {/* Sekmeler */}

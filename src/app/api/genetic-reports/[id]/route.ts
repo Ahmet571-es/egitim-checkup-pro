@@ -37,9 +37,9 @@ export async function DELETE(
       (user.user_metadata?.role as string) ||
       (await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()).data?.role;
 
-    if (role !== 'admin' && role !== 'school_admin') {
+    if (role !== 'admin' && role !== 'school_admin' && role !== 'teacher') {
       return NextResponse.json(
-        { error: 'Genetik rapor silme yetkisi yalnızca yöneticilere aittir.' },
+        { error: 'Genetik rapor silme yetkisi yalnızca öğretmen ve yöneticilere aittir.' },
         { status: 403 }
       );
     }
@@ -76,6 +76,16 @@ export async function DELETE(
       ) {
         return NextResponse.json(
           { error: 'Bu raporu silme yetkiniz yok.' },
+          { status: 403 }
+        );
+      }
+    } else if (role === 'teacher') {
+      // Öğretmen sadece kendine atanmış öğrencinin raporunu silebilir
+      const { data: studentAuth } = await admin.auth.admin.getUserById(report.student_id);
+      const assignedTeacherId = studentAuth?.user?.user_metadata?.assigned_teacher_id;
+      if (assignedTeacherId !== user.id) {
+        return NextResponse.json(
+          { error: 'Bu öğrenci size atanmış değil.' },
           { status: 403 }
         );
       }

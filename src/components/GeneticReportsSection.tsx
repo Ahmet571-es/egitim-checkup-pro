@@ -5,8 +5,8 @@
  * Reusable: hem öğretmen detay sayfasında hem admin/school panellerinde kullanılır.
  *
  * KVKK m.6 — komponent içinde role'a göre davranır:
- *   • admin / school_admin → yükle + indir + sil
- *   • teacher → indir
+ *   • admin / school_admin / teacher → yükle + indir + sil
+ *   • öğrenci ve veli → erişimi yok
  *   • student / parent → komponent hiçbir şey render etmez (defansif olarak)
  *
  * Asıl yetki kontrolü API endpoint'lerinde — UI seviyesi koruma defansif.
@@ -35,7 +35,7 @@ interface Props {
   studentName?: string;
 }
 
-const ROLES_CAN_MANAGE = ['admin', 'school_admin'];
+const ROLES_CAN_MANAGE = ['admin', 'school_admin', 'teacher'];
 const ROLES_CAN_VIEW = ['admin', 'school_admin', 'teacher'];
 
 function formatBytes(bytes: number): string {
