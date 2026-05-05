@@ -7,6 +7,7 @@ import type { RiskResult } from '@/lib/services/riskScore';
 import type { PatternInsight } from '@/lib/services/correlation';
 import type { CareerMatchResult } from '@/lib/services/careerMatch';
 import { INFOGRAPHIC_INSTRUCTIONS } from './_infographic-instructions';
+import { REPORT_STYLE_RULES } from './_style-rules';
 
 interface HolisticPromptParams {
   studentName: string;
@@ -530,5 +531,6 @@ Kurallar:
 - Liste sonunda "öğrencinin kendi deneyimi önemli" vurgusu yap
 ` : ''}
 ` : ''}
+${REPORT_STYLE_RULES}
 ${INFOGRAPHIC_INSTRUCTIONS}`;
 }

@@ -4,6 +4,7 @@
  */
 
 import { INFOGRAPHIC_INSTRUCTIONS } from './_infographic-instructions';
+import { REPORT_STYLE_RULES } from './_style-rules';
 
 export type IntegratedReportType = 'ogretmen' | 'ogrenci' | 'ebeveyn';
 
@@ -173,6 +174,7 @@ Eğer birden fazla test çözülmüşse, testler arası şu bağlantıları kont
 Bu korelasyonları FİNAL SENTEZ bölümünde vurgula.
 
 Şimdi ${studentName} için ${aud.title} RAPORUNU yukarıdaki sıralama ve kurallara uygun olarak oluştur.
+${REPORT_STYLE_RULES}
 ${INFOGRAPHIC_INSTRUCTIONS}`;
 }
 

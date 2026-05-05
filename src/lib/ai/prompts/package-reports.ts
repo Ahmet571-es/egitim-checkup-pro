@@ -1,3 +1,4 @@
+import { REPORT_STYLE_RULES } from './_style-rules';
 /**
  * Faz 9: Paket Bazlı Bütüncül Rapor Prompt'ları (3 versiyon)
  *
@@ -87,7 +88,8 @@ DMIT'i raporda kullanma biçimin:
 7. **Norm referans:** Standart ölçek norm değerleri varsa istatistiksel referans ver.
 8. **Uzunluk:** ${hasGeneticPdf ? '1000-1500' : '800-1200'} kelime.
 
-Markdown başlıkları (## ###) kullan, akıcı Türkçe yaz.`;
+Markdown başlıkları (## ###) kullan, akıcı Türkçe yaz.
+${REPORT_STYLE_RULES}`;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -159,7 +161,8 @@ ${testBlocks}
 
 11. **Uzunluk:** 600-900 kelime.
 
-Markdown başlıkları (##) kullan, akıcı paragraflar yaz.${packageDef.uses_genetic ? '\n\n**ÖNEMLİ:** Bu paket genetik analiz içeriyor. Veli versiyonuna genetik raporun KENDİSİ eklenmez, sadece yukarıdaki not yer alır.' : ''}`;
+Markdown başlıkları (##) kullan, akıcı paragraflar yaz.${packageDef.uses_genetic ? '\n\n**ÖNEMLİ:** Bu paket genetik analiz içeriyor. Veli versiyonuna genetik raporun KENDİSİ eklenmez, sadece yukarıdaki not yer alır.' : ''}
+${REPORT_STYLE_RULES}`;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -244,5 +247,6 @@ Raporun en son cümlesi şu olmalı (ya da çok yakın bir varyant):
 
 400-600 kelime. Çok uzun rapor çocuğu yormaz, kısa ve etkili olsun.
 
-Markdown başlıkları (##) kullan, akıcı sıcak paragraflar yaz.`;
+Markdown başlıkları (##) kullan, akıcı sıcak paragraflar yaz.
+${REPORT_STYLE_RULES}`;
 }

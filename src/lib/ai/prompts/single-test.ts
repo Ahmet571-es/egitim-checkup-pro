@@ -5,6 +5,7 @@
 
 import { getTestSpecificGuidance } from './test-specific';
 import { INFOGRAPHIC_INSTRUCTIONS } from './_infographic-instructions';
+import { REPORT_STYLE_RULES } from './_style-rules';
 
 interface SingleTestPromptParams {
   studentName: string;
@@ -240,5 +241,6 @@ ${testGuidance}
 *Bu rapor, EĞİTİM CHECK UP Pro psikometrik değerlendirme sistemi tarafından, yapay zeka destekli analiz altyapısıyla üretilmiştir. Bu rapor klinik tanı içermez.*
 
 *Dil: Türkçe. Üslup: Profesyonel, sıcak, yapıcı, dengeli ve gerçekçi.*
+${REPORT_STYLE_RULES}
 ${INFOGRAPHIC_INSTRUCTIONS}`;
 }
