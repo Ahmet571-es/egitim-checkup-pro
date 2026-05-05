@@ -203,7 +203,31 @@ export async function POST(request: NextRequest) {
         geneticReportCount: geneticCount,
       });
 
-      const report = await generateAIReport(prompt, { maxTokens: 32000 });
+      // ═══ DMIT PDF'lerini AI context'ine yükle (sadece holistic = teacher tarafı) ═══
+      // Frontend belirli ID'ler seçtiyse onları, yoksa öğrencinin tüm DMIT'ini gönder.
+      let geneticAttachments: import('@/lib/ai/claude-client').PdfAttachment[] = [];
+      if (geneticCount > 0) {
+        try {
+          const { fetchGeneticContext } = await import('@/lib/ai/genetic-context');
+          const ctx = await fetchGeneticContext(student_id, {
+            geneticReportIds: Array.isArray(selected_genetic_report_ids) && selected_genetic_report_ids.length > 0
+              ? selected_genetic_report_ids
+              : undefined,
+          });
+          geneticAttachments = ctx.attachments;
+          if (ctx.skippedReasons.length > 0) {
+            console.warn('[holistic] DMIT context skip:', ctx.skippedReasons.join(' | '));
+          }
+          console.log(`[holistic] ${ctx.count} adet DMIT PDF AI context'ine yüklendi.`);
+        } catch (e) {
+          console.warn('[holistic] DMIT context yükleme hatası:', (e as Error).message);
+        }
+      }
+
+      const report = await generateAIReport(prompt, {
+        maxTokens: 32000,
+        pdfAttachments: geneticAttachments.length > 0 ? geneticAttachments : undefined,
+      });
 
       // holistic_reports tablosuna YENİ KAYIT olarak ekle (üzerine yazmaz, geçmiş korunur)
       const { data: inserted, error: saveErr } = await admin

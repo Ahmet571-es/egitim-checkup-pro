@@ -29,7 +29,7 @@ export interface PackageReportContext {
 // ═══════════════════════════════════════════════════════════════
 //   ÖĞRETMEN VERSİYONU — tam veri + akademik
 // ═══════════════════════════════════════════════════════════════
-export function buildTeacherPackageReport(ctx: PackageReportContext): string {
+export function buildTeacherPackageReport(ctx: PackageReportContext, hasGeneticPdf: boolean = false): string {
   const { studentName, studentGrade, packageDef, testData } = ctx;
 
   const gradeText = studentGrade ? `${studentGrade}. sınıf` : 'sınıf bilgisi yok';
@@ -57,6 +57,17 @@ Hedef: ${packageDef.audience_focus}
 ═══ Test Verileri ═══
 
 ${testBlocks}
+${hasGeneticPdf ? `
+
+═══ 🧬 Genetik Analiz (DMIT) — Bu Mesajda Ekli PDF ═══
+
+Bu öğrencinin **DMIT (Dermatoglifik Çoklu Zekâ) raporu** bu mesajda PDF eki olarak ekli. PDF'in TAM İÇERİĞİNE erişebiliyorsun. DMIT, parmak izi desenlerinden doğuştan gelen beyin lateralitesi, çoklu zekâ alanları, öğrenme stili ve mesleki yatkınlık eğilimlerini ortaya koyar.
+
+DMIT'i raporda kullanma biçimin:
+- "DMIT Genetik Profili Bulguları" alt başlığı altında PDF'teki spesifik sayılara (yüzdeler, lateralite oranı, baskın zekâ alanları) atıfta bulun
+- "Bütüncül Yorum" bölümünde DMIT bulgularını yapılan psikometrik testlerle ÇAPRAZ analiz et: hangileri uyumlu, hangileri çelişkili
+- Doğuştan yatkınlık (DMIT) vs gelişmiş profil (psikometrik) ayrımını kullanarak öğrencinin doğal güçlü alanını ve gelişim potansiyelini yorumla
+- Olasılıksal dil zorunlu: "yatkınlığını işaret ediyor", "...eğilim olarak görünüyor"` : ''}
 
 ═══ Yazım Kuralları (Sıkı) ═══
 
@@ -65,7 +76,7 @@ ${testBlocks}
 3. **Yapı:**
    ## Genel Değerlendirme (1-2 paragraf)
    ## Test Bazlı Bulgular (her test için 1 paragraf, skor detayları + yorum)
-   ## Bütüncül Yorum (paketin amacına göre testler arası bağlantı, 2-3 paragraf)
+   ${hasGeneticPdf ? '## DMIT Genetik Profili Bulguları (PDF\'ten okunan spesifik veriler)\n   ' : ''}## Bütüncül Yorum (paketin amacına göre testler arası bağlantı${hasGeneticPdf ? ' + DMIT çapraz analizi' : ''}, 2-3 paragraf)
    ## Sınıf İçi Pratik Tavsiyeler (madde halinde 5-7 öneri)
    ## Önerilen Takip ve Değerlendirme (madde halinde 3-5)
 4. **Ton:**
@@ -74,7 +85,7 @@ ${testBlocks}
 5. **Skor referansları:** Tam veri sende, sayısal skorlara doğrudan referans ver.
 6. **Kesin teşhis YASAK:** "X bozukluğu var" demek yerine "Test bulguları X yönünde işaretler veriyor, profesyonel değerlendirme önerilir".
 7. **Norm referans:** Standart ölçek norm değerleri varsa istatistiksel referans ver.
-8. **Uzunluk:** 800-1200 kelime.
+8. **Uzunluk:** ${hasGeneticPdf ? '1000-1500' : '800-1200'} kelime.
 
 Markdown başlıkları (## ###) kullan, akıcı Türkçe yaz.`;
 }

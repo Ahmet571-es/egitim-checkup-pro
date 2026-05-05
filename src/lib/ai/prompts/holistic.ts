@@ -107,17 +107,31 @@ ${JSON.stringify(testDataList, null, 2)}
 \`\`\`
 ${advancedSection}${hasGeneticReport ? `
 
-## GENETİK ANALİZ (DMIT) NOTU
+## 🧬 GENETİK ANALİZ (DMIT) — BU MESAJDA EKLİ PDF'(LER)
 
-Bu öğrencinin ${geneticReportCount && geneticReportCount > 1 ? `${geneticReportCount} adet ` : ''}**Dermatoglifik Çoklu Zekâ (DMIT) raporu** sisteme yüklenmiştir. DMIT raporu PDF olarak bu raporun sonuna **otomatik ek** olarak gömülecektir — sen ham veriye erişemiyorsun, sadece varlığından haberdarsın.
+Bu öğrencinin ${geneticReportCount && geneticReportCount > 1 ? `${geneticReportCount} adet ` : ''}**Dermatoglifik Çoklu Zekâ (DMIT) raporu** bu mesajda **PDF eki olarak ekli**. Sen bu PDF'in TAM İÇERİĞİNE erişebiliyorsun — oku, çözümle, bulgularını çıkar.
 
-DMIT, parmak izi desenlerinden öğrencinin doğuştan gelen baskın zekâ tipini, beyin lateralitesini, öğrenme stilini ve potansiyel mesleki eğilimlerini ortaya koyan bir analizdir.
+DMIT raporu, parmak izi desenlerinden öğrencinin doğuştan gelen:
+- Beyin lateralitesi (sağ/sol baskınlığı)
+- Çoklu Zekâ alanları (8 zekâ türü dağılımı)
+- Öğrenme stili (görsel/işitsel/kinestetik vb.)
+- Mesleki yatkınlık eğilimleri
+verilerini ortaya koyar.
 
-Raporunda bu bilgiyi şöyle değerlendir:
-- "DMIT Genetik Profili" başlıklı kısa bir bölüm aç (en az 1 paragraf)
-- "Öğrencinin DMIT raporu rapor sonunda PDF eki olarak yer almaktadır. Bu rapor, doğuştan gelen yatkınlıkları (beyin lateralitesi, baskın zekâ alanları) ortaya koyar — yapılan psikometrik testlerle ÇAPRAZ değerlendirildiğinde daha bütünsel bir profil sunar." şeklinde yönlendir
-- Diğer testlerle DMIT'in nasıl tamamlayıcı olduğunu kavramsal düzeyde açıkla
-- DMIT verisinin spesifik içeriğine atıfta BULUNMA (sen görmüyorsun) — sadece varlığını ve okuyucuya yol gösterici notu yaz` : ''}
+### DMIT'i raporda KULLANMA biçimin:
+
+1. **"DMIT Genetik Profili Bulguları" başlıklı bir bölüm aç** — DMIT raporundaki SPESİFİK bulguları (yüzdeler, baskın alanlar, lateralite oranları) okuyup özetle. Genel-geçer ifade YASAK; PDF'teki gerçek sayılara atıfta bulun.
+
+2. **ÇAPRAZ ANALİZ — en kritik bölüm:** DMIT bulgularını yapılan psikometrik testlerle yan yana koy. Şu sorulara cevap ver:
+   - DMIT'in baskın zekâ alanları, Çoklu Zekâ testindeki puanlarla **uyuşuyor mu, çelişiyor mu?**
+   - DMIT'in öğrenme stili profili, VARK testinin sonuçlarıyla **örtüşüyor mu?**
+   - DMIT lateralite oranı (sağ/sol beyin), Sağ-Sol Beyin testindeki sonuçla **paralel mi?**
+   - DMIT mesleki eğilimleri, Holland RIASEC veya Enneagram bulgularıyla **tutarlı mı?**
+   Her çapraz okuma "DMIT %X — Çoklu Zekâ %Y → uyumlu/uyumsuz" şeklinde sayısal kanıtla yapılmalı.
+
+3. **DOĞUŞTAN vs ÖĞRENİLMİŞ ayrımı:** DMIT doğuştan yatkınlığı gösterir; psikometrik testler mevcut/gelişen profili. Aralarındaki örtüşme öğrencinin doğal yetenek alanını, çelişki ise ya henüz gelişmemiş potansiyeli ya da çevresel etkileri işaret edebilir. Bu farklılığı raporda yorumla.
+
+4. **OLASILIKSAL DİL ZORUNLU:** DMIT yorumlarında "kesinlikle", "her zaman", "olacak" yerine "...yatkınlığını işaret ediyor", "...eğiliminde olabilir", "...desteklenebilir bir potansiyel olarak görünüyor" tarzı ifadeler kullan. DMIT bilimsel destekli ama deterministik değildir.` : ''}
 ---
 
 # KRİTİK KURALLAR

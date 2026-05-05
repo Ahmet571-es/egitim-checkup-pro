@@ -14,6 +14,13 @@ interface IntegratedReportParams {
   testDataList: Array<{ test_name: string; scores: Record<string, unknown>; date?: string }>;
   reportType: IntegratedReportType;
   studentGrade?: number | string | null;
+  /**
+   * DMIT (genetik) PDF AI mesajına ek olarak gönderildi mi?
+   * KVKK m.6: SADECE 'ogretmen' reportType için true olabilir.
+   * 'ogrenci' ve 'ebeveyn' versiyonlarında bu false olmalı.
+   */
+  hasGeneticContext?: boolean;
+  geneticReportCount?: number;
 }
 
 // Testlerin doğru sıralaması (Potansiyel Analiz → Mevcut Durum)
@@ -35,7 +42,7 @@ const INTEGRATED_TEST_ORDER = [
 ];
 
 export function buildIntegratedReportPrompt(params: IntegratedReportParams): string {
-  const { studentName, studentAge, studentGender, testDataList, reportType, studentGrade } = params;
+  const { studentName, studentAge, studentGender, testDataList, reportType, studentGrade, hasGeneticContext, geneticReportCount } = params;
   const gradeText = studentGrade ? `, ${studentGrade}. sınıf öğrencisi` : '';
 
   const audienceConfig = {
@@ -134,6 +141,27 @@ Aşağıdaki listede sadece öğrencinin ÇÖZÜMÜŞ olduğu testler var. Eğer
 \`\`\`json
 ${JSON.stringify(testDataList, null, 2)}
 \`\`\`
+${hasGeneticContext && reportType === 'ogretmen' ? `
+
+## 🧬 GENETİK ANALİZ (DMIT) — BU MESAJDA EKLİ PDF'(LER)
+
+Bu öğrencinin ${geneticReportCount && geneticReportCount > 1 ? `${geneticReportCount} adet ` : ''}**Dermatoglifik Çoklu Zekâ (DMIT) raporu** bu mesajda **PDF eki olarak ekli**. Sen bu PDF'in TAM İÇERİĞİNE erişebiliyorsun.
+
+DMIT, parmak izi desenlerinden öğrencinin doğuştan gelen beyin lateralitesi (sağ/sol baskınlığı), Çoklu Zekâ alanları, öğrenme stili ve mesleki yatkınlık eğilimlerini ortaya koyar.
+
+### DMIT'i raporda KULLANMA biçimin:
+
+1. **DMIT bulgularını tam okuyup yansıt** — yüzdeler, baskın alanlar, lateralite oranları gibi spesifik sayılara atıfta bulun. Genel ifade ("DMIT raporu var") yetersiz; gerçek sayıları kullan.
+
+2. **ÇAPRAZ ANALİZ — kritik:** DMIT'in doğuştan gelen yatkınlık verisini, yapılan psikometrik testlerin (VARK, Çoklu Zekâ, Sağ-Sol Beyin, Holland) sonuçlarıyla **yan yana koy**. Şu sorulara cevap ver:
+   - DMIT'in öğrenme stili profili VARK ile **örtüşüyor mu? Çelişiyor mu?**
+   - DMIT lateralite oranı, Sağ-Sol Beyin testi sonucuyla **paralel mi?**
+   - DMIT mesleki eğilimleri, Holland RIASEC bulgularıyla **tutarlı mı?**
+   Her çapraz okuma sayısal kanıtla yapılmalı: "DMIT %X — VARK %Y → uyumlu/uyumsuz".
+
+3. **DOĞUŞTAN vs ÖĞRENİLMİŞ** ayrımı: DMIT doğuştan yatkınlığı gösterir; psikometrik testler mevcut/gelişmiş profili. Aralarındaki örtüşme öğrencinin doğal güçlü alanını, çelişki ise henüz gelişmemiş potansiyeli ya da çevresel etkileri işaret edebilir.
+
+4. **OLASILIKSAL DİL ZORUNLU:** "Kesinlikle", "her zaman" yerine "...yatkınlığını işaret ediyor", "...eğilim olarak görünüyor" tarzı ifadeler. DMIT bilimsel destekli ama deterministik değildir.` : ''}
 
 ## ÇAPRAZ KORELASYON VERİLERİ (FAZ 2)
 Eğer birden fazla test çözülmüşse, testler arası şu bağlantıları kontrol et ve raporuna dahil et:

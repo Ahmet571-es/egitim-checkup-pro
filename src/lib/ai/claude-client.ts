@@ -24,11 +24,24 @@ export function getClaudeClient(): Anthropic | null {
   return _client;
 }
 
+export interface PdfAttachment {
+  /** Dosya adı (Claude'a title olarak gönderilir) */
+  filename: string;
+  /** PDF dosyasının base64 encoded içeriği (data: prefix YOK, sadece base64) */
+  base64: string;
+}
+
 export interface GenerateOptions {
   maxTokens?: number;
   temperature?: number;
   /** Kesilme durumunda otomatik devam çağrısı yap (default: true) */
   enableContinuation?: boolean;
+  /**
+   * PDF ekleri — Claude'un Anthropic SDK document content block özelliğiyle
+   * PDF içeriğini OKUYABİLİR. DMIT (genetik) raporları gibi.
+   * KVKK: bu parametre SADECE öğretmen audience'lı raporlarda kullanılmalı.
+   */
+  pdfAttachments?: PdfAttachment[];
 }
 
 /**
@@ -111,6 +124,24 @@ export async function generateAIReport(
   const maxTokens = options.maxTokens ?? DEFAULT_MAX_TOKENS;
   const temperature = options.temperature ?? 0.3;
   const enableContinuation = options.enableContinuation ?? true;
+  const pdfAttachments = options.pdfAttachments ?? [];
+
+  // Mesaj içeriğini hazırla — PDF varsa array of blocks, yoksa düz string
+  // Anthropic SDK: type='document' + source={type:'base64', media_type:'application/pdf', data}
+  const messageContent = pdfAttachments.length > 0
+    ? [
+        ...pdfAttachments.map((att) => ({
+          type: 'document' as const,
+          source: {
+            type: 'base64' as const,
+            media_type: 'application/pdf' as const,
+            data: att.base64,
+          },
+          title: att.filename,
+        })),
+        { type: 'text' as const, text: prompt },
+      ]
+    : prompt;
 
   let lastError = '';
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
@@ -122,7 +153,8 @@ export async function generateAIReport(
         model: CLAUDE_MODEL,
         max_tokens: maxTokens,
         temperature,
-        messages: [{ role: 'user', content: prompt }],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        messages: [{ role: 'user', content: messageContent as any }],
       });
 
       const response = await stream.finalMessage();

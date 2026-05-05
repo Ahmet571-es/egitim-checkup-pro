@@ -174,11 +174,48 @@ export async function POST(request: NextRequest) {
       testDataList,
     };
 
+    // ═══ DMIT (genetik) PDF'lerini yükle — SADECE ogretmen versiyonunda kullanılacak ═══
+    // KVKK m.6: ham genetik veri öğretmen audience dışına gönderilemez.
+    let geneticAttachments: import('@/lib/ai/claude-client').PdfAttachment[] = [];
+    let geneticCount = 0;
+    if ((report_types as IntegratedReportType[]).includes('ogretmen')) {
+      try {
+        const { count } = await admin
+          .from('genetic_reports')
+          .select('id', { count: 'exact', head: true })
+          .eq('student_id', student.id);
+        geneticCount = count || 0;
+
+        if (geneticCount > 0) {
+          const { fetchGeneticContext } = await import('@/lib/ai/genetic-context');
+          const ctx = await fetchGeneticContext(student.id);
+          geneticAttachments = ctx.attachments;
+          if (ctx.skippedReasons.length > 0) {
+            console.warn('[integrated] DMIT context skip:', ctx.skippedReasons.join(' | '));
+          }
+          console.log(`[integrated] ${ctx.count} adet DMIT PDF AI context'ine yüklendi (sadece ogretmen).`);
+        }
+      } catch (e) {
+        console.warn('[integrated] DMIT context yükleme hatası:', (e as Error).message);
+      }
+    }
+
     // 3 raporu paralel uret (Vercel Hobby 60s limiti icin)
     const reports: Record<string, string> = {};
     const genPromises = (report_types as IntegratedReportType[]).map(async (reportType) => {
-      const prompt = buildIntegratedReportPrompt({ ...baseParams, reportType });
-      const text = await generateAIReport(prompt, { maxTokens: 16000 });
+      const isTeacher = reportType === 'ogretmen';
+      const prompt = buildIntegratedReportPrompt({
+        ...baseParams,
+        reportType,
+        // KVKK: DMIT context flag SADECE ogretmen'de true
+        hasGeneticContext: isTeacher && geneticAttachments.length > 0,
+        geneticReportCount: isTeacher ? geneticCount : 0,
+      });
+      const text = await generateAIReport(prompt, {
+        maxTokens: 16000,
+        // KVKK: PDF ekleri SADECE ogretmen audience'a
+        pdfAttachments: isTeacher && geneticAttachments.length > 0 ? geneticAttachments : undefined,
+      });
       reports[reportType] = text;
     });
     await Promise.all(genPromises);
@@ -371,10 +408,39 @@ export async function PUT(request: NextRequest) {
     };
 
     const reportTypes: IntegratedReportType[] = ['ogretmen', 'ogrenci', 'ebeveyn'];
+
+    // ═══ DMIT yükle (sadece ogretmen versiyonunda kullanılacak) ═══
+    let geneticAttachmentsPut: import('@/lib/ai/claude-client').PdfAttachment[] = [];
+    let geneticCountPut = 0;
+    try {
+      const { count } = await admin
+        .from('genetic_reports')
+        .select('id', { count: 'exact', head: true })
+        .eq('student_id', student.id);
+      geneticCountPut = count || 0;
+      if (geneticCountPut > 0) {
+        const { fetchGeneticContext } = await import('@/lib/ai/genetic-context');
+        const ctx = await fetchGeneticContext(student.id);
+        geneticAttachmentsPut = ctx.attachments;
+        console.log(`[integrated:PUT] ${ctx.count} adet DMIT PDF AI context'ine yüklendi (sadece ogretmen).`);
+      }
+    } catch (e) {
+      console.warn('[integrated:PUT] DMIT context yükleme hatası:', (e as Error).message);
+    }
+
     const reports: Record<string, string> = {};
     await Promise.all(reportTypes.map(async (reportType) => {
-      const prompt = buildIntegratedReportPrompt({ ...baseParams, reportType });
-      reports[reportType] = await generateAIReport(prompt, { maxTokens: 16000 });
+      const isTeacher = reportType === 'ogretmen';
+      const prompt = buildIntegratedReportPrompt({
+        ...baseParams,
+        reportType,
+        hasGeneticContext: isTeacher && geneticAttachmentsPut.length > 0,
+        geneticReportCount: isTeacher ? geneticCountPut : 0,
+      });
+      reports[reportType] = await generateAIReport(prompt, {
+        maxTokens: 16000,
+        pdfAttachments: isTeacher && geneticAttachmentsPut.length > 0 ? geneticAttachmentsPut : undefined,
+      });
     }));
 
     // Admin client ile kaydet (RLS bypass)

@@ -217,12 +217,35 @@ export async function POST(request: NextRequest) {
     };
 
     // ── 3 versiyonu PARALEL üret (Promise.all) ──
-    const teacherPrompt = buildTeacherPackageReport(ctx);
+    // ═══ DMIT (genetik) PDF'lerini yükle — SADECE teacher prompt'a ek olacak ═══
+    // KVKK m.6: parent ve student AI promptlarına ham genetik veri YOLLANMAZ.
+    let pkgGeneticAttachments: import('@/lib/ai/claude-client').PdfAttachment[] = [];
+    if (pkg.uses_genetic) {
+      try {
+        const { fetchGeneticContext } = await import('@/lib/ai/genetic-context');
+        const ctx2 = await fetchGeneticContext(studentId);
+        pkgGeneticAttachments = ctx2.attachments;
+        if (ctx2.skippedReasons.length > 0) {
+          console.warn('[package/generate] DMIT context skip:', ctx2.skippedReasons.join(' | '));
+        }
+        console.log(`[package/generate] ${ctx2.count} adet DMIT PDF teacher prompt'a yüklendi.`);
+      } catch (e) {
+        console.warn('[package/generate] DMIT context yükleme hatası:', (e as Error).message);
+      }
+    }
+
+    const teacherPrompt = buildTeacherPackageReport(ctx, pkgGeneticAttachments.length > 0);
     const parentPrompt = buildParentPackageReport(ctx, callerProfile.full_name || undefined);
     const studentPrompt = buildStudentPackageReport(ctx);
 
     const [teacherText, parentText, studentText] = await Promise.all([
-      generateAIReport(teacherPrompt, { maxTokens: 4000, temperature: 0.4, enableContinuation: true }),
+      generateAIReport(teacherPrompt, {
+        maxTokens: 4000,
+        temperature: 0.4,
+        enableContinuation: true,
+        // KVKK: PDF SADECE teacher audience'a
+        pdfAttachments: pkgGeneticAttachments.length > 0 ? pkgGeneticAttachments : undefined,
+      }),
       generateAIReport(parentPrompt, { maxTokens: 3000, temperature: 0.4, enableContinuation: true }),
       generateAIReport(studentPrompt, { maxTokens: 2000, temperature: 0.5, enableContinuation: false }),
     ]);
