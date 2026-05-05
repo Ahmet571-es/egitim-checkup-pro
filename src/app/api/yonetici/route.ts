@@ -739,6 +739,151 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // ═══ ŞİFRE SIFIRLAMA (proaktif + talep yönetimi)
+    // ═══════════════════════════════════════════════════════════
+
+    // Yardımcı: güçlü rastgele şifre üret (büyük/küçük/rakam karışık, okunması kolay)
+    function generateRandomPassword(): string {
+      // Karışıklığı azaltmak için 0/O, 1/I/l atılır
+      const upper = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+      const lower = 'abcdefghjkmnpqrstuvwxyz';
+      const digits = '23456789';
+      const all = upper + lower + digits;
+
+      // Crypto random
+      const cryptoObj = (globalThis as { crypto?: Crypto }).crypto || require('crypto').webcrypto;
+      const buf = new Uint8Array(12);
+      cryptoObj.getRandomValues(buf);
+
+      // En az 1 büyük + 1 küçük + 2 rakam garantisi
+      const pick = (set: string, idx: number) => set[buf[idx] % set.length];
+      const chars = [
+        pick(upper, 0),
+        pick(lower, 1),
+        pick(digits, 2),
+        pick(digits, 3),
+        ...Array.from({ length: 6 }, (_, i) => pick(all, i + 4)),
+      ];
+
+      // Karıştır
+      for (let i = chars.length - 1; i > 0; i--) {
+        const j = buf[i] % (i + 1);
+        [chars[i], chars[j]] = [chars[j], chars[i]];
+      }
+
+      // 4'lü gruplar (örn: K9mX-q2Pw-t7As)
+      const raw = chars.join('');
+      return `${raw.slice(0, 4)}-${raw.slice(4, 8)}-${raw.slice(8, 12)}`;
+    }
+
+    // ═══ Belirli bir kullanıcının şifresini sıfırla, yeni şifreyi geri döndür ═══
+    if (action === 'reset-user-password') {
+      const { userId } = body;
+      if (!userId) return NextResponse.json({ error: 'userId gerekli' }, { status: 400 });
+
+      // Kullanıcıyı bul (loglama / metadata için)
+      const { data: { user }, error: getErr } = await supabase.auth.admin.getUserById(userId);
+      if (getErr || !user) {
+        return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 });
+      }
+
+      // Şifre üret + güncelle
+      const newPassword = generateRandomPassword();
+      const { error: updErr } = await supabase.auth.admin.updateUserById(userId, {
+        password: newPassword,
+      });
+      if (updErr) {
+        return NextResponse.json({ error: updErr.message }, { status: 500 });
+      }
+
+      // Eğer bu kullanıcı için bekleyen şifre talebi varsa otomatik resolve et
+      try {
+        await supabase
+          .from('password_reset_requests')
+          .update({
+            status: 'resolved',
+            resolved_at: new Date().toISOString(),
+            notes: 'Yönetici master panel üzerinden sıfırlandı',
+          })
+          .eq('user_id', userId)
+          .eq('status', 'pending');
+      } catch { /* tablo veya kayıt yoksa sessizce geç */ }
+
+      return NextResponse.json({
+        success: true,
+        new_password: newPassword,
+        user: {
+          id: user.id,
+          email: user.email,
+          full_name: (user.user_metadata?.full_name as string) || '—',
+          role: (user.user_metadata?.role as string) || '—',
+        },
+      });
+    }
+
+    // ═══ Şifre Talepleri listesini getir ═══
+    if (action === 'list-password-requests') {
+      const { status: statusFilter } = body;
+      const { data: requests, error } = await supabase
+        .from('password_reset_requests')
+        .select('*')
+        .eq('status', statusFilter || 'pending')
+        .order('created_at', { ascending: false })
+        .limit(200);
+
+      if (error) {
+        // Tablo yoksa boş döndür
+        if (error.code === 'PGRST205' || error.message?.includes('does not exist')) {
+          return NextResponse.json({ requests: [] });
+        }
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      // user_id'leri alıp profilleri çek (rol bilgisi için)
+      const userIds = Array.from(new Set((requests || []).map(r => r.user_id).filter(Boolean) as string[]));
+      let userMap = new Map<string, { full_name: string; role: string; email: string }>();
+      if (userIds.length > 0) {
+        const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+        (users || []).forEach(u => {
+          if (userIds.includes(u.id)) {
+            userMap.set(u.id, {
+              full_name: (u.user_metadata?.full_name as string) || '—',
+              role: (u.user_metadata?.role as string) || '—',
+              email: u.email || '—',
+            });
+          }
+        });
+      }
+
+      const enriched = (requests || []).map(r => ({
+        ...r,
+        user_full_name: r.user_id ? (userMap.get(r.user_id)?.full_name || '—') : '—',
+        user_role: r.user_id ? (userMap.get(r.user_id)?.role || '—') : '—',
+        user_email: r.user_id ? (userMap.get(r.user_id)?.email || r.email || '—') : (r.email || '—'),
+      }));
+
+      return NextResponse.json({ requests: enriched });
+    }
+
+    // ═══ Şifre Talebini İptal Et (kullanıcı kendi vazgeçti veya geçersiz) ═══
+    if (action === 'cancel-password-request') {
+      const { requestId, notes } = body;
+      if (!requestId) return NextResponse.json({ error: 'requestId gerekli' }, { status: 400 });
+
+      const { error } = await supabase
+        .from('password_reset_requests')
+        .update({
+          status: 'cancelled',
+          resolved_at: new Date().toISOString(),
+          notes: (notes || 'İptal edildi').slice(0, 500),
+        })
+        .eq('id', requestId);
+
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ success: true });
+    }
+
     return NextResponse.json({ error: 'Geçersiz action' }, { status: 400 });
   } catch (err) {
     console.error('[yonetici API]', err);

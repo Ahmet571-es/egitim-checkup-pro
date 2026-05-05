@@ -169,6 +169,29 @@ export default function YoneticiPage() {
   const [filterTestTypeAT, setFilterTestTypeAT] = useState<string>('all');
   const [filterTestTypeAR, setFilterTestTypeAR] = useState<string>('all');
 
+  // ═══ Şifre Sıfırlama state ═══
+  type PasswordResetResult = {
+    new_password: string;
+    user: { id: string; email: string; full_name: string; role: string };
+  };
+  type PasswordRequest = {
+    id: string;
+    user_id: string | null;
+    email: string;
+    role: string;
+    status: string;
+    created_at: string;
+    user_full_name?: string;
+    user_role?: string;
+    user_email?: string;
+    notes?: string | null;
+  };
+  const [passwordResult, setPasswordResult] = useState<PasswordResetResult | null>(null);
+  const [passwordCopied, setPasswordCopied] = useState(false);
+  const [passwordRequests, setPasswordRequests] = useState<PasswordRequest[]>([]);
+  const [searchPR, setSearchPR] = useState('');
+  const [filterPRStatus, setFilterPRStatus] = useState<'pending' | 'resolved' | 'cancelled'>('pending');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -550,6 +573,86 @@ export default function YoneticiPage() {
     try {
       const data = await apiCall(pw, 'list-all-reports');
       setAllReports(data.reports || []);
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+
+  // ═══ Şifre Sıfırlama ═══
+  const resetUserPassword = async (userId: string, displayName: string) => {
+    const ok = await confirm({
+      variant: 'warning',
+      title: 'Şifre sıfırlansın mı?',
+      description: `${displayName} kullanıcısının şifresi yeni bir geçici şifre ile değiştirilecek. Eski şifre artık çalışmayacak. Yeni şifreyi modal'da görüp kullanıcıya ileteceksiniz. Devam edilsin mi?`,
+      confirmLabel: 'Evet, Yeni Şifre Üret',
+    });
+    if (!ok) return;
+    setLoading(true);
+    setError('');
+    try {
+      const data = await apiCall(storedPw(), 'reset-user-password', { userId });
+      setPasswordResult({
+        new_password: data.new_password,
+        user: data.user,
+      });
+      setPasswordCopied(false);
+      // Şifre talepleri listesini de yenile (varsa o kullanıcıdan beklemede olan)
+      if (view === 'password-requests') {
+        loadPasswordRequests(storedPw(), filterPRStatus);
+      }
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+
+  const copyPasswordToClipboard = async () => {
+    if (!passwordResult) return;
+    try {
+      await navigator.clipboard.writeText(passwordResult.new_password);
+      setPasswordCopied(true);
+      setTimeout(() => setPasswordCopied(false), 2500);
+    } catch {
+      // fallback: select+copy
+      const ta = document.createElement('textarea');
+      ta.value = passwordResult.new_password;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      setPasswordCopied(true);
+      setTimeout(() => setPasswordCopied(false), 2500);
+    }
+  };
+
+  const loadPasswordRequests = async (pw: string, status: 'pending' | 'resolved' | 'cancelled') => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await apiCall(pw, 'list-password-requests', { status });
+      setPasswordRequests(data.requests || []);
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+
+  const cancelPasswordRequest = async (requestId: string) => {
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Talebi iptal et?',
+      description: 'Talep iptal edilmiş olarak işaretlenecek. Kullanıcının şifresi DEĞİŞTİRİLMEZ. Bu işlem yalnızca talebi listeden kaldırır.',
+      confirmLabel: 'Evet, İptal Et',
+    });
+    if (!ok) return;
+    setLoading(true);
+    setError('');
+    try {
+      await apiCall(storedPw(), 'cancel-password-request', { requestId });
+      setSuccessMsg('Talep iptal edildi.');
+      setTimeout(() => setSuccessMsg(''), 3000);
+      loadPasswordRequests(storedPw(), filterPRStatus);
     } catch (e: unknown) {
       setError((e as Error).message);
     }
@@ -1046,6 +1149,19 @@ export default function YoneticiPage() {
               </button>
             </div>
           </div>
+
+          {/* Şifre Yönetimi */}
+          <div>
+            <div className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <Lock className="w-3 h-3" /> Şifre Yönetimi
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button onClick={() => { setView('password-requests'); loadPasswordRequests(storedPw(), 'pending'); setFilterPRStatus('pending'); }}
+                className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all ${view === 'password-requests' ? 'bg-orange-100 text-orange-700 ring-1 ring-orange-300' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-300'}`}>
+                Şifre Talepleri
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Breadcrumb (detay sayfaları için) */}
@@ -1379,6 +1495,10 @@ export default function YoneticiPage() {
                           className="shrink-0 py-1.5 px-3 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 border border-violet-200 transition-all flex items-center gap-1 disabled:opacity-60">
                           <UserPlus className="w-3.5 h-3.5" /> {u.assigned_teacher_id ? 'Değiştir' : 'Ata'}
                         </button>
+                        <button onClick={() => resetUserPassword(u.id, u.full_name)} disabled={loading}
+                          className="shrink-0 py-1.5 px-3 rounded-lg bg-orange-50 text-orange-700 text-xs font-semibold hover:bg-orange-100 border border-orange-200 transition-all flex items-center gap-1 disabled:opacity-60">
+                          <Lock className="w-3.5 h-3.5" /> Şifre Sıfırla
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -1440,6 +1560,10 @@ export default function YoneticiPage() {
                             {u.phone}
                           </div>
                         </div>
+                        <button onClick={() => resetUserPassword(u.id, u.full_name)} disabled={loading}
+                          className="shrink-0 py-1.5 px-3 rounded-lg bg-orange-50 text-orange-700 text-xs font-semibold hover:bg-orange-100 border border-orange-200 transition-all flex items-center gap-1 disabled:opacity-60">
+                          <Lock className="w-3.5 h-3.5" /> Şifre Sıfırla
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -1701,6 +1825,127 @@ export default function YoneticiPage() {
           );
         })()}
 
+        {/* ═══ VIEW: Password Requests ═══ */}
+        {view === 'password-requests' && (() => {
+          const filtered = passwordRequests.filter(r => {
+            if (!searchPR) return true;
+            const q = searchPR.toLowerCase();
+            return (r.user_full_name || '').toLowerCase().includes(q)
+              || (r.user_email || r.email || '').toLowerCase().includes(q);
+          });
+          const roleLabel = (role: string) => ({
+            student: 'Öğrenci', teacher: 'Öğretmen', parent: 'Veli', school_admin: 'Okul Yöneticisi',
+          } as Record<string, string>)[role] || role;
+          const statusLabel = (s: string) => ({
+            pending: 'Bekliyor', resolved: 'Çözüldü', cancelled: 'İptal',
+          } as Record<string, string>)[s] || s;
+
+          return (
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h2 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100">Şifre Talepleri</h2>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-400 dark:text-slate-500 font-medium">{filtered.length} talep</span>
+                  <button onClick={() => loadPasswordRequests(storedPw(), filterPRStatus)} className="text-sm text-orange-600 font-semibold hover:underline">Yenile</button>
+                </div>
+              </div>
+
+              {/* Bilgi kutusu */}
+              <div className="mb-4 p-3 rounded-xl bg-orange-50 border border-orange-200 text-[12px] text-orange-800">
+                <strong>Bilgi:</strong> Kullanıcı &quot;Şifremi Unuttum&quot; sayfasından talepte bulunduğunda burada görünür.
+                &quot;Şifre Üret&quot; tek tıkla yeni geçici şifre oluşturur — modal&apos;da göreceksin, kopyalayıp kullanıcıya iletirsin.
+                İstediğin zaman &quot;Kayıtlı Öğrenci/Öğretmen/Veli&quot; listelerinde de talep beklemeden şifre sıfırlayabilirsin.
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input type="text" value={searchPR} onChange={e => setSearchPR(e.target.value)}
+                    placeholder="İsim veya e-posta ile ara..."
+                    className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
+                </div>
+                <select value={filterPRStatus}
+                  onChange={e => {
+                    const newStatus = e.target.value as 'pending' | 'resolved' | 'cancelled';
+                    setFilterPRStatus(newStatus);
+                    loadPasswordRequests(storedPw(), newStatus);
+                  }}
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                  <option value="pending">Bekleyen Talepler</option>
+                  <option value="resolved">Çözülmüş Talepler</option>
+                  <option value="cancelled">İptal Edilmiş Talepler</option>
+                </select>
+              </div>
+
+              {loading ? (
+                <div className="text-center py-20 text-gray-400 dark:text-slate-500">Yükleniyor...</div>
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-20">
+                  <Lock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-400 dark:text-slate-500">
+                    {filterPRStatus === 'pending' ? 'Bekleyen şifre talebi yok.' :
+                     filterPRStatus === 'resolved' ? 'Çözülmüş talep yok.' : 'İptal edilmiş talep yok.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-2">
+                  {filtered.map(r => {
+                    const roleColors: Record<string, string> = {
+                      student: 'bg-violet-100 text-violet-700',
+                      teacher: 'bg-emerald-100 text-emerald-700',
+                      parent: 'bg-pink-100 text-pink-700',
+                      school_admin: 'bg-amber-100 text-amber-700',
+                    };
+                    const userRole = r.user_role || r.role;
+                    return (
+                      <div key={r.id} className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-xl border border-orange-200 p-3 shadow-sm">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-bold text-sm text-[#0f2847] dark:text-slate-100">{r.user_full_name || '—'}</p>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${roleColors[userRole] || 'bg-gray-100 text-gray-700'}`}>
+                                {roleLabel(userRole)}
+                              </span>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                r.status === 'pending' ? 'bg-orange-100 text-orange-700' :
+                                r.status === 'resolved' ? 'bg-emerald-100 text-emerald-700' :
+                                'bg-gray-100 text-gray-600'
+                              }`}>
+                                {statusLabel(r.status)}
+                              </span>
+                            </div>
+                            <p className="text-[12px] text-gray-600 dark:text-slate-300 truncate">{r.user_email || r.email}</p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">
+                              Talep: {new Date(r.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                            {r.notes && r.status !== 'pending' && (
+                              <p className="text-[11px] text-gray-500 italic mt-0.5">Not: {r.notes}</p>
+                            )}
+                          </div>
+                          {r.status === 'pending' && r.user_id && (
+                            <div className="flex gap-2 shrink-0">
+                              <button onClick={() => resetUserPassword(r.user_id!, r.user_full_name || r.user_email || '—')}
+                                disabled={loading}
+                                className="py-2 px-3 rounded-lg bg-gradient-to-r from-orange-500 to-amber-600 text-white text-xs font-bold hover:from-orange-600 hover:to-amber-700 transition-all flex items-center gap-1.5 disabled:opacity-60">
+                                <Lock className="w-3.5 h-3.5" /> Şifre Üret
+                              </button>
+                              <button onClick={() => cancelPasswordRequest(r.id)}
+                                disabled={loading}
+                                className="py-2 px-3 rounded-lg bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 border border-red-200 transition-all flex items-center gap-1.5 disabled:opacity-60">
+                                <X className="w-3.5 h-3.5" /> İptal
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* ═══ VIEW: Teachers List ═══ */}
         {view === 'teachers' && (
           <div>
@@ -1787,7 +2032,12 @@ export default function YoneticiPage() {
                         </div>
                         <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
                       </button>
-                      <div className="ml-1 shrink-0">
+                      <div className="ml-1 shrink-0 flex items-center gap-1.5">
+                        <button onClick={(e) => { e.stopPropagation(); resetUserPassword(t.id, t.full_name); }} disabled={loading}
+                          title="Şifre Sıfırla"
+                          className="py-1.5 px-2.5 rounded-lg bg-orange-50 text-orange-700 text-xs font-semibold hover:bg-orange-100 border border-orange-200 transition-all flex items-center gap-1 disabled:opacity-60">
+                          <Lock className="w-3.5 h-3.5" /> Şifre
+                        </button>
                         <DeleteButton onDelete={() => handleDeleteUser(t.id, 'teacher')} label="Sil" />
                       </div>
                     </div>
@@ -2359,6 +2609,86 @@ export default function YoneticiPage() {
                 {loading
                   ? 'İşleniyor...'
                   : assignModalMode === 'approve' ? 'Onayla & Ata' : 'Atamayı Güncelle'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ ŞİFRE SIFIRLAMA SONUÇ MODAL (TEK SEFERLİK GÖSTERİM) ═══ */}
+      {passwordResult && (
+        <div
+          onClick={() => { setPasswordResult(null); setPasswordCopied(false); }}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-modal-in"
+          >
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg bg-gradient-to-br from-orange-500 to-amber-600">
+                <Lock className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-[16px] font-extrabold text-[#0f2847] dark:text-slate-100">Yeni Şifre Üretildi</h3>
+                <p className="text-[12px] text-gray-600 dark:text-slate-300 mt-0.5 truncate">
+                  {passwordResult.user.full_name} ({passwordResult.user.email})
+                </p>
+              </div>
+              <button
+                onClick={() => { setPasswordResult(null); setPasswordCopied(false); }}
+                className="text-gray-400 hover:text-gray-600 dark:text-slate-300 shrink-0">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Şifre kutusu */}
+            <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border-2 border-orange-300 rounded-2xl p-5 mb-4">
+              <p className="text-[10px] font-bold text-orange-700 uppercase tracking-wider mb-2">
+                Geçici Şifre — Tek Seferlik Gösterim
+              </p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 text-2xl font-bold font-mono text-[#0f2847] dark:text-slate-100 bg-white dark:bg-slate-900/50 px-4 py-3 rounded-xl border border-orange-200 select-all tracking-wider text-center">
+                  {passwordResult.new_password}
+                </code>
+                <button
+                  onClick={copyPasswordToClipboard}
+                  className={`shrink-0 p-3 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
+                    passwordCopied
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-orange-500 text-white hover:bg-orange-600'
+                  }`}
+                  title="Şifreyi kopyala"
+                >
+                  {passwordCopied ? <CheckCircle2 className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                </button>
+              </div>
+              {passwordCopied && (
+                <p className="text-[11px] text-emerald-600 font-bold mt-2 text-center">✓ Panoya kopyalandı</p>
+              )}
+            </div>
+
+            {/* Uyarı kutusu */}
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 rounded-xl p-3 mb-4">
+              <p className="text-[12px] text-amber-800 dark:text-amber-200 font-semibold flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>
+                  <strong>DİKKAT:</strong> Bu şifre yalnızca bir kez gösterilir. Modal kapatılırsa
+                  bir daha görünmez. Hemen kopyalayıp kullanıcıya iletin (WhatsApp/SMS/telefon).
+                  Tekrar lazım olursa yeni şifre üretmeniz gerekir.
+                </span>
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[11px] text-gray-500">
+                Kullanıcı bu şifre ile giriş yapacak, dilerse profilden değiştirir.
+              </p>
+              <button
+                onClick={() => { setPasswordResult(null); setPasswordCopied(false); }}
+                className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-slate-700/60 text-gray-700 dark:text-slate-300 text-[13px] font-bold hover:bg-gray-200 transition-all shrink-0"
+              >
+                Kapat
               </button>
             </div>
           </div>
