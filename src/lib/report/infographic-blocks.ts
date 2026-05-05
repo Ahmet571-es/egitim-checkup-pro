@@ -57,6 +57,31 @@ export interface BarsBlock {
   items: { label: string; value: number; max?: number }[];
 }
 
+export interface RadarBlock {
+  kind: 'radar';
+  title?: string;
+  /** En az 3 nokta gerekir; daha azsa bars'a düşer (parser kararı) */
+  items: { label: string; value: number; max?: number }[];
+}
+
+export interface GaugeZone {
+  label: string;
+  from: number;
+  to: number;
+  /** İsteğe bağlı zone rengi/teması — varsayılan from konumuna göre */
+  theme?: 'success' | 'warning' | 'danger' | 'info';
+}
+
+export interface GaugeBlock {
+  kind: 'gauge';
+  label: string;
+  value: number;
+  max: number;
+  /** Renkli kuşaklar (örn. düşük/orta/yüksek). Verilmezse 3 eşit dilim üretilir. */
+  zones?: GaugeZone[];
+  caption?: string;
+}
+
 export interface GridBlock {
   kind: 'grid';
   cols: 2 | 3 | 4;
@@ -68,6 +93,8 @@ export type InfographicBlock =
   | RingBlock
   | InsightBlock
   | BarsBlock
+  | RadarBlock
+  | GaugeBlock
   | GridBlock;
 
 /** Parse sonucunda metin parçaları (string) ile bloklar sıralı dönüyor. */
@@ -174,6 +201,60 @@ function parseGrid(attrStr: string, body: string): GridBlock | null {
   return { kind: 'grid', cols: cols as 2 | 3 | 4, children };
 }
 
+// ─── Radar (multi-line, bars-benzeri) ────────────────────────────────────────
+function parseRadar(attrStr: string, body: string): RadarBlock | null {
+  const a = parseAttrs(attrStr);
+  const items: RadarBlock['items'] = [];
+  for (const rawLine of body.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    const m = line.match(/^(.+?):\s*(\d+(?:\.\d+)?)\s*(?:\/\s*(\d+(?:\.\d+)?))?$/);
+    if (!m) continue;
+    const label = m[1].trim();
+    const value = Number(m[2]);
+    const max = m[3] ? Number(m[3]) : undefined;
+    if (!Number.isFinite(value)) continue;
+    items.push({ label, value, ...(max !== undefined ? { max } : {}) });
+  }
+  // Radar'ın anlamlı olabilmesi için 3+ noktaya ihtiyaç var
+  if (items.length < 3) return null;
+  return { kind: 'radar', title: a.title, items };
+}
+
+// ─── Gauge (single-line, ring-benzeri) ───────────────────────────────────────
+function parseGauge(attrStr: string): GaugeBlock | null {
+  const a = parseAttrs(attrStr);
+  if (!a.label || !a.value) return null;
+  const value = Number(a.value);
+  const max = Number(a.max ?? '100');
+  if (!Number.isFinite(value) || !Number.isFinite(max) || max <= 0) return null;
+
+  // zones="düşük:0-40,orta:40-70,yüksek:70-100"
+  let zones: GaugeZone[] | undefined;
+  if (a.zones) {
+    const parts = a.zones.split(',').map((s) => s.trim());
+    const parsed: GaugeZone[] = [];
+    for (const p of parts) {
+      const m = p.match(/^([^:]+):\s*(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)$/);
+      if (!m) continue;
+      const from = Number(m[2]);
+      const to = Number(m[3]);
+      if (!Number.isFinite(from) || !Number.isFinite(to) || to <= from) continue;
+      parsed.push({ label: m[1].trim(), from, to });
+    }
+    if (parsed.length > 0) zones = parsed;
+  }
+
+  return {
+    kind: 'gauge',
+    label: a.label,
+    value: Math.max(0, Math.min(max, value)),
+    max,
+    zones,
+    caption: a.caption,
+  };
+}
+
 // ─── Main parser: raporu segmentlere ayırır ──────────────────────────────────
 /**
  * Rapor metnini metin parçaları ve blok nesnelerine ayırır.
@@ -192,8 +273,8 @@ export function parseReport(text: string): ReportSegment[] {
   }
   const matches: Match[] = [];
 
-  // Multi-line: [!insight]...[/!insight]
-  const multilineTags = ['insight', 'bars', 'grid'] as const;
+  // Multi-line: [!insight]...[/!insight], [!bars]...[/!bars], [!grid]...[/!grid], [!radar]...[/!radar]
+  const multilineTags = ['insight', 'bars', 'grid', 'radar'] as const;
   for (const tag of multilineTags) {
     const re = new RegExp(
       `\\[!${tag}(\\s+[^\\]]*)?\\]([\\s\\S]*?)\\[\\/!${tag}\\]`,
@@ -207,6 +288,7 @@ export function parseReport(text: string): ReportSegment[] {
       if (tag === 'insight') block = parseInsight(attrStr, body);
       else if (tag === 'bars') block = parseBars(attrStr, body);
       else if (tag === 'grid') block = parseGrid(attrStr, body);
+      else if (tag === 'radar') block = parseRadar(attrStr, body);
       matches.push({ start: m.index, end: m.index + m[0].length, block });
     }
   }
@@ -220,14 +302,17 @@ export function parseReport(text: string): ReportSegment[] {
   const isInGrid = (pos: number) =>
     gridRanges.some(([s, e]) => pos >= s && pos < e);
 
-  const singleTags = ['stat', 'ring'] as const;
+  const singleTags = ['stat', 'ring', 'gauge'] as const;
   for (const tag of singleTags) {
     const re = new RegExp(`\\[!${tag}\\s+([^\\]]+)\\]`, 'g');
     let m: RegExpExecArray | null;
     while ((m = re.exec(text)) !== null) {
       if (isInGrid(m.index)) continue;
       const attrStr = m[1].trim();
-      const block = tag === 'stat' ? parseStat(attrStr) : parseRing(attrStr);
+      const block =
+        tag === 'stat' ? parseStat(attrStr)
+        : tag === 'ring' ? parseRing(attrStr)
+        : parseGauge(attrStr);
       matches.push({ start: m.index, end: m.index + m[0].length, block });
     }
   }

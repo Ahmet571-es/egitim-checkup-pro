@@ -293,6 +293,15 @@ function infographicToDocx(
       return [insightToDocx(block, audience), new Paragraph({ text: '', spacing: { after: 100 } })];
     case 'bars':
       return barsToDocx(block, audience);
+    case 'radar':
+      // DOCX'te radar render etmiyoruz; bars olarak göster (içerik aynı)
+      return barsToDocx({ kind: 'bars', title: block.title, items: block.items }, audience);
+    case 'gauge':
+      // DOCX'te gauge render etmiyoruz; ring olarak göster (tek değer)
+      return ringToDocx(
+        { kind: 'ring', label: block.label, value: block.value, max: block.max, caption: block.caption },
+        audience,
+      );
     case 'grid':
       return [gridToDocx(block, audience), new Paragraph({ text: '', spacing: { after: 100 } })];
   }

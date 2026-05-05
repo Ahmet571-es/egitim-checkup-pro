@@ -238,6 +238,15 @@ function infographicToPdf(block: InfographicBlock, audience: InfographicAudience
       return insightToPdf(block, audience);
     case 'bars':
       return barsToPdf(block, audience);
+    case 'radar':
+      // PDF'te radar yerine bars (içerik aynı, formattan dolayı görsel değişiyor)
+      return barsToPdf({ kind: 'bars', title: block.title, items: block.items }, audience);
+    case 'gauge':
+      // PDF'te gauge yerine ring (tek değer)
+      return ringToPdf(
+        { kind: 'ring', label: block.label, value: block.value, max: block.max, caption: block.caption },
+        audience,
+      );
     case 'grid':
       return gridToPdf(block, audience);
   }
