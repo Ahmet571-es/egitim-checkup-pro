@@ -34,7 +34,9 @@ export async function GET(request: NextRequest) {
 
     // Öğrenci sadece kendi raporlarını görebilir
     if (callerProfile.role === 'student' && user.id !== studentId) {
-      return NextResponse.json({ error: 'Yalnızca kendi raporlarınızı görebilirsiniz.' }, { status: 403 });
+      return NextResponse.json({
+        error: `Yalnızca kendi raporlarınızı görebilirsiniz. [DBG holistic role=${callerProfile.role} uid=${user.id?.slice(-6)} sid=${studentId?.slice(-6)}]`
+      }, { status: 403 });
     }
 
     // Veli: sadece kendi çocuklarının raporlarını görebilir

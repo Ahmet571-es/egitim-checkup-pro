@@ -109,12 +109,14 @@ export async function POST(request: NextRequest) {
     // KVKK: öğrenci ve veli kendi raporlarını ÜRETEMEZ. Sadece görüntüleyebilir.
     if (callerProfile.role === 'student' || callerProfile.role === 'parent') {
       return NextResponse.json(
-        { error: 'Bu işlem için yetkiniz yok.' },
+        { error: `Bu işlem için yetkiniz yok. [DBG package role=${callerProfile.role} uid=${user.id?.slice(-6)} sid=${studentId?.slice(-6)}]` },
         { status: 403 },
       );
     }
     if (!['admin', 'school_admin', 'teacher'].includes(callerProfile.role || '')) {
-      return NextResponse.json({ error: 'Yetkisiz rol.' }, { status: 403 });
+      return NextResponse.json({
+        error: `Yetkisiz rol. [DBG package role=${callerProfile.role} uid=${user.id?.slice(-6)}]`
+      }, { status: 403 });
     }
 
     // ── Öğrenci kontrolü + scope ──
@@ -143,7 +145,9 @@ export async function POST(request: NextRequest) {
       const assignedTeacherId = studentAuth?.user?.user_metadata?.assigned_teacher_id;
       if (assignedTeacherId !== user.id) {
         return NextResponse.json(
-          { error: 'Bu öğrenci size atanmış değil.' },
+          {
+            error: `Bu öğrenci size atanmış değil. [DBG package:teacher uid=${user.id?.slice(-6)} assigned=${assignedTeacherId?.slice(-6) || 'YOK'} sid=${studentId?.slice(-6)}]`
+          },
           { status: 403 },
         );
       }

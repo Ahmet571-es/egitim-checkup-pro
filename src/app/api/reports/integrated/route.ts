@@ -48,7 +48,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Profil bulunamadı.' }, { status: 403 });
     }
     if (callerProfile.role === 'student' && user.id !== student_id) {
-      return NextResponse.json({ error: 'Yetkisiz erişim.' }, { status: 403 });
+      return NextResponse.json({
+        error: `Yetkisiz erişim. [DBG integrated:POST role=${callerProfile.role} uid=${user.id?.slice(-6)} sid=${student_id?.slice(-6)}]`
+      }, { status: 403 });
     }
     if (callerProfile.role === 'parent') {
       return NextResponse.json(
@@ -277,7 +279,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Profil bulunamadı.' }, { status: 403 });
     }
     if (callerProfile.role === 'student' && user.id !== student_id) {
-      return NextResponse.json({ error: 'Yetkisiz erişim.' }, { status: 403 });
+      return NextResponse.json({
+        error: `Yetkisiz erişim. [DBG integrated:PUT role=${callerProfile.role} uid=${user.id?.slice(-6)} sid=${student_id?.slice(-6)}]`
+      }, { status: 403 });
     }
     if (callerProfile.role === 'parent') {
       return NextResponse.json(
