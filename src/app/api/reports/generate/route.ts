@@ -47,7 +47,9 @@ export async function POST(request: NextRequest) {
     }
     // Sadece öğrenci kendi raporunu, öğretmen/yönetici/admin kendi okulundaki öğrenciyi görebilir
     if (callerProfile.role === 'student' && user.id !== student_id) {
-      return NextResponse.json({ error: 'Yalnızca kendi raporunuzu üretebilirsiniz.' }, { status: 403 });
+      return NextResponse.json({
+        error: `Yalnızca kendi raporunuzu üretebilirsiniz. [DBG role=${callerProfile.role} uid=${user.id?.slice(-6)} sid=${student_id?.slice(-6)}]`
+      }, { status: 403 });
     }
     // Veli AI rapor üretemez — maliyet ve scope.
     if (callerProfile.role === 'parent') {
@@ -379,7 +381,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Profil bulunamadı.' }, { status: 403 });
     }
     if (callerProfile.role === 'student' && user.id !== student_id) {
-      return NextResponse.json({ error: 'Yalnızca kendi raporunuzu yenileyebilirsiniz.' }, { status: 403 });
+      return NextResponse.json({
+        error: `Yalnızca kendi raporunuzu yenileyebilirsiniz. [DBG role=${callerProfile.role} uid=${user.id?.slice(-6)} sid=${student_id?.slice(-6)}]`
+      }, { status: 403 });
     }
 
     // ── RATE LIMIT (dakikada max 3 istek) ──
