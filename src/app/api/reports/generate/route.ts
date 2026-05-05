@@ -15,12 +15,13 @@ export const maxDuration = 300;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { student_id, test_result_id, report_type, selected_test_types, selected_result_ids } = body as {
+    const { student_id, test_result_id, report_type, selected_test_types, selected_result_ids, selected_genetic_report_ids } = body as {
       student_id?: string;
       test_result_id?: string;
       report_type?: string;
       selected_test_types?: string[];
       selected_result_ids?: string[];
+      selected_genetic_report_ids?: string[];
     };
 
     if (!student_id) {
@@ -164,14 +165,28 @@ export async function POST(request: NextRequest) {
       const patterns = identifyPatterns(advancedInput);
       const careerMatch = matchCareers(advancedInput);
 
-      // Öğrencinin DMIT raporu var mı? (varsa AI'ya bilgi notu olarak iletilir)
+      // Öğrencinin DMIT raporu var mı? AI'ya kaç adet "kullanılacak" söyleniyor:
+      // - Frontend selected_genetic_report_ids gönderdiyse o sayı
+      // - Yoksa (geri uyum) toplam sayı
       let geneticCount = 0;
       try {
-        const { count } = await admin
-          .from('genetic_reports')
-          .select('id', { count: 'exact', head: true })
-          .eq('student_id', student_id);
-        geneticCount = count || 0;
+        if (Array.isArray(selected_genetic_report_ids)) {
+          // Sadece geçerli (öğrencinin) ID'leri say
+          if (selected_genetic_report_ids.length > 0) {
+            const { data: validReports } = await admin
+              .from('genetic_reports')
+              .select('id')
+              .eq('student_id', student_id)
+              .in('id', selected_genetic_report_ids);
+            geneticCount = (validReports || []).length;
+          }
+        } else {
+          const { count } = await admin
+            .from('genetic_reports')
+            .select('id', { count: 'exact', head: true })
+            .eq('student_id', student_id);
+          geneticCount = count || 0;
+        }
       } catch { /* tablo yoksa sessiz geç */ }
 
       const prompt = buildHolisticPrompt({
@@ -212,31 +227,56 @@ export async function POST(request: NextRequest) {
       }
 
       // ═══ Otomatik Genetik Ek (DMIT) ═══
-      // Mehmet'in talebi: bütüncül rapor üretildiğinde öğrencinin tüm DMIT raporları
+      // Mehmet'in talebi: bütüncül rapor üretildiğinde öğrencinin DMIT raporları
       // otomatik olarak holistic_report_attachments'a eklensin. pdf-merger zaten
       // bu eki rapor sonuna PDF olarak gömüyor.
+      //
+      // selected_genetic_report_ids verildiyse SADECE seçilenler eklenir.
+      // Verilmediyse (geriye uyum) öğrencinin TÜM DMIT raporları eklenir.
       let autoAttachedCount = 0;
       if (inserted?.id) {
         try {
-          const { data: studentGeneticReports } = await admin
-            .from('genetic_reports')
-            .select('id')
-            .eq('student_id', student_id)
-            .order('uploaded_at', { ascending: true });
+          let geneticIdsToAttach: string[] = [];
 
-          if (Array.isArray(studentGeneticReports) && studentGeneticReports.length > 0) {
-            const attachmentRows = studentGeneticReports.map((g, idx) => ({
-              holistic_report_id: inserted.id,
-              genetic_report_id: g.id,
-              position: idx,
-            }));
-            const { error: attachErr } = await admin
-              .from('holistic_report_attachments')
-              .insert(attachmentRows);
-            if (attachErr) {
-              console.warn('[holistic auto-attach]', attachErr.message);
-            } else {
-              autoAttachedCount = attachmentRows.length;
+          if (Array.isArray(selected_genetic_report_ids)) {
+            // Frontend açıkça liste gönderdi (boş olabilir = 'hiçbir DMIT eklenmesin')
+            geneticIdsToAttach = selected_genetic_report_ids;
+          } else {
+            // Liste hiç gelmedi → varsayılan: tüm DMIT raporları
+            const { data: studentGeneticReports } = await admin
+              .from('genetic_reports')
+              .select('id')
+              .eq('student_id', student_id)
+              .order('uploaded_at', { ascending: true });
+            geneticIdsToAttach = (studentGeneticReports || []).map(g => g.id as string);
+          }
+
+          if (geneticIdsToAttach.length > 0) {
+            // Güvenlik: gönderilen ID'lerin gerçekten bu öğrenciye ait olduğunu doğrula
+            const { data: validReports } = await admin
+              .from('genetic_reports')
+              .select('id')
+              .eq('student_id', student_id)
+              .in('id', geneticIdsToAttach);
+            const validIds = new Set((validReports || []).map(g => g.id as string));
+
+            const attachmentRows = geneticIdsToAttach
+              .filter(id => validIds.has(id))
+              .map((gid, idx) => ({
+                holistic_report_id: inserted.id,
+                genetic_report_id: gid,
+                position: idx,
+              }));
+
+            if (attachmentRows.length > 0) {
+              const { error: attachErr } = await admin
+                .from('holistic_report_attachments')
+                .insert(attachmentRows);
+              if (attachErr) {
+                console.warn('[holistic auto-attach]', attachErr.message);
+              } else {
+                autoAttachedCount = attachmentRows.length;
+              }
             }
           }
         } catch (e) {

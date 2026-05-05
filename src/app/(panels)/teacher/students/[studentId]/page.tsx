@@ -135,6 +135,9 @@ export default function StudentDetailPage() {
   const [holisticExpanded, setHolisticExpanded] = useState(false);
   const [holisticSelected, setHolisticSelected] = useState<Set<string>>(new Set());
   const [holisticConfirmOpen, setHolisticConfirmOpen] = useState(false);
+
+  // Bütüncül rapora dahil edilecek genetik (DMIT) raporları seçimi
+  const [holisticGeneticSelected, setHolisticGeneticSelected] = useState<Set<string>>(new Set());
   const [holisticHistoryOpen, setHolisticHistoryOpen] = useState(false);
   // Faz 6: hangi holistic raporlar için "Genetik Ek'leri" panel'i açık
   const [attachExpandedFor, setAttachExpandedFor] = useState<Set<string>>(new Set());
@@ -204,7 +207,10 @@ export default function StudentDetailPage() {
       // Varsayılan: hiçbiri seçili değil — öğretmen sıfırdan seçsin
       setIntegratedSelected(new Set());
       setAdvanced(data.advanced || { unlocked: false });
-      setGeneticReports(Array.isArray(data.geneticReports) ? data.geneticReports : []);
+      const gReports = Array.isArray(data.geneticReports) ? data.geneticReports : [];
+      setGeneticReports(gReports);
+      // Varsayılan: tüm DMIT raporları bütüncül rapora dahil edilsin
+      setHolisticGeneticSelected(new Set(gReports.map((g: GeneticReportInfo) => g.id)));
       setSelected(new Set());
     } catch (e: unknown) {
       setError((e as Error).message);
@@ -300,6 +306,7 @@ export default function StudentDetailPage() {
     setHolisticConfirmOpen(false);
     try {
       const selectedIds = Array.from(holisticSelected);
+      const selectedGeneticIds = Array.from(holisticGeneticSelected);
       const res = await secureFetch('/api/reports/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -307,11 +314,13 @@ export default function StudentDetailPage() {
           student_id: studentId,
           report_type: 'holistic',
           selected_result_ids: selectedIds,
+          selected_genetic_report_ids: selectedGeneticIds,
         }),
       });
       const data = await res.json();
       if (data.success && data.report) {
-        setSuccess(`✅ ${selectedIds.length} test için harmanlanmış rapor üretildi.`);
+        const genMsg = data.auto_attached_genetic > 0 ? ` (${data.auto_attached_genetic} DMIT eki dahil)` : '';
+        setSuccess(`✅ ${selectedIds.length} test için harmanlanmış rapor üretildi${genMsg}.`);
         setTimeout(() => setSuccess(''), 3500);
         setHolisticSelected(new Set());
         setHolisticExpanded(false);
@@ -396,12 +405,23 @@ export default function StudentDetailPage() {
     });
   };
 
+  const toggleHolisticGenetic = (geneticId: string) => {
+    setHolisticGeneticSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(geneticId)) next.delete(geneticId);
+      else next.add(geneticId);
+      return next;
+    });
+  };
+
   const selectAllHolistic = () => {
     setHolisticSelected(new Set(completed.map(c => c.id)));
+    setHolisticGeneticSelected(new Set(geneticReports.map(g => g.id)));
   };
 
   const clearAllHolistic = () => {
     setHolisticSelected(new Set());
+    setHolisticGeneticSelected(new Set());
   };
 
   // ═══ ÖĞRENCİ AKTARMA FONKSİYONLARI ═══
@@ -1071,7 +1091,8 @@ export default function StudentDetailPage() {
                           <div className="text-[12px] font-bold text-[#0f2847] dark:text-slate-100">
                             Harmanlanacak testleri seçin
                             <span className="ml-2 text-[11px] font-normal text-purple-600">
-                              ({holisticSelected.size} / {completed.length} seçili)
+                              ({holisticSelected.size} test
+                              {geneticReports.length > 0 ? ` + ${holisticGeneticSelected.size} DMIT` : ''} seçili)
                             </span>
                           </div>
                           <div className="flex gap-1.5">
@@ -1121,6 +1142,36 @@ export default function StudentDetailPage() {
                                       #{attemptNo} ({attemptDate})
                                     </span>
                                   )}
+                                </span>
+                              </button>
+                            );
+                          })}
+
+                          {/* Genetik (DMIT) raporları — her biri ayrı checkbox */}
+                          {geneticReports.map(g => {
+                            const isSelected = holisticGeneticSelected.has(g.id);
+                            const uploadDate = new Date(g.uploaded_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+                            return (
+                              <button
+                                key={`gen-sel-${g.id}`}
+                                onClick={() => toggleHolisticGenetic(g.id)}
+                                className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-left transition-all ${
+                                  isSelected
+                                    ? 'bg-amber-50 border-amber-400 text-amber-900 shadow-sm'
+                                    : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:border-amber-300 hover:bg-amber-50/50'
+                                }`}
+                              >
+                                {isSelected ? (
+                                  <CheckSquare className="w-4 h-4 text-amber-600 shrink-0" />
+                                ) : (
+                                  <Square className="w-4 h-4 text-gray-400 dark:text-slate-500 shrink-0" />
+                                )}
+                                <Shield className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                <span className="text-[12px] font-semibold flex-1 truncate">
+                                  Genetik (DMIT)
+                                  <span className="ml-1.5 text-[10px] font-bold text-amber-600">
+                                    PDF · ({uploadDate})
+                                  </span>
                                 </span>
                               </button>
                             );
@@ -1542,6 +1593,17 @@ export default function StudentDetailPage() {
                         ⚠ Eksik: {completion.missing.map((t) => TEST_LABELS[t] || t).join(', ')}
                       </p>
                     )}
+                    {pkg.uses_genetic && (
+                      geneticReports.length > 0 ? (
+                        <p className="text-[11px] text-amber-700 dark:text-amber-300 font-bold mt-1 flex items-center gap-1">
+                          <Shield className="w-3 h-3" /> ✓ {geneticReports.length} DMIT raporu rapora otomatik eklenecek
+                        </p>
+                      ) : (
+                        <p className="text-[11px] text-orange-700 dark:text-orange-300 font-semibold mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> DMIT raporu yüklü değil — paket genetik analiz olmadan üretilir
+                        </p>
+                      )
+                    )}
                   </button>
                 );
               })}
@@ -1613,6 +1675,27 @@ export default function StudentDetailPage() {
                   ))}
                 </div>
               </div>
+
+              {holisticGeneticSelected.size > 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <div className="text-[11px] font-bold text-amber-700 mb-2 flex items-center gap-1.5">
+                    <Shield className="w-3 h-3" /> RAPORA EKLENECEK DMIT:
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {Array.from(holisticGeneticSelected).map(gid => {
+                      const g = geneticReports.find(x => x.id === gid);
+                      return (
+                        <span key={gid} className="px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 border border-amber-300 text-amber-800 text-[11px] font-semibold">
+                          {g?.original_filename || 'DMIT PDF'}
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[10px] text-amber-700 mt-1.5">
+                    Seçilen DMIT PDF&apos;leri raporun sonuna otomatik gömülecek + AI yorumda atıfta bulunulacak.
+                  </p>
+                </div>
+              )}
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
