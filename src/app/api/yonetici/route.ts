@@ -756,14 +756,14 @@ export async function POST(req: NextRequest) {
       const buf = new Uint8Array(12);
       cryptoObj.getRandomValues(buf);
 
-      // En az 1 büyük + 1 küçük + 2 rakam garantisi
+      // En az 1 büyük + 1 küçük + 2 rakam garantisi (toplam 12 karakter)
       const pick = (set: string, idx: number) => set[buf[idx] % set.length];
       const chars = [
         pick(upper, 0),
         pick(lower, 1),
         pick(digits, 2),
         pick(digits, 3),
-        ...Array.from({ length: 6 }, (_, i) => pick(all, i + 4)),
+        ...Array.from({ length: 8 }, (_, i) => pick(all, i + 4)),
       ];
 
       // Karıştır
