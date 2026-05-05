@@ -2648,7 +2648,7 @@ export default function YoneticiPage() {
                 Geçici Şifre — Tek Seferlik Gösterim
               </p>
               <div className="flex items-center gap-2">
-                <code className="flex-1 text-2xl font-bold font-mono text-[#0f2847] dark:text-slate-100 bg-white dark:bg-slate-900/50 px-4 py-3 rounded-xl border border-orange-200 select-all tracking-wider text-center">
+                <code className="flex-1 text-2xl font-bold font-mono text-[#0f2847] dark:text-slate-100 bg-white dark:bg-slate-900/50 px-4 py-3 rounded-xl border border-orange-200 select-all text-center">
                   {passwordResult.new_password}
                 </code>
                 <button
@@ -2666,6 +2666,9 @@ export default function YoneticiPage() {
               {passwordCopied && (
                 <p className="text-[11px] text-emerald-600 font-bold mt-2 text-center">✓ Panoya kopyalandı</p>
               )}
+              <p className="text-[10.5px] text-orange-700 font-semibold mt-2 text-center">
+                BÜYÜK ve küçük harf duyarlı · Boşluk eklemeyin · Tek parça yazın
+              </p>
             </div>
 
             {/* Uyarı kutusu */}
@@ -2674,8 +2677,8 @@ export default function YoneticiPage() {
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>
                   <strong>DİKKAT:</strong> Bu şifre yalnızca bir kez gösterilir. Modal kapatılırsa
-                  bir daha görünmez. Hemen kopyalayıp kullanıcıya iletin (WhatsApp/SMS/telefon).
-                  Tekrar lazım olursa yeni şifre üretmeniz gerekir.
+                  bir daha görünmez. <strong>Mavi kopyala butonu</strong> ile kopyalayıp kullanıcıya iletin
+                  (WhatsApp/SMS/telefon). Tekrar lazım olursa yeni şifre üretmeniz gerekir.
                 </span>
               </p>
             </div>

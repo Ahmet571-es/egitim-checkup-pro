@@ -98,9 +98,13 @@ export default function LoginPage() {
         ? input
         : `${input.replace(/\s/g, '')}@ogrenci.egitimcheckup.com`;
 
+      // Şifrenin başında/sonunda boşluk olabilir (kopyala-yapıştır kazası).
+      // Ortadaki boşlukları korumamız lazım çünkü kullanıcı seçimi olabilir.
+      const cleanPassword = password.trim();
+
       const { error: authError, data } = await supabase.auth.signInWithPassword({
         email: loginEmail,
-        password,
+        password: cleanPassword,
       });
 
       if (authError) {

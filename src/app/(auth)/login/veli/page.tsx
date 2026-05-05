@@ -93,7 +93,7 @@ function ParentLoginInner() {
 
       const { error: authError, data } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
-        password,
+        password: password.trim(),
       });
 
       if (authError) {

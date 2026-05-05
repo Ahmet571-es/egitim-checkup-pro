@@ -743,9 +743,9 @@ export async function POST(req: NextRequest) {
     // ═══ ŞİFRE SIFIRLAMA (proaktif + talep yönetimi)
     // ═══════════════════════════════════════════════════════════
 
-    // Yardımcı: güçlü rastgele şifre üret (büyük/küçük/rakam karışık, okunması kolay)
+    // Yardımcı: güçlü rastgele şifre üret (tek parça 12 karakter, karışmayacak karakterler)
     function generateRandomPassword(): string {
-      // Karışıklığı azaltmak için 0/O, 1/I/l atılır
+      // Karışıklığı azaltmak için 0/O, 1/I/l, 5/S gibi karakterler atılır
       const upper = 'ABCDEFGHJKMNPQRSTUVWXYZ';
       const lower = 'abcdefghjkmnpqrstuvwxyz';
       const digits = '23456789';
@@ -772,9 +772,10 @@ export async function POST(req: NextRequest) {
         [chars[i], chars[j]] = [chars[j], chars[i]];
       }
 
-      // 4'lü gruplar (örn: K9mX-q2Pw-t7As)
-      const raw = chars.join('');
-      return `${raw.slice(0, 4)}-${raw.slice(4, 8)}-${raw.slice(8, 12)}`;
+      // Tek parça 12 karakter — tire yok, yanlış yazma riski minimum
+      // (Tire mobil klavye / WhatsApp / SMS'te bazı sistemlerde başka karaktere
+      // dönüşebilir, bu yüzden kullanılmıyor.)
+      return chars.join('');
     }
 
     // ═══ Belirli bir kullanıcının şifresini sıfırla, yeni şifreyi geri döndür ═══
