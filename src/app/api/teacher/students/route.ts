@@ -276,6 +276,31 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Genetik raporlar (DMIT) — Faz 5 + Mehmet'in talebi: yapılan testler/tekil raporlar listesine entegre
+      let geneticReports: Array<{
+        id: string;
+        original_filename: string;
+        file_size: number;
+        uploaded_at: string;
+        notes: string | null;
+      }> = [];
+      try {
+        const { data: gReports } = await admin
+          .from('genetic_reports')
+          .select('id, original_filename, file_size, uploaded_at, notes')
+          .eq('student_id', studentId)
+          .order('uploaded_at', { ascending: false });
+        if (Array.isArray(gReports)) {
+          geneticReports = gReports.map(g => ({
+            id: g.id,
+            original_filename: g.original_filename,
+            file_size: g.file_size,
+            uploaded_at: g.uploaded_at,
+            notes: g.notes,
+          }));
+        }
+      } catch { /* tablo yoksa sessiz geç */ }
+
       return NextResponse.json({
         student: {
           id: profile.id,
@@ -299,6 +324,7 @@ export async function POST(req: NextRequest) {
         integratedReport: ir || null,
         integratedHistory,
         advanced,
+        geneticReports,
       });
     }
 

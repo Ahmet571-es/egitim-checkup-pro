@@ -152,6 +152,16 @@ export default function StudentDetailPage() {
   const [integratedHistory, setIntegratedHistory] = useState<IntegratedHistoryItem[]>([]);
   const [integratedHistoryOpen, setIntegratedHistoryOpen] = useState(false);
   const [advanced, setAdvanced] = useState<AdvancedAnalysis>({ unlocked: false });
+
+  // Genetik (DMIT) raporları
+  interface GeneticReportInfo {
+    id: string;
+    original_filename: string;
+    file_size: number;
+    uploaded_at: string;
+    notes: string | null;
+  }
+  const [geneticReports, setGeneticReports] = useState<GeneticReportInfo[]>([]);
   const [answersViewer, setAnswersViewer] = useState<{ resultId: string } | null>(null);
 
   // ═══ Öğrenci Aktarma State'leri ═══
@@ -194,6 +204,7 @@ export default function StudentDetailPage() {
       // Varsayılan: hiçbiri seçili değil — öğretmen sıfırdan seçsin
       setIntegratedSelected(new Set());
       setAdvanced(data.advanced || { unlocked: false });
+      setGeneticReports(Array.isArray(data.geneticReports) ? data.geneticReports : []);
       setSelected(new Set());
     } catch (e: unknown) {
       setError((e as Error).message);
@@ -738,7 +749,7 @@ export default function StudentDetailPage() {
               : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:bg-slate-800/60'
           }`}
         >
-          <CheckCircle2 className="w-4 h-4" /> Yapılan Testler ({completed.length})
+          <CheckCircle2 className="w-4 h-4" /> Yapılan Testler ({completed.length + geneticReports.length})
         </button>
       </div>
 
@@ -829,7 +840,7 @@ export default function StudentDetailPage() {
             )}
           </div>
 
-          {completed.length === 0 ? (
+          {completed.length === 0 && geneticReports.length === 0 ? (
             <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 p-12 text-center shadow-sm">
               <p className="text-5xl mb-3">📭</p>
               <p className="text-gray-500 dark:text-slate-400 font-semibold">Henüz tamamlanan test yok.</p>
@@ -936,7 +947,63 @@ export default function StudentDetailPage() {
                     </div>
                   );
                 })}
+
+                {/* Genetik (DMIT) Raporları — Tekil Raporlar listesine entegre */}
+                {geneticReports.map((g) => (
+                  <div key={`gen-${g.id}`} className="px-4 py-3.5 border-b border-gray-50 last:border-b-0 bg-gradient-to-r from-amber-50/40 to-orange-50/40 dark:from-amber-950/10 dark:to-orange-950/10">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-amber-100 dark:bg-amber-900/40">
+                        <Shield className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-[14px] font-semibold text-[#0f2847] dark:text-slate-100 truncate">
+                            Genetik Rapor (DMIT)
+                          </p>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm">
+                            <Lock className="w-2.5 h-2.5" /> KVKK m.6
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-400 dark:text-slate-500 truncate">
+                          {g.original_filename} · {(g.file_size / 1024).toFixed(0)} KB · Yüklendi: {formatDate(g.uploaded_at)}
+                        </p>
+                        {g.notes && (
+                          <p className="text-[11px] text-amber-700 dark:text-amber-300 italic mt-0.5 truncate">{g.notes}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2 ml-11">
+                      <a
+                        href={`/api/genetic-reports/${g.id}/download`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[12px] font-bold border border-amber-200 dark:border-amber-700/50 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-all"
+                      >
+                        <Eye className="w-3.5 h-3.5" /> PDF Görüntüle
+                      </a>
+                      <a
+                        href={`/api/genetic-reports/${g.id}/download`}
+                        download={g.original_filename}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-[12px] font-bold border border-red-200 hover:bg-red-100 transition-all"
+                      >
+                        <Download className="w-3.5 h-3.5" /> İndir
+                      </a>
+                    </div>
+                  </div>
+                ))}
               </div>
+
+              {/* Bilgilendirme: bütüncül raporda otomatik ek */}
+              {geneticReports.length > 0 && (
+                <div className="mb-6 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-[12px] text-amber-900 dark:text-amber-200 flex items-start gap-2">
+                  <Sparkles className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Otomatik Entegrasyon:</strong> Bu öğrencinin {geneticReports.length} adet DMIT raporu var.
+                    Bütüncül (Harmanlanmış) ya da Paket Bazlı rapor ürettiğinde, DMIT PDF&apos;leri raporun sonuna
+                    otomatik olarak gömülecek ve AI yorumunda da DMIT&apos;e atıfta bulunacak.
+                  </span>
+                </div>
+              )}
 
               {/* Çoklu Test Raporları (2+ test gerekli) */}
               {completed.length >= 2 && (

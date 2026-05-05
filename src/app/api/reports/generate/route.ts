@@ -164,6 +164,16 @@ export async function POST(request: NextRequest) {
       const patterns = identifyPatterns(advancedInput);
       const careerMatch = matchCareers(advancedInput);
 
+      // Öğrencinin DMIT raporu var mı? (varsa AI'ya bilgi notu olarak iletilir)
+      let geneticCount = 0;
+      try {
+        const { count } = await admin
+          .from('genetic_reports')
+          .select('id', { count: 'exact', head: true })
+          .eq('student_id', student_id);
+        geneticCount = count || 0;
+      } catch { /* tablo yoksa sessiz geç */ }
+
       const prompt = buildHolisticPrompt({
         studentName: student.full_name,
         studentAge: '—',
@@ -172,6 +182,8 @@ export async function POST(request: NextRequest) {
         riskResult,
         patterns,
         careerMatch,
+        hasGeneticReport: geneticCount > 0,
+        geneticReportCount: geneticCount,
       });
 
       const report = await generateAIReport(prompt, { maxTokens: 32000 });
@@ -199,6 +211,40 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      // ═══ Otomatik Genetik Ek (DMIT) ═══
+      // Mehmet'in talebi: bütüncül rapor üretildiğinde öğrencinin tüm DMIT raporları
+      // otomatik olarak holistic_report_attachments'a eklensin. pdf-merger zaten
+      // bu eki rapor sonuna PDF olarak gömüyor.
+      let autoAttachedCount = 0;
+      if (inserted?.id) {
+        try {
+          const { data: studentGeneticReports } = await admin
+            .from('genetic_reports')
+            .select('id')
+            .eq('student_id', student_id)
+            .order('uploaded_at', { ascending: true });
+
+          if (Array.isArray(studentGeneticReports) && studentGeneticReports.length > 0) {
+            const attachmentRows = studentGeneticReports.map((g, idx) => ({
+              holistic_report_id: inserted.id,
+              genetic_report_id: g.id,
+              position: idx,
+            }));
+            const { error: attachErr } = await admin
+              .from('holistic_report_attachments')
+              .insert(attachmentRows);
+            if (attachErr) {
+              console.warn('[holistic auto-attach]', attachErr.message);
+            } else {
+              autoAttachedCount = attachmentRows.length;
+            }
+          }
+        } catch (e) {
+          // Tablo yoksa veya başka hata: sessiz geç, ana rapor zaten kaydedildi
+          console.warn('[holistic auto-attach exception]', e);
+        }
+      }
+
       return NextResponse.json({
         success: true,
         report,
@@ -206,6 +252,7 @@ export async function POST(request: NextRequest) {
         generated_at: inserted?.generated_at,
         selected_test_types: selectedTypes,
         test_count: filteredResults.length,
+        auto_attached_genetic: autoAttachedCount,
       });
     }
 

@@ -18,12 +18,16 @@ interface HolisticPromptParams {
   riskResult?: RiskResult | null;
   patterns?: PatternInsight[];
   careerMatch?: CareerMatchResult | null;
+  // Genetik (DMIT) raporu var mı? (sadece bilgilendirme — PDF rapor sonuna otomatik eklenecek)
+  hasGeneticReport?: boolean;
+  geneticReportCount?: number;
 }
 
 export function buildHolisticPrompt(params: HolisticPromptParams): string {
   const {
     studentName, studentAge, studentGender, testDataList, studentGrade,
     riskResult, patterns, careerMatch,
+    hasGeneticReport, geneticReportCount,
   } = params;
   const gradeText = studentGrade ? `${studentGrade}. Sınıf` : 'Belirtilmemiş';
 
@@ -101,7 +105,19 @@ Bu rapor, ücretli bir profesyonel danışmanlık hizmetinin çıktısıdır. Y�
 \`\`\`json
 ${JSON.stringify(testDataList, null, 2)}
 \`\`\`
-${advancedSection}
+${advancedSection}${hasGeneticReport ? `
+
+## GENETİK ANALİZ (DMIT) NOTU
+
+Bu öğrencinin ${geneticReportCount && geneticReportCount > 1 ? `${geneticReportCount} adet ` : ''}**Dermatoglifik Çoklu Zekâ (DMIT) raporu** sisteme yüklenmiştir. DMIT raporu PDF olarak bu raporun sonuna **otomatik ek** olarak gömülecektir — sen ham veriye erişemiyorsun, sadece varlığından haberdarsın.
+
+DMIT, parmak izi desenlerinden öğrencinin doğuştan gelen baskın zekâ tipini, beyin lateralitesini, öğrenme stilini ve potansiyel mesleki eğilimlerini ortaya koyan bir analizdir.
+
+Raporunda bu bilgiyi şöyle değerlendir:
+- "DMIT Genetik Profili" başlıklı kısa bir bölüm aç (en az 1 paragraf)
+- "Öğrencinin DMIT raporu rapor sonunda PDF eki olarak yer almaktadır. Bu rapor, doğuştan gelen yatkınlıkları (beyin lateralitesi, baskın zekâ alanları) ortaya koyar — yapılan psikometrik testlerle ÇAPRAZ değerlendirildiğinde daha bütünsel bir profil sunar." şeklinde yönlendir
+- Diğer testlerle DMIT'in nasıl tamamlayıcı olduğunu kavramsal düzeyde açıkla
+- DMIT verisinin spesifik içeriğine atıfta BULUNMA (sen görmüyorsun) — sadece varlığını ve okuyucuya yol gösterici notu yaz` : ''}
 ---
 
 # KRİTİK KURALLAR

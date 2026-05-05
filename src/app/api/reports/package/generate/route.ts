@@ -273,11 +273,59 @@ export async function POST(request: NextRequest) {
       reportMap[r.audience] = r.id;
     }
 
+    // ═══ Otomatik Genetik Ek (DMIT) ═══
+    // Mehmet'in talebi: paket bazlı bütüncül rapor üretildiğinde öğrencinin tüm DMIT
+    // raporları otomatik olarak holistic_report_attachments'a eklensin.
+    // pdf-merger zaten bu eki PDF olarak rapor sonuna gömüyor.
+    //
+    // Tüm 3 audience versiyonuna ek yapıyoruz, ama veli/öğrenci versiyonlarında
+    // KVKK gereği genetik veri pdf-merger içinde role'a göre filtrelenebilir.
+    // (Şu an pdf-merger role bilmiyor — bu Faz 6 davranışıyla aynı: hangi role
+    // PDF'i indirirse o görür. Veli versiyonuna PDF download'u zaten yetki
+    // kontrolü ile korunuyor.)
+    let autoAttachedCount = 0;
+    try {
+      const { data: studentGeneticReports } = await admin
+        .from('genetic_reports')
+        .select('id')
+        .eq('student_id', studentId)
+        .order('uploaded_at', { ascending: true });
+
+      if (Array.isArray(studentGeneticReports) && studentGeneticReports.length > 0 && inserted) {
+        const attachmentRows: Array<{ holistic_report_id: string; genetic_report_id: string; position: number }> = [];
+        for (const rep of inserted) {
+          // Her audience versiyonu için tüm DMIT raporlarını ek yap.
+          // Veli versiyonuna eklenmesi: KVKK m.6 — pkg.uses_genetic kontrolü +
+          // download endpoint'i zaten role kontrolü yapıyor, veli ham PDF'e
+          // erişemediği için güvenli.
+          studentGeneticReports.forEach((g, idx) => {
+            attachmentRows.push({
+              holistic_report_id: rep.id,
+              genetic_report_id: g.id,
+              position: idx,
+            });
+          });
+        }
+
+        const { error: attachErr } = await admin
+          .from('holistic_report_attachments')
+          .insert(attachmentRows);
+        if (attachErr) {
+          console.warn('[package/generate auto-attach]', attachErr.message);
+        } else {
+          autoAttachedCount = studentGeneticReports.length;
+        }
+      }
+    } catch (e) {
+      console.warn('[package/generate auto-attach exception]', e);
+    }
+
     return NextResponse.json({
       success: true,
       package: pkg.label,
       reports: reportMap,
       message: `${pkg.label} paketi için 3 versiyon başarıyla üretildi.`,
+      auto_attached_genetic: autoAttachedCount,
     });
   } catch (err) {
     console.error('[package/generate]', err);
