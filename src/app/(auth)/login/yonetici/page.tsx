@@ -111,7 +111,12 @@ function AdminLoginInner() {
         localStorage.removeItem(STORAGE_KEY_REMEMBER);
       }
 
-      // Yönlendirme
+      // Yönlendirme — geçici şifre ise önce kalıcı şifre belirleme sayfası
+      if (data.user?.user_metadata?.must_change_password === true) {
+        window.location.href = '/sifre-degistir';
+        return;
+      }
+
       const target = actualRole === 'school_admin' ? '/school/dashboard' : '/admin/dashboard';
       window.location.href = target;
     } catch (err) {

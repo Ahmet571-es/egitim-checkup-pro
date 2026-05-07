@@ -125,6 +125,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Geçici şifre kontrolü — yönetici tarafından atanan tek kullanımlık şifre ile
+  // giriş yapan kullanıcı, kalıcı şifresini belirleyene kadar panele giremez.
+  // (Login sayfaları zaten yönlendirir; bu defansif bir guard — direkt URL ile
+  //  navigate eden kullanıcıyı da yakalar.)
+  if (user.user_metadata?.must_change_password === true) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/sifre-degistir';
+    return NextResponse.redirect(url);
+  }
+
   // Role kontrolu -- profiles tablosundan sunucu otoriteli olarak oku.
   // user_metadata client tarafından yazılabildigi icin guvenilmez.
   // Fail-safe: sorgu hatasında veya rol yoksa /login'e at.

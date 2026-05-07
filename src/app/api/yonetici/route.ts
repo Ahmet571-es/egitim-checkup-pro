@@ -789,10 +789,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 });
       }
 
-      // Şifre üret + güncelle
+      // Şifre üret + güncelle + must_change_password flag'ini set et
       const newPassword = generateRandomPassword();
       const { error: updErr } = await supabase.auth.admin.updateUserById(userId, {
         password: newPassword,
+        user_metadata: {
+          ...user.user_metadata,
+          must_change_password: true,
+        },
       });
       if (updErr) {
         return NextResponse.json({ error: updErr.message }, { status: 500 });

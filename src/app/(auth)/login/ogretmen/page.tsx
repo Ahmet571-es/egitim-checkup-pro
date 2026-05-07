@@ -132,6 +132,13 @@ function TeacherLoginInner() {
           if (profile?.role) role = profile.role as UserRole;
         } catch { /* ignore */ }
       }
+
+      // Geçici şifre kontrolü — yönetici tarafından atanan tek kullanımlık şifre ise
+      if (data.user?.user_metadata?.must_change_password === true) {
+        window.location.href = '/sifre-degistir';
+        return;
+      }
+
       const target = ROLE_PATHS[role ?? 'teacher'] ?? '/teacher/dashboard';
       window.location.href = target;
     } catch {

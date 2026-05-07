@@ -145,6 +145,18 @@ export default function LoginPage() {
           // ignore
         }
       }
+
+      // Geçici şifre kontrolü — yönetici tarafından atanan tek kullanımlık şifre ise
+      // kullanıcıyı kalıcı şifre belirleme sayfasına yönlendir.
+      if (data.user?.user_metadata?.must_change_password === true) {
+        if (typeof window !== 'undefined') {
+          window.location.href = '/sifre-degistir';
+        } else {
+          router.push('/sifre-degistir');
+        }
+        return;
+      }
+
       const target = ROLE_PATHS[role ?? 'student'] ?? '/student/dashboard';
 
       if (typeof window !== 'undefined') {
