@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { buildContentDisposition } from '@/lib/export/content-disposition';
 
 export async function GET(
   request: NextRequest,
@@ -143,7 +144,9 @@ export async function GET(
         return new NextResponse(new Uint8Array(buffer), {
           headers: {
             'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition': `attachment; filename="sinif_sonuclari_${classInfo?.name ?? classId}.xlsx"`,
+            'Content-Disposition': buildContentDisposition(
+              `sinif_sonuclari_${classInfo?.name ?? classId}.xlsx`,
+            ),
           },
         });
       }
@@ -203,7 +206,7 @@ export async function GET(
       return new NextResponse(new Uint8Array(buffer), {
         headers: {
           'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          'Content-Disposition': `attachment; filename="${safeName}_dosya.xlsx"`,
+          'Content-Disposition': buildContentDisposition(`${safeName}_dosya.xlsx`),
         },
       });
     }
@@ -283,7 +286,9 @@ export async function GET(
       return new NextResponse(new Uint8Array(buffer), {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="${safeName}_${testResult.test_type}_rapor.pdf"`,
+          'Content-Disposition': buildContentDisposition(
+            `${safeName}_${testResult.test_type}_rapor.pdf`,
+          ),
         },
       });
     }
@@ -295,7 +300,9 @@ export async function GET(
       return new NextResponse(new Uint8Array(buffer), {
         headers: {
           'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          'Content-Disposition': `attachment; filename="${safeName}_${testResult.test_type}_rapor.docx"`,
+          'Content-Disposition': buildContentDisposition(
+            `${safeName}_${testResult.test_type}_rapor.docx`,
+          ),
         },
       });
     }

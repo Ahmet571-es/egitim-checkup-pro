@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { buildContentDisposition } from '@/lib/export/content-disposition';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
@@ -165,7 +166,9 @@ export async function GET(
       return new NextResponse(new Uint8Array(finalPdfBytes), {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="${safeName}_harmanlanmis_rapor${pkgSuffix}${audienceSuffix}_${dateLabel}.pdf"`,
+          'Content-Disposition': buildContentDisposition(
+            `${safeName}_harmanlanmis_rapor${pkgSuffix}${audienceSuffix}_${dateLabel}.pdf`,
+          ),
         },
       });
     }
@@ -176,7 +179,9 @@ export async function GET(
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': `attachment; filename="${safeName}_harmanlanmis_rapor_${dateLabel}.docx"`,
+        'Content-Disposition': buildContentDisposition(
+          `${safeName}_harmanlanmis_rapor_${dateLabel}.docx`,
+        ),
       },
     });
   } catch (err) {
