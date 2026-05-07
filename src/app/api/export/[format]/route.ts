@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(
   request: NextRequest,
@@ -20,13 +21,15 @@ export async function GET(
         : 'ogretmen';
 
     const supabase = await createClient();
+    const admin = createAdminClient();
 
     // ── AUTH KONTROLÜ ──
     const { data: { user }, error: authErr } = await supabase.auth.getUser();
     if (authErr || !user) {
       return NextResponse.json({ error: 'Yetkilendirme gerekli.' }, { status: 401 });
     }
-    const { data: callerProfile } = await supabase
+    // Profile lookup admin ile (RLS edge-case'lerinden kaçınmak için)
+    const { data: callerProfile } = await admin
       .from('profiles')
       .select('role, school_id')
       .eq('id', user.id)
@@ -54,7 +57,7 @@ export async function GET(
       // Doğrulanacak çocuk kimliğini belirle
       let targetStudentId: string | null = studentId;
       if (!targetStudentId && testResultId) {
-        const { data: tr } = await supabase
+        const { data: tr } = await admin
           .from('test_results')
           .select('student_id')
           .eq('id', testResultId)
@@ -66,7 +69,7 @@ export async function GET(
         return NextResponse.json({ error: 'Hedef öğrenci belirlenemedi.' }, { status: 400 });
       }
 
-      const { data: link } = await supabase
+      const { data: link } = await admin
         .from('parent_students')
         .select('id')
         .eq('parent_id', user.id)
@@ -83,7 +86,7 @@ export async function GET(
 
     // Öğretmen/school_admin: sınıfın kendi okuluna ait olduğunu doğrula
     if (classId && callerProfile.school_id && ['teacher', 'school_admin'].includes(callerProfile.role)) {
-      const { data: classCheck } = await supabase
+      const { data: classCheck } = await admin
         .from('classes')
         .select('id')
         .eq('id', classId)
@@ -100,12 +103,12 @@ export async function GET(
 
       if (classId) {
         // Sınıf bazlı toplu export
-        const { data: classStudents } = await supabase
+        const { data: classStudents } = await admin
           .from('class_students')
           .select('student_id, profiles!class_students_student_id_fkey(full_name)')
           .eq('class_id', classId);
 
-        const { data: classInfo } = await supabase
+        const { data: classInfo } = await admin
           .from('classes')
           .select('name')
           .eq('id', classId)
@@ -114,7 +117,7 @@ export async function GET(
         const studentsData = await Promise.all(
           (classStudents ?? []).map(async cs => {
             const profile = cs.profiles as unknown as { full_name: string } | null;
-            const { data: results } = await supabase
+            const { data: results } = await admin
               .from('test_results')
               .select('id, test_type, scores, completed_at, ai_report, ai_report_generated_at')
               .eq('student_id', cs.student_id)
@@ -149,13 +152,33 @@ export async function GET(
         return NextResponse.json({ error: 'student_id veya class_id gereklidir.' }, { status: 400 });
       }
 
-      const { data: student } = await supabase
+      // Öğretmen: bu öğrenci size mi atanmış? (assigned_teacher_id kontrolü)
+      if (callerProfile.role === 'teacher') {
+        const { data: studentAuth } = await admin.auth.admin.getUserById(studentId);
+        const assignedTeacherId = studentAuth?.user?.user_metadata?.assigned_teacher_id;
+        if (assignedTeacherId !== user.id) {
+          return NextResponse.json(
+            { error: 'Bu öğrenci size atanmış değil.' },
+            { status: 403 }
+          );
+        }
+      }
+
+      const { data: student } = await admin
         .from('profiles')
-        .select('full_name')
+        .select('full_name, school_id')
         .eq('id', studentId)
         .single();
 
-      const { data: results } = await supabase
+      // School admin: aynı okuldan mı?
+      if (callerProfile.role === 'school_admin' && student?.school_id !== callerProfile.school_id) {
+        return NextResponse.json(
+          { error: 'Bu öğrenciye erişim yetkiniz yok.' },
+          { status: 403 }
+        );
+      }
+
+      const { data: results } = await admin
         .from('test_results')
         .select('id, test_type, scores, completed_at, ai_report, ai_report_generated_at')
         .eq('student_id', studentId)
@@ -190,9 +213,10 @@ export async function GET(
       return NextResponse.json({ error: 'test_result_id gereklidir.' }, { status: 400 });
     }
 
-    const { data: testResult } = await supabase
+    // Admin client ile çek (RLS bypass) — explicit permission check aşağıda
+    const { data: testResult } = await admin
       .from('test_results')
-      .select('id, test_type, scores, ai_report, ai_report_generated_at, student_id')
+      .select('id, test_type, scores, ai_report, ai_report_generated_at, student_id, school_id')
       .eq('id', testResultId)
       .single();
 
@@ -204,7 +228,40 @@ export async function GET(
       return NextResponse.json({ error: 'Bu test için henüz AI raporu üretilmemiş.' }, { status: 400 });
     }
 
-    const { data: student } = await supabase
+    // ── Rol bazlı yetki kontrolü (test_result üzerinden) ──
+    // student / parent zaten yukarıda kontrol edildi (parent için targetStudentId, student için studentId)
+    // Burada teacher ve school_admin için explicit kontrol yapıyoruz.
+    if (callerProfile.role === 'teacher') {
+      // Öğretmen: öğrenci ona atanmış mı? (user_metadata.assigned_teacher_id)
+      const { data: studentAuth } = await admin.auth.admin.getUserById(testResult.student_id);
+      const assignedTeacherId = studentAuth?.user?.user_metadata?.assigned_teacher_id;
+      if (assignedTeacherId !== user.id) {
+        return NextResponse.json(
+          { error: 'Bu öğrenci size atanmış değil.' },
+          { status: 403 }
+        );
+      }
+    } else if (callerProfile.role === 'school_admin') {
+      // School admin: test aynı okuldan mı?
+      if (testResult.school_id !== callerProfile.school_id) {
+        return NextResponse.json(
+          { error: 'Bu test sonucuna erişim yetkiniz yok.' },
+          { status: 403 }
+        );
+      }
+    } else if (callerProfile.role === 'student') {
+      // Öğrenci: test kendisine ait mi?
+      if (testResult.student_id !== user.id) {
+        return NextResponse.json(
+          { error: 'Yalnızca kendi test sonuçlarınızı dışa aktarabilirsiniz.' },
+          { status: 403 }
+        );
+      }
+    }
+    // 'admin' rolü: full access (üst kontrol yok)
+    // 'parent' rolü: yukarıda parent_students üzerinden zaten doğrulandı
+
+    const { data: student } = await admin
       .from('profiles')
       .select('full_name, school_id')
       .eq('id', testResult.student_id)
