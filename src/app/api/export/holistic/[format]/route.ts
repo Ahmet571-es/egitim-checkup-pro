@@ -99,11 +99,25 @@ export async function GET(
         );
       }
     } else {
-      // Öğretmen/yönetici: cross-school
-      if (callerProfile.role !== 'admin' && callerProfile.school_id && hr.school_id && hr.school_id !== callerProfile.school_id) {
-        return NextResponse.json({ error: 'Bu rapor sizin okulunuza ait değil.' }, { status: 403 });
+      // Öğretmen / school_admin / admin
+      if (callerProfile.role === 'teacher') {
+        // Öğretmen: bu öğrenci size atanmış mı? (user_metadata.assigned_teacher_id)
+        const { data: studentAuth } = await admin.auth.admin.getUserById(hr.student_id);
+        const assignedTeacherId = studentAuth?.user?.user_metadata?.assigned_teacher_id;
+        if (assignedTeacherId !== user.id) {
+          return NextResponse.json(
+            { error: 'Bu öğrenci size atanmış değil.' },
+            { status: 403 },
+          );
+        }
+      } else if (callerProfile.role === 'school_admin') {
+        // School admin: aynı okul mu?
+        if (callerProfile.school_id && hr.school_id && hr.school_id !== callerProfile.school_id) {
+          return NextResponse.json({ error: 'Bu rapor sizin okulunuza ait değil.' }, { status: 403 });
+        }
       }
-      // Öğretmen/yönetici tüm audience'lara erişebilir (Faz 9: 3 versiyonu da görür)
+      // admin: tam erişim
+      // Öğretmen/school_admin tüm audience'lara erişebilir (Faz 9: 3 versiyonu da görür)
     }
 
     // Öğrenci adını çek

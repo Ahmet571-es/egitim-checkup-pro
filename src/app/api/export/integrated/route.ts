@@ -1,12 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
+export const runtime = 'nodejs';
+export const maxDuration = 120;
+
+/**
+ * GET /api/export/integrated?student_id=<uuid>&format=<pdf|docx>&id=<uuid?>
+ *
+ * Entegre rapor (öğretmen + öğrenci + veli versiyonları) PDF/DOCX export.
+ *
+ * Güvenlik modeli (genetic-reports/download endpoint'i ile aynı):
+ *  - Auth: cookie session via createClient (user client)
+ *  - Veri sorguları: admin client (RLS bypass)
+ *  - Her rol için explicit yetki kontrolü:
+ *      • student      → sadece kendi (student_id === user.id)
+ *      • parent       → parent_students bağı
+ *      • teacher      → user_metadata.assigned_teacher_id === user.id
+ *      • school_admin → student.school_id === viewer.school_id
+ *      • admin        → tam erişim
+ */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('student_id');
     const format = searchParams.get('format'); // 'pdf' | 'docx'
-    const reportId = searchParams.get('id'); // opsiyonel — belirli bir rapor geçmişten
+    const reportId = searchParams.get('id'); // opsiyonel — geçmişten belirli bir rapor
 
     if (!studentId) {
       return NextResponse.json({ error: 'student_id gereklidir.' }, { status: 400 });
@@ -16,6 +35,7 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createClient();
+    const admin = createAdminClient();
 
     // AUTH
     const { data: { user }, error: authErr } = await supabase.auth.getUser();
@@ -23,8 +43,53 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Yetkilendirme gerekli.' }, { status: 401 });
     }
 
-    // Öğrenci bilgisi
-    const { data: student } = await supabase
+    // Caller profile (admin ile, RLS edge-case'leri aşmak için)
+    const { data: callerProfile } = await admin
+      .from('profiles')
+      .select('role, school_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!callerProfile) {
+      return NextResponse.json({ error: 'Profil bulunamadı.' }, { status: 403 });
+    }
+
+    // ── Rol bazlı izin kontrolü ──
+    if (callerProfile.role === 'student') {
+      if (studentId !== user.id) {
+        return NextResponse.json(
+          { error: 'Yalnızca kendi raporlarınızı indirebilirsiniz.' },
+          { status: 403 },
+        );
+      }
+    } else if (callerProfile.role === 'parent') {
+      const { data: link } = await admin
+        .from('parent_students')
+        .select('id')
+        .eq('parent_id', user.id)
+        .eq('student_id', studentId)
+        .maybeSingle();
+      if (!link) {
+        return NextResponse.json(
+          { error: 'Yalnızca kendi çocuğunuzun raporlarını indirebilirsiniz.' },
+          { status: 403 },
+        );
+      }
+    } else if (callerProfile.role === 'teacher') {
+      const { data: studentAuth } = await admin.auth.admin.getUserById(studentId);
+      const assignedTeacherId = studentAuth?.user?.user_metadata?.assigned_teacher_id;
+      if (assignedTeacherId !== user.id) {
+        return NextResponse.json(
+          { error: 'Bu öğrenci size atanmış değil.' },
+          { status: 403 },
+        );
+      }
+    }
+    // school_admin: aşağıda student.school_id kontrolü yapılıyor
+    // admin: tam erişim
+
+    // Öğrenci bilgisi (admin ile)
+    const { data: student } = await admin
       .from('profiles')
       .select('full_name, school_id')
       .eq('id', studentId)
@@ -32,6 +97,14 @@ export async function GET(request: NextRequest) {
 
     if (!student) {
       return NextResponse.json({ error: 'Öğrenci bulunamadı.' }, { status: 404 });
+    }
+
+    // School admin için okul kontrolü
+    if (callerProfile.role === 'school_admin' && student.school_id !== callerProfile.school_id) {
+      return NextResponse.json(
+        { error: 'Bu öğrenciye erişim yetkiniz yok.' },
+        { status: 403 },
+      );
     }
 
     // Entegre raporu getir — id verildiyse o rapor, yoksa en sonuncusu
@@ -43,7 +116,7 @@ export async function GET(request: NextRequest) {
     } | null = null;
 
     if (reportId) {
-      const { data } = await supabase
+      const { data } = await admin
         .from('integrated_reports')
         .select('teacher_report, student_report, parent_report, generated_at')
         .eq('id', reportId)
@@ -51,7 +124,7 @@ export async function GET(request: NextRequest) {
         .maybeSingle();
       ir = data;
     } else {
-      const { data } = await supabase
+      const { data } = await admin
         .from('integrated_reports')
         .select('teacher_report, student_report, parent_report, generated_at')
         .eq('student_id', studentId)
@@ -69,8 +142,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Rapor içerikleri boş.' }, { status: 400 });
     }
 
-    // Test sayısını al
-    const { count: testCount } = await supabase
+    // Test sayısını al (admin)
+    const { count: testCount } = await admin
       .from('test_results')
       .select('id', { count: 'exact', head: true })
       .eq('student_id', studentId)
@@ -79,7 +152,7 @@ export async function GET(request: NextRequest) {
     // Okul adı
     let schoolName: string | undefined;
     if (student.school_id) {
-      const { data: school } = await supabase
+      const { data: school } = await admin
         .from('schools')
         .select('name')
         .eq('id', student.school_id)
