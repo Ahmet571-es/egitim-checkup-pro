@@ -39,7 +39,7 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Public yollar: auth kontrolu yapmadan gecis
-  if (PUBLIC_PATHS.includes(pathname)) {
+  if (PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/trial/')) {
     return supabaseResponse;
   }
 

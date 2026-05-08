@@ -414,12 +414,24 @@ export default function LandingPage() {
                     type="button"
                     disabled
                     aria-label={`${t.name} ücretsiz test dene (yakında)`}
-                    className="w-full mt-3 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-extrabold text-[13px] flex items-center justify-center gap-2 cursor-not-allowed opacity-75 shadow-lg shadow-amber-500/20 border border-amber-400/30"
+                    className={`w-full mt-3 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-extrabold text-[13px] flex items-center justify-center gap-2 cursor-not-allowed opacity-75 shadow-lg shadow-amber-500/20 border border-amber-400/30 ${t.id === 'vark' ? 'hidden' : ''}`}
                   >
                     <Sparkles className="w-4 h-4" />
                     Ücretsiz Test Dene
                     <span className="text-[9px] font-extrabold bg-white/30 backdrop-blur-md px-2 py-0.5 rounded-full tracking-[0.08em] ml-1">YAKINDA</span>
                   </button>
+                  {t.id === 'vark' && (
+                    <Link
+                      href={`/trial/${t.id}`}
+                      aria-label={`${t.name} ücretsiz test dene`}
+                      className="w-full mt-3 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-extrabold text-[13px] flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30 hover:shadow-xl hover:-translate-y-0.5 transition-all border border-amber-400/40"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Ücretsiz Test Dene
+                      <span className="text-[9px] font-extrabold bg-white/30 backdrop-blur-md px-2 py-0.5 rounded-full tracking-[0.08em] ml-1 animate-pulse">HAZIR</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
