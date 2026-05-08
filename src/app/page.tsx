@@ -474,32 +474,8 @@ export default function LandingPage() {
       {/* ═══ FOOTER ═══ */}
       <footer className="border-t border-white/15" ref={footer.ref}>
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 transition-all duration-500 ${footer.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          {/* Üst kısım: marka + ana linkler */}
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-6">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                <GraduationCap className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-sm font-extrabold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">Eğitim Check-Up</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white font-bold drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
-              <Link href="/paketler" className="footer-link hover:text-amber-300 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
-                Paketler
-              </Link>
-              <Link href="/pricing" className="footer-link hover:text-amber-300 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
-                Ücretlendirme
-              </Link>
-              <Link href="/hakkimizda" className="footer-link hover:text-amber-300 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
-                Hakkımızda
-              </Link>
-              <Link href="/iletisim" className="footer-link hover:text-amber-300 transition-colors py-1.5 min-h-[44px] inline-flex items-center">
-                İletişim
-              </Link>
-            </div>
-          </div>
-
           {/* Yasal linkler — küçük puntolarla */}
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-white/95 font-semibold drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)] border-t border-white/15 pt-5">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-white/95 font-semibold drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)]">
             <Link href="/kvkk" className="hover:text-amber-300 transition-colors inline-flex items-center gap-1 py-1.5 min-h-[36px]">
               <Shield className="w-3 h-3" /> KVKK
             </Link>
