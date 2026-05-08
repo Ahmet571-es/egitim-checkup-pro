@@ -132,6 +132,7 @@ function TypingText({ words, className }: { words: string[]; className?: string 
 export default function LandingPage() {
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeTestIdx, setActiveTestIdx] = useState<number | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setNavScrolled(window.scrollY > 20);
@@ -376,14 +377,30 @@ export default function LandingPage() {
           <p className="mt-3 text-white/90 dark:text-slate-300 text-lg max-w-xl mx-auto font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] animate-[float-text_3s_ease-in-out_infinite]">Bilimsel temelli 10 farklı psikometrik test ile kapsamlı öğrenci profili</p>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
-          {TESTS.map((t, i) => (
+          {TESTS.map((t, i) => {
+            const isActive = activeTestIdx === i;
+            return (
             <div key={t.name}
-              className={`test-card group bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 border-l-[3px] ${t.border} p-5 shadow-sm
+              role="button"
+              tabIndex={0}
+              onClick={() => setActiveTestIdx(isActive ? null : i)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setActiveTestIdx(isActive ? null : i);
+                }
+              }}
+              aria-expanded={isActive}
+              aria-label={`${t.name} - detayları ${isActive ? 'gizle' : 'göster'}`}
+              className={`test-card group bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 border-l-[3px] ${t.border} p-5 shadow-sm cursor-pointer
                 hover:-translate-y-1.5 hover:shadow-xl hover:border-l-[5px] hover:bg-white/90 dark:hover:bg-slate-800/80 transition-all duration-300
+                ${isActive ? '-translate-y-1.5 shadow-xl border-l-[5px] bg-white/90 dark:bg-slate-800/80' : ''}
                 ${tests.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               style={{ transitionDelay: tests.visible ? `${i * 80}ms` : '0ms' }}>
               <div className="flex items-start gap-4">
-                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${t.color} flex items-center justify-center shadow-lg shrink-0 group-hover:rotate-[5deg] group-hover:scale-110 group-hover:shadow-xl transition-all duration-300`}>
+                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${t.color} flex items-center justify-center shadow-lg shrink-0 transition-all duration-300
+                  group-hover:rotate-[5deg] group-hover:scale-110 group-hover:shadow-xl
+                  ${isActive ? 'rotate-[5deg] scale-110 shadow-xl' : ''}`}>
                   <t.icon className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -391,13 +408,16 @@ export default function LandingPage() {
                     <h3 className="text-[15px] font-bold text-[#0f2847] dark:text-slate-100">{t.name}</h3>
                     <span className="text-[12px] text-gray-400 dark:text-slate-500 font-semibold bg-gray-50 dark:bg-slate-800/60 px-2.5 py-1 rounded-full shrink-0 ml-2">{t.count}</span>
                   </div>
-                  <p className="text-[13px] text-gray-500 dark:text-slate-400 mt-1 group-hover:text-gray-700 dark:text-slate-300 transition-colors duration-200">{t.desc}</p>
+                  <p className={`text-[13px] mt-1 transition-colors duration-200 dark:text-slate-300
+                    ${isActive ? 'text-gray-700 dark:text-slate-300' : 'text-gray-500 dark:text-slate-400 group-hover:text-gray-700'}`}>{t.desc}</p>
                 </div>
               </div>
 
-              {/* ═══ Hover-expand: Amaç + Ne Ölçer + Buton ═══ */}
-              <div className="overflow-hidden max-h-0 group-hover:max-h-[400px] transition-[max-height] duration-500 ease-out">
-                <div className="mt-4 pt-4 border-t border-gray-200/60 dark:border-slate-700/50 space-y-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-150">
+              {/* ═══ Açılan içerik: hover (desktop) VEYA click (mobile/desktop) ═══ */}
+              <div className={`overflow-hidden transition-[max-height] duration-500 ease-out
+                ${isActive ? 'max-h-[400px]' : 'max-h-0 group-hover:max-h-[400px]'}`}>
+                <div className={`mt-4 pt-4 border-t border-gray-200/60 dark:border-slate-700/50 space-y-3 transition-opacity duration-300 delay-150
+                  ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                   <div>
                     <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-1.5">
                       <Sparkles className="w-3 h-3" /> Amaç
@@ -413,6 +433,7 @@ export default function LandingPage() {
                   <button
                     type="button"
                     disabled
+                    onClick={(e) => e.stopPropagation()}
                     aria-label={`${t.name} ücretsiz test dene (yakında)`}
                     className={`w-full mt-3 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-extrabold text-[13px] flex items-center justify-center gap-2 cursor-not-allowed opacity-75 shadow-lg shadow-amber-500/20 border border-amber-400/30 ${t.id === 'vark' ? 'hidden' : ''}`}
                   >
@@ -423,6 +444,7 @@ export default function LandingPage() {
                   {t.id === 'vark' && (
                     <Link
                       href={`/trial/${t.id}`}
+                      onClick={(e) => e.stopPropagation()}
                       aria-label={`${t.name} ücretsiz test dene`}
                       className="w-full mt-3 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-extrabold text-[13px] flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30 hover:shadow-xl hover:-translate-y-0.5 transition-all border border-amber-400/40"
                     >
@@ -435,7 +457,8 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
