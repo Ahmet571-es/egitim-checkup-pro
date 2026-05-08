@@ -6,8 +6,7 @@ import {
   GraduationCap, Brain, Eye, Compass, Lightbulb, AlertTriangle,
   BookOpen, BarChart3, Focus, SplitSquareHorizontal, ArrowRight,
   CheckCircle2, Sparkles, Users, FileText, ChevronRight, Mail, Shield,
-  Zap, TrendingUp, Award, UserCheck, School, ClipboardList, Heart,
-  Star, Gift, XCircle
+  Zap, TrendingUp, Award, UserCheck, School, ClipboardList, Heart
 } from 'lucide-react';
 import { useScrollReveal, useCountUp } from '@/hooks/useScrollReveal';
 
@@ -35,68 +34,6 @@ const HIGHLIGHTS = [
   { icon: Brain, title: 'Derinlemesine Analiz', desc: 'Kapsamlı öğrenci profilleme ve değerlendirme', color: 'text-violet-600 bg-violet-50 border-violet-200' },
   { icon: TrendingUp, title: 'Gelişim Takibi', desc: 'Longitudinal veri ile öğrenci gelişimini izleyin', color: 'text-sky-600 bg-sky-50 border-sky-200' },
   { icon: Award, title: 'Koçluk Sistemi', desc: 'Haftalık görevler ve gamification ile motivasyon', color: 'text-amber-600 bg-amber-50 border-amber-200' },
-];
-
-const PRICING_TIERS = [
-  {
-    id: 'demo',
-    name: 'Ücretsiz Demo',
-    audience: 'Tanışmak için',
-    icon: Sparkles,
-    price: '0',
-    period: '',
-    badge: null as string | null,
-    featured: false,
-    annual: null as { original: string; discounted: string } | null,
-    iconGradient: 'from-slate-400 to-slate-600',
-    features: [
-      { text: 'Tek test örneği', included: false },
-      { text: 'AI rapor (kilitli)', included: false },
-      { text: 'PDF watermark var', included: false },
-      { text: 'Sınırlı süre erişim', included: false },
-    ],
-  },
-  {
-    id: 'teacher',
-    name: 'Öğretmen',
-    audience: 'Bireysel kullanım',
-    icon: GraduationCap,
-    price: '600',
-    period: '/ay',
-    badge: 'POPÜLER',
-    featured: true,
-    annual: { original: '7.200', discounted: '6.000' },
-    iconGradient: 'from-amber-500 to-orange-600',
-    features: [
-      { text: 'Sınırsız öğrenci', included: true },
-      { text: 'Tüm 10 test aktif', included: true },
-      { text: 'AI rapor (Claude Sonnet)', included: true },
-      { text: 'PDF/DOCX export', included: true },
-      { text: 'Veli paneli', included: true },
-      { text: 'E-posta desteği', included: true },
-    ],
-  },
-  {
-    id: 'institution',
-    name: 'Kurum',
-    audience: 'Okul, kolej, kurs',
-    icon: School,
-    price: '30.000',
-    period: '/ay',
-    badge: null as string | null,
-    featured: false,
-    annual: null as { original: string; discounted: string } | null,
-    iconGradient: 'from-rose-500 to-pink-600',
-    features: [
-      { text: '200 öğrenciye kadar', included: true },
-      { text: 'Tüm testler + AI rapor', included: true },
-      { text: 'Toplu PDF/DOCX export', included: true },
-      { text: 'Çoklu öğretmen hesabı', included: true },
-      { text: 'İstatistik & metrics', included: true },
-      { text: 'Öncelikli destek', included: true },
-      { text: 'API & entegrasyon', included: true },
-    ],
-  },
 ];
 
 /* ═══ SUB-COMPONENTS ═══ */
@@ -178,7 +115,6 @@ export default function LandingPage() {
   const highlights = useScrollReveal(0.15);
   const tests = useScrollReveal(0.1);
   const steps = useScrollReveal(0.15);
-  const pricing = useScrollReveal(0.15);
   const footer = useScrollReveal(0.1);
 
   return (
@@ -398,99 +334,6 @@ export default function LandingPage() {
               <p className="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">{s.desc}</p>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* ═══ PRICING TEASER ═══ */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-24" ref={pricing.ref}>
-        <div className={`text-center mb-14 transition-all duration-500 ${pricing.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h2 className="text-3xl sm:text-4xl font-extrabold inline-block bg-gradient-to-r from-amber-300 via-yellow-200 to-orange-300 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_4s_ease-in-out_infinite] drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">Esnek Planlar</h2>
-          <p className="mt-3 text-white/90 dark:text-slate-300 text-lg font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] animate-[float-text_3s_ease-in-out_infinite]">İhtiyacınıza uygun planı seçin</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-          {PRICING_TIERS.map((tier, i) => (
-            <div
-              key={tier.id}
-              className={`relative rounded-3xl backdrop-blur-xl border-2 p-7 sm:p-8 transition-all duration-500 flex flex-col
-                ${tier.featured
-                  ? 'bg-gradient-to-br from-amber-100/95 via-orange-50/95 to-amber-50/95 dark:from-amber-900/40 dark:via-orange-900/30 dark:to-amber-900/40 border-amber-400 md:scale-105 md:-translate-y-2 shadow-2xl shadow-amber-500/30'
-                  : 'bg-white/85 dark:bg-slate-800/60 border-white/40 dark:border-slate-700/60 shadow-lg'}
-                hover:-translate-y-1 hover:shadow-2xl
-                ${pricing.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-              style={{ transitionDelay: pricing.visible ? `${i * 150}ms` : '0ms' }}
-            >
-              {/* Popular badge */}
-              {tier.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[11px] font-extrabold tracking-wider shadow-lg shadow-amber-500/40 flex items-center gap-1 whitespace-nowrap">
-                  <Star className="w-3 h-3 fill-current" /> {tier.badge}
-                </div>
-              )}
-
-              {/* Header */}
-              <div className="text-center mb-6">
-                <div className={`inline-flex w-14 h-14 rounded-2xl bg-gradient-to-br ${tier.iconGradient} items-center justify-center mb-4 shadow-lg`}>
-                  <tier.icon className="w-7 h-7 text-white" />
-                </div>
-                <h3 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100 mb-1">{tier.name}</h3>
-                <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">{tier.audience}</p>
-              </div>
-
-              {/* Price */}
-              <div className="text-center mb-6 pb-6 border-b border-gray-200/60 dark:border-slate-700/60">
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl sm:text-5xl font-black text-[#0f2847] dark:text-slate-100">
-                    {tier.price === '0' ? 'Ücretsiz' : `${tier.price}₺`}
-                  </span>
-                  {tier.period && (
-                    <span className="text-sm text-gray-500 dark:text-slate-400 font-semibold">{tier.period}</span>
-                  )}
-                </div>
-                {tier.annual && (
-                  <div className="mt-4 flex flex-col items-center gap-1.5">
-                    <div className="px-3 py-1 rounded-full bg-purple-600/15 dark:bg-purple-500/20 border border-purple-400/40 text-purple-700 dark:text-purple-300 text-[10px] font-extrabold tracking-wider flex items-center gap-1">
-                      <Gift className="w-3 h-3" /> KAMPANYA
-                    </div>
-                    <p className="text-[12px] text-gray-600 dark:text-slate-400 font-medium">
-                      Yıllık: <span className="line-through text-gray-400">{tier.annual.original}₺</span>{' '}
-                      <span className="font-extrabold text-emerald-600 dark:text-emerald-400">{tier.annual.discounted}₺/yıl</span>
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Features */}
-              <ul className="space-y-3 flex-1">
-                {tier.features.map((feat, fi) => (
-                  <li key={fi} className="flex items-start gap-2.5 text-sm">
-                    {feat.included ? (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 dark:text-emerald-400 shrink-0 mt-0.5" />
-                    ) : (
-                      <XCircle className="w-5 h-5 text-gray-400 dark:text-slate-500 shrink-0 mt-0.5" />
-                    )}
-                    <span className={feat.included
-                      ? 'text-[#0f2847] dark:text-slate-100 font-medium'
-                      : 'text-gray-400 dark:text-slate-500 line-through'}>
-                      {feat.text}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        {/* Link to detailed packages */}
-        <div className={`text-center mt-12 transition-all duration-500 ${pricing.visible ? 'opacity-100' : 'opacity-0'}`}
-             style={{ transitionDelay: pricing.visible ? '700ms' : '0ms' }}>
-          <Link
-            href="/paketler"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 hover:border-white/40 text-white/95 hover:text-white text-sm font-semibold transition-all duration-300 group shadow-md"
-          >
-            <FileText className="w-4 h-4" />
-            Detaylı paketler ve tekil test fiyatları
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
         </div>
       </section>
 
