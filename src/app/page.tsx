@@ -51,10 +51,10 @@ const TESTS = [
 ];
 
 // Şu anda ücretsiz trial (kayıtsız) sayfası hazır olan testler.
-// Çoklu Zekâ ve Çalışma Davranışı engine yazıldıktan sonra buraya eklenecek.
+// Çalışma Davranışı engine yazıldıktan sonra buraya eklenecek.
 // Diğer 6 test (Enneagram, Sınav Kaygısı, Meslek, Akademik, Dikkat, Hızlı Okuma)
 // için kullanıcı kayıt olmak zorunda.
-const TRIAL_AVAILABLE = ['vark', 'beyin'];
+const TRIAL_AVAILABLE = ['vark', 'beyin', 'coklu-zeka'];
 
 const STEPS = [
   { num: '01', title: 'Okulunuzu Kaydedin', desc: 'Kurulum sadece 5 dakika. Okulunuzu tanımlayın ve sınıflarınızı oluşturun.', gradient: 'from-emerald-500 to-teal-600', icon: School },
