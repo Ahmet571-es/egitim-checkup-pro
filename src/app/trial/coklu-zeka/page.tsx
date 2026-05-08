@@ -17,6 +17,7 @@ import {
   calculateCokluZekaLise, type ZekaKey
 } from '@/lib/tests/coklu-zeka/data';
 import type { CokluZekaScores } from '@/lib/tests/types';
+import { ShareButton } from '@/components/ShareButton';
 
 type Stage = 'intro' | 'questions' | 'result';
 
@@ -147,7 +148,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
         <Lightbulb className="w-10 h-10 text-white" />
       </div>
 
-      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0f2847] mb-4 leading-tight">
+      <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black text-[#0f2847] mb-4 leading-[1.15] text-balance">
         Çoklu Zekâ Testi
       </h1>
       <p className="text-base sm:text-lg text-gray-600 max-w-xl mx-auto leading-relaxed mb-8">
@@ -247,7 +248,7 @@ function QuestionStage({
       </div>
 
       {/* Questions */}
-      <div className="space-y-4">
+      <div key={currentPage} className="space-y-4 animate-[q-slide-in_400ms_ease-out]">
         {pageQuestions.map((q, idx) => {
           const qNumber = currentPage * PAGE_SIZE + idx + 1;
           const selected = answers[q.id];
@@ -330,7 +331,7 @@ function ResultStage({ scores, onRestart }: { scores: CokluZekaScores; onRestart
           <CheckCircle2 className="w-4 h-4 text-emerald-700" />
           <span className="text-[13px] font-bold text-emerald-900">Test Tamamlandı</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black text-[#0f2847] mb-2">Sonucun Hazır</h1>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#0f2847] mb-2 leading-[1.15] text-balance">Sonucun Hazır</h1>
         <p className="text-base text-gray-600">Çoklu Zekâ Profilin</p>
       </div>
 
@@ -469,11 +470,17 @@ function ResultStage({ scores, onRestart }: { scores: CokluZekaScores; onRestart
         </div>
       </div>
 
-      <div className="text-center">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <ShareButton
+          title="Çoklu Zekâ Sonucum"
+          text={`${dominantInfo?.icon ?? ''} Baskın zekâ alanım: ${dominantInfo?.name ?? ''}`}
+          trialPath="/trial/coklu-zeka"
+          accentClass="from-indigo-500 to-violet-600"
+        />
         <button
           type="button"
           onClick={onRestart}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm text-gray-600 hover:text-[#0f2847] hover:bg-white/60 font-semibold transition-all"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm text-gray-600 hover:text-[#0f2847] hover:bg-white/60 font-semibold transition-all min-h-[44px]"
         >
           <RefreshCw className="w-4 h-4" /> Testi Tekrar Yap
         </button>

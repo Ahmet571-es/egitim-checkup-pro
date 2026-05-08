@@ -20,6 +20,7 @@ import {
 import { VARK_QUESTIONS, VARK_STYLES } from '@/lib/tests/vark/data';
 import { calculateVark } from '@/lib/tests/vark/engine';
 import type { VarkScores } from '@/lib/tests/types';
+import { ShareButton } from '@/components/ShareButton';
 
 type Stage = 'intro' | 'questions' | 'result';
 
@@ -129,7 +130,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
         <span className="text-[13px] font-bold text-[#0f2847]">Ücretsiz Deneme</span>
       </div>
 
-      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0f2847] mb-4 leading-tight">
+      <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black text-[#0f2847] mb-4 leading-[1.15] text-balance">
         VARK Öğrenme Stilleri Testi
       </h1>
       <p className="text-base sm:text-lg text-gray-600 max-w-xl mx-auto leading-relaxed mb-8">
@@ -210,8 +211,11 @@ function QuestionStage({
       </div>
 
       {/* Question card */}
-      <div className="bg-white/85 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl p-6 sm:p-10">
-        <h2 className="text-xl sm:text-2xl font-black text-[#0f2847] mb-6 leading-tight">
+      <div
+        key={currentQ}
+        className="bg-white/85 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl p-6 sm:p-10 animate-[q-slide-in_400ms_ease-out]"
+      >
+        <h2 className="text-lg sm:text-2xl font-black text-[#0f2847] mb-6 leading-[1.25] text-balance">
           {question.text}
         </h2>
 
@@ -311,7 +315,7 @@ function ResultStage({ scores, onRestart }: { scores: VarkScores; onRestart: () 
           <CheckCircle2 className="w-4 h-4 text-emerald-700" />
           <span className="text-[13px] font-bold text-emerald-900">Test Tamamlandı</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black text-[#0f2847] mb-2">Sonucun Hazır</h1>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#0f2847] mb-2 leading-[1.15] text-balance">Sonucun Hazır</h1>
         <p className="text-base text-gray-600">VARK Öğrenme Stilleri Profilin</p>
       </div>
 
@@ -423,12 +427,18 @@ function ResultStage({ scores, onRestart }: { scores: VarkScores; onRestart: () 
         </div>
       </div>
 
-      {/* Restart */}
-      <div className="text-center">
+      {/* Share + Restart */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <ShareButton
+          title="VARK Öğrenme Stilleri Sonucum"
+          text={`${dominantInfo?.icon ?? ''} Baskın öğrenme stilim: ${dominantInfo?.name ?? ''} (%${dominantPct.toFixed(0)})`}
+          trialPath="/trial/vark"
+          accentClass="from-amber-500 to-orange-600"
+        />
         <button
           type="button"
           onClick={onRestart}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm text-gray-600 hover:text-[#0f2847] hover:bg-white/60 font-semibold transition-all"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm text-gray-600 hover:text-[#0f2847] hover:bg-white/60 font-semibold transition-all min-h-[44px]"
         >
           <RefreshCw className="w-4 h-4" />
           Testi Tekrar Yap

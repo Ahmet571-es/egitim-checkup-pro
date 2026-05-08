@@ -18,6 +18,7 @@ import {
 } from '@/lib/tests/calisma-davranisi/data';
 import { calculateCalismaDavranisi } from '@/lib/tests/calisma-davranisi/engine';
 import type { CalismaDavranisiScores } from '@/lib/tests/types';
+import { ShareButton } from '@/components/ShareButton';
 
 type Stage = 'intro' | 'questions' | 'result';
 
@@ -94,7 +95,7 @@ export default function CalismaTrialPage() {
               <BookOpen className="w-4 h-4 text-blue-600" />
               <span className="text-[13px] font-bold text-[#0f2847]">Ücretsiz Deneme</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0f2847] mb-4 leading-tight">
+            <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black text-[#0f2847] mb-4 leading-[1.15] text-balance">
               Çalışma Davranışı Ölçeği
             </h1>
             <p className="text-base sm:text-lg text-gray-600 max-w-xl mx-auto leading-relaxed mb-8">
@@ -147,9 +148,12 @@ export default function CalismaTrialPage() {
               </div>
             </div>
 
-            <div className="bg-white/85 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl p-6 sm:p-10">
+            <div
+              key={currentQ}
+              className="bg-white/85 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl p-6 sm:p-10 animate-[q-slide-in_400ms_ease-out]"
+            >
               <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-blue-600 mb-3">Bu cümle...</p>
-              <h2 className="text-xl sm:text-2xl font-black text-[#0f2847] mb-8 leading-tight">
+              <h2 className="text-lg sm:text-2xl font-black text-[#0f2847] mb-8 leading-[1.25] text-balance">
                 "{q.text}"
               </h2>
 
@@ -234,7 +238,7 @@ function ResultStage({ scores, onRestart }: { scores: CalismaDavranisiScores; on
           <CheckCircle2 className="w-4 h-4 text-emerald-700" />
           <span className="text-[13px] font-bold text-emerald-900">Test Tamamlandı</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black text-[#0f2847] mb-2">Sonucun Hazır</h1>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#0f2847] mb-2 leading-[1.15] text-balance">Sonucun Hazır</h1>
         <p className="text-base text-gray-600">Çalışma Davranışı Profilin</p>
       </div>
 
@@ -357,9 +361,15 @@ function ResultStage({ scores, onRestart }: { scores: CalismaDavranisiScores; on
         </div>
       </div>
 
-      <div className="text-center">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <ShareButton
+          title="Çalışma Davranışı Sonucum"
+          text={`📚 En güçlü alanım: ${topCategory?.name ?? ''} (%${topCategory?.pct.toFixed(0) ?? 0})`}
+          trialPath="/trial/calisma"
+          accentClass="from-blue-500 to-indigo-600"
+        />
         <button onClick={onRestart}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm text-gray-600 hover:text-[#0f2847] hover:bg-white/60 font-semibold transition-all">
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm text-gray-600 hover:text-[#0f2847] hover:bg-white/60 font-semibold transition-all min-h-[44px]">
           <RefreshCw className="w-4 h-4" /> Testi Tekrar Yap
         </button>
       </div>

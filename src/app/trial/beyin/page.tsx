@@ -15,6 +15,7 @@ import {
 import { SAG_SOL_BEYIN_QUESTIONS, SAG_SOL_BEYIN_DATA } from '@/lib/tests/sag-sol-beyin/data';
 import { calculateSagSolBeyin } from '@/lib/tests/sag-sol-beyin/engine';
 import type { SagSolBeyinScores } from '@/lib/tests/types';
+import { ShareButton } from '@/components/ShareButton';
 
 type Stage = 'intro' | 'questions' | 'result';
 
@@ -118,7 +119,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
         <Brain className="w-10 h-10 text-white" />
       </div>
 
-      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0f2847] mb-4 leading-tight">
+      <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black text-[#0f2847] mb-4 leading-[1.15] text-balance">
         Sağ-Sol Beyin Dominansı
       </h1>
       <p className="text-base sm:text-lg text-gray-600 max-w-xl mx-auto leading-relaxed mb-8">
@@ -195,8 +196,11 @@ function QuestionStage({
         </div>
       </div>
 
-      <div className="bg-white/85 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl p-6 sm:p-10">
-        <h2 className="text-xl sm:text-2xl font-black text-[#0f2847] mb-6 leading-tight">{question.text}</h2>
+      <div
+        key={currentQ}
+        className="bg-white/85 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl p-6 sm:p-10 animate-[q-slide-in_400ms_ease-out]"
+      >
+        <h2 className="text-lg sm:text-2xl font-black text-[#0f2847] mb-6 leading-[1.25] text-balance">{question.text}</h2>
 
         <div className="space-y-3">
           {(['a', 'b'] as const).map((opt) => {
@@ -269,7 +273,7 @@ function ResultStage({ scores, onRestart }: { scores: SagSolBeyinScores; onResta
           <CheckCircle2 className="w-4 h-4 text-emerald-700" />
           <span className="text-[13px] font-bold text-emerald-900">Test Tamamlandı</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black text-[#0f2847] mb-2">Sonucun Hazır</h1>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#0f2847] mb-2 leading-[1.15] text-balance">Sonucun Hazır</h1>
         <p className="text-base text-gray-600">Sağ-Sol Beyin Dominansı Profilin</p>
       </div>
 
@@ -399,11 +403,17 @@ function ResultStage({ scores, onRestart }: { scores: SagSolBeyinScores; onResta
         </div>
       </div>
 
-      <div className="text-center">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <ShareButton
+          title="Sağ-Sol Beyin Sonucum"
+          text={`${profile?.icon ?? ''} Profilim: ${profile?.title ?? ''} (${scores.level}) — Sol %${scores.solYuzde.toFixed(0)} · Sağ %${scores.sagYuzde.toFixed(0)})`}
+          trialPath="/trial/beyin"
+          accentClass="from-fuchsia-500 to-purple-600"
+        />
         <button
           type="button"
           onClick={onRestart}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm text-gray-600 hover:text-[#0f2847] hover:bg-white/60 font-semibold transition-all"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm text-gray-600 hover:text-[#0f2847] hover:bg-white/60 font-semibold transition-all min-h-[44px]"
         >
           <RefreshCw className="w-4 h-4" /> Testi Tekrar Yap
         </button>
