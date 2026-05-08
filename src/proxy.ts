@@ -38,6 +38,45 @@ export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
   const pathname = request.nextUrl.pathname;
 
+  // F4: Trial sayfaları için cookie-based throttle
+  // Mali risk yok (API key kullanılmıyor) — bu sadece basic abuse koruması
+  // /trial/limit-asildi dahil olmasın (sonsuz redirect olur)
+  if (pathname.startsWith('/trial/') && pathname !== '/trial/limit-asildi') {
+    const TRIAL_COOKIE = 'trial_quota';
+    const ONE_HOUR_MS = 60 * 60 * 1000;
+    const HOUR_LIMIT = 30; // 4 trial × 6 yenileme + tampon = makul üst sınır
+
+    let visits: number[] = [];
+    const cookieRaw = request.cookies.get(TRIAL_COOKIE)?.value;
+    if (cookieRaw) {
+      try {
+        const parsed = JSON.parse(cookieRaw);
+        if (Array.isArray(parsed)) {
+          visits = parsed.filter((t): t is number => typeof t === 'number');
+        }
+      } catch {
+        visits = [];
+      }
+    }
+
+    const now = Date.now();
+    visits = visits.filter((t) => now - t < ONE_HOUR_MS);
+
+    if (visits.length >= HOUR_LIMIT) {
+      return NextResponse.redirect(new URL('/trial/limit-asildi', request.url), 302);
+    }
+
+    visits.push(now);
+    supabaseResponse.cookies.set(TRIAL_COOKIE, JSON.stringify(visits), {
+      maxAge: ONE_HOUR_MS / 1000,
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+    });
+    return supabaseResponse;
+  }
+
   // Public yollar: auth kontrolu yapmadan gecis
   if (PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/trial/')) {
     return supabaseResponse;
