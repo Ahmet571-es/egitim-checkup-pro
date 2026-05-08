@@ -50,6 +50,12 @@ const TESTS = [
     measures: 'Dakikadaki kelime sayısını (WPM), okuduğunu anlama yüzdesini ve toplam okuma performansını verir.' },
 ];
 
+// Şu anda ücretsiz trial (kayıtsız) sayfası hazır olan testler.
+// Çoklu Zekâ ve Çalışma Davranışı engine yazıldıktan sonra buraya eklenecek.
+// Diğer 6 test (Enneagram, Sınav Kaygısı, Meslek, Akademik, Dikkat, Hızlı Okuma)
+// için kullanıcı kayıt olmak zorunda.
+const TRIAL_AVAILABLE = ['vark', 'beyin'];
+
 const STEPS = [
   { num: '01', title: 'Okulunuzu Kaydedin', desc: 'Kurulum sadece 5 dakika. Okulunuzu tanımlayın ve sınıflarınızı oluşturun.', gradient: 'from-emerald-500 to-teal-600', icon: School },
   { num: '02', title: 'Testleri Atayın', desc: 'Sınıflarınıza testleri tek tıkla atayın. Öğrenciler kendi panellerinden çözer.', gradient: 'from-sky-500 to-blue-600', icon: ClipboardList },
@@ -435,13 +441,13 @@ export default function LandingPage() {
                     disabled
                     onClick={(e) => e.stopPropagation()}
                     aria-label={`${t.name} ücretsiz test dene (yakında)`}
-                    className={`w-full mt-3 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-extrabold text-[13px] flex items-center justify-center gap-2 cursor-not-allowed opacity-75 shadow-lg shadow-amber-500/20 border border-amber-400/30 ${t.id === 'vark' ? 'hidden' : ''}`}
+                    className={`w-full mt-3 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-extrabold text-[13px] flex items-center justify-center gap-2 cursor-not-allowed opacity-75 shadow-lg shadow-amber-500/20 border border-amber-400/30 ${TRIAL_AVAILABLE.includes(t.id) ? 'hidden' : ''}`}
                   >
                     <Sparkles className="w-4 h-4" />
                     Ücretsiz Test Dene
                     <span className="text-[9px] font-extrabold bg-white/30 backdrop-blur-md px-2 py-0.5 rounded-full tracking-[0.08em] ml-1">YAKINDA</span>
                   </button>
-                  {t.id === 'vark' && (
+                  {TRIAL_AVAILABLE.includes(t.id) && (
                     <Link
                       href={`/trial/${t.id}`}
                       onClick={(e) => e.stopPropagation()}
