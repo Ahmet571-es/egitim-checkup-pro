@@ -6,7 +6,8 @@ import {
   GraduationCap, Brain, Eye, Compass, Lightbulb, AlertTriangle,
   BookOpen, BarChart3, Focus, SplitSquareHorizontal, ArrowRight,
   CheckCircle2, Sparkles, Users, FileText, ChevronRight, Mail, Shield,
-  Zap, TrendingUp, Award, UserCheck, School, ClipboardList, Heart
+  Zap, TrendingUp, Award, UserCheck, School, ClipboardList, Heart,
+  Menu, X
 } from 'lucide-react';
 import { useScrollReveal, useCountUp } from '@/hooks/useScrollReveal';
 
@@ -105,6 +106,7 @@ function TypingText({ words, className }: { words: string[]; className?: string 
 /* ═══ LANDING PAGE ═══ */
 export default function LandingPage() {
   const [navScrolled, setNavScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setNavScrolled(window.scrollY > 20);
@@ -150,6 +152,7 @@ export default function LandingPage() {
           : 'bg-white/60 dark:bg-slate-800/40 backdrop-blur-xl border-white/40 dark:border-slate-700/60'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          {/* Logo */}
           <Link href="/" aria-label="Ana sayfaya git" className="flex items-center gap-2.5 min-h-[44px] hover:scale-[1.03] transition-transform duration-200">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
               <GraduationCap className="w-5 h-5 text-white" />
@@ -157,6 +160,69 @@ export default function LandingPage() {
             <span className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100 tracking-tight">Eğitim Check-Up</span>
           </Link>
 
+          {/* Desktop nav links */}
+          <div className="hidden md:flex items-center gap-1">
+            {[
+              { href: '/paketler', label: 'Paketler' },
+              { href: '/pricing', label: 'Ücretlendirme' },
+              { href: '/hakkimizda', label: 'Hakkımızda' },
+              { href: '/iletisim', label: 'İletişim' },
+            ].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`relative px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 group min-h-[44px] inline-flex items-center
+                  ${navScrolled
+                    ? 'text-[#0f2847] dark:text-slate-100 hover:bg-amber-50 dark:hover:bg-slate-700/50 hover:text-amber-600 dark:hover:text-amber-300'
+                    : 'text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)] hover:text-amber-200 hover:drop-shadow-[0_2px_8px_rgba(251,191,36,0.5)]'}`}
+              >
+                <span className="relative z-10">{link.label}</span>
+                <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-[2px] w-0 group-hover:w-3/5 transition-all duration-300 rounded-full
+                  ${navScrolled ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gradient-to-r from-amber-300 to-orange-300'}`} />
+              </Link>
+            ))}
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+            aria-expanded={mobileMenuOpen}
+            className={`md:hidden p-2.5 rounded-xl transition-all duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center
+              ${navScrolled
+                ? 'text-[#0f2847] hover:bg-amber-50 hover:text-amber-600'
+                : 'text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)] hover:bg-white/15'}`}
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+
+        {/* Mobile dropdown menu */}
+        <div className={`md:hidden overflow-hidden transition-all duration-300 ease-out ${
+          mobileMenuOpen ? 'max-h-[400px] border-t border-white/20 dark:border-slate-700/50' : 'max-h-0'
+        } ${navScrolled ? 'bg-white/95 backdrop-blur-2xl' : 'bg-[#0f2847]/85 backdrop-blur-xl'}`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col gap-1">
+            {[
+              { href: '/paketler', label: 'Paketler' },
+              { href: '/pricing', label: 'Ücretlendirme' },
+              { href: '/hakkimizda', label: 'Hakkımızda' },
+              { href: '/iletisim', label: 'İletişim' },
+            ].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-4 py-3 rounded-xl text-base font-bold transition-all duration-200 min-h-[48px] flex items-center
+                  ${navScrolled
+                    ? 'text-[#0f2847] hover:bg-amber-50 hover:text-amber-600'
+                    : 'text-white hover:bg-white/15 hover:text-amber-200'}`}
+              >
+                <ChevronRight className="w-4 h-4 mr-2 opacity-60" />
+                {link.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </nav>
 
