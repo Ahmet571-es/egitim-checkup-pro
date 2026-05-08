@@ -7,7 +7,7 @@ import {
   BookOpen, BarChart3, Focus, SplitSquareHorizontal, ArrowRight,
   CheckCircle2, Sparkles, Users, FileText, ChevronRight, Mail, Shield,
   Zap, TrendingUp, Award, UserCheck, School, ClipboardList, Heart,
-  Menu, X
+  Menu, X, Lock
 } from 'lucide-react';
 import { useScrollReveal, useCountUp } from '@/hooks/useScrollReveal';
 
@@ -54,7 +54,7 @@ const TESTS = [
 // Çalışma Davranışı engine yazıldıktan sonra buraya eklenecek.
 // Diğer 6 test (Enneagram, Sınav Kaygısı, Meslek, Akademik, Dikkat, Hızlı Okuma)
 // için kullanıcı kayıt olmak zorunda.
-const TRIAL_AVAILABLE = ['vark', 'beyin', 'coklu-zeka'];
+const TRIAL_AVAILABLE = ['vark', 'beyin', 'coklu-zeka', 'calisma'];
 
 const STEPS = [
   { num: '01', title: 'Okulunuzu Kaydedin', desc: 'Kurulum sadece 5 dakika. Okulunuzu tanımlayın ve sınıflarınızı oluşturun.', gradient: 'from-emerald-500 to-teal-600', icon: School },
@@ -436,17 +436,19 @@ export default function LandingPage() {
                     </p>
                     <p className="text-[13px] text-gray-700 dark:text-slate-300 leading-relaxed">{t.measures}</p>
                   </div>
-                  <button
-                    type="button"
-                    disabled
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label={`${t.name} ücretsiz test dene (yakında)`}
-                    className={`w-full mt-3 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-extrabold text-[13px] flex items-center justify-center gap-2 cursor-not-allowed opacity-75 shadow-lg shadow-amber-500/20 border border-amber-400/30 ${TRIAL_AVAILABLE.includes(t.id) ? 'hidden' : ''}`}
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    Ücretsiz Test Dene
-                    <span className="text-[9px] font-extrabold bg-white/30 backdrop-blur-md px-2 py-0.5 rounded-full tracking-[0.08em] ml-1">YAKINDA</span>
-                  </button>
+                  {!TRIAL_AVAILABLE.includes(t.id) && (
+                    <Link
+                      href="/paketler"
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label={`${t.name} - üyelere özel, paketleri gör`}
+                      className="w-full mt-3 py-2.5 px-4 rounded-xl bg-gradient-to-r from-slate-600 to-slate-800 text-white font-bold text-[13px] flex items-center justify-center gap-2 shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all border border-slate-500/40 hover:from-amber-600 hover:to-orange-700"
+                    >
+                      <Lock className="w-4 h-4" />
+                      Paketlerde Mevcut
+                      <span className="text-[9px] font-extrabold bg-amber-400/30 text-amber-100 backdrop-blur-md px-2 py-0.5 rounded-full tracking-[0.08em] ml-1">ÜYELERE ÖZEL</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  )}
                   {TRIAL_AVAILABLE.includes(t.id) && (
                     <Link
                       href={`/trial/${t.id}`}
