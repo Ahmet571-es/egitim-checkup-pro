@@ -433,11 +433,41 @@ export default function LandingPage() {
 
       {/* ═══ CTA BANNER ═══ */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0f2847]/85 via-[#1a3a5c]/80 to-[#0f2847]/85 backdrop-blur-md border border-white/10 p-10 sm:p-14 text-center shadow-2xl">
-          <div className="absolute top-[-50px] right-[-50px] w-[200px] h-[200px] rounded-full bg-amber-500/15 blur-2xl" />
-          <div className="absolute bottom-[-30px] left-[-30px] w-[150px] h-[150px] rounded-full bg-orange-500/15 blur-2xl" />
-          <h2 className="relative text-2xl sm:text-3xl font-extrabold inline-block bg-gradient-to-r from-amber-300 via-yellow-200 to-orange-300 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_4s_ease-in-out_infinite] mb-4">Öğrencilerinizin Potansiyelini Keşfedin</h2>
-          <p className="relative text-white/90 max-w-lg mx-auto font-semibold animate-[float-text_3s_ease-in-out_infinite]">Bilimsel testler ve detaylı analizler ile her öğrenciyi bireysel olarak tanıyın.</p>
+        <div
+          className="relative overflow-hidden rounded-3xl border border-amber-200/25 backdrop-blur-[3px] p-10 sm:p-14 text-center shadow-2xl shadow-amber-950/40"
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(251,191,36,0.10) 0%, rgba(249,115,22,0.06) 50%, rgba(244,63,94,0.10) 100%)',
+          }}
+        >
+          {/* Center radial vignette — yazılar için kontrast (videoyla uyumlu, sadece merkezi koyulaştırır) */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                'radial-gradient(ellipse at center, rgba(15,40,71,0.35) 0%, rgba(15,40,71,0.15) 40%, transparent 75%)',
+            }}
+          />
+          {/* Warm decorative blobs — daha belirgin ki "kart" hissi kalsın */}
+          <div className="absolute top-[-60px] right-[-60px] w-[260px] h-[260px] rounded-full bg-amber-400/30 blur-3xl animate-[pulse-glow_4s_ease-in-out_infinite]" />
+          <div className="absolute bottom-[-40px] left-[-40px] w-[200px] h-[200px] rounded-full bg-rose-400/30 blur-3xl animate-[pulse-glow_5s_ease-in-out_infinite_1s]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] rounded-full bg-orange-400/15 blur-3xl" />
+
+          {/* Başlık — geniş paletli, dinamik gradient kayması + drop-shadow */}
+          <h2
+            className="relative text-2xl sm:text-3xl lg:text-4xl font-black inline-block bg-gradient-to-r from-amber-200 via-yellow-100 via-pink-200 via-orange-200 to-rose-200 bg-clip-text text-transparent bg-[length:300%_auto] animate-[gradient-shift_5s_ease-in-out_infinite] mb-4"
+            style={{ filter: 'drop-shadow(0 2px 12px rgba(0,0,0,0.55))' }}
+          >
+            Öğrencilerinizin Potansiyelini Keşfedin
+          </h2>
+
+          {/* Alt yazı — beyaz/amber/beyaz döngülü, float ile bağlı */}
+          <p
+            className="relative max-w-xl mx-auto font-bold bg-gradient-to-r from-white via-amber-100 via-white via-amber-100 to-white bg-clip-text text-transparent bg-[length:250%_auto] animate-[gradient-shift_6s_ease-in-out_infinite,float-text_3s_ease-in-out_infinite]"
+            style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.65))' }}
+          >
+            Bilimsel testler ve detaylı analizler ile her öğrenciyi bireysel olarak tanıyın.
+          </p>
         </div>
       </section>
 
