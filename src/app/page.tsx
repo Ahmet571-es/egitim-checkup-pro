@@ -14,20 +14,40 @@ import { useScrollReveal, useCountUp } from '@/hooks/useScrollReveal';
 /* ═══ DATA ═══ */
 const TESTS = [
   // Satır 1
-  { name: 'Enneagram Kişilik', desc: '9 kişilik tipi derinlemesine analizi', count: '180 soru', icon: Brain, color: 'from-violet-500 to-purple-600', border: 'border-l-violet-500' },
-  { name: 'Sınav Kaygısı', desc: 'Kaygı düzeyi ve kaynakları analizi', count: '50 soru', icon: AlertTriangle, color: 'from-rose-500 to-red-600', border: 'border-l-rose-500' },
+  { id: 'enneagram', name: 'Enneagram Kişilik', desc: '9 kişilik tipi derinlemesine analizi', count: '180 soru', icon: Brain, color: 'from-violet-500 to-purple-600', border: 'border-l-violet-500',
+    purpose: 'Karakter ve mizaç tipinin temelini keşfetmek.',
+    measures: '9 kişilik tipi içinden hangisine yatkın olduğunu, ana motivasyonlarını ve baş etme tarzını ölçer.' },
+  { id: 'kaygi', name: 'Sınav Kaygısı', desc: 'Kaygı düzeyi ve kaynakları analizi', count: '50 soru', icon: AlertTriangle, color: 'from-rose-500 to-red-600', border: 'border-l-rose-500',
+    purpose: 'Sınav öncesi ve anındaki gerginlik düzeyini ölçmek.',
+    measures: 'Bilişsel ve duyuşsal kaygı seviyeni, kaygının kaynaklarını ve performansa etkisini değerlendirir.' },
   // Satır 2
-  { name: 'Meslek Testi', desc: '6 mesleki ilgi alanı ve kariyer yönlendirme', count: '84 soru', icon: Compass, color: 'from-emerald-500 to-teal-600', border: 'border-l-emerald-500' },
-  { name: 'Akademik Analiz', desc: 'Akademik güçlü yönler ve gelişim alanları', count: '54 soru', icon: BarChart3, color: 'from-cyan-500 to-teal-600', border: 'border-l-cyan-500' },
+  { id: 'meslek', name: 'Meslek Testi', desc: '6 mesleki ilgi alanı ve kariyer yönlendirme', count: '84 soru', icon: Compass, color: 'from-emerald-500 to-teal-600', border: 'border-l-emerald-500',
+    purpose: 'Sana en uygun meslek alanlarını belirlemek.',
+    measures: 'Holland\'ın 6 mesleki ilgi alanı (RIASEC) üzerinden eğilimlerini ve kariyer yatkınlıklarını gösterir.' },
+  { id: 'akademik', name: 'Akademik Analiz', desc: 'Akademik güçlü yönler ve gelişim alanları', count: '54 soru', icon: BarChart3, color: 'from-cyan-500 to-teal-600', border: 'border-l-cyan-500',
+    purpose: 'Akademik güçlü ve gelişime açık yönlerini ortaya koymak.',
+    measures: 'Okuma anlama, matematik mantığı ve genel akademik becerilerini kapsamlı analiz eder.' },
   // Satır 3
-  { name: 'VARK Öğrenme Stilleri', desc: 'Görsel, İşitsel, Okuma-Yazma, Kinestetik', count: '16 soru', icon: Eye, color: 'from-sky-500 to-blue-600', border: 'border-l-sky-500' },
-  { name: 'Dikkat ve Odaklanma Testi', desc: 'Orijinal Brickenkamp 14×47 formatı', count: '658 sembol', icon: Focus, color: 'from-pink-500 to-rose-600', border: 'border-l-pink-500' },
+  { id: 'vark', name: 'VARK Öğrenme Stilleri', desc: 'Görsel, İşitsel, Okuma-Yazma, Kinestetik', count: '16 soru', icon: Eye, color: 'from-sky-500 to-blue-600', border: 'border-l-sky-500',
+    purpose: 'Hangi yöntemle daha kolay öğrendiğini bulmak.',
+    measures: 'Görsel, işitsel, okuma-yazma ve kinestetik öğrenme tercihlerinin yüzdelik dağılımını verir.' },
+  { id: 'dikkat', name: 'Dikkat ve Odaklanma Testi', desc: 'Orijinal Brickenkamp 14×47 formatı', count: '658 sembol', icon: Focus, color: 'from-pink-500 to-rose-600', border: 'border-l-pink-500',
+    purpose: 'Sürekli dikkat ve hata yapma eğilimini ölçmek.',
+    measures: 'Görsel tarama hızını, dikkat sürekliliğini, hata oranını ve konsantrasyon kapasitesini ortaya çıkarır.' },
   // Satır 4
-  { name: 'Çoklu Zekâ', desc: '8 zekâ alanı profili çıkarma', count: '80 soru', icon: Lightbulb, color: 'from-amber-500 to-orange-600', border: 'border-l-amber-500' },
-  { name: 'Çalışma Davranışı', desc: '7 alt kategori, verimlilik analizi', count: '73 soru', icon: BookOpen, color: 'from-indigo-500 to-blue-600', border: 'border-l-indigo-500' },
+  { id: 'coklu-zeka', name: 'Çoklu Zekâ', desc: '8 zekâ alanı profili çıkarma', count: '80 soru', icon: Lightbulb, color: 'from-amber-500 to-orange-600', border: 'border-l-amber-500',
+    purpose: 'Hangi zekâ alanlarında daha güçlü olduğunu görmek.',
+    measures: 'Sözel, mantıksal, görsel, müzikal, bedensel, sosyal, içsel ve doğa olmak üzere 8 zekâ profilini çıkarır.' },
+  { id: 'calisma', name: 'Çalışma Davranışı', desc: '7 alt kategori, verimlilik analizi', count: '73 soru', icon: BookOpen, color: 'from-indigo-500 to-blue-600', border: 'border-l-indigo-500',
+    purpose: 'Çalışma alışkanlıklarındaki güçlü ve zayıf yönleri tespit etmek.',
+    measures: 'Plan yapma, motivasyon, zaman yönetimi, dikkat, ortam ve verimlilik gibi 7 alt boyutu inceler.' },
   // Satır 5
-  { name: 'Sağ-Sol Beyin Dominansı', desc: 'Analitik mi yaratıcı mı analizi', count: '30 soru', icon: SplitSquareHorizontal, color: 'from-fuchsia-500 to-purple-600', border: 'border-l-fuchsia-500' },
-  { name: 'Hızlı Okuma / Anlama Oranı Ölçümü', desc: 'WPM ölçümü + okuduğunu anlama testi', count: 'Zamanlı', icon: BookOpen, color: 'from-lime-500 to-green-600', border: 'border-l-lime-500' },
+  { id: 'beyin', name: 'Sağ-Sol Beyin Dominansı', desc: 'Analitik mi yaratıcı mı analizi', count: '30 soru', icon: SplitSquareHorizontal, color: 'from-fuchsia-500 to-purple-600', border: 'border-l-fuchsia-500',
+    purpose: 'Analitik mi yoksa yaratıcı mı düşündüğünü görmek.',
+    measures: 'Mantıksal-sıralı (sol) ve bütünsel-yaratıcı (sağ) beyin yarımküresi tercihinin dengesini gösterir.' },
+  { id: 'okuma', name: 'Hızlı Okuma / Anlama Oranı Ölçümü', desc: 'WPM ölçümü + okuduğunu anlama testi', count: 'Zamanlı', icon: BookOpen, color: 'from-lime-500 to-green-600', border: 'border-l-lime-500',
+    purpose: 'Okuma hızını ve okuduğunu anlama oranını ölçmek.',
+    measures: 'Dakikadaki kelime sayısını (WPM), okuduğunu anlama yüzdesini ve toplam okuma performansını verir.' },
 ];
 
 const STEPS = [
@@ -353,13 +373,13 @@ export default function LandingPage() {
       <section id="testler" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 scroll-mt-20" ref={tests.ref}>
         <div className={`text-center mb-14 transition-all duration-500 ${tests.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <h2 className="text-3xl sm:text-4xl font-extrabold inline-block bg-gradient-to-r from-amber-300 via-yellow-200 to-orange-300 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_4s_ease-in-out_infinite] drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">Testlerimiz</h2>
-          <p className="mt-3 text-white/90 dark:text-slate-300 text-lg max-w-xl mx-auto font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] animate-[float-text_3s_ease-in-out_infinite]">Bilimsel temelli 11 farklı psikometrik test ile kapsamlı öğrenci profili</p>
+          <p className="mt-3 text-white/90 dark:text-slate-300 text-lg max-w-xl mx-auto font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] animate-[float-text_3s_ease-in-out_infinite]">Bilimsel temelli 10 farklı psikometrik test ile kapsamlı öğrenci profili</p>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           {TESTS.map((t, i) => (
             <div key={t.name}
               className={`test-card group bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-slate-700/60 border-l-[3px] ${t.border} p-5 shadow-sm
-                hover:-translate-y-1.5 hover:shadow-lg hover:border-l-[5px] transition-all duration-300
+                hover:-translate-y-1.5 hover:shadow-xl hover:border-l-[5px] hover:bg-white/90 dark:hover:bg-slate-800/80 transition-all duration-300
                 ${tests.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               style={{ transitionDelay: tests.visible ? `${i * 80}ms` : '0ms' }}>
               <div className="flex items-start gap-4">
@@ -372,6 +392,34 @@ export default function LandingPage() {
                     <span className="text-[12px] text-gray-400 dark:text-slate-500 font-semibold bg-gray-50 dark:bg-slate-800/60 px-2.5 py-1 rounded-full shrink-0 ml-2">{t.count}</span>
                   </div>
                   <p className="text-[13px] text-gray-500 dark:text-slate-400 mt-1 group-hover:text-gray-700 dark:text-slate-300 transition-colors duration-200">{t.desc}</p>
+                </div>
+              </div>
+
+              {/* ═══ Hover-expand: Amaç + Ne Ölçer + Buton ═══ */}
+              <div className="overflow-hidden max-h-0 group-hover:max-h-[400px] transition-[max-height] duration-500 ease-out">
+                <div className="mt-4 pt-4 border-t border-gray-200/60 dark:border-slate-700/50 space-y-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-150">
+                  <div>
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-1.5">
+                      <Sparkles className="w-3 h-3" /> Amaç
+                    </p>
+                    <p className="text-[13px] text-gray-700 dark:text-slate-300 leading-relaxed">{t.purpose}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-1.5">
+                      <BarChart3 className="w-3 h-3" /> Ne Ölçer?
+                    </p>
+                    <p className="text-[13px] text-gray-700 dark:text-slate-300 leading-relaxed">{t.measures}</p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled
+                    aria-label={`${t.name} ücretsiz test dene (yakında)`}
+                    className="w-full mt-3 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-extrabold text-[13px] flex items-center justify-center gap-2 cursor-not-allowed opacity-75 shadow-lg shadow-amber-500/20 border border-amber-400/30"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Ücretsiz Test Dene
+                    <span className="text-[9px] font-extrabold bg-white/30 backdrop-blur-md px-2 py-0.5 rounded-full tracking-[0.08em] ml-1">YAKINDA</span>
+                  </button>
                 </div>
               </div>
             </div>
