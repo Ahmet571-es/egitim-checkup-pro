@@ -53,7 +53,18 @@ function TeacherLoginInner() {
   }, [searchParams]);
 
   const handleEmailChange = (val: string) => {
-    setEmail(val.trim().toLowerCase());
+    // Görünmez/tehlikeli karakterleri temizle:
+    // - Zero-width space, ZWNJ, ZWJ, BOM
+    // - Smart quotes / akıllı tırnaklar (kopyala-yapıştır)
+    // - Tüm whitespace (tab, newline dahil)
+    // - Kontrol karakterleri
+    const cleaned = val
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')      // zero-width
+      .replace(/[\u201C\u201D\u2018\u2019"']/g, '') // smart + düz tırnaklar
+      .replace(/\s+/g, '')                          // her türlü boşluk
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\x00-\x1F\x7F]/g, '');             // kontrol karakterleri
+    setEmail(cleaned.toLowerCase());
   };
 
   const handleRememberChange = (checked: boolean) => {
@@ -179,7 +190,7 @@ function TeacherLoginInner() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off" noValidate>
         <input type="text" name="prevent_autofill" style={{ display: 'none' }} tabIndex={-1} />
         <input type="password" name="prevent_autofill_pw" style={{ display: 'none' }} tabIndex={-1} />
 
