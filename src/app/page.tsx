@@ -10,6 +10,7 @@ import {
   Menu, X, Lock
 } from 'lucide-react';
 import { useScrollReveal, useCountUp } from '@/hooks/useScrollReveal';
+import HighlightModals, { type HighlightKey } from '@/components/HighlightModals';
 
 /* ═══ DATA ═══ */
 const TESTS = [
@@ -62,10 +63,10 @@ const STEPS = [
   { num: '03', title: 'Test Analiz Raporlarınızı Alın', desc: 'Detaylı analizler ve kişiselleştirilmiş öneriler.', gradient: 'from-violet-500 to-purple-600', icon: Sparkles },
 ];
 
-const HIGHLIGHTS = [
-  { icon: Brain, title: 'Derinlemesine Analiz', desc: 'Kapsamlı öğrenci profilleme ve değerlendirme', color: 'text-violet-600 bg-violet-50 border-violet-200' },
-  { icon: TrendingUp, title: 'Gelişim Takibi', desc: 'Longitudinal veri ile öğrenci gelişimini izleyin', color: 'text-sky-600 bg-sky-50 border-sky-200' },
-  { icon: Award, title: 'Koçluk Sistemi', desc: 'Haftalık görevler ve gamification ile motivasyon', color: 'text-amber-600 bg-amber-50 border-amber-200' },
+const HIGHLIGHTS: { icon: typeof Brain; title: string; desc: string; color: string; key: NonNullable<HighlightKey> }[] = [
+  { icon: Brain, title: 'Derinlemesine Analiz', desc: 'Kapsamlı öğrenci profilleme ve değerlendirme', color: 'text-violet-600 bg-violet-50 border-violet-200', key: 'analiz' },
+  { icon: TrendingUp, title: 'Gelişim Takibi', desc: 'Longitudinal veri ile öğrenci gelişimini izleyin', color: 'text-sky-600 bg-sky-50 border-sky-200', key: 'gelisim' },
+  { icon: Award, title: 'Koçluk Sistemi', desc: 'Haftalık görevler ve gamification ile motivasyon', color: 'text-amber-600 bg-amber-50 border-amber-200', key: 'kocluk' },
 ];
 
 /* ═══ SUB-COMPONENTS ═══ */
@@ -139,6 +140,7 @@ export default function LandingPage() {
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTestIdx, setActiveTestIdx] = useState<number | null>(null);
+  const [activeHighlight, setActiveHighlight] = useState<HighlightKey>(null);
 
   useEffect(() => {
     const handleScroll = () => setNavScrolled(window.scrollY > 20);
@@ -361,9 +363,12 @@ export default function LandingPage() {
         </div>
         <div className="grid sm:grid-cols-3 gap-5">
           {HIGHLIGHTS.map((h, i) => (
-            <div key={h.title}
-              className={`group bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border p-6 shadow-sm text-center
-                hover:-translate-y-2 hover:shadow-xl transition-all duration-300 ${h.color}
+            <button key={h.title}
+              type="button"
+              onClick={() => setActiveHighlight(h.key)}
+              aria-label={`${h.title} — örnek içeriği aç`}
+              className={`group cursor-pointer text-left w-full bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border p-6 shadow-sm text-center
+                hover:-translate-y-2 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-all duration-300 ${h.color}
                 ${highlights.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               style={{ transitionDelay: highlights.visible ? `${i * 100}ms` : '0ms' }}>
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white to-gray-50 border border-gray-100 dark:border-slate-700/60 flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
@@ -371,10 +376,16 @@ export default function LandingPage() {
               </div>
               <h3 className="text-[15px] font-bold text-[#0f2847] dark:text-slate-100 mb-2">{h.title}</h3>
               <p className="text-[13px] text-gray-500 dark:text-slate-400 leading-relaxed">{h.desc}</p>
-            </div>
+              <p className="mt-3 text-[12px] font-semibold text-amber-700 dark:text-amber-300 opacity-0 group-hover:opacity-100 transition-opacity">
+                Örneği gör →
+              </p>
+            </button>
           ))}
         </div>
       </section>
+
+      {/* ═══ HIGHLIGHT MODALS ═══ */}
+      <HighlightModals active={activeHighlight} onClose={() => setActiveHighlight(null)} />
 
       {/* ═══ TESTS ═══ */}
       <section id="testler" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 scroll-mt-20" ref={tests.ref}>
