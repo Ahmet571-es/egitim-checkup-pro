@@ -58,9 +58,9 @@ const TESTS = [
 const TRIAL_AVAILABLE = ['vark', 'beyin', 'coklu-zeka', 'calisma'];
 
 const STEPS = [
-  { num: '01', title: 'Okulunuzu Kaydedin', desc: 'Kurulum sadece 5 dakika. Okulunuzu tanımlayın ve sınıflarınızı oluşturun.', gradient: 'from-emerald-500 to-teal-600', icon: School },
-  { num: '02', title: 'Testleri Atayın', desc: 'Sınıflarınıza testleri tek tıkla atayın. Öğrenciler kendi panellerinden çözer.', gradient: 'from-sky-500 to-blue-600', icon: ClipboardList },
-  { num: '03', title: 'Test Analiz Raporlarınızı Alın', desc: 'Detaylı analizler ve kişiselleştirilmiş öneriler.', gradient: 'from-violet-500 to-purple-600', icon: Sparkles },
+  { num: '01', title: 'Kişisel Bilgilerinizi Girin', desc: 'Ad, soyad, doğum tarihi ve sınıfınızı (veya mezun olduğunuzu) belirtin. Yaş otomatik hesaplanır.', gradient: 'from-emerald-500 to-teal-600', icon: UserCheck },
+  { num: '02', title: 'E-posta, Şifre ve KVKK Onayı', desc: 'E-posta adresinizi belirleyin, en az 6 karakterli bir şifre oluşturun ve KVKK aydınlatma metnini onaylayın.', gradient: 'from-sky-500 to-blue-600', icon: Shield },
+  { num: '03', title: 'Giriş Yapın ve Testlere Başlayın', desc: 'Hesabınız oluştuktan sonra giriş yapın ve panelinizden atanan testleri çözmeye başlayın.', gradient: 'from-violet-500 to-purple-600', icon: Sparkles },
 ];
 
 const HIGHLIGHTS: { icon: typeof Brain; title: string; desc: string; color: string; key: NonNullable<HighlightKey> }[] = [
