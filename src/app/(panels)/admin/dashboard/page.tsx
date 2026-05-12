@@ -11,6 +11,7 @@ import {
 import { createAdminClient } from '@/lib/supabase/admin';
 import TiltStatCard from '@/components/ui/TiltStatCard';
 import PageHeader from '@/components/ui/PageHeader';
+import PendingResetBanner from '@/components/PendingResetBanner';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -122,6 +123,8 @@ export default async function Page() {
         subtitle="Platform genel istatistikleri"
         icon={UserCheck}
       />
+
+      <PendingResetBanner role="admin" />
 
       {/* Kullanıcı istatistikleri */}
       <h2 className="text-sm font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">

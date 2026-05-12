@@ -88,7 +88,39 @@ interface SidebarProps {
 export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: SidebarProps) {
   const [open, setOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingResetCount, setPendingResetCount] = useState(0);
   const pathname = usePathname();
+
+  // Bekleyen şifre sıfırlama talebi sayısı — sadece admin/school_admin rollerinde.
+  // 30 sn'de bir polling + pathname değişiminde refresh.
+  useEffect(() => {
+    if (role !== 'admin' && role !== 'school_admin') return;
+
+    let alive = true;
+
+    const fetchPending = async () => {
+      try {
+        const res = await fetch('/api/admin/password-resets?action=count', {
+          cache: 'no-store',
+        });
+        if (!alive) return;
+        if (res.ok) {
+          const data = await res.json();
+          setPendingResetCount(Number(data.pending_count) || 0);
+        }
+      } catch {
+        // sessiz
+      }
+    };
+
+    fetchPending();
+    const interval = setInterval(fetchPending, 30_000);
+
+    return () => {
+      alive = false;
+      clearInterval(interval);
+    };
+  }, [role, pathname]);
 
   // Okunmamış mesaj sayısını çek — sadece parent/teacher rollerinde anlamlı.
   // Realtime subscription + pathname değişimiyle refresh.
@@ -225,6 +257,14 @@ export default function Sidebar({ role, navItems, userName = 'Kullanıcı' }: Si
                  (role === 'teacher' && iconKey === 'dashboard')) && (
                 <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-gradient-to-r from-rose-500 to-red-500 text-white text-[10px] font-extrabold shadow-sm">
                   {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+              {pendingResetCount > 0 &&
+                (role === 'admin' || role === 'school_admin') &&
+                iconKey === 'password-resets' && (
+                <span className="relative inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[10px] font-extrabold shadow-sm">
+                  {pendingResetCount > 99 ? '99+' : pendingResetCount}
+                  <span className="absolute inset-0 rounded-full bg-rose-400 opacity-60 animate-ping" />
                 </span>
               )}
               {isActive && <ChevronRight className={`w-3.5 h-3.5 ${accent.activeText} opacity-70`} />}

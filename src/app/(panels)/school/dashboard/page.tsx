@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/server';
 import AnalyticsSection from './AnalyticsSection';
 import WelcomeBanner from '@/components/ui/WelcomeBanner';
 import TiltStatCard from '@/components/ui/TiltStatCard';
+import PendingResetBanner from '@/components/PendingResetBanner';
 
 export const dynamic = 'force-dynamic';
 
@@ -101,6 +102,8 @@ export default async function Page() {
         studentCount={state.studentCount}
         maxStudents={state.maxStudents}
       />
+
+      <PendingResetBanner role="school_admin" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((s, idx) => (

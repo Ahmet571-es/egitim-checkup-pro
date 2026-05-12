@@ -81,19 +81,34 @@ export default function AdminPasswordResetsPage() {
   const [showPw, setShowPw] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
   const [resolved, setResolved] = useState<{ password: string; email: string } | null>(null);
   const [copied, setCopied] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError('');
     try {
       const res = await fetch(`/api/admin/password-resets?action=list&status=${statusFilter}`, {
         cache: 'no-store',
       });
-      const data = await res.json();
-      if (res.ok) setRequests(data.requests || []);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg =
+          res.status === 401
+            ? 'Oturumunuz sona ermiş. Lütfen yeniden giriş yapın.'
+            : res.status === 403
+              ? 'Bu sayfayı görüntülemek için yönetici yetkisi gerekiyor.'
+              : (data?.error || `Sunucu hatası (${res.status})`);
+        setLoadError(msg);
+        setRequests([]);
+        return;
+      }
+      setRequests(data.requests || []);
     } catch (e) {
       console.error('[admin/password-resets] load error:', e);
+      setLoadError('Bağlantı hatası — internet bağlantınızı kontrol edip tekrar deneyin.');
+      setRequests([]);
     } finally {
       setLoading(false);
     }
@@ -214,7 +229,22 @@ export default function AdminPasswordResetsPage() {
       </div>
 
       {/* Liste */}
-      {loading ? (
+      {loadError ? (
+        <div className="rounded-2xl bg-rose-50 border-2 border-rose-200 p-5 flex items-start gap-3 mb-4">
+          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-bold text-rose-900 mb-1">Talepler yüklenemedi</p>
+            <p className="text-[14px] text-rose-700">{loadError}</p>
+            <button
+              type="button"
+              onClick={() => load()}
+              className="mt-3 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[13px] font-bold transition"
+            >
+              Tekrar dene
+            </button>
+          </div>
+        </div>
+      ) : loading ? (
         <CardGridSkeleton count={3} />
       ) : requests.length === 0 ? (
         <EmptyState
