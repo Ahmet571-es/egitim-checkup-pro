@@ -24,6 +24,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import { CardGridSkeleton } from '@/components/ui/Skeleton';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { secureFetch } from '@/lib/csrf-client';
+import AdminEditUserButton from '@/components/profile/AdminEditUserButton';
 
 type Role = 'admin' | 'school_admin' | 'teacher' | 'student' | 'parent';
 
@@ -424,6 +425,14 @@ export default function UserListView({ role, status, title, subtitle }: Props) {
                         >
                           <XCircle className="w-3.5 h-3.5" /> Onayı Kaldır
                         </button>
+                      )}
+
+                      {status === 'approved' && (role === 'student' || role === 'teacher') && (
+                        <AdminEditUserButton
+                          userId={user.id}
+                          role={role}
+                          onUpdated={() => loadUsers()}
+                        />
                       )}
 
                       <button

@@ -1,13 +1,12 @@
 /**
- * Öğrenci Profil Sayfası — Premium
+ * Öğretmen Profil Sayfası — Premium (emerald teması)
  */
 import {
-  GraduationCap, School as SchoolIcon, BookOpen, Sparkles,
+  GraduationCap, School as SchoolIcon, Briefcase, Sparkles,
   Phone as PhoneIcon, MapPin, Calendar, Users, User as UserIcon, AtSign,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
-import { GRADE_LABEL, ROLE_LABELS, type UserRole } from '@/types';
-import BirthDatePromptCard from '@/components/student/BirthDatePromptCard';
+import { ROLE_LABELS, type UserRole } from '@/types';
 import EditProfileButton from '@/components/profile/EditProfileButton';
 
 export const dynamic = 'force-dynamic';
@@ -18,19 +17,14 @@ export default async function Page() {
   if (!user) return <p className="text-gray-500 dark:text-slate-400 p-8">Oturum bulunamadı.</p>;
 
   const meta = user.user_metadata || {};
-
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
 
   const fullName = meta.full_name || profile?.full_name || '—';
-  const role = (meta.role || profile?.role || 'student') as UserRole;
-  const grade = meta.grade || profile?.grade || null;
-  const isGraduated = meta.is_graduated ?? profile?.is_graduated ?? false;
+  const role = (meta.role || profile?.role || 'teacher') as UserRole;
   const username = meta.username || '—';
   const phone = meta.phone || profile?.phone || '—';
   const gender = meta.gender || '—';
-  // Önce profiles tablosundan, sonra metadata'dan birth_date'i al
   const birthDate = profile?.birth_date || meta.birth_date || '—';
-  // Yaş: runtime hesabı (metadata'daki statik yaş değil)
   const hasBirthDate = birthDate && birthDate !== '—';
   let age: number | null = null;
   if (hasBirthDate) {
@@ -45,6 +39,7 @@ export default async function Page() {
   const city = meta.city || '—';
   const district = meta.district || '—';
   const schoolName = meta.school_name || '—';
+  const branch = meta.branch || profile?.branch || '—';
 
   let finalSchoolName = schoolName;
   if (finalSchoolName === '—' && profile?.school_id) {
@@ -60,8 +55,6 @@ export default async function Page() {
       .slice(0, 2)
       .join('')
       .toUpperCase() || '?';
-
-  const gradeLabel = grade ? GRADE_LABEL[grade] || `${grade}. Sınıf` : 'Belirtilmemiş';
 
   let birthDateFormatted = '—';
   if (birthDate && birthDate !== '—') {
@@ -89,12 +82,10 @@ export default async function Page() {
   return (
     <div>
       {/* Premium Header Card */}
-      <div className="relative mb-6 rounded-3xl overflow-hidden shadow-xl shadow-violet-500/30 profile-enter">
-        <div className="bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 p-6 sm:p-9 relative">
-          {/* Aurora */}
+      <div className="relative mb-6 rounded-3xl overflow-hidden shadow-xl shadow-emerald-500/30 profile-enter">
+        <div className="bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 p-6 sm:p-9 relative">
           <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-white/10 blur-3xl profile-aurora-1" />
-          <div className="absolute bottom-0 left-1/3 w-56 h-56 rounded-full bg-fuchsia-200/20 blur-3xl profile-aurora-2" />
-          {/* Grid pattern */}
+          <div className="absolute bottom-0 left-1/3 w-56 h-56 rounded-full bg-cyan-200/20 blur-3xl profile-aurora-2" />
           <div
             className="pointer-events-none absolute inset-0 opacity-[0.07]"
             style={{
@@ -104,13 +95,11 @@ export default async function Page() {
           />
 
           <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6">
-            {/* Avatar */}
             <div className="relative shrink-0">
               <div className="w-28 h-28 rounded-3xl bg-white/25 backdrop-blur-md border-2 border-white/40 dark:border-slate-700/60 flex items-center justify-center text-white text-[36px] font-extrabold shadow-2xl relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent" />
                 <span className="relative drop-shadow-md">{initials}</span>
               </div>
-              {/* Online dot */}
               <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-md">
                 <div className="relative w-4 h-4 rounded-full bg-emerald-500">
                   <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75" />
@@ -118,15 +107,12 @@ export default async function Page() {
               </div>
             </div>
 
-            {/* Info */}
             <div className="flex-1 text-center sm:text-left text-white min-w-0">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
                 <h1 className="text-2xl sm:text-3xl font-extrabold drop-shadow-sm">{fullName}</h1>
-                {isGraduated && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[11px] font-extrabold shadow-md shadow-amber-500/40 border border-white/20">
-                    <Sparkles className="w-3 h-3" /> MEZUN
-                  </span>
-                )}
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-[11px] font-extrabold">
+                  <Sparkles className="w-3 h-3" /> {branch !== '—' ? branch : ROLE_LABELS[role]}
+                </span>
               </div>
               <p className="text-[13px] sm:text-sm text-white/85 mb-2">{ROLE_LABELS[role]}</p>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-[12px] font-mono font-bold">
@@ -135,7 +121,7 @@ export default async function Page() {
               </div>
               <div className="mt-4">
                 <EditProfileButton
-                  role={role === 'teacher' ? 'teacher' : 'student'}
+                  role="teacher"
                   initialValues={{
                     full_name: fullName !== '—' ? fullName : '',
                     phone: phone !== '—' ? phone : '',
@@ -144,8 +130,7 @@ export default async function Page() {
                     city: city !== '—' ? city : '',
                     district: district !== '—' ? district : '',
                     school_name: finalSchoolName !== '—' ? finalSchoolName : '',
-                    grade: grade ?? '',
-                    is_graduated: isGraduated,
+                    branch: branch !== '—' ? branch : '',
                   }}
                 />
               </div>
@@ -158,9 +143,7 @@ export default async function Page() {
             from { opacity: 0; transform: translateY(-12px); }
             to { opacity: 1; transform: translateY(0); }
           }
-          .profile-enter {
-            animation: profile-enter 500ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
-          }
+          .profile-enter { animation: profile-enter 500ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
           @keyframes profile-aurora-1 {
             0%, 100% { transform: translate(0, 0) scale(1); }
             50% { transform: translate(-20px, 20px) scale(1.1); }
@@ -174,45 +157,24 @@ export default async function Page() {
         `}</style>
       </div>
 
-      {/* Doğum Tarihi Uyarı Kartı — sadece birth_date eksikse görünür, yalnız öğrencilere */}
-      {role === 'student' && (
-        <BirthDatePromptCard currentBirthDate={hasBirthDate ? birthDate : null} />
-      )}
-
       {/* Bilgi Kartları */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 grid-stagger">
-        {/* Kişisel Bilgiler */}
-        <InfoCard
-          title="Kişisel Bilgiler"
-          icon={UserIcon}
-          gradient="from-violet-500 to-purple-600"
-        >
-          <InfoRow icon={Users} label="Cinsiyet" value={genderLabel} accentColor="violet" />
-          <InfoRow icon={Calendar} label="Doğum Tarihi" value={birthDateFormatted} accentColor="violet" />
-          <InfoRow icon={PhoneIcon} label="Telefon" value={phoneFormatted} accentColor="violet" />
+        <InfoCard title="Kişisel Bilgiler" icon={UserIcon} gradient="from-emerald-500 to-teal-600">
+          <InfoRow icon={Users} label="Cinsiyet" value={genderLabel} accentColor="emerald" />
+          <InfoRow icon={Calendar} label="Doğum Tarihi" value={birthDateFormatted} accentColor="emerald" />
+          <InfoRow icon={PhoneIcon} label="Telefon" value={phoneFormatted} accentColor="emerald" />
         </InfoCard>
 
-        {/* Okul Bilgileri */}
-        <InfoCard
-          title="Okul Bilgileri"
-          icon={SchoolIcon}
-          gradient="from-sky-500 to-blue-600"
-        >
+        <InfoCard title="Mesleki Bilgiler" icon={Briefcase} gradient="from-sky-500 to-blue-600">
           <InfoRow icon={SchoolIcon} label="Okul" value={finalSchoolName} accentColor="sky" />
-          <InfoRow icon={BookOpen} label="Sınıf" value={gradeLabel} accentColor="sky" />
-          <InfoRow icon={GraduationCap} label="Durum" value={isGraduated ? 'Mezun' : 'Aktif Öğrenci'} accentColor="sky" />
+          <InfoRow icon={Briefcase} label="Branş" value={branch} accentColor="sky" />
+          <InfoRow icon={GraduationCap} label="Rol" value={ROLE_LABELS[role]} accentColor="sky" />
         </InfoCard>
 
-        {/* Adres Bilgileri */}
-        <InfoCard
-          title="Adres Bilgileri"
-          icon={MapPin}
-          gradient="from-emerald-500 to-teal-600"
-          className="lg:col-span-2"
-        >
+        <InfoCard title="Adres Bilgileri" icon={MapPin} gradient="from-violet-500 to-purple-600" className="lg:col-span-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <InfoRow icon={MapPin} label="İl" value={city} accentColor="emerald" />
-            <InfoRow icon={MapPin} label="İlçe" value={district} accentColor="emerald" />
+            <InfoRow icon={MapPin} label="İl" value={city} accentColor="violet" />
+            <InfoRow icon={MapPin} label="İlçe" value={district} accentColor="violet" />
           </div>
         </InfoCard>
       </div>
@@ -221,11 +183,7 @@ export default async function Page() {
 }
 
 function InfoCard({
-  title,
-  icon: Icon,
-  gradient,
-  children,
-  className = '',
+  title, icon: Icon, gradient, children, className = '',
 }: {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -237,7 +195,6 @@ function InfoCard({
     <div className={`relative bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-sm p-5 overflow-hidden ${className}`}>
       <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient}`} />
       <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${gradient} opacity-[0.07] blur-2xl pointer-events-none`} />
-
       <div className="relative">
         <div className="flex items-center gap-2.5 mb-4">
           <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}>
@@ -252,22 +209,18 @@ function InfoCard({
 }
 
 function InfoRow({
-  icon: Icon,
-  label,
-  value,
-  accentColor,
+  icon: Icon, label, value, accentColor,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
-  accentColor: 'violet' | 'sky' | 'emerald';
+  accentColor: 'emerald' | 'sky' | 'violet';
 }) {
   const iconBg = {
-    violet: 'bg-violet-100 text-violet-600',
-    sky: 'bg-sky-100 text-sky-600',
     emerald: 'bg-emerald-100 text-emerald-600',
+    sky: 'bg-sky-100 text-sky-600',
+    violet: 'bg-violet-100 text-violet-600',
   }[accentColor];
-
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-gray-50/80 to-white border border-gray-100 dark:border-slate-700/60 hover:border-gray-200 dark:border-slate-700 transition-colors">
       <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${iconBg}`}>
