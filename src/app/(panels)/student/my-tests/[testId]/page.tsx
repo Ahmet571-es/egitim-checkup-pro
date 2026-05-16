@@ -9,6 +9,8 @@ import { getTestById } from '@/lib/tests/index';
 import TestShell from '@/components/test/TestShell';
 import QuestionCard from '@/components/test/QuestionCard';
 import TestResult from '@/components/test/TestResult';
+import TestResultShort from '@/components/test/TestResultShort';
+import { buildShortResult } from '@/lib/tests/short-result';
 import D2TestBoard from '@/components/test/D2TestBoard';
 import BurdonTestBoard from '@/components/test/BurdonTestBoard';
 import SpeedReadingTest from '@/components/test/SpeedReadingTest';
@@ -643,15 +645,22 @@ export default function TestPage() {
 
   // ── Sonuç ekranı ──────────────────────────────────────
   if (result) {
+    // Build short result: derive chart + advisory from test type and scores
+    const scoresMap: Record<string, unknown> = {};
+    for (const s of result.scores) {
+      const num = parseFloat(s.value.replace(/[^0-9.-]/g, ''));
+      scoresMap[s.label] = isNaN(num) ? s.value : num;
+    }
+    const shortRes = buildShortResult(testId, scoresMap, result.main);
+
     return (
       <>
-        <TestResult
+        <TestResultShort
           testName={test.name}
           testIcon={test.icon}
-          mainResult={result.main}
-          mainDescription={result.desc}
-          scores={result.scores}
-          report={result.report}
+          mainResult={shortRes.main}
+          advisory={shortRes.advisory}
+          chart={shortRes.chart}
           accentColor={test.color}
           onRetake={() => {
             setResult(null); setAnswers({}); setCurrentQ(0); setElapsed(0); setDbSaved(false); setSaveStatus('idle');
@@ -660,6 +669,7 @@ export default function TestPage() {
               setBurdonSections(generateBurdonTest());
               setBurdonPractice(generateBurdonPractice());
             }
+            setAcknowledgedSections(new Set());
           }}
         />
         {/* Kaydetme durumu göstergesi */}

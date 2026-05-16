@@ -14,7 +14,7 @@ import { PACKAGE_LIST, checkPackageCompletion, type PackageType } from '@/lib/pa
 import {
   ArrowLeft, GraduationCap, CheckCircle2, Circle, Bell, AlertCircle,
   FileText, BookOpen, X, Send, Loader2, Sparkles, Eye, Download, RefreshCw,
-  Brain, Layers, Shield, Link2, Briefcase, Lock, TrendingUp,
+  Brain, Layers, Shield, Link2, Briefcase, Lock, TrendingUp, Microscope,
   Trash2, ChevronDown, ChevronUp, AlertTriangle, CheckSquare, Square,
   UserPlus, ArrowRightLeft, Search, Paperclip, Package
 } from 'lucide-react';
@@ -919,6 +919,31 @@ export default function StudentDetailPage() {
                           title="Öğrencinin verdiği cevapları gör"
                         >
                           <FileText className="w-3.5 h-3.5" /> Cevapları Gör
+                        </button>
+
+                        {/* Direkt Analiz — template raporu (API key gerektirmez) */}
+                        <button
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(`/api/reports/direct-analysis?test_result_id=${c.id}`);
+                              if (!res.ok) {
+                                const err = await res.json().catch(() => ({}));
+                                alert('Direkt analiz yüklenemedi: ' + (err.error || res.status));
+                                return;
+                              }
+                              const { report } = await res.json();
+                              setViewer({
+                                title: `${labelOf(c.test_type)} — Direkt Analiz`,
+                                text: report || 'Rapor üretilemedi.',
+                              });
+                            } catch (e) {
+                              alert('Bağlantı hatası: ' + String(e));
+                            }
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 text-[12px] font-bold border border-cyan-200 dark:border-cyan-700/50 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-all"
+                          title="Template motoruyla anlık üretilen detaylı analiz (AI değil, hızlı)"
+                        >
+                          <Microscope className="w-3.5 h-3.5" /> Direkt Analiz
                         </button>
 
                         {!c.has_report ? (
