@@ -88,7 +88,7 @@ export default function GirisPage() {
   }, [reduceMotion]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50/30 to-rose-50/40">
+    <main className="relative min-h-screen overflow-hidden bg-slate-100">
       {/* ═══ BACKGROUND VIDEO ═══ */}
       {!reduceMotion && (
         <video
@@ -118,30 +118,30 @@ export default function GirisPage() {
         />
       )}
 
-      {/* ═══ OVERLAY KATMANLARI ═══ */}
-      {/* 1) Warm cream wash — videonun rengini hafif yumuşat, kartlar için okunaklılık */}
+      {/* ═══ OVERLAY KATMANLARI — minimal, video kendini göstermeli ═══ */}
+      {/* 1) Çok ince warm wash — sadece kontrast için */}
       <div
-        className="absolute inset-0 bg-gradient-to-br from-amber-50/70 via-white/55 to-rose-50/65 backdrop-blur-[1px]"
+        className="absolute inset-0 bg-gradient-to-br from-amber-50/20 via-white/15 to-rose-50/20"
         aria-hidden="true"
       />
 
-      {/* 2) Vignette — kenarları hafif karartıp içeriği öne çıkar */}
+      {/* 2) Güçlü vignette — kartlar öne çıksın, kenarlar yumuşak karanlık */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse at center, transparent 35%, rgba(15,40,71,0.08) 75%, rgba(15,40,71,0.18) 100%)',
+            'radial-gradient(ellipse 110% 90% at center, transparent 25%, rgba(15,40,71,0.12) 65%, rgba(15,40,71,0.30) 100%)',
         }}
         aria-hidden="true"
       />
 
       {/* 3) Üst + alt yumuşak fade — nav ve footer okunaklılığı */}
       <div
-        className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/40 to-transparent pointer-events-none"
+        className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-white/35 via-white/15 to-transparent pointer-events-none"
         aria-hidden="true"
       />
       <div
-        className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white/40 to-transparent pointer-events-none"
+        className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-white/35 via-white/15 to-transparent pointer-events-none"
         aria-hidden="true"
       />
 
