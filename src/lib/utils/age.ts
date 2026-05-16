@@ -58,16 +58,19 @@ export function calculateAgePrecise(birthDate: string | Date | null | undefined)
 
 /**
  * Yaştan Burdon test süresini (saniye cinsinden) belirler.
- * Orijinal MEB uyarlaması:
- *   - 10-13 yaş (ortaokul): 180 saniye (3 dakika) / bölüm
- *   - 14-20 yaş (lise): 120 saniye (2 dakika) / bölüm
+ * MEB orijinal Burdon uyarlaması:
+ *   - <10 yaş (ilkokul/varsayılan): 180 sn (3 dakika)
+ *   - 10-13 yaş (ortaokul): 180 sn (3 dakika)
+ *   - 14-17 yaş (lise): 120 sn (2 dakika)
+ *   - 18+ yaş (yetişkin): 90 sn (1.5 dakika)
  * @param age Öğrencinin yaşı
  * @returns Bölüm başına saniye
  */
 export function getBurdonTimeByAge(age: number | null | undefined): number {
-  if (age == null || age < 10) return 180; // Varsayılan: ortaokul
-  if (age >= 14) return 120;                // Lise ve üstü
-  return 180;                                // Ortaokul (10-13)
+  if (age == null || age < 10) return 180; // İlkokul / varsayılan: 3dk
+  if (age >= 18) return 90;                 // Yetişkin: 1.5dk
+  if (age >= 14) return 120;                // Lise: 2dk
+  return 180;                                // Ortaokul (10-13): 3dk
 }
 
 /**

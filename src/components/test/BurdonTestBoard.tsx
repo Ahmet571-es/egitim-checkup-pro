@@ -216,14 +216,22 @@ export default function BurdonTestBoard({
 
   // ── RENDER: Bilgilendirme Kılavuzu ──────────────────
   if (phase === 'instructions') {
-    // Yaş ve sınıf bilgisi — öğrencinin profilinden
-    const isLise = studentGrade != null && studentGrade >= 9 && studentGrade <= 12;
-    const levelLabel = isLise ? 'lise' : 'ortaokul';
+    // Yaş ve sınıf bilgisi — yaş 18+ ise yetişkin profili (grade'i gösterme)
+    const isYetiskin = studentAge != null && studentAge >= 18;
+    const isLise = !isYetiskin && (studentGrade != null && studentGrade >= 9 && studentGrade <= 12);
+    const levelLabel = isYetiskin ? 'yetişkin' : (isLise ? 'lise' : 'ortaokul');
     const minutes = Math.floor(timePerSection / 60);
     const extraSecs = timePerSection % 60;
     const timeLabel = extraSecs > 0
       ? `${minutes} dakika ${extraSecs} saniye`
       : `${minutes} dakika`;
+
+    // Standart süre referansı (level'a göre)
+    const standardText = isYetiskin
+      ? 'Yetişkin için orijinal MEB standardı 1 dakika 30 saniyedir.'
+      : (isLise
+          ? 'Lise düzeyinde orijinal MEB standardı 2 dakikadır.'
+          : 'Ortaokul düzeyinde orijinal MEB standardı 3 dakikadır.');
 
     return (
       <div className="max-w-3xl mx-auto">
@@ -240,7 +248,12 @@ export default function BurdonTestBoard({
                   Senin İçin Kişiselleştirildi
                 </h3>
                 <div className="space-y-2 text-white/90 text-[13.5px] leading-relaxed">
-                  {studentAge && (
+                  {studentAge && isYetiskin && (
+                    <p>
+                      📅 <strong className="text-amber-200">{studentAge} yaşında</strong> (<strong>yetişkin</strong>) olduğun için test süreleri sana göre ayarlandı.
+                    </p>
+                  )}
+                  {studentAge && !isYetiskin && (
                     <p>
                       📅 <strong className="text-amber-200">{studentAge} yaşında</strong> olduğun için
                       {studentGrade && <> ({studentGrade}. sınıf — <strong>{levelLabel}</strong>)</>}
@@ -258,9 +271,7 @@ export default function BurdonTestBoard({
                       ⏱️ Her bölüm için <strong className="text-white text-[15px]">{timeLabel}</strong> sürem var.
                     </p>
                     <p className="text-white/60 text-[11.5px] mt-1 italic">
-                      ({isLise
-                        ? 'Lise düzeyinde orijinal MEB standardı 2 dakikadır.'
-                        : 'Ortaokul düzeyinde orijinal MEB standardı 3 dakikadır.'})
+                      ({standardText})
                     </p>
                   </div>
                   <p className="text-white/70 text-[12px]">

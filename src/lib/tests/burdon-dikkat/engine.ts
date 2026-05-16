@@ -121,6 +121,7 @@ export interface BurdonSectionScore {
 }
 
 export type BurdonAttentionPattern =
+  | 'mukemmel'
   | 'basta-dagilan'
   | 'ortada-dagilan'
   | 'sonda-dagilan'
@@ -223,21 +224,41 @@ function detectAttentionPattern(
   const errors: [number, number, number] = [e[0] ?? 0, e[1] ?? 0, e[2] ?? 0];
   const total = errors.reduce((a, b) => a + b, 0);
 
-  if (total < 6) return { pattern: 'dengeli', errors };
+  // Hiç hata yok → mükemmel dikkat
+  if (total === 0) return { pattern: 'mukemmel', errors };
 
-  const mean = total / 3;
+  // 1 hata → genel olarak dengeli
+  if (total <= 1) return { pattern: 'dengeli', errors };
+
+  // 2+ hata → hatalar tek bir paragrafa yoğunlaşmış mı?
   const maxIdx = errors.indexOf(Math.max(...errors));
   const maxVal = errors[maxIdx];
-  const otherAvg = (total - maxVal) / 2;
-  const isSignificantlyHigher = maxVal >= otherAvg * 1.4 && maxVal > mean * 1.2;
+  const otherSum = total - maxVal;
 
-  if (!isSignificantlyHigher) return { pattern: 'dengeli', errors };
-  if (maxIdx === 0) return { pattern: 'basta-dagilan', errors };
-  if (maxIdx === 1) return { pattern: 'ortada-dagilan', errors };
-  return { pattern: 'sonda-dagilan', errors };
+  // Yoğunlaşma kriteri: en yüksek paragrafın hatası diğerlerinin toplamının ≥1.5 katı
+  // VEYA tüm hatalar tek paragrafta (otherSum=0 ve maxVal≥2)
+  const isConcentrated =
+    (otherSum === 0 && maxVal >= 2) ||
+    (maxVal >= 2 && maxVal >= otherSum * 1.5);
+
+  if (isConcentrated) {
+    if (maxIdx === 0) return { pattern: 'basta-dagilan', errors };
+    if (maxIdx === 1) return { pattern: 'ortada-dagilan', errors };
+    return { pattern: 'sonda-dagilan', errors };
+  }
+
+  // Hatalar dağınık, belirgin örüntü yok
+  return { pattern: 'dengeli', errors };
 }
 
 const PATTERN_COPY: Record<BurdonAttentionPattern, { title: string; finding: string; suggestion: string }> = {
+  'mukemmel': {
+    title: 'Mükemmel Dikkat Profili',
+    finding:
+      'Tebrikler! Test boyunca hiç hata yapmadın. Tüm paragraflarda dikkatini eksiksiz koruyabilmen, çok güçlü bir konsantrasyon yeteneğine işaret ediyor olabilir.',
+    suggestion:
+      'Bu seviyeyi sürdürmek için düzenli uyku, sağlıklı beslenme ve günlük kısa odaklanma egzersizleri (örn. derin okuma, yap-boz, satranç) yardımcı olur. Ayrıca dikkatini gerektiren yeni alanlara da yönelmek bu yeteneğini geliştirmeye devam eder.',
+  },
   'basta-dagilan': {
     title: 'Başlangıçta Dikkat Dağılımı',
     finding:
