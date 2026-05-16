@@ -145,4 +145,53 @@ test.describe('Giriş Paneli — Live Deployment', () => {
     const paketLink = page.locator('a[href="/paketler"]').filter({ hasText: /Paketleri İncele/i }).first();
     await expect(paketLink).toBeVisible();
   });
+
+  test('12. /giris background video is loaded and playing', async ({ page }) => {
+    await page.goto(`${PROD}/giris`, { waitUntil: 'networkidle' });
+    // Give the video a moment to start playing
+    await page.waitForTimeout(3000);
+
+    const videoState = await page.evaluate(async () => {
+      const v = document.querySelector('video');
+      if (!v) return { exists: false };
+      // Ensure it's playing
+      try { await v.play(); } catch {}
+      await new Promise((r) => setTimeout(r, 500));
+      return {
+        exists: true,
+        paused: v.paused,
+        currentTime: v.currentTime,
+        duration: v.duration,
+        readyState: v.readyState, // 4 = HAVE_ENOUGH_DATA
+        videoWidth: v.videoWidth,
+        videoHeight: v.videoHeight,
+        srcLoaded: v.currentSrc.length > 0,
+        muted: v.muted, // must be true for autoplay
+        loop: v.loop,
+      };
+    });
+
+    expect(videoState.exists).toBe(true);
+    expect(videoState.paused).toBe(false);
+    expect(videoState.readyState).toBeGreaterThanOrEqual(2); // at least HAVE_CURRENT_DATA
+    expect(videoState.currentTime).toBeGreaterThan(0); // actually advancing
+    expect(videoState.videoWidth).toBe(960);
+    expect(videoState.videoHeight).toBe(960);
+    expect(videoState.muted).toBe(true);
+    expect(videoState.loop).toBe(true);
+    expect(videoState.srcLoaded).toBe(true);
+  });
+
+  test('13. /giris poster image is preloadable as fallback', async ({ page, request }) => {
+    const res = await request.get(`${PROD}/giris-poster.jpg`);
+    expect(res.status()).toBe(200);
+    expect(parseInt(res.headers()['content-length'] || '0', 10)).toBeGreaterThan(10_000);
+  });
+
+  test('14. /giris video assets are reachable', async ({ request }) => {
+    const mp4 = await request.get(`${PROD}/giris-bg.mp4`);
+    expect(mp4.status()).toBe(200);
+    const webm = await request.get(`${PROD}/giris-bg.webm`);
+    expect(webm.status()).toBe(200);
+  });
 });
