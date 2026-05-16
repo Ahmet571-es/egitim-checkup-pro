@@ -375,28 +375,6 @@ export default function GirisPage() {
           })}
           </div>
         )}
-
-        {/* ═══ ALT BİLGİ — frosted footer ═══ */}
-        <div className="mt-10 sm:mt-14 text-center">
-          <div className="inline-block px-6 py-4 rounded-2xl bg-white/75 backdrop-blur-xl border border-white/70 shadow-lg shadow-slate-900/5">
-            <p className="text-sm text-slate-700 font-medium">
-              Henüz hesabınız yok mu?{' '}
-              <Link
-                href="/register"
-                className="font-bold text-[#0f2847] hover:text-amber-600 underline decoration-amber-500/50 hover:decoration-amber-500 underline-offset-4 transition-colors"
-              >
-                Öğrenci Hesabı Oluştur
-              </Link>
-            </p>
-            <p className="mt-1.5 text-xs text-slate-600">
-              Öğretmen / kurum kaydı için{' '}
-              <Link href="/iletisim" className="font-semibold underline hover:text-[#0f2847]">
-                bizimle iletişime geçin
-              </Link>
-              .
-            </p>
-          </div>
-        </div>
       </div>
     </main>
   );
