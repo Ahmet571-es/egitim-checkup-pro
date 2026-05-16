@@ -16,7 +16,7 @@ function generateCSRFToken(): string {
 }
 
 // Oturum gerektirmeyen public yollar
-const PUBLIC_PATHS = ['/', '/login', '/login/ogretmen', '/login/veli', '/login/yonetici', '/register', '/register/ogretmen', '/register/veli', '/kvkk', '/pricing', '/forgot-password', '/yonetici', '/paketler', '/hakkimizda', '/iletisim', '/gizlilik-politikasi', '/mesafeli-satis-sozlesmesi', '/iade-ve-teslimat-sartlari'];
+const PUBLIC_PATHS = ['/', '/login', '/login/ogretmen', '/login/yonetici', '/giris', '/register', '/register/ogretmen', '/kvkk', '/pricing', '/forgot-password', '/yonetici', '/paketler', '/hakkimizda', '/iletisim', '/gizlilik-politikasi', '/mesafeli-satis-sozlesmesi', '/iade-ve-teslimat-sartlari'];
 
 const ROLE_PREFIX_MAP: Record<string, UserRole> = {
   '/admin': 'admin',

@@ -15,7 +15,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Eye, GraduationCap, Sparkles, ArrowRight, ArrowLeft, CheckCircle2,
-  RefreshCw, BarChart3, BookOpen, AlertCircle
+  RefreshCw, BarChart3, BookOpen, AlertCircle, Lock
 } from 'lucide-react';
 import { VARK_QUESTIONS, VARK_STYLES } from '@/lib/tests/vark/data';
 import { calculateVark } from '@/lib/tests/vark/engine';
@@ -410,18 +410,19 @@ function ResultStage({ scores, onRestart }: { scores: VarkScores; onRestart: () 
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/paketler"
+              href="/giris"
               className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-[#0f2847] font-extrabold text-sm shadow-lg shadow-amber-500/30 hover:shadow-xl hover:-translate-y-0.5 transition-all"
             >
-              <Sparkles className="w-4 h-4" />
-              Paketleri Gör
+              <Lock className="w-4 h-4" />
+              Detaylı Analiz İçin Giriş Yap
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href="/pricing"
+              href="/paketler"
               className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-white/10 backdrop-blur border border-white/25 text-white font-bold text-sm hover:bg-white/20 transition-all"
             >
-              Ücretlendirme
+              <Sparkles className="w-4 h-4" />
+              Paketleri İncele
             </Link>
           </div>
         </div>

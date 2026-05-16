@@ -6,7 +6,7 @@ import {
   GraduationCap, Brain, Eye, Compass, Lightbulb, AlertTriangle,
   BookOpen, BarChart3, Focus, SplitSquareHorizontal, ArrowRight,
   CheckCircle2, Sparkles, Users, FileText, ChevronRight, Mail, Shield,
-  Zap, TrendingUp, Award, UserCheck, School, ClipboardList, Heart,
+  Zap, TrendingUp, Award, UserCheck, School, ClipboardList,
   Menu, X, Lock
 } from 'lucide-react';
 import { useScrollReveal, useCountUp } from '@/hooks/useScrollReveal';
@@ -194,7 +194,7 @@ export default function LandingPage() {
             <span className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100 tracking-tight">Eğitim Check-Up</span>
           </Link>
 
-          {/* Desktop nav links */}
+          {/* Desktop nav links + Giriş Yap CTA */}
           <div className="hidden md:flex items-center gap-1">
             {[
               { href: '/paketler', label: 'Paketler' },
@@ -215,6 +215,14 @@ export default function LandingPage() {
                   ${navScrolled ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gradient-to-r from-amber-300 to-orange-300'}`} />
               </Link>
             ))}
+            {/* Giriş Yap — primary CTA */}
+            <Link
+              href="/giris"
+              className="ml-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-extrabold min-h-[44px] bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40 hover:scale-[1.04] active:scale-[0.97] transition-all"
+            >
+              <Lock className="w-4 h-4" />
+              Giriş Yap
+            </Link>
           </div>
 
           {/* Mobile hamburger */}
@@ -256,6 +264,15 @@ export default function LandingPage() {
                 {link.label}
               </Link>
             ))}
+            {/* Mobile Giriş Yap CTA */}
+            <Link
+              href="/giris"
+              onClick={() => setMobileMenuOpen(false)}
+              className="mt-2 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-base font-extrabold min-h-[48px] bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30 active:scale-[0.97] transition-all"
+            >
+              <Lock className="w-4 h-4" />
+              Giriş Yap
+            </Link>
           </div>
         </div>
       </nav>
@@ -300,42 +317,24 @@ export default function LandingPage() {
             />
           </div>
 
-          {/* Giriş Butonları */}
-          <div className="hero-cta mt-10 grid grid-cols-2 sm:flex sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-md sm:max-w-none mx-auto">
-            <Link href="/login"
-              className="touch-feedback group relative px-4 sm:px-8 py-3 sm:py-4 rounded-2xl bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-600 text-white font-extrabold shadow-xl shadow-violet-500/40 hover:shadow-2xl hover:shadow-violet-500/50 hover:scale-[1.05] hover:-translate-y-0.5 active:scale-[0.97] transition-all flex items-center justify-center gap-1.5 sm:gap-2.5 text-[12px] sm:text-[14.5px] tracking-wide overflow-hidden">
+          {/* Hero CTAs — Testleri Keşfet + Giriş Yap */}
+          <div className="hero-cta mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-md sm:max-w-none mx-auto">
+            <a href="#testler"
+              className="touch-feedback group relative px-6 sm:px-9 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 text-white font-extrabold shadow-xl shadow-emerald-500/40 hover:shadow-2xl hover:shadow-emerald-500/50 hover:scale-[1.05] hover:-translate-y-0.5 active:scale-[0.97] transition-all flex items-center justify-center gap-2 sm:gap-2.5 text-[13px] sm:text-[15px] tracking-wide overflow-hidden w-full sm:w-auto">
               <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none" />
               <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl pointer-events-none group-hover:bg-white/30 transition" />
-              <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 relative z-10 group-hover:rotate-12 transition-transform duration-300 shrink-0" />
-              <span className="relative z-10">ÖĞRENCİ</span>
-              <ArrowRight className="w-3.5 h-3.5 sm:w-5 sm:h-5 relative z-10 group-hover:translate-x-1 transition-transform shrink-0" />
-            </Link>
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 relative z-10 group-hover:rotate-12 transition-transform duration-300 shrink-0" />
+              <span className="relative z-10">TESTLERİ KEŞFET</span>
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 relative z-10 group-hover:translate-x-1 transition-transform shrink-0" />
+            </a>
 
-            <Link href="/login/ogretmen"
-              className="touch-feedback group relative px-4 sm:px-8 py-3 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 text-white font-extrabold shadow-xl shadow-emerald-500/40 hover:shadow-2xl hover:shadow-emerald-500/50 hover:scale-[1.05] hover:-translate-y-0.5 active:scale-[0.97] transition-all flex items-center justify-center gap-1.5 sm:gap-2.5 text-[12px] sm:text-[14.5px] tracking-wide overflow-hidden">
+            <Link href="/giris"
+              className="touch-feedback group relative px-6 sm:px-9 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-extrabold shadow-xl shadow-amber-500/40 hover:shadow-2xl hover:shadow-amber-500/50 hover:scale-[1.05] hover:-translate-y-0.5 active:scale-[0.97] transition-all flex items-center justify-center gap-2 sm:gap-2.5 text-[13px] sm:text-[15px] tracking-wide overflow-hidden w-full sm:w-auto">
               <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none" />
               <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl pointer-events-none group-hover:bg-white/30 transition" />
-              <School className="w-4 h-4 sm:w-5 sm:h-5 relative z-10 group-hover:scale-110 transition-transform duration-300 shrink-0" />
-              <span className="relative z-10">ÖĞRETMEN</span>
-              <ArrowRight className="w-3.5 h-3.5 sm:w-5 sm:h-5 relative z-10 group-hover:translate-x-1 transition-transform shrink-0" />
-            </Link>
-
-            <Link href="/yonetici"
-              className="touch-feedback group relative px-4 sm:px-8 py-3 sm:py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-extrabold shadow-xl shadow-amber-500/40 hover:shadow-2xl hover:shadow-amber-500/50 hover:scale-[1.05] hover:-translate-y-0.5 active:scale-[0.97] transition-all flex items-center justify-center gap-1.5 sm:gap-2.5 text-[12px] sm:text-[14.5px] tracking-wide overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none" />
-              <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl pointer-events-none group-hover:bg-white/30 transition" />
-              <Shield className="w-4 h-4 sm:w-5 sm:h-5 relative z-10 group-hover:rotate-12 transition-transform duration-300 shrink-0" />
-              <span className="relative z-10">YÖNETİCİ</span>
-              <ArrowRight className="w-3.5 h-3.5 sm:w-5 sm:h-5 relative z-10 group-hover:translate-x-1 transition-transform shrink-0" />
-            </Link>
-
-            <Link href="/login/veli"
-              className="touch-feedback group relative px-4 sm:px-8 py-3 sm:py-4 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-fuchsia-500 text-white font-extrabold shadow-xl shadow-pink-500/40 hover:shadow-2xl hover:shadow-pink-500/50 hover:scale-[1.05] hover:-translate-y-0.5 active:scale-[0.97] transition-all flex items-center justify-center gap-1.5 sm:gap-2.5 text-[12px] sm:text-[14.5px] tracking-wide overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none" />
-              <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl pointer-events-none group-hover:bg-white/30 transition" />
-              <Heart className="w-4 h-4 sm:w-5 sm:h-5 relative z-10 group-hover:scale-110 transition-transform duration-300 shrink-0" />
-              <span className="relative z-10">VELİ</span>
-              <ArrowRight className="w-3.5 h-3.5 sm:w-5 sm:h-5 relative z-10 group-hover:translate-x-1 transition-transform shrink-0" />
+              <Lock className="w-4 h-4 sm:w-5 sm:h-5 relative z-10 group-hover:rotate-12 transition-transform duration-300 shrink-0" />
+              <span className="relative z-10">GİRİŞ YAP</span>
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 relative z-10 group-hover:translate-x-1 transition-transform shrink-0" />
             </Link>
           </div>
 

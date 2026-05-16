@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   GraduationCap, Sparkles, ArrowRight, ArrowLeft, CheckCircle2,
-  RefreshCw, BarChart3, BookOpen, AlertCircle, Brain
+  RefreshCw, BarChart3, BookOpen, AlertCircle, Brain, Lock
 } from 'lucide-react';
 import { SAG_SOL_BEYIN_QUESTIONS, SAG_SOL_BEYIN_DATA } from '@/lib/tests/sag-sol-beyin/data';
 import { calculateSagSolBeyin } from '@/lib/tests/sag-sol-beyin/engine';
@@ -388,16 +388,16 @@ function ResultStage({ scores, onRestart }: { scores: SagSolBeyinScores; onResta
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/paketler"
+              href="/giris"
               className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-fuchsia-400 to-pink-500 text-white font-extrabold text-sm shadow-lg shadow-fuchsia-500/30 hover:shadow-xl hover:-translate-y-0.5 transition-all"
             >
-              <Sparkles className="w-4 h-4" /> Paketleri Gör <ArrowRight className="w-4 h-4" />
+              <Lock className="w-4 h-4" /> Detaylı Analiz İçin Giriş Yap <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href="/pricing"
+              href="/paketler"
               className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-white/10 backdrop-blur border border-white/25 text-white font-bold text-sm hover:bg-white/20 transition-all"
             >
-              Ücretlendirme
+              <Sparkles className="w-4 h-4" /> Paketleri İncele
             </Link>
           </div>
         </div>
