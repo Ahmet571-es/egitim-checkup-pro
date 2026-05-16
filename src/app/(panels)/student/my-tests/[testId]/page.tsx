@@ -410,10 +410,10 @@ export default function TestPage() {
           const s = calculateSagSolBeyin(finalAnswers as Record<string, string>);
           const r = generateSagSolBeyinReport(s);
           setResult({
-            main: s.level, desc: `Sağ: ${s.sagBeyin}/30 — Sol: ${s.solBeyin}/30`,
+            main: s.level, desc: `Sağ: ${s.sagBeyin}/${SAG_SOL_BEYIN_QUESTIONS.length} — Sol: ${s.solBeyin}/${SAG_SOL_BEYIN_QUESTIONS.length}`,
             scores: [
-              { label: '🎨 Sağ Beyin', value: `${s.sagBeyin}/30`, pct: s.sagYuzde },
-              { label: '🔬 Sol Beyin', value: `${s.solBeyin}/30`, pct: s.solYuzde },
+              { label: '🎨 Sağ Beyin', value: `${s.sagBeyin}/${SAG_SOL_BEYIN_QUESTIONS.length}`, pct: s.sagYuzde },
+              { label: '🔬 Sol Beyin', value: `${s.solBeyin}/${SAG_SOL_BEYIN_QUESTIONS.length}`, pct: s.solYuzde },
             ],
             report: r,
           });

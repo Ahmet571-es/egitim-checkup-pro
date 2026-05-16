@@ -25,12 +25,12 @@ export const SAG_SOL_BEYIN_QUESTIONS: SagSolQuestion[] = [
   { id: 12, text: "Zor bir karar vermek gerektiğinde ne yaparsın?", a: "Doğru bildiğimi, mantığıma uygun olanı seçerim.", b: "Kalbimin ve hislerimin söylediğini seçerim.", rightBrain: "b" },
   { id: 13, text: "İşlerini hangi sırayla yaparsın?", a: "Kolay işleri önce, önemli işleri sonra yaparım.", b: "Önemli işleri önce, kolay işleri sonra yaparım.", rightBrain: "a" },
   { id: 14, text: "Yeni bir durumla karşılaştığında ne olur?", a: "Kafamda çok fazla fikir uçuşur, hangisini seçeceğimi bilemem.", b: "Bazen hiç fikrim olmaz, ne yapacağımı düşünmem gerekir.", rightBrain: "a" },
-  { id: 15, text: "Yeni fikirler hakkında hangisi seni anlatır?", a: "Yeni fikirleri çok sorgularım, kanıt isterim.", b: "Yeni fikirlere açığımdır, hemen denerim.", rightBrain: "b" },
-  { id: 16, text: "Hayatında değişiklik konusunda ne düşünürsün?", a: "Hayatımda çok değişiklik ve çeşitlilik isterim.", b: "Düzenli ve planlı bir hayat tercih ederim.", rightBrain: "a" },
+  // ID 15 — kaldırıldı: #8 ile yeni fikirleri sorgulama çakışması
+  // ID 16 — kaldırıldı: #2 ile değişiklik/çeşitlilik çakışması
   { id: 17, text: "Haklı olduğunu nasıl bilirsin?", a: "Haklı olduğumu bilirim çünkü iyi nedenlerim ve kanıtlarım vardır.", b: "Haklı olduğumu hissederim, bazen nedenim olmasa bile.", rightBrain: "b" },
   { id: 18, text: "İşlerini zamana nasıl yayarsın?", a: "İşlerimi zamana eşit olarak yayarım.", b: "İşlerimi son dakikada yapmayı tercih ederim.", rightBrain: "b" },
   { id: 19, text: "Eşyalarını nereye koyarsın?", a: "Her şeyi belirli bir yere koyarım, hep aynı yer.", b: "Eşyalarımın yeri o an ne yaptığıma göre değişir.", rightBrain: "b" },
-  { id: 20, text: "Hangisi seni daha iyi tanımlar?", a: "Tutarlıyımdır, ne yapacağım bellidir.", b: "Spontaneyimdir, anlık kararlar verir sürprizleri severim.", rightBrain: "b" },
+  // ID 20 — kaldırıldı: #18 ve #19 ile spontane/tutarlı çakışması
   { id: 21, text: "Çalışma ortamın nasıl olmalı?", a: "Düzenli ve tertipli bir ortamda çalışmalıyım.", b: "Rahat hissettiğim, esnek bir ortamda çalışırım.", rightBrain: "b" },
   { id: 22, text: "Okulda hangi tür dersleri daha çok seversin?", a: "Türkçe, resim, müzik gibi sözel ve sanatsal dersler.", b: "Matematik, fen bilgisi gibi sayısal dersler.", rightBrain: "a" },
   { id: 23, text: "Hangi tür sporları tercih edersin?", a: "Tek başına yapılan sporlar (yüzme, koşu, bisiklet).", b: "Takım sporları (basketbol, voleybol, futbol).", rightBrain: "a" },
@@ -41,6 +41,12 @@ export const SAG_SOL_BEYIN_QUESTIONS: SagSolQuestion[] = [
   { id: 28, text: "Bir şey öğrenirken hangisini tercih edersin?", a: "Resim, grafik, şema gibi görsellerle öğrenmek.", b: "Yazılı metin okuyarak ve not alarak öğrenmek.", rightBrain: "a" },
   { id: 29, text: "Odanın düzeni hakkında ne düşünürsün?", a: "Odamdaki eşyaların her zaman aynı yerde ve düzenli durmasını isterim.", b: "Odamda yaratıcı bir dağınıklık vardır, ama ben nereye ne koyduğumu bilirim.", rightBrain: "b" },
   { id: 30, text: "Birinin yalan söylediğini nasıl anlarsın?", a: "Söylediklerindeki çelişkileri ve mantık hatalarını yakalarım.", b: "Yüz ifadesinden ve ses tonundan hissederim, sezgilerime güvenirim.", rightBrain: "b" },
+  // ═══ Yeni klasik sağ-sol beyin göstergeleri (ID 31-35) ═══
+  { id: 31, text: "Sevdiğin bir şarkıyı dinlerken neyi daha çok takip edersin?", a: "Sözleri ve şarkının mesajını dinlerim.", b: "Melodi, ritim ve enstrümanları daha çok hissederim.", rightBrain: "b" },
+  { id: 32, text: "Alışveriş yaparken toplam tutarı nasıl hesaplarsın?", a: "Kafadan kabaca tahmin ederim, yaklaşık değer benim için yeter.", b: "Kalemle, telefonla veya hesap makinesiyle tam hesaplarım.", rightBrain: "a" },
+  { id: 33, text: "Tanımadığın bir yere giderken nasıl yön bulursun?", a: "Sokak adlarını, yön tariflerini ve adres bilgilerini takip ederim.", b: "Çevremdeki binaları, ağaçları ve görsel işaretleri referans alırım.", rightBrain: "b" },
+  { id: 34, text: "İzlediğin bir filmi sonradan anlatırken neyi daha çok hatırlarsın?", a: "Çarpıcı sahneleri, görselleri ve filmin atmosferini hatırlarım.", b: "Diyalogları, replikleri ve hikayenin sırasını hatırlarım.", rightBrain: "a" },
+  { id: 35, text: "Birini bir konuda ikna etmek istediğinde nasıl yaparsın?", a: "Mantık, veri ve somut örneklerle açıklarım.", b: "Duygularımı paylaşır, hikayelerle ve örneklerle anlatırım.", rightBrain: "b" },
 ];
 
 export interface SagSolBeyinProfile {
