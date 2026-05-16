@@ -36,27 +36,76 @@ test.describe('Giriş Paneli — Live Deployment', () => {
     await expect(navGirisLink).toContainText(/Giriş Yap/i);
   });
 
-  test('3. /giris page loads with 3 role cards', async ({ page }) => {
+  test('3. /giris default: only Öğrenci + Öğretmen cards visible (admin hidden)', async ({ page }) => {
     await page.goto(`${PROD}/giris`, { waitUntil: 'networkidle' });
 
     await expect(page.getByRole('heading', { name: /Hoş Geldiniz/i, level: 1 })).toBeVisible();
 
-    // 3 role cards
+    // 2 visible role cards
     await expect(page.getByRole('heading', { name: 'Öğrenci Girişi', level: 2 })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Öğretmen Girişi', level: 2 })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Yönetici Girişi', level: 2 })).toBeVisible();
+
+    // Admin is hidden by default
+    await expect(page.getByRole('heading', { name: 'Yönetici Girişi', level: 2 })).not.toBeVisible();
+
+    // The admin link should not exist in DOM at all (true obscurity)
+    const adminLink = page.locator('a[href="/yonetici"]');
+    expect(await adminLink.count()).toBe(0);
 
     // No Veli card
     const veliHeadings = page.getByRole('heading', { name: /Veli/i });
     expect(await veliHeadings.count()).toBe(0);
 
-    // Verify the card links
-    const studentLink = page.locator('a[href="/login"]').filter({ hasText: 'Öğrenci Girişi' });
-    const teacherLink = page.locator('a[href="/login/ogretmen"]').filter({ hasText: 'Öğretmen Girişi' });
-    const adminLink = page.locator('a[href="/yonetici"]').filter({ hasText: 'Yönetici Girişi' });
-    await expect(studentLink).toBeVisible();
-    await expect(teacherLink).toBeVisible();
-    await expect(adminLink).toBeVisible();
+    // Search input is visible
+    await expect(page.getByRole('searchbox', { name: /Hesap türü ara/i })).toBeVisible();
+  });
+
+  test('3b. Search "yönetici" reveals admin card', async ({ page }) => {
+    await page.goto(`${PROD}/giris`, { waitUntil: 'networkidle' });
+
+    const search = page.getByRole('searchbox', { name: /Hesap türü ara/i });
+    await search.fill('yönetici');
+
+    // Admin card now appears
+    await expect(page.getByRole('heading', { name: 'Yönetici Girişi', level: 2 })).toBeVisible();
+    await expect(page.locator('a[href="/yonetici"]')).toBeVisible();
+
+    // Other roles hidden because search filters non-matches
+    await expect(page.getByRole('heading', { name: 'Öğrenci Girişi', level: 2 })).not.toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Öğretmen Girişi', level: 2 })).not.toBeVisible();
+  });
+
+  test('3c. Search "admin" (English) reveals admin card', async ({ page }) => {
+    await page.goto(`${PROD}/giris`, { waitUntil: 'networkidle' });
+    await page.getByRole('searchbox', { name: /Hesap türü ara/i }).fill('admin');
+    await expect(page.getByRole('heading', { name: 'Yönetici Girişi', level: 2 })).toBeVisible();
+  });
+
+  test('3d. Search "yonetici" (no diacritics) reveals admin card', async ({ page }) => {
+    await page.goto(`${PROD}/giris`, { waitUntil: 'networkidle' });
+    await page.getByRole('searchbox', { name: /Hesap türü ara/i }).fill('yonetici');
+    await expect(page.getByRole('heading', { name: 'Yönetici Girişi', level: 2 })).toBeVisible();
+  });
+
+  test('3e. Search "asdfqwerty" shows empty state', async ({ page }) => {
+    await page.goto(`${PROD}/giris`, { waitUntil: 'networkidle' });
+    await page.getByRole('searchbox', { name: /Hesap türü ara/i }).fill('asdfqwerty');
+    await expect(page.getByRole('heading', { name: /Eşleşen hesap türü bulunamadı/i })).toBeVisible();
+  });
+
+  test('3f. Clearing search restores default 2 cards (admin re-hides)', async ({ page }) => {
+    await page.goto(`${PROD}/giris`, { waitUntil: 'networkidle' });
+    const search = page.getByRole('searchbox', { name: /Hesap türü ara/i });
+    await search.fill('yönetici');
+    await expect(page.locator('a[href="/yonetici"]')).toBeVisible();
+
+    // Click the X clear button
+    await page.getByRole('button', { name: /Aramayı temizle/i }).click();
+
+    await expect(page.getByRole('heading', { name: 'Öğrenci Girişi', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Öğretmen Girişi', level: 2 })).toBeVisible();
+    // Admin re-hidden
+    expect(await page.locator('a[href="/yonetici"]').count()).toBe(0);
   });
 
   test('4. /login/veli route returns 404 (deleted)', async ({ page }) => {
@@ -102,8 +151,9 @@ test.describe('Giriş Paneli — Live Deployment', () => {
     await page.waitForURL(/\/login\/ogretmen/, { timeout: 10_000 });
     expect(page.url()).toContain('/login/ogretmen');
 
-    // Admin card → /yonetici
+    // Admin card → must first search to reveal it, then click → /yonetici
     await page.goto(`${PROD}/giris`, { waitUntil: 'networkidle' });
+    await page.getByRole('searchbox', { name: /Hesap türü ara/i }).fill('yönetici');
     await page.locator('a[href="/yonetici"]').filter({ hasText: 'Yönetici Girişi' }).click();
     await page.waitForURL(/\/yonetici/, { timeout: 10_000 });
     expect(page.url()).toContain('/yonetici');
