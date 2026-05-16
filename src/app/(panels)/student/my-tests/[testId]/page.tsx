@@ -34,6 +34,7 @@ import { calculateAge, getBurdonTimeByAge } from '@/lib/utils/age';
 
 // ── Veri importları ──────────────────────────────────────
 import { SAG_SOL_BEYIN_QUESTIONS } from '@/lib/tests/sag-sol-beyin/data';
+import { VISUAL_QUESTIONS } from '@/lib/tests/sag-sol-beyin/visual-data';
 import { VARK_QUESTIONS } from '@/lib/tests/vark/data';
 import { HOLLAND_QUESTIONS } from '@/lib/tests/holland/data';
 import { SINAV_KAYGISI_QUESTIONS } from '@/lib/tests/sinav-kaygisi/data';
@@ -46,19 +47,38 @@ type AnswerMap = Record<string | number, string | number>;
 interface QuestionItem {
   id: string | number;
   text: string;
-  type: 'likert5' | 'likert4' | 'binary' | 'mc';
+  type: 'likert5' | 'likert4' | 'binary' | 'mc' | 'visual';
   options?: Record<string, string>;
   passage?: string;
+  // Görsel sorular için (yalnızca type='visual' iken)
+  promptSvg?: string;
+  // Bölüm geçişi tetikleyicisi — bu soruya gelindiğinde önce geçiş ekranı göster
+  startsSection?: { title: string; description: string; icon: string };
 }
 
 // Soru listesini test tipine göre oluştur
 function buildQuestions(testId: string): QuestionItem[] {
   switch (testId) {
-    case 'sag-sol-beyin':
-      return SAG_SOL_BEYIN_QUESTIONS.map(q => ({
+    case 'sag-sol-beyin': {
+      const textQs: QuestionItem[] = SAG_SOL_BEYIN_QUESTIONS.map(q => ({
         id: q.id, text: q.text, type: 'mc' as const,
         options: { a: q.a, b: q.b },
       }));
+      const visualQs: QuestionItem[] = VISUAL_QUESTIONS.map((vq, idx) => ({
+        id: vq.id,
+        text: vq.text,
+        type: 'visual' as const,
+        promptSvg: vq.promptSvg,
+        options: Object.fromEntries(vq.options.map(o => [o.key, o.label])),
+        // İlk görsel soruda bölüm geçiş ekranı tetiklenir
+        startsSection: idx === 0 ? {
+          icon: '🖼️',
+          title: 'Tebrikler! İlk bölümü bitirdin',
+          description: 'Şimdi 15 soruluk görsel bölümüne geçiyoruz. Bu sorularda resimlere bakıp ilk hissini takip et — düşünmeden, doğal tepkini seç. Hazır mısın?',
+        } : undefined,
+      }));
+      return [...textQs, ...visualQs];
+    }
 
     case 'vark':
       return VARK_QUESTIONS.map(q => ({
@@ -139,6 +159,8 @@ export default function TestPage() {
   const [currentQ, setCurrentQ] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [result, setResult] = useState<{ main: string; desc: string; scores: { label: string; value: string; pct?: number }[]; report: string } | null>(null);
+  // Bölüm geçiş ekranı için onay seti (hangi sorulardaki geçiş ekranları gösterildi)
+  const [acknowledgedSections, setAcknowledgedSections] = useState<Set<string | number>>(new Set());
 
   // D2 state
   const [d2Rows, setD2Rows] = useState<ReturnType<typeof generateD2Test> | null>(null);
@@ -830,6 +852,41 @@ export default function TestPage() {
   const q = questions[currentQ];
   const currentVal = answers[q.id];
 
+  // Bölüm geçiş ekranı: q.startsSection varsa ve daha önce onaylanmadıysa
+  if (q.startsSection && !acknowledgedSections.has(q.id)) {
+    const section = q.startsSection;
+    const remainingCount = questions.length - currentQ;
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="max-w-2xl w-full bg-white/5 backdrop-blur-xl border border-white/15 rounded-3xl p-8 sm:p-10 text-center shadow-2xl">
+          <div className="text-6xl sm:text-7xl mb-5 animate-[scale-in_0.4s_ease-out]">{section.icon}</div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-4 tracking-tight">
+            {section.title}
+          </h2>
+          <p className="text-base sm:text-lg text-white/80 leading-relaxed mb-2 max-w-lg mx-auto">
+            {section.description}
+          </p>
+          <p className="text-sm text-white/50 mb-8">
+            Kalan soru: <span className="font-bold text-white/80">{remainingCount}</span>
+          </p>
+          <button
+            onClick={() => {
+              setAcknowledgedSections(prev => {
+                const next = new Set(prev);
+                next.add(q.id);
+                return next;
+              });
+            }}
+            className="touch-feedback inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-extrabold text-base shadow-xl transition-all hover:scale-[1.03] active:scale-[0.97]"
+            style={{ backgroundColor: test.color, color: 'white' }}
+          >
+            Devam Et →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <TestShell
       testName={test.name}
@@ -854,6 +911,7 @@ export default function TestPage() {
         onChange={handleAnswer}
         accentColor={test.color}
         passage={q.passage}
+        promptSvg={q.promptSvg}
       />
     </TestShell>
   );

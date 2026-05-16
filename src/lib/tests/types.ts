@@ -305,4 +305,11 @@ export interface SagSolBeyinScores {
   solYuzde: number;
   dominant: 'sag' | 'sol' | 'dengeli';
   level: string;
+  // Bölüm bazında alt skorlar (metin + görsel bütünleşik raporlama için)
+  textSag?: number;
+  textSol?: number;
+  visualSag?: number;
+  visualSol?: number;
+  textTotal?: number;
+  visualTotal?: number;
 }

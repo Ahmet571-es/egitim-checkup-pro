@@ -3,7 +3,7 @@
 import React from 'react';
 import { Check } from 'lucide-react';
 
-export type QuestionType = 'likert5' | 'likert4' | 'binary' | 'mc' | 'mc_single';
+export type QuestionType = 'likert5' | 'likert4' | 'binary' | 'mc' | 'mc_single' | 'visual';
 
 export interface QuestionCardProps {
   questionNumber: number;
@@ -14,6 +14,8 @@ export interface QuestionCardProps {
   onChange: (value: string | number | string[]) => void;
   accentColor?: string;
   passage?: string;
+  /** Inline SVG string — yalnızca type='visual' iken render edilir. */
+  promptSvg?: string;
 }
 
 const LIKERT5_LABELS = [
@@ -34,7 +36,7 @@ const LIKERT4_LABELS = [
 
 /** Madde 16: Interactive question card with hover lift, selection feedback, check icon slide-in */
 export default function QuestionCard({
-  questionNumber, questionText, questionType, options, value, onChange, accentColor = '#10b981', passage,
+  questionNumber, questionText, questionType, options, value, onChange, accentColor = '#10b981', passage, promptSvg,
 }: QuestionCardProps) {
 
   const isSelected = (v: string | number) => value === v;
@@ -72,10 +74,18 @@ export default function QuestionCard({
         </div>
       )}
 
+      {/* Görsel prompt — type='visual' iken soru metninden önce SVG göster */}
+      {questionType === 'visual' && promptSvg && (
+        <div
+          className="rounded-2xl overflow-hidden bg-white/95 border-2 border-white/30 shadow-2xl shadow-black/30 mb-2"
+          dangerouslySetInnerHTML={{ __html: promptSvg }}
+        />
+      )}
+
       {/* Question */}
       <div>
         <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">
-          Soru {questionNumber}
+          Soru {questionNumber}{questionType === 'visual' ? ' · Görsel' : ''}
         </p>
         <p className="text-white font-medium text-base sm:text-lg leading-relaxed">{questionText}</p>
       </div>
@@ -125,7 +135,7 @@ export default function QuestionCard({
         </div>
       )}
 
-      {(questionType === 'mc' || questionType === 'mc_single') && options && (
+      {(questionType === 'mc' || questionType === 'mc_single' || questionType === 'visual') && options && (
         <div className="space-y-2">
           {Object.entries(options).map(([key, label]) => {
             const selected = isSelected(key);
