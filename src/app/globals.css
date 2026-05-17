@@ -814,3 +814,32 @@ html.large-font .text-[13.5px] { font-size: 1rem !important; }
 }
 
 
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TEST KARTLARI — HOVER İZOLASYON
+   Inline `style={{ transitionDelay }}` page-load stagger animasyonu için.
+   Hover sırasında bu delay'in sıçramasını önlemek için !important ile sıfırla.
+   Ek olarak hover transition süresi de kısaltılır (200ms) — yan kartların
+   transition ara karelerinde birlikte yukarıda görünme ihtimalini düşürür.
+   ═══════════════════════════════════════════════════════════════════════ */
+.test-card {
+  /* Page-load stagger için inline transitionDelay aktif kalır */
+  transition-property: transform, box-shadow, background-color, border-color, opacity !important;
+  transition-duration: 200ms !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.test-card:hover,
+.test-card:focus-visible {
+  /* Hover'a kesinlikle delay uygulanmasın — inline style'ı bile override eder */
+  transition-delay: 0ms !important;
+  /* Hover ile çıkış da hızlı olsun (mouse-out anında geri dönsün) */
+  transition-duration: 180ms !important;
+}
+/* prefers-reduced-motion: animasyonu kapat */
+@media (prefers-reduced-motion: reduce) {
+  .test-card,
+  .test-card:hover,
+  .test-card:focus-visible {
+    transition: none !important;
+  }
+}
