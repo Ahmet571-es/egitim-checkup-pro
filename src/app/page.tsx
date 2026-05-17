@@ -141,6 +141,9 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTestIdx, setActiveTestIdx] = useState<number | null>(null);
   const [activeHighlight, setActiveHighlight] = useState<HighlightKey>(null);
+  // Test kartlarının staggered fade-in animasyonu bittikten sonra hover gecikmesini sıfırlamak için
+  const [testsPageReady, setTestsPageReady] = useState(false);
+  const [highlightsPageReady, setHighlightsPageReady] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setNavScrolled(window.scrollY > 20);
@@ -152,6 +155,22 @@ export default function LandingPage() {
   const tests = useScrollReveal(0.1);
   const steps = useScrollReveal(0.15);
   const footer = useScrollReveal(0.1);
+
+  // Test kartı stagger animasyonu tamamlandığında hover gecikmesini sıfırla.
+  // Aksi halde mouse soldan sağa kayarken hover'lar birikmiş delay'lerle tetiklenip
+  // birden fazla kartı aynı anda yukarı çıkarmış gibi görünür.
+  useEffect(() => {
+    if (!tests.visible || testsPageReady) return;
+    // En son kartın delay'i + biraz buffer (10 kart × 80ms + 400ms ≈ 1.2sn)
+    const timer = setTimeout(() => setTestsPageReady(true), TESTS.length * 80 + 400);
+    return () => clearTimeout(timer);
+  }, [tests.visible, testsPageReady]);
+
+  useEffect(() => {
+    if (!highlights.visible || highlightsPageReady) return;
+    const timer = setTimeout(() => setHighlightsPageReady(true), 8 * 100 + 400);
+    return () => clearTimeout(timer);
+  }, [highlights.visible, highlightsPageReady]);
 
   return (
     <div className="min-h-screen relative">
@@ -369,7 +388,7 @@ export default function LandingPage() {
               className={`group cursor-pointer text-left w-full bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border p-6 shadow-sm text-center
                 hover:-translate-y-2 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-all duration-300 ${h.color}
                 ${highlights.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-              style={{ transitionDelay: highlights.visible ? `${i * 100}ms` : '0ms' }}>
+              style={{ transitionDelay: highlightsPageReady ? '0ms' : (highlights.visible ? `${i * 100}ms` : '0ms') }}>
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white to-gray-50 border border-gray-100 dark:border-slate-700/60 flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
                 <h.icon className="w-7 h-7" />
               </div>
@@ -412,7 +431,7 @@ export default function LandingPage() {
                 hover:-translate-y-1.5 hover:shadow-xl hover:border-l-[5px] hover:bg-white/90 dark:hover:bg-slate-800/80 transition-all duration-300
                 ${isActive ? '-translate-y-1.5 shadow-xl border-l-[5px] bg-white/90 dark:bg-slate-800/80' : ''}
                 ${tests.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-              style={{ transitionDelay: tests.visible ? `${i * 80}ms` : '0ms' }}>
+              style={{ transitionDelay: testsPageReady ? '0ms' : (tests.visible ? `${i * 80}ms` : '0ms') }}>
               <div className="flex items-start gap-4">
                 <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${t.color} flex items-center justify-center shadow-lg shrink-0 transition-all duration-300
                   group-hover:rotate-[5deg] group-hover:scale-110 group-hover:shadow-xl
