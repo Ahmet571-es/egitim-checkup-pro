@@ -52,14 +52,23 @@ export async function POST(req: NextRequest) {
 
     const admin = createAdminClient();
 
-    // Mevcut metadata'yı koru, sadece flag'i kaldır
-    const currentMeta = user.user_metadata || {};
-    const newMeta = { ...currentMeta };
-    delete newMeta.must_change_password;
-
+    // ⚠ GoTrue MERGE semantiği:
+    //   admin.auth.admin.updateUserById ile gönderilen user_metadata,
+    //   mevcut metadata ile MERGE edilir (REPLACE değil). Bir key'i silmek
+    //   için key'i payload'a koymamak YETMEZ — sunucu o key'i "değiştirme"
+    //   diye yorumlar ve eski değerini AYNEN korur.
+    //
+    //   Bir key'i silmek için değerini EXPLICIT olarak `null` göndermek
+    //   gerekir. (Kaynak: supabase/auth internal/models/user.go →
+    //   UpdateUserMetaData: value==nil ise delete.)
+    //
+    //   Eski (buggy) kod: `delete newMeta.must_change_password` JS objesinden
+    //   key'i çıkarıyordu ama API payload'a koymuyordu → flag hiç temizlenmiyordu
+    //   → kullanıcı yeni şifreyi belirlese bile sonraki her istekte middleware
+    //   /sifre-degistir'e atıyor, sonsuz loop oluşuyordu.
     const { error: updErr } = await admin.auth.admin.updateUserById(user.id, {
       password: newPassword,
-      user_metadata: newMeta,
+      user_metadata: { must_change_password: null },
     });
 
     if (updErr) {

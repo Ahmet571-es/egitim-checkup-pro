@@ -43,8 +43,25 @@ export default function SifreDegistirPage() {
         return;
       }
       setEmail(user.email || '');
-      const r = (user.user_metadata?.role as UserRole) || 'student';
-      setRole(r);
+
+      // Önce user_metadata'dan dene
+      let r = (user.user_metadata?.role as UserRole) || null;
+
+      // Yoksa profiles tablosundan oku (login sayfalarındaki ile aynı pattern)
+      // Bu, admin tarafından oluşturulup metadata'sında role bulunmayan eski/edge case
+      // hesapların yanlışlıkla student panele yönlendirilmesini engeller.
+      if (!r) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .maybeSingle();
+          if (profile?.role) r = profile.role as UserRole;
+        } catch { /* sessizce geç, fallback altta */ }
+      }
+
+      setRole(r ?? 'student');
       setAuthChecked(true);
     })();
   }, [router]);
