@@ -246,6 +246,10 @@ function TeacherLoginInner() {
               Şifremi unuttum
             </Link>
           </p>
+          <p className="text-[11px] text-gray-400 mt-1 leading-snug">
+            📌 Yöneticiden geçici şifre aldıysanız, üstteki şifre alanına girip giriş yapın —
+            sistem sizi yeni şifre belirleme sayfasına yönlendirecek.
+          </p>
         </div>
 
         <label className="flex items-center gap-2.5 cursor-pointer group">

@@ -188,6 +188,7 @@ export default function YoneticiPage() {
   };
   const [passwordResult, setPasswordResult] = useState<PasswordResetResult | null>(null);
   const [passwordCopied, setPasswordCopied] = useState(false);
+  const [messageCopied, setMessageCopied] = useState(false);
   const [passwordRequests, setPasswordRequests] = useState<PasswordRequest[]>([]);
   const [searchPR, setSearchPR] = useState('');
   const [filterPRStatus, setFilterPRStatus] = useState<'pending' | 'resolved' | 'cancelled'>('pending');
@@ -624,6 +625,68 @@ export default function YoneticiPage() {
       setPasswordCopied(true);
       setTimeout(() => setPasswordCopied(false), 2500);
     }
+  };
+
+  /**
+   * Geçici şifre verilen kullanıcıya iletilecek HAZIR mesaj template'i.
+   * Rolüne göre doğru login URL'sini içerir. WhatsApp/SMS ile yapıştırılır.
+   * Amaç: öğretmen "tek kullanımlık şifreyi nereye gireceğim?" sorusunu
+   * sormasın — adım adım yönerge mesajın içinde.
+   */
+  const buildUserMessage = (): string => {
+    if (!passwordResult) return '';
+    const { user, new_password } = passwordResult;
+    const isTeacher = user.role === 'teacher';
+    const loginUrl = isTeacher
+      ? 'https://egitim-checkup.com/login/ogretmen'
+      : 'https://egitim-checkup.com/login';
+
+    return [
+      `Sayın ${user.full_name},`,
+      '',
+      'Eğitim Check-Up sistemi için geçici şifreniz oluşturuldu:',
+      '',
+      `🔑 Geçici Şifre: ${new_password}`,
+      `📧 E-posta: ${user.email}`,
+      '',
+      'Giriş için:',
+      `1) Şu adrese gidin: ${loginUrl}`,
+      '2) E-postanız ve yukarıdaki geçici şifre ile giriş yapın',
+      '3) Sistem sizi otomatik olarak "Yeni Şifre Belirle" sayfasına yönlendirecek',
+      '4) Kalıcı şifrenizi belirleyip kaydedin',
+      '',
+      '⚠️ Geçici şifre tek kullanımlıktır. Kalıcı şifrenizi belirledikten sonra geçici şifre artık çalışmayacak.',
+      '',
+      'İyi çalışmalar.',
+    ].join('\n');
+  };
+
+  const copyMessageToClipboard = async () => {
+    const message = buildUserMessage();
+    if (!message) return;
+    try {
+      await navigator.clipboard.writeText(message);
+      setMessageCopied(true);
+      setTimeout(() => setMessageCopied(false), 2500);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = message;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      setMessageCopied(true);
+      setTimeout(() => setMessageCopied(false), 2500);
+    }
+  };
+
+  const openInWhatsApp = () => {
+    const message = buildUserMessage();
+    if (!message) return;
+    // wa.me/?text= — telefon numarası vermeden mesaj penceresi açar,
+    // yönetici alıcıyı kendi rehberinden seçer
+    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const loadPasswordRequests = async (pw: string, status: 'pending' | 'resolved' | 'cancelled') => {
@@ -2645,7 +2708,7 @@ export default function YoneticiPage() {
       {/* ═══ ŞİFRE SIFIRLAMA SONUÇ MODAL (TEK SEFERLİK GÖSTERİM) ═══ */}
       {passwordResult && (
         <div
-          onClick={() => { setPasswordResult(null); setPasswordCopied(false); }}
+          onClick={() => { setPasswordResult(null); setPasswordCopied(false); setMessageCopied(false); }}
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
         >
           <div
@@ -2663,7 +2726,7 @@ export default function YoneticiPage() {
                 </p>
               </div>
               <button
-                onClick={() => { setPasswordResult(null); setPasswordCopied(false); }}
+                onClick={() => { setPasswordResult(null); setPasswordCopied(false); setMessageCopied(false); }}
                 className="text-gray-400 hover:text-gray-600 dark:text-slate-300 shrink-0">
                 <X className="w-5 h-5" />
               </button>
@@ -2698,6 +2761,52 @@ export default function YoneticiPage() {
               </p>
             </div>
 
+            {/* Hazır mesaj kutusu — öğretmen "tek kullanımlık şifreyi nereye gireceğim?"
+                sorusunu sormasın diye, adım adım yönerge içeren mesajı tek tıkla
+                kullanıcıya gönderilebilir hale getirir. */}
+            <div className="bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border-2 border-blue-200 rounded-2xl p-4 mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">
+                  💬 Kullanıcıya İletilecek Hazır Mesaj
+                </p>
+                <p className="text-[10px] text-blue-600 font-semibold">
+                  {passwordResult.user.role === 'teacher' ? 'Öğretmen' :
+                   passwordResult.user.role === 'student' ? 'Öğrenci' :
+                   passwordResult.user.role === 'parent' ? 'Veli' : 'Kullanıcı'} için
+                </p>
+              </div>
+              <pre className="bg-white dark:bg-slate-900/50 rounded-xl border border-blue-200 p-3 text-[11.5px] text-gray-800 dark:text-slate-200 whitespace-pre-wrap font-sans leading-relaxed max-h-48 overflow-y-auto select-all">
+{buildUserMessage()}
+              </pre>
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  onClick={copyMessageToClipboard}
+                  className={`flex-1 px-3 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 text-[12.5px] ${
+                    messageCopied
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-blue-500 text-white hover:bg-blue-600'
+                  }`}
+                  title="Hazır mesajı panoya kopyala"
+                >
+                  {messageCopied ? (
+                    <><CheckCircle2 className="w-4 h-4" /> Kopyalandı</>
+                  ) : (
+                    <><FileText className="w-4 h-4" /> Mesajı Kopyala</>
+                  )}
+                </button>
+                <button
+                  onClick={openInWhatsApp}
+                  className="flex-1 px-3 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 text-[12.5px] bg-emerald-500 text-white hover:bg-emerald-600"
+                  title="WhatsApp'ta mesaj olarak aç"
+                >
+                  <ArrowRight className="w-4 h-4" /> WhatsApp'ta Aç
+                </button>
+              </div>
+              <p className="text-[10.5px] text-blue-700 mt-2 text-center font-semibold">
+                Bu hazır mesaj, kullanıcının nereye gideceğini ve ne yapacağını adım adım anlatır.
+              </p>
+            </div>
+
             {/* Uyarı kutusu */}
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 rounded-xl p-3 mb-4">
               <p className="text-[12px] text-amber-800 dark:text-amber-200 font-semibold flex items-start gap-2">
@@ -2715,7 +2824,7 @@ export default function YoneticiPage() {
                 Kullanıcı bu şifre ile giriş yapacak, dilerse profilden değiştirir.
               </p>
               <button
-                onClick={() => { setPasswordResult(null); setPasswordCopied(false); }}
+                onClick={() => { setPasswordResult(null); setPasswordCopied(false); setMessageCopied(false); }}
                 className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-slate-700/60 text-gray-700 dark:text-slate-300 text-[13px] font-bold hover:bg-gray-200 transition-all shrink-0"
               >
                 Kapat

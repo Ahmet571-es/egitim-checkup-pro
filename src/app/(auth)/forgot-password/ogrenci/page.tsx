@@ -81,13 +81,23 @@ export default function StudentForgotPasswordPage() {
           </div>
 
           <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-[12.5px] text-blue-800">
-            <p className="font-semibold mb-1">📌 Sonraki adımlar:</p>
-            <ol className="space-y-0.5 ml-4 list-decimal">
-              <li>Yönetici talebinizi inceleyecek</li>
-              <li>Yeni şifrenizi belirleyecek</li>
-              <li>Size şifrenizi <strong>okul/öğretmen üzerinden</strong> iletecek</li>
-              <li>Yeni şifreyle giriş yaparsınız</li>
+            <p className="font-semibold mb-1.5">📌 Sonraki adımlar:</p>
+            <ol className="space-y-1 ml-4 list-decimal">
+              <li>Yönetici talebinizi inceleyecek ve <strong>geçici bir şifre</strong> üretecek.</li>
+              <li>Bu geçici şifreyi <strong>WhatsApp/SMS/telefon</strong> ile size iletecek.</li>
+              <li>
+                <strong>Giriş sayfasına</strong> gidin{' '}
+                (<Link href="/login" className="underline font-bold">/login</Link>),
+                e-postanız ve geçici şifre ile giriş yapın.
+              </li>
+              <li>
+                Sistem sizi otomatik olarak <strong>"Yeni Şifre Belirle"</strong> sayfasına
+                yönlendirecek. Kalıcı şifrenizi belirleyip kaydedin.
+              </li>
             </ol>
+            <p className="text-[11.5px] text-blue-700 mt-2 italic">
+              Geçici şifre tek kullanımlıktır — kalıcı şifrenizi belirledikten sonra çalışmaz.
+            </p>
           </div>
 
           <Link
