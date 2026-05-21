@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, ArrowRight, ArrowLeft, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ArrowLeft, AlertCircle, CheckCircle2, Eye, EyeOff, GraduationCap } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_PATHS } from '@/types';
 import type { UserRole } from '@/types';
@@ -196,6 +196,27 @@ export default function LoginPage() {
         </div>
       }
     >
+      {/* ÖĞRETMEN GİRİŞİ CTA — bazı öğretmenler temp şifreyle bu sayfaya
+          (öğrenci giriş) geliyor ve 'Öğrenci Girişi' başlığını görünce
+          kafası karışıyordu. Yeşil banner formun üstünde, kaçırılmaz. */}
+      <Link
+        href="/login/ogretmen"
+        className="mb-5 flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 hover:from-emerald-100 hover:to-teal-100 transition-all group active:scale-[0.99]"
+      >
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0 shadow-md">
+          <GraduationCap className="w-5 h-5 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-extrabold text-emerald-700 leading-tight">
+            Öğretmen misiniz?
+          </p>
+          <p className="text-[11.5px] text-emerald-600 mt-0.5">
+            Yanlış sayfadasınız — Öğretmen Girişi'ne geçin →
+          </p>
+        </div>
+        <ArrowRight className="w-4 h-4 text-emerald-600 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+      </Link>
+
       {fromRegister && email && !error && (
         <div className="mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex items-center gap-2 text-sm text-emerald-700">
           <CheckCircle2 className="w-4 h-4 shrink-0" />

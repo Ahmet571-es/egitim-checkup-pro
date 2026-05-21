@@ -649,8 +649,14 @@ export default function YoneticiPage() {
       `🔑 Geçici Şifre: ${new_password}`,
       `📧 E-posta: ${user.email}`,
       '',
-      'Giriş için:',
-      `1) Şu adrese gidin: ${loginUrl}`,
+      `🔗 Giriş bağlantısı (MUTLAKA bu linke tıklayın):`,
+      `👉 ${loginUrl}`,
+      '',
+      ...(isTeacher
+        ? ['⚠️ Ana sayfadan veya başka bir linkten girmeyin — sizi öğrenci giriş sayfasına yönlendirir.', '']
+        : []),
+      'Adımlar:',
+      '1) Yukarıdaki linke tıklayın (giriş sayfasına gelecek)',
       '2) E-postanız ve yukarıdaki geçici şifre ile giriş yapın',
       '3) Sistem sizi otomatik olarak "Yeni Şifre Belirle" sayfasına yönlendirecek',
       '4) Kalıcı şifrenizi belirleyip kaydedin',
