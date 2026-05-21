@@ -1918,7 +1918,19 @@ export default function YoneticiPage() {
                             <p className="text-[11px] text-gray-400 mt-0.5">
                               Talep: {new Date(r.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             </p>
-                            {r.notes && r.status !== 'pending' && (
+                            {r.status === 'pending' && !r.user_id && (
+                              <div className="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-300 text-[11px] text-amber-800 flex items-start gap-1.5">
+                                <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                                <div>
+                                  <span className="font-bold">Eşleşen kullanıcı yok.</span>{' '}
+                                  Bu e-posta sistemde kayıtlı değil — tipo, kopyala-yapıştır
+                                  görünmez karakter veya farklı kayıt e-postası olabilir.
+                                  Kayıtlı Öğretmenler/Öğrencilerden ismi ile bulup doğru
+                                  hesabına şifre atadıktan sonra bu talebi iptal edin.
+                                </div>
+                              </div>
+                            )}
+                            {r.notes && (
                               <p className="text-[11px] text-gray-500 italic mt-0.5">Not: {r.notes}</p>
                             )}
                           </div>
@@ -1933,6 +1945,15 @@ export default function YoneticiPage() {
                                 disabled={loading}
                                 className="py-2 px-3 rounded-lg bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 border border-red-200 transition-all flex items-center gap-1.5 disabled:opacity-60">
                                 <X className="w-3.5 h-3.5" /> İptal
+                              </button>
+                            </div>
+                          )}
+                          {r.status === 'pending' && !r.user_id && (
+                            <div className="flex gap-2 shrink-0">
+                              <button onClick={() => cancelPasswordRequest(r.id)}
+                                disabled={loading}
+                                className="py-2 px-3 rounded-lg bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 border border-red-200 transition-all flex items-center gap-1.5 disabled:opacity-60">
+                                <X className="w-3.5 h-3.5" /> Talebi Sil
                               </button>
                             </div>
                           )}

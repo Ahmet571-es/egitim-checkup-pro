@@ -18,6 +18,19 @@ export default function TeacherForgotPasswordPage() {
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
 
+  const handleEmailChange = (val: string) => {
+    // Görünmez/tehlikeli karakter temizliği (login sayfası ile aynı).
+    // WhatsApp/SMS'ten kopyala-yapıştır yapan kullanıcıların talebi
+    // exact email match'i kaçırmasın diye agresif temizlik:
+    const cleaned = val
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')         // zero-width
+      .replace(/[\u201C\u201D\u2018\u2019"']/g, '')  // smart + düz tırnaklar
+      .replace(/\s+/g, '')                            // her türlü boşluk
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\x00-\x1F\x7F]/g, '');               // kontrol karakterleri
+    setEmail(cleaned.toLowerCase());
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -135,7 +148,7 @@ export default function TeacherForgotPasswordPage() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
               placeholder="ornek@email.com"
               autoFocus
               autoComplete="email"

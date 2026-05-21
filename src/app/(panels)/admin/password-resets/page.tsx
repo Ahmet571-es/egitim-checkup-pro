@@ -310,15 +310,33 @@ export default function AdminPasswordResetsPage() {
                       </div>
                     )}
 
+                    {req.status === 'pending' && !req.user_id && (
+                      <div className="mt-2 p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-[12px] text-amber-800 flex items-start gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-bold">Eşleşen kullanıcı bulunamadı</p>
+                          <p className="text-[11.5px] mt-0.5">
+                            Bu e-posta sistemde kayıtlı değil. Kullanıcı tipo yapmış,
+                            kopyala-yapıştır görünmez karakter gelmiş veya farklı bir
+                            e-postayla kayıtlı olabilir. Kayıtlı öğretmenler/öğrencilerden
+                            ismi/telefonu ile arayıp doğru hesabına şifre atadıktan sonra
+                            bu talebi iptal edin.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {req.status === 'pending' && (
                       <div className="mt-3 flex gap-2 flex-wrap">
                         <button
                           type="button"
+                          disabled={!req.user_id}
+                          title={!req.user_id ? 'Bu talebe bağlı kullanıcı yok — manuel kontrol gerekli' : ''}
                           onClick={() => {
                             setActiveRequest(req);
                             setNewPassword(generateStrongPassword());
                           }}
-                          className="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-[12.5px] font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                          className="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-[12.5px] font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:from-emerald-500 disabled:hover:to-teal-600"
                         >
                           <ShieldCheck className="w-3.5 h-3.5" /> Şifre Belirle
                         </button>

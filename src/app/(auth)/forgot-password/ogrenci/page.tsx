@@ -18,6 +18,17 @@ export default function StudentForgotPasswordPage() {
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
 
+  const handleEmailChange = (val: string) => {
+    // Görünmez/tehlikeli karakter temizliği (login sayfası ile aynı pattern).
+    const cleaned = val
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .replace(/[\u201C\u201D\u2018\u2019"']/g, '')
+      .replace(/\s+/g, '')
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\x00-\x1F\x7F]/g, '');
+    setEmail(cleaned.toLowerCase());
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -135,7 +146,7 @@ export default function StudentForgotPasswordPage() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
               placeholder="ornek@email.com"
               autoFocus
               autoComplete="email"
