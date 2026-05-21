@@ -42,11 +42,57 @@ export async function POST(request: Request) {
 
     const admin = createAdminClient();
 
-    // Email sistemde mi? Varsa user_id ve profil bilgilerini al
-    const { data: userList } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    const matchedUser = userList?.users?.find(
-      (u) => u.email?.toLowerCase() === email,
-    );
+    // ════════════════════════════════════════════════════════════════════
+    // Kullanıcı arama — ÜÇ KATMANLI (robust):
+    //
+    //   1. profiles.email lookup (en hızlı, ölçeklenir)
+    //   2. Eşleşme bulunursa auth.users'dan doğrula (ID üzerinden)
+    //   3. Bulamazsak listUsers'a düş, sayfalı tarama yap (defensif)
+    //
+    // Önceki kod sadece listUsers({perPage:1000}) kullanıyordu — platform
+    // 1000+ kullanıcıya çıktığında 2.+ sayfadaki kullanıcılar SESSİZCE
+    // bulunamıyor, yanlışlıkla orphan olarak işaretleniyordu (veya eski
+    // kodda hiç kaydedilmiyordu).
+    // ════════════════════════════════════════════════════════════════════
+
+    type AuthUser = { id: string; email?: string | null };
+    let matchedUser: AuthUser | null = null;
+
+    // 1) profiles tablosundan email ile ara
+    try {
+      const { data: profileMatch } = await admin
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (profileMatch?.id) {
+        // 2) auth.users'dan doğrula (profiles.email bazen out-of-sync olabilir)
+        const { data: authData } = await admin.auth.admin.getUserById(profileMatch.id);
+        if (authData?.user?.email?.toLowerCase() === email) {
+          matchedUser = { id: authData.user.id, email: authData.user.email };
+        }
+      }
+    } catch (e) {
+      console.warn('[password-reset-request] profiles lookup failed:', e);
+    }
+
+    // 3) Fallback: profiles bulamadıysa veya senkron değilse paginated listUsers
+    if (!matchedUser) {
+      const PER_PAGE = 200;
+      const MAX_PAGES = 50; // 10,000 user safety cap
+      for (let page = 1; page <= MAX_PAGES; page++) {
+        const { data, error } = await admin.auth.admin.listUsers({ page, perPage: PER_PAGE });
+        if (error || !data?.users?.length) break;
+
+        const found = data.users.find((u) => u.email?.toLowerCase() === email);
+        if (found) {
+          matchedUser = { id: found.id, email: found.email };
+          break;
+        }
+        if (data.users.length < PER_PAGE) break; // son sayfa
+      }
+    }
 
     // ÖNEMLİ: Eşleşen kullanıcı olmasa bile talebi yine de kaydet.
     //
