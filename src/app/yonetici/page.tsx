@@ -189,6 +189,45 @@ export default function YoneticiPage() {
   const [passwordResult, setPasswordResult] = useState<PasswordResetResult | null>(null);
   const [passwordCopied, setPasswordCopied] = useState(false);
   const [messageCopied, setMessageCopied] = useState(false);
+
+  // ═══ Duplicate Scanner state ═══
+  type DriftRow = {
+    user_id: string;
+    email: string;
+    full_name: string | null;
+    profiles_role: string | null;
+    auth_role: string | null;
+    created_at: string;
+  };
+  type DupeAuthGroup = {
+    email: string;
+    users: Array<{ id: string; full_name: string | null; role: string | null; created_at: string }>;
+  };
+  type DupeProfileGroup = {
+    email: string;
+    profiles: Array<{ id: string; full_name: string | null; role: string | null; has_auth_user: boolean; created_at: string }>;
+  };
+  type OrphanProfile = {
+    id: string; email: string | null; role: string | null;
+    full_name: string | null; created_at: string | null;
+  };
+  type DuplicateScan = {
+    scanned: { total_auth_users: number; total_profiles: number };
+    anomalies: {
+      role_drift: DriftRow[];
+      duplicate_auth: DupeAuthGroup[];
+      duplicate_profiles: DupeProfileGroup[];
+      orphan_profiles: OrphanProfile[];
+    };
+    summary: {
+      role_drift_count: number;
+      duplicate_auth_count: number;
+      duplicate_profiles_count: number;
+      orphan_profiles_count: number;
+    };
+  };
+  const [duplicateScan, setDuplicateScan] = useState<DuplicateScan | null>(null);
+  const [scanLoading, setScanLoading] = useState(false);
   const [passwordRequests, setPasswordRequests] = useState<PasswordRequest[]>([]);
   const [searchPR, setSearchPR] = useState('');
   const [filterPRStatus, setFilterPRStatus] = useState<'pending' | 'resolved' | 'cancelled'>('pending');
@@ -728,6 +767,83 @@ export default function YoneticiPage() {
     setLoading(false);
   };
 
+  // ═══ Duplicate Scanner — veri sağlığı tanı + hedefli düzeltme ═══
+  const runDuplicateScan = async () => {
+    setScanLoading(true);
+    setError('');
+    try {
+      const data = await apiCall(storedPw(), 'scan-duplicates') as DuplicateScan;
+      setDuplicateScan(data);
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setScanLoading(false);
+  };
+
+  const fixRoleDrift = async (userId: string, source: 'auth' | 'profiles', email: string, fromRole: string, toRole: string) => {
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Rol uyumsuzluğunu düzelt?',
+      description: `${email}\n\nCanonical kaynak: ${source === 'auth' ? 'auth.user_metadata' : 'profiles tablosu'}\nİşlem: ${source === 'auth' ? 'profiles' : 'auth'} tarafındaki rol "${fromRole}" → "${toRole}" olarak güncellenecek.\n\nBu işlem GERİ ALINAMAZ. Devam edilsin mi?`,
+      confirmLabel: 'Evet, Düzelt',
+    });
+    if (!ok) return;
+    setScanLoading(true);
+    setError('');
+    try {
+      await apiCall(storedPw(), 'fix-role-drift', { userId, source });
+      setSuccessMsg(`Rol düzeltildi (${email}).`);
+      setTimeout(() => setSuccessMsg(''), 3000);
+      // Yeniden tara
+      await runDuplicateScan();
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setScanLoading(false);
+  };
+
+  const deleteOrphanProfileRow = async (profileId: string, email: string | null) => {
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Orphan profile satırını sil?',
+      description: `${email || '(e-posta yok)'} ID: ${profileId}\n\nBu profile satırının auth.users karşılığı yok (kullanıcı sistemde gerçekten yok). profiles tablosundan silinecek. GERİ ALINAMAZ. Devam edilsin mi?`,
+      confirmLabel: 'Evet, Sil',
+    });
+    if (!ok) return;
+    setScanLoading(true);
+    setError('');
+    try {
+      await apiCall(storedPw(), 'delete-orphan-profile', { profileId });
+      setSuccessMsg('Orphan profile silindi.');
+      setTimeout(() => setSuccessMsg(''), 3000);
+      await runDuplicateScan();
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setScanLoading(false);
+  };
+
+  const deleteDuplicateUser = async (userId: string, email: string, full_name: string | null) => {
+    const ok = await confirm({
+      variant: 'danger',
+      title: 'Kullanıcıyı tamamen sil?',
+      description: `${full_name || email} (${userId})\n\nBu kullanıcının auth kaydı + profili + tüm bağlı verisi (testler, raporlar, atamalar) KALICI olarak silinecek. GERİ ALINAMAZ.\n\nDevam edilsin mi?`,
+      confirmLabel: 'Evet, KALICI SİL',
+    });
+    if (!ok) return;
+    setScanLoading(true);
+    setError('');
+    try {
+      await apiCall(storedPw(), 'delete-user', { userId });
+      setSuccessMsg(`${full_name || email} silindi.`);
+      setTimeout(() => setSuccessMsg(''), 3000);
+      await runDuplicateScan();
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    }
+    setScanLoading(false);
+  };
+
   // Tek tıkla rapor görüntüleme: önce student-reports'tan rapor objesini çek
   const openReportDirect = async (studentId: string, reportId: string, kind: 'single' | 'integrated') => {
     setLoading(true);
@@ -1228,6 +1344,24 @@ export default function YoneticiPage() {
               <button onClick={() => { setView('password-requests'); loadPasswordRequests(storedPw(), 'pending'); setFilterPRStatus('pending'); }}
                 className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all ${view === 'password-requests' ? 'bg-orange-100 text-orange-700 ring-1 ring-orange-300' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-300'}`}>
                 Şifre Talepleri
+              </button>
+            </div>
+          </div>
+
+          {/* Veri Sağlığı — duplicate / role drift tarayıcı */}
+          <div>
+            <div className="text-[10px] font-bold text-rose-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <AlertCircle className="w-3 h-3" /> Veri Sağlığı
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button onClick={() => { setView('duplicate-scanner'); }}
+                className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${view === 'duplicate-scanner' ? 'bg-rose-100 text-rose-700 ring-1 ring-rose-300' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-300'}`}>
+                Duplicate Tarayıcı
+                {duplicateScan && (duplicateScan.summary.role_drift_count + duplicateScan.summary.duplicate_auth_count + duplicateScan.summary.duplicate_profiles_count + duplicateScan.summary.orphan_profiles_count) > 0 && (
+                  <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+                    {duplicateScan.summary.role_drift_count + duplicateScan.summary.duplicate_auth_count + duplicateScan.summary.duplicate_profiles_count + duplicateScan.summary.orphan_profiles_count}
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -2035,6 +2169,253 @@ export default function YoneticiPage() {
             </div>
           );
         })()}
+
+        {/* ═══════════════════════════════════════════════════════════ */}
+        {/* ═══ VIEW: Duplicate Scanner — Veri Sağlığı Tanı + Düzelt  ═══ */}
+        {/* ═══════════════════════════════════════════════════════════ */}
+        {view === 'duplicate-scanner' && (
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div>
+                <h2 className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100">Duplicate Tarayıcı</h2>
+                <p className="text-[12px] text-gray-500 dark:text-slate-400 mt-0.5">
+                  Veri sağlığı tanısı: rol uyumsuzluğu, aynı e-posta birden çok kayıtta, orphan profiles
+                </p>
+              </div>
+              <button
+                onClick={runDuplicateScan}
+                disabled={scanLoading}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white text-sm font-bold hover:from-rose-600 hover:to-pink-700 transition-all disabled:opacity-60 flex items-center gap-2"
+              >
+                {scanLoading ? (
+                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Taranıyor...</>
+                ) : (
+                  <><Search className="w-4 h-4" /> {duplicateScan ? 'Yeniden Tara' : 'Taramayı Başlat'}</>
+                )}
+              </button>
+            </div>
+
+            {/* Bilgi kutusu */}
+            <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-[12px] text-rose-800">
+              <strong>READ-ONLY tarama.</strong> İlk tıkta hiçbir veri değişmez, sadece anomaliler listelenir.
+              Düzeltmeler her satırda tek tek, her biri için onay ister. Çoğunlukla &quot;Role Drift&quot; çıkar
+              (profiles.role ile auth user_metadata.role uyumsuz) — bu drift, kullanıcının iki ayrı role
+              ile farklı panellere erişebilmesine neden olabilir.
+            </div>
+
+            {!duplicateScan && !scanLoading && (
+              <div className="text-center py-20 text-gray-400 dark:text-slate-500">
+                <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>Tarama henüz çalıştırılmadı. Yukarıdan başlat.</p>
+              </div>
+            )}
+
+            {scanLoading && !duplicateScan && (
+              <div className="text-center py-20 text-gray-400 dark:text-slate-500">Veri sağlığı taranıyor...</div>
+            )}
+
+            {duplicateScan && (
+              <>
+                {/* Özet */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5">
+                  <div className="bg-white/70 dark:bg-slate-800/50 rounded-xl border border-gray-200 dark:border-slate-700 p-3">
+                    <p className="text-[10px] text-gray-500 uppercase font-bold">Toplam Auth User</p>
+                    <p className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100">{duplicateScan.scanned.total_auth_users}</p>
+                  </div>
+                  <div className="bg-white/70 dark:bg-slate-800/50 rounded-xl border border-gray-200 dark:border-slate-700 p-3">
+                    <p className="text-[10px] text-gray-500 uppercase font-bold">Toplam Profiles</p>
+                    <p className="text-xl font-extrabold text-[#0f2847] dark:text-slate-100">{duplicateScan.scanned.total_profiles}</p>
+                  </div>
+                  <div className={`rounded-xl border p-3 ${duplicateScan.summary.role_drift_count > 0 ? 'bg-amber-50 border-amber-300' : 'bg-emerald-50 border-emerald-200'}`}>
+                    <p className="text-[10px] text-gray-600 uppercase font-bold">Role Drift</p>
+                    <p className={`text-xl font-extrabold ${duplicateScan.summary.role_drift_count > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>{duplicateScan.summary.role_drift_count}</p>
+                  </div>
+                  <div className={`rounded-xl border p-3 ${(duplicateScan.summary.duplicate_auth_count + duplicateScan.summary.duplicate_profiles_count + duplicateScan.summary.orphan_profiles_count) > 0 ? 'bg-rose-50 border-rose-300' : 'bg-emerald-50 border-emerald-200'}`}>
+                    <p className="text-[10px] text-gray-600 uppercase font-bold">Diğer Anomali</p>
+                    <p className={`text-xl font-extrabold ${(duplicateScan.summary.duplicate_auth_count + duplicateScan.summary.duplicate_profiles_count + duplicateScan.summary.orphan_profiles_count) > 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
+                      {duplicateScan.summary.duplicate_auth_count + duplicateScan.summary.duplicate_profiles_count + duplicateScan.summary.orphan_profiles_count}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Hepsi temizse */}
+                {duplicateScan.summary.role_drift_count === 0 &&
+                 duplicateScan.summary.duplicate_auth_count === 0 &&
+                 duplicateScan.summary.duplicate_profiles_count === 0 &&
+                 duplicateScan.summary.orphan_profiles_count === 0 && (
+                  <div className="text-center py-12 bg-emerald-50 border-2 border-emerald-200 rounded-2xl">
+                    <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-3" />
+                    <p className="text-lg font-extrabold text-emerald-700">Veri sağlığı temiz</p>
+                    <p className="text-sm text-emerald-600 mt-1">Hiçbir anomali tespit edilmedi.</p>
+                  </div>
+                )}
+
+                {/* 1. ROLE DRIFT */}
+                {duplicateScan.anomalies.role_drift.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-[14px] font-extrabold text-amber-700 mb-2 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" /> Role Drift ({duplicateScan.anomalies.role_drift.length})
+                    </h3>
+                    <p className="text-[11.5px] text-gray-600 dark:text-slate-400 mb-3">
+                      Bu kullanıcıların profiles.role ile auth.user_metadata.role değerleri uyumsuz.
+                      Hangi tarafın doğru olduğunu seç → diğer taraf otomatik o değere senkronlanır.
+                    </p>
+                    <div className="space-y-2">
+                      {duplicateScan.anomalies.role_drift.map(d => (
+                        <div key={d.user_id} className="bg-white/70 dark:bg-slate-800/50 rounded-xl border border-amber-200 p-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm text-[#0f2847] dark:text-slate-100">{d.full_name || '—'}</p>
+                              <p className="text-[12px] text-gray-600 dark:text-slate-300 truncate">{d.email}</p>
+                              <div className="flex items-center gap-2 mt-1.5 text-[11px]">
+                                <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-bold">profiles: {d.profiles_role}</span>
+                                <span className="text-gray-400">↔</span>
+                                <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 font-bold">auth: {d.auth_role}</span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+                              <button onClick={() => fixRoleDrift(d.user_id, 'profiles', d.email, d.auth_role || '?', d.profiles_role || '?')}
+                                disabled={scanLoading}
+                                className="px-3 py-1.5 rounded-lg bg-blue-500 text-white text-[11.5px] font-bold hover:bg-blue-600 disabled:opacity-60 whitespace-nowrap">
+                                profiles.role doğru
+                              </button>
+                              <button onClick={() => fixRoleDrift(d.user_id, 'auth', d.email, d.profiles_role || '?', d.auth_role || '?')}
+                                disabled={scanLoading}
+                                className="px-3 py-1.5 rounded-lg bg-purple-500 text-white text-[11.5px] font-bold hover:bg-purple-600 disabled:opacity-60 whitespace-nowrap">
+                                auth.role doğru
+                              </button>
+                              <button onClick={() => deleteDuplicateUser(d.user_id, d.email, d.full_name)}
+                                disabled={scanLoading}
+                                className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-[11.5px] font-bold hover:bg-red-600 disabled:opacity-60 whitespace-nowrap">
+                                Sil
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. DUPLICATE AUTH */}
+                {duplicateScan.anomalies.duplicate_auth.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-[14px] font-extrabold text-rose-700 mb-2 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" /> Duplicate Auth ({duplicateScan.anomalies.duplicate_auth.length})
+                      <span className="text-[10px] font-normal text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full">CİDDİ</span>
+                    </h3>
+                    <p className="text-[11.5px] text-gray-600 dark:text-slate-400 mb-3">
+                      Aynı e-posta birden fazla auth.users kaydında. Supabase UNIQUE constraint genelde
+                      engellediği için bu çok nadir görülür — eğer varsa <strong>fiziksel duplicate</strong>.
+                      Hangi kullanıcının silineceğini dikkatlice seç (verisi olanı tutmak isteyebilirsin).
+                    </p>
+                    <div className="space-y-3">
+                      {duplicateScan.anomalies.duplicate_auth.map((g, i) => (
+                        <div key={`da-${i}-${g.email}`} className="bg-white/70 dark:bg-slate-800/50 rounded-xl border-2 border-rose-300 p-3">
+                          <p className="font-bold text-sm text-rose-700 mb-2">📧 {g.email} — {g.users.length} kayıt</p>
+                          <div className="space-y-2">
+                            {g.users.map(u => (
+                              <div key={u.id} className="flex items-center gap-2 bg-rose-50 rounded-lg p-2">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[12px] font-bold text-[#0f2847] truncate">{u.full_name || '(isim yok)'}</p>
+                                  <p className="text-[10.5px] text-gray-500">{u.role || '(rol yok)'} · {new Date(u.created_at).toLocaleDateString('tr-TR')}</p>
+                                  <p className="text-[9.5px] text-gray-400 font-mono">{u.id}</p>
+                                </div>
+                                <button onClick={() => deleteDuplicateUser(u.id, g.email, u.full_name)}
+                                  disabled={scanLoading}
+                                  className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-[11px] font-bold hover:bg-red-600 disabled:opacity-60 whitespace-nowrap">
+                                  Bu Hesabı Sil
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. DUPLICATE PROFILES */}
+                {duplicateScan.anomalies.duplicate_profiles.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-[14px] font-extrabold text-orange-700 mb-2 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" /> Duplicate Profiles ({duplicateScan.anomalies.duplicate_profiles.length})
+                    </h3>
+                    <p className="text-[11.5px] text-gray-600 dark:text-slate-400 mb-3">
+                      Aynı e-posta birden çok profiles satırında. Eğer auth tarafında tek user var ama
+                      profiles'ta çoklu kayıt varsa (has_auth_user=false olanlar) → bunlar orphan, silinebilir.
+                    </p>
+                    <div className="space-y-3">
+                      {duplicateScan.anomalies.duplicate_profiles.map((g, i) => (
+                        <div key={`dp-${i}-${g.email}`} className="bg-white/70 dark:bg-slate-800/50 rounded-xl border-2 border-orange-300 p-3">
+                          <p className="font-bold text-sm text-orange-700 mb-2">📧 {g.email} — {g.profiles.length} profile satırı</p>
+                          <div className="space-y-2">
+                            {g.profiles.map(p => (
+                              <div key={p.id} className="flex items-center gap-2 bg-orange-50 rounded-lg p-2">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[12px] font-bold text-[#0f2847] truncate">{p.full_name || '(isim yok)'}</p>
+                                  <p className="text-[10.5px] text-gray-500">
+                                    {p.role || '(rol yok)'} · {p.has_auth_user ? '✓ auth var' : '✗ auth YOK (orphan)'} · {new Date(p.created_at).toLocaleDateString('tr-TR')}
+                                  </p>
+                                  <p className="text-[9.5px] text-gray-400 font-mono">{p.id}</p>
+                                </div>
+                                {!p.has_auth_user && (
+                                  <button onClick={() => deleteOrphanProfileRow(p.id, g.email)}
+                                    disabled={scanLoading}
+                                    className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-[11px] font-bold hover:bg-red-600 disabled:opacity-60 whitespace-nowrap">
+                                    Orphan&apos;ı Sil
+                                  </button>
+                                )}
+                                {p.has_auth_user && (
+                                  <button onClick={() => deleteDuplicateUser(p.id, g.email, p.full_name)}
+                                    disabled={scanLoading}
+                                    className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-[11px] font-bold hover:bg-red-700 disabled:opacity-60 whitespace-nowrap">
+                                    Kullanıcıyı Sil
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. ORPHAN PROFILES */}
+                {duplicateScan.anomalies.orphan_profiles.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-[14px] font-extrabold text-gray-700 mb-2 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" /> Orphan Profiles ({duplicateScan.anomalies.orphan_profiles.length})
+                    </h3>
+                    <p className="text-[11.5px] text-gray-600 dark:text-slate-400 mb-3">
+                      Profiles tablosunda satır var ama auth.users'ta karşılığı yok. Genelde silinmiş bir
+                      kullanıcıdan kalan artık veri. Güvenle silinebilir.
+                    </p>
+                    <div className="space-y-2">
+                      {duplicateScan.anomalies.orphan_profiles.map(o => (
+                        <div key={o.id} className="flex items-center gap-2 bg-gray-50 dark:bg-slate-800/50 rounded-lg p-2.5 border border-gray-200">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[12px] font-bold text-[#0f2847] truncate">{o.full_name || '(isim yok)'}</p>
+                            <p className="text-[10.5px] text-gray-500">
+                              {o.email || '(e-posta yok)'} · {o.role || '(rol yok)'} · {o.created_at ? new Date(o.created_at).toLocaleDateString('tr-TR') : '—'}
+                            </p>
+                            <p className="text-[9.5px] text-gray-400 font-mono">{o.id}</p>
+                          </div>
+                          <button onClick={() => deleteOrphanProfileRow(o.id, o.email)}
+                            disabled={scanLoading}
+                            className="px-3 py-1.5 rounded-lg bg-gray-500 text-white text-[11px] font-bold hover:bg-gray-600 disabled:opacity-60 whitespace-nowrap">
+                            Sil
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
 
         {/* ═══ VIEW: Teachers List ═══ */}
         {view === 'teachers' && (

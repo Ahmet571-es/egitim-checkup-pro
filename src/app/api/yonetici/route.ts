@@ -905,6 +905,268 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // ═══ DUPLICATE SCANNER — Veri sağlığı tanı aracı (read-only)      ═══
+    // ═══════════════════════════════════════════════════════════════════
+    //
+    // 3 tip anomali tespit eder:
+    //
+    //  1. ROLE DRIFT: profiles.role !== auth.user_metadata.role.
+    //     En yaygın bug — register'da bir role, sonra biri değiştirilmiş.
+    //     Sonuç: kullanıcı iki ayrı panelde görünür/erişim sahibi olabilir.
+    //
+    //  2. DUPLICATE AUTH: aynı e-posta birden fazla auth.users kaydında.
+    //     Supabase UNIQUE constraint genelde engeller — varsa ciddi bug.
+    //
+    //  3. DUPLICATE PROFILES: aynı e-posta birden çok profiles satırında
+    //     (auth'ta tek ama profiles'ta çoklu). Inconsistency.
+    //
+    // Read-only — sadece raporlar, hiçbir şey değiştirmez. Düzeltme için
+    // fix-role-drift / delete-orphan-profile / delete-user kullanılır.
+    if (action === 'scan-duplicates') {
+      // Profiles'ı çek
+      const { data: profiles, error: pErr } = await supabase
+        .from('profiles')
+        .select('id, email, role, full_name, created_at');
+      if (pErr) return NextResponse.json({ error: pErr.message }, { status: 500 });
+
+      // Auth users'ı paginated çek (10K user safety)
+      const PER_PAGE = 500;
+      const MAX_PAGES = 20;
+      type AuthLite = { id: string; email: string | null; meta_role: string | null; created_at: string };
+      const authUsers: AuthLite[] = [];
+      for (let page = 1; page <= MAX_PAGES; page++) {
+        const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: PER_PAGE });
+        if (error || !data?.users?.length) break;
+        for (const u of data.users) {
+          authUsers.push({
+            id: u.id,
+            email: u.email ?? null,
+            meta_role: (u.user_metadata?.role as string | undefined) ?? null,
+            created_at: u.created_at,
+          });
+        }
+        if (data.users.length < PER_PAGE) break;
+      }
+
+      const profilesById = new Map((profiles ?? []).map(p => [p.id, p]));
+      const authById = new Map(authUsers.map(u => [u.id, u]));
+
+      // ── 1. ROLE DRIFT ──
+      type DriftRow = {
+        user_id: string;
+        email: string;
+        full_name: string | null;
+        profiles_role: string | null;
+        auth_role: string | null;
+        created_at: string;
+      };
+      const driftList: DriftRow[] = [];
+      for (const u of authUsers) {
+        const p = profilesById.get(u.id);
+        if (!p) continue; // profile yok — başka tip anomali
+        const pRole = (p.role as string | null) ?? null;
+        const aRole = u.meta_role ?? null;
+        // Her ikisi de set ise ve farklıysa drift
+        if (pRole && aRole && pRole !== aRole) {
+          driftList.push({
+            user_id: u.id,
+            email: u.email ?? p.email ?? '—',
+            full_name: p.full_name as string | null,
+            profiles_role: pRole,
+            auth_role: aRole,
+            created_at: u.created_at,
+          });
+        }
+      }
+
+      // ── 2. DUPLICATE AUTH (aynı email birden çok auth kaydında) ──
+      type DupeAuthGroup = {
+        email: string;
+        users: Array<{
+          id: string;
+          full_name: string | null;
+          role: string | null;
+          created_at: string;
+        }>;
+      };
+      const emailToAuthIds = new Map<string, AuthLite[]>();
+      for (const u of authUsers) {
+        if (!u.email) continue;
+        const key = u.email.toLowerCase();
+        if (!emailToAuthIds.has(key)) emailToAuthIds.set(key, []);
+        emailToAuthIds.get(key)!.push(u);
+      }
+      const dupeAuth: DupeAuthGroup[] = [];
+      for (const [email, list] of emailToAuthIds.entries()) {
+        if (list.length > 1) {
+          dupeAuth.push({
+            email,
+            users: list.map(u => ({
+              id: u.id,
+              full_name: (profilesById.get(u.id)?.full_name as string) ?? null,
+              role: (profilesById.get(u.id)?.role as string) ?? u.meta_role,
+              created_at: u.created_at,
+            })),
+          });
+        }
+      }
+
+      // ── 3. DUPLICATE PROFILES (aynı email birden çok profile satırında) ──
+      type DupeProfileGroup = {
+        email: string;
+        profiles: Array<{
+          id: string;
+          full_name: string | null;
+          role: string | null;
+          has_auth_user: boolean;
+          created_at: string;
+        }>;
+      };
+      const emailToProfileIds = new Map<string, typeof profiles>();
+      for (const p of profiles ?? []) {
+        if (!p.email) continue;
+        const key = String(p.email).toLowerCase();
+        if (!emailToProfileIds.has(key)) emailToProfileIds.set(key, [] as never);
+        (emailToProfileIds.get(key) as never[]).push(p as never);
+      }
+      const dupeProfiles: DupeProfileGroup[] = [];
+      for (const [email, list] of emailToProfileIds.entries()) {
+        if (list && list.length > 1) {
+          dupeProfiles.push({
+            email,
+            profiles: list.map((p) => ({
+              id: p.id as string,
+              full_name: (p.full_name as string) ?? null,
+              role: (p.role as string) ?? null,
+              has_auth_user: authById.has(p.id as string),
+              created_at: (p.created_at as string) ?? '',
+            })),
+          });
+        }
+      }
+
+      // ── 4. ORPHAN PROFILES (profile var ama auth'ta yok) ──
+      type OrphanProfile = {
+        id: string;
+        email: string | null;
+        role: string | null;
+        full_name: string | null;
+        created_at: string | null;
+      };
+      const orphanProfiles: OrphanProfile[] = [];
+      for (const p of profiles ?? []) {
+        if (!authById.has(p.id as string)) {
+          orphanProfiles.push({
+            id: p.id as string,
+            email: (p.email as string) ?? null,
+            role: (p.role as string) ?? null,
+            full_name: (p.full_name as string) ?? null,
+            created_at: (p.created_at as string) ?? null,
+          });
+        }
+      }
+
+      return NextResponse.json({
+        scanned: {
+          total_auth_users: authUsers.length,
+          total_profiles: (profiles ?? []).length,
+        },
+        anomalies: {
+          role_drift: driftList,
+          duplicate_auth: dupeAuth,
+          duplicate_profiles: dupeProfiles,
+          orphan_profiles: orphanProfiles,
+        },
+        summary: {
+          role_drift_count: driftList.length,
+          duplicate_auth_count: dupeAuth.length,
+          duplicate_profiles_count: dupeProfiles.length,
+          orphan_profiles_count: orphanProfiles.length,
+        },
+      });
+    }
+
+    // ═══ ROLE DRIFT FIX — auth tarafını veya profiles tarafını canonical kabul et ═══
+    if (action === 'fix-role-drift') {
+      const { userId, source } = body as { userId?: string; source?: 'auth' | 'profiles' };
+      if (!userId || !source || !['auth', 'profiles'].includes(source)) {
+        return NextResponse.json(
+          { error: 'userId ve source (auth|profiles) zorunlu' },
+          { status: 400 },
+        );
+      }
+
+      // Mevcut durumu çek
+      const { data: { user } } = await supabase.auth.admin.getUserById(userId);
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (!user) return NextResponse.json({ error: 'Auth kullanıcı bulunamadı' }, { status: 404 });
+      if (!profile) return NextResponse.json({ error: 'Profile bulunamadı' }, { status: 404 });
+
+      const authRole = (user.user_metadata?.role as string | undefined) ?? null;
+      const profileRole = (profile.role as string | null) ?? null;
+
+      if (source === 'auth') {
+        // auth.user_metadata.role'ü canonical kabul et → profiles.role'ü güncelle
+        if (!authRole) {
+          return NextResponse.json(
+            { error: 'auth tarafında role yok, profiles canonical seçilmeli' },
+            { status: 400 },
+          );
+        }
+        const { error: updErr } = await supabase
+          .from('profiles')
+          .update({ role: authRole })
+          .eq('id', userId);
+        if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 });
+        return NextResponse.json({
+          success: true,
+          changed: { profiles_role: { from: profileRole, to: authRole } },
+        });
+      } else {
+        // profiles.role'ü canonical kabul et → auth.user_metadata.role'ü güncelle
+        if (!profileRole) {
+          return NextResponse.json(
+            { error: 'profiles tarafında role yok, auth canonical seçilmeli' },
+            { status: 400 },
+          );
+        }
+        // GoTrue MERGE semantiği: sadece role key'i gönderiyoruz, diğer metadata korunur
+        const { error: updErr } = await supabase.auth.admin.updateUserById(userId, {
+          user_metadata: { role: profileRole },
+        });
+        if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 });
+        return NextResponse.json({
+          success: true,
+          changed: { auth_role: { from: authRole, to: profileRole } },
+        });
+      }
+    }
+
+    // ═══ DELETE ORPHAN PROFILE — auth'ta olmayan profile satırını sil ═══
+    if (action === 'delete-orphan-profile') {
+      const { profileId } = body as { profileId?: string };
+      if (!profileId) return NextResponse.json({ error: 'profileId gerekli' }, { status: 400 });
+
+      // Defansif: gerçekten orphan mı kontrol et
+      const { data: authUser } = await supabase.auth.admin.getUserById(profileId);
+      if (authUser?.user) {
+        return NextResponse.json(
+          { error: 'Bu profile auth tarafında karşılığı var — orphan değil. Önce kullanıcıyı silin.' },
+          { status: 400 },
+        );
+      }
+
+      const { error: delErr } = await supabase.from('profiles').delete().eq('id', profileId);
+      if (delErr) return NextResponse.json({ error: delErr.message }, { status: 500 });
+      return NextResponse.json({ success: true });
+    }
+
     return NextResponse.json({ error: 'Geçersiz action' }, { status: 400 });
   } catch (err) {
     console.error('[yonetici API]', err);
