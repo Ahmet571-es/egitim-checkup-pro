@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { findExistingUserByEmail, buildDuplicateEmailError, normalizeEmail } from '@/lib/auth/find-existing-user';
 
 /**
  * POST /api/auth/teacher-register
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
     };
 
     const fullName = (body.full_name ?? '').toString().trim();
-    const email = (body.email ?? '').toString().trim().toLowerCase();
+    const email = normalizeEmail((body.email ?? '').toString());
     const password = (body.password ?? '').toString();
     const branch = (body.branch ?? '').toString().trim();
     const phone = (body.phone ?? '').toString().trim();
@@ -67,6 +68,26 @@ export async function POST(request: Request) {
         );
       }
       schoolId = school.id;
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // PRE-CREATE DUPLICATE KONTROLÜ
+    //
+    // Eskiden sadece createUser'ın 'already registered' hatasını yakalıyorduk
+    // → generic 409 dönüyordu, kullanıcı hangi role'de kayıtlı olduğunu
+    // bilmiyordu. Aynı e-postanın iki farklı rolde kayıtlı olması ciddi bir
+    // bug (öğretmen-öğrenci karışıklığı). Şimdi createUser'dan ÖNCE manuel
+    // kontrol + role-aware net hata mesajı.
+    // ════════════════════════════════════════════════════════════════════
+    const existing = await findExistingUserByEmail(admin, email);
+    if (existing) {
+      return NextResponse.json(
+        {
+          error: buildDuplicateEmailError(existing, 'teacher'),
+          existing_role: existing.role,
+        },
+        { status: 409 },
+      );
     }
 
     // Email zaten kayıtlı mı? Supabase getUserByEmail yok — listUsers filter

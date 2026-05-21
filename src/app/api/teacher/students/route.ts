@@ -15,6 +15,7 @@ import { createClient } from '@/lib/supabase/server';
 import { calculateCorrelation, identifyPatterns } from '@/lib/services/correlation';
 import { calculateRiskScore } from '@/lib/services/riskScore';
 import { matchCareers } from '@/lib/services/careerMatch';
+import { findExistingUserByEmail, buildDuplicateEmailError } from '@/lib/auth/find-existing-user';
 
 const ALL_TESTS = [
   'enneagram', 'vark', 'holland', 'coklu_zeka', 'sinav_kaygisi',
@@ -725,13 +726,17 @@ export async function POST(req: NextRequest) {
         schoolName = school?.name || null;
       }
 
-      // Email zaten kayıtlı mı?
-      const { data: { users: existingUsers } } = await admin.auth.admin.listUsers({ perPage: 1000 });
-      const emailExists = (existingUsers || []).some(
-        (u) => u.email?.toLowerCase() === cleanEmail
-      );
-      if (emailExists) {
-        return NextResponse.json({ error: 'Bu e-posta zaten kayıtlı.' }, { status: 409 });
+      // PRE-CREATE DUPLICATE KONTROLÜ — role-aware (3 katmanlı lookup,
+      // 1000+ user'da pagination kaçırmaz, mevcut role bilgisini de döner)
+      const existing = await findExistingUserByEmail(admin, cleanEmail);
+      if (existing) {
+        return NextResponse.json(
+          {
+            error: buildDuplicateEmailError(existing, 'student'),
+            existing_role: existing.role,
+          },
+          { status: 409 },
+        );
       }
 
       // Auth user oluştur

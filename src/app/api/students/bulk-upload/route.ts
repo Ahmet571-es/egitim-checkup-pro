@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { findExistingUserByEmail, buildDuplicateEmailError, normalizeEmail } from '@/lib/auth/find-existing-user';
 
 export async function POST(request: Request) {
   try {
@@ -41,12 +42,25 @@ export async function POST(request: Request) {
 
       for (const student of students) {
         try {
-          const email = student.email?.trim();
+          const email = normalizeEmail(student.email ?? '');
           const fullName = student.full_name?.trim();
           const grade = student.grade?.toString() || '9';
 
           if (!email || !fullName) {
             results.push({ email: email || '?', success: false, error: 'Ad veya e-posta eksik' });
+            continue;
+          }
+
+          // PRE-CREATE DUPLICATE KONTROLÜ — bulk yüklemede aynı e-postanın
+          // farklı rolde kayıtlı olması özellikle yaygın (Excel'deki bir
+          // velinin/öğretmenin e-postası öğrenci listesine yapıştırılabilir)
+          const existing = await findExistingUserByEmail(adminClient, email);
+          if (existing) {
+            results.push({
+              email,
+              success: false,
+              error: buildDuplicateEmailError(existing, 'student'),
+            });
             continue;
           }
 

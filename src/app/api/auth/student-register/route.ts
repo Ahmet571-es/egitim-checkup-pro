@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { findExistingUserByEmail, buildDuplicateEmailError, normalizeEmail } from '@/lib/auth/find-existing-user';
 
 /**
  * POST /api/auth/student-register
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
     };
 
     const fullName = (body.full_name ?? '').toString().trim();
-    const email = (body.email ?? '').toString().trim().toLowerCase();
+    const email = normalizeEmail((body.email ?? '').toString());
     const password = (body.password ?? '').toString();
     const birthDate = (body.birth_date ?? '').toString();
     const age = typeof body.age === 'number' ? body.age : null;
@@ -50,6 +51,19 @@ export async function POST(request: Request) {
     }
 
     const admin = createAdminClient();
+
+    // PRE-CREATE DUPLICATE KONTROLÜ — aynı e-posta farklı rolde olamaz.
+    // (Detaylı açıklama teacher-register/route.ts içinde)
+    const existing = await findExistingUserByEmail(admin, email);
+    if (existing) {
+      return NextResponse.json(
+        {
+          error: buildDuplicateEmailError(existing, 'student'),
+          existing_role: existing.role,
+        },
+        { status: 409 },
+      );
+    }
 
     // Kullanıcı oluştur — is_approved: false
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
