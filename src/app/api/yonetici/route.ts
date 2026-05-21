@@ -73,10 +73,14 @@ export async function POST(req: NextRequest) {
 
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-      // Tüm kullanıcı metadata
+      // Tüm kullanıcı metadata + auth.users.email (login email, source of truth)
       const { data: { users: allUsers } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
       const metaMap = new Map<string, Record<string, unknown>>();
-      (allUsers || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
+      const authEmailMap = new Map<string, string>();
+      (allUsers || []).forEach((u) => {
+        metaMap.set(u.id, u.user_metadata || {});
+        if (u.email) authEmailMap.set(u.id, u.email);
+      });
 
       // Tüm öğrencileri öğretmen ID'sine göre grupla
       const { data: allStudents } = await supabase
@@ -113,6 +117,9 @@ export async function POST(req: NextRequest) {
 
           return {
             ...t,
+            // Login için kullanılan gerçek e-posta (auth.users.email)
+            // Bazı eski kayıtlarda profiles.email boş olabiliyor; auth her zaman dolu.
+            email: authEmailMap.get(t.id) || t.email || '',
             schoolName: teacherSchoolName,
             studentCount,
             reportCount,
@@ -137,12 +144,16 @@ export async function POST(req: NextRequest) {
 
       if (!teacher) return NextResponse.json({ error: 'Öğretmen bulunamadı' }, { status: 404 });
 
-      // Auth user_metadata'dan kayıt bilgilerini çek (branş, kurum, gerçek e-posta, telefon)
+      // Auth user_metadata + auth.users.email'i çek (login email = source of truth)
       let authMeta: Record<string, string> = {};
+      let authEmail = '';
       try {
         const { data: authUser } = await supabase.auth.admin.getUserById(teacherId);
         if (authUser?.user?.user_metadata) {
           authMeta = authUser.user.user_metadata as Record<string, string>;
+        }
+        if (authUser?.user?.email) {
+          authEmail = authUser.user.email;
         }
       } catch { /* ignore */ }
 
@@ -244,6 +255,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         teacher: {
           ...teacher,
+          // Login e-postası: auth.users.email otoritedir. profiles.email
+          // bazen senkronize değil; real_email user_metadata'sı ise hiçbir
+          // yerde set edilmiyor (legacy). Bu yüzden fallback zinciri:
+          // auth.users.email → profiles.email → real_email.
+          email: authEmail || teacher.email || authMeta.real_email || '',
           schoolName,
           branch: authMeta.branch || teacher.branch || '—',
           school_name: authMeta.school_name || '—',

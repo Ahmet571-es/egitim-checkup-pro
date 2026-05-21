@@ -2024,6 +2024,12 @@ export default function YoneticiPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="text-[15px] font-bold text-[#0f2847] dark:text-slate-100 truncate">{t.full_name}</h3>
+                          {t.email && (
+                            <div className="flex items-center gap-1 mt-0.5 text-[12.5px] text-gray-500 dark:text-slate-400 truncate">
+                              <Mail className="w-3 h-3 shrink-0" />
+                              <span className="truncate select-all">{t.email}</span>
+                            </div>
+                          )}
                           <div className="flex items-center gap-3 mt-1 text-[12px] text-gray-400 dark:text-slate-500">
                             <span className="flex items-center gap-1"><School className="w-3 h-3" />{t.schoolName}</span>
                             <span className="flex items-center gap-1"><Users className="w-3 h-3" />{t.studentCount} öğrenci</span>
@@ -2070,7 +2076,7 @@ export default function YoneticiPage() {
               <div className="grid sm:grid-cols-2 gap-x-8">
                 <InfoRow icon={Briefcase} label="Branş" value={String(selectedTeacher.full_info?.branch || '—')} />
                 <InfoRow icon={School} label="Çalıştığı Kurum" value={String(selectedTeacher.full_info?.school_name || selectedTeacher.schoolName || '—')} />
-                <InfoRow icon={Mail} label="E-posta" value={String(selectedTeacher.full_info?.real_email || '—')} />
+                <InfoRow icon={Mail} label="E-posta" value={String(selectedTeacher.full_info?.email || selectedTeacher.email || selectedTeacher.full_info?.real_email || '—')} />
                 <InfoRow icon={Phone} label="Telefon" value={String(selectedTeacher.full_info?.phone || selectedTeacher.phone || '—')} />
                 <InfoRow icon={Users} label="Öğrenci Sayısı" value={`${selectedTeacher.studentCount}`} />
                 <InfoRow icon={BarChart3} label="Yapılan Analiz Raporu" value={`${selectedTeacher.reportCount}`} />
