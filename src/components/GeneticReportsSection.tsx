@@ -297,7 +297,7 @@ export default function GeneticReportsSection({ studentId, studentName }: Props)
           <FileText className="w-10 h-10 text-gray-300 dark:text-slate-600 mx-auto mb-3" />
           <p className="text-sm text-gray-500 dark:text-slate-400">
             {canManage
-              ? 'Henüz genetik rapor yüklenmemiş. Rus ekipten gelen PDF\'i "Yükle" ile ekleyebilirsiniz.'
+              ? 'Henüz genetik rapor yüklenmemiş. Genetik rapor PDF\'ini "Yükle" butonu ile ekleyebilirsiniz.'
               : 'Bu öğrenci için henüz genetik rapor yüklenmemiş.'}
           </p>
         </div>

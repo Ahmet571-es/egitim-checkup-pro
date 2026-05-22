@@ -109,7 +109,7 @@ export default function SchoolGeneticReportsPage() {
               <span className="text-[10px] font-bold bg-white/25 px-2 py-0.5 rounded-full uppercase tracking-wider">KVKK m.6</span>
             </div>
             <p className="text-sm text-violet-100 leading-relaxed">
-              Rus ekipten gelen genetik rapor PDF&apos;lerini öğrencilere yükleyin. Veliler ve öğrenciler bu raporlara erişemez.
+              Genetik rapor PDF&apos;lerini öğrencilere yükleyin. Veliler ve öğrenciler bu raporlara erişemez.
             </p>
           </div>
         </div>
