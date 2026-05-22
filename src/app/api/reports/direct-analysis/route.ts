@@ -99,7 +99,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Test sonucu bulunamadı.' }, { status: 404 });
     }
 
-    // Yetki kontrolü: öğretmen / yönetici / admin / öğrencinin kendisi
+    // ════════════════════════════════════════════════════════════════════
+    // YETKİ KONTROLÜ — çok katmanlı
+    //
+    // Eski kod sadece callerProfile.school_id === tr.school_id kontrol
+    // ediyordu. Bu yüzden:
+    //   - Öğretmen veya öğrencinin school_id'si boşsa → her zaman 403
+    //   - Öğretmen kendi öğrencisini /api/teacher/students ile kabul
+    //     edilen 'assigned_teacher_id' bağıyla almışsa ama school_id
+    //     yoksa → yine 403
+    // Öğretmen "Direkt Analiz" butonuna basınca kendi atadığı
+    // öğrencisinin raporu için bile 'yetkin yok' alıyordu.
+    //
+    // YENİ katmanlı yaklaşım:
+    //   1. isSelf: öğrenci kendi raporu
+    //   2. isAdmin: admin / school_admin → herkese erişebilir
+    //   3. isAssignedTeacher: teacher + öğrenci.user_metadata.assigned_teacher_id
+    //      eşleşmesi (sistemin teacher-student bağ pattern'i;
+    //      /api/teacher/students ile aynı kontrol)
+    //   4. isSameSchool: aynı okul personeli (fallback, eski davranış)
+    // ════════════════════════════════════════════════════════════════════
+
+    // Çağıranın profili
     const { data: callerProfile } = await admin
       .from('profiles')
       .select('role, school_id')
@@ -110,15 +131,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Profil bulunamadı.' }, { status: 403 });
     }
 
-    const role = callerProfile.role;
+    // Öğrencinin atanmış öğretmen bilgisi (auth metadata'dan; profiles'ta kolon yok)
+    let assignedTeacherId: string | null = null;
+    try {
+      const { data: studentAuth } = await admin.auth.admin.getUserById(tr.student_id);
+      const meta = studentAuth?.user?.user_metadata as Record<string, unknown> | undefined;
+      assignedTeacherId = (meta?.assigned_teacher_id as string) ?? null;
+    } catch { /* ignore — fallback'lere düşer */ }
+
+    const role = callerProfile.role as string;
     const isSelf = user.id === tr.student_id;
-    const isSchoolStaff =
-      ['teacher', 'admin', 'yonetici'].includes(role) &&
-      callerProfile.school_id &&
-      tr.school_id &&
+    const isAdmin = ['admin', 'school_admin'].includes(role);
+    const isAssignedTeacher = role === 'teacher' && assignedTeacherId === user.id;
+    const isSameSchool =
+      ['teacher', 'school_admin', 'admin'].includes(role) &&
+      !!callerProfile.school_id &&
+      !!tr.school_id &&
       callerProfile.school_id === tr.school_id;
 
-    if (!isSelf && !isSchoolStaff) {
+    if (!isSelf && !isAdmin && !isAssignedTeacher && !isSameSchool) {
       return NextResponse.json({ error: 'Bu raporu görüntüleme yetkin yok.' }, { status: 403 });
     }
 
