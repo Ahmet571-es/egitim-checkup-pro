@@ -192,14 +192,14 @@ export default function SinavKaygisiTrialPage() {
             <div className="mt-6 flex items-center justify-between gap-3">
               <button onClick={() => setCurrentQ(c => Math.max(0, c - 1))} disabled={currentQ === 0}
                 className="px-5 py-3 rounded-xl bg-white/80 border border-white/80 font-bold text-sm text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 min-h-[48px]">
-                <ArrowLeft className="w-4 h-4" /> Geri
+                <ArrowLeft className="w-4 h-4" /> Önceki Soru
               </button>
               <button onClick={handleNext} disabled={!hasAnswered}
                 className={`flex-1 sm:flex-none sm:px-8 px-5 py-3 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2 min-h-[48px] transition-all
                   ${hasAnswered
                     ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30 hover:shadow-xl hover:-translate-y-0.5'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
-                {isLast ? 'Sonucu Gör' : 'İleri'} <ArrowRight className="w-4 h-4" />
+                {isLast ? 'Sonucu Gör' : 'Sonraki Soru'} <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>

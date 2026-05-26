@@ -122,7 +122,7 @@ export default function TestShell({
             className="touch-feedback flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-semibold text-sm hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
           >
             <ChevronLeft size={18} />
-            Önceki
+            Önceki Soru
           </button>
 
           {/* Page dots */}
@@ -161,7 +161,7 @@ export default function TestShell({
               }`}
               style={{ backgroundColor: canGoNext ? accentColor : 'rgba(255,255,255,0.1)', border: canGoNext ? 'none' : '1px solid rgba(255,255,255,0.2)' }}
             >
-              Sonraki
+              Sonraki Soru
               <ChevronRight size={18} />
             </button>
           )}

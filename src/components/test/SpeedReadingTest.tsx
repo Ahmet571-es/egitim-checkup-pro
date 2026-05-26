@@ -137,7 +137,7 @@ export default function SpeedReadingTest({
                 onClick={() => setCurrentQ(p => p - 1)}
                 className="flex-1 py-3 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/15 transition-all"
               >
-                ← Önceki
+                ← Önceki Soru
               </button>
             )}
             {currentQ < questions.length - 1 ? (
@@ -147,7 +147,7 @@ export default function SpeedReadingTest({
                 className="flex-1 py-3 rounded-xl text-white font-bold disabled:opacity-40 transition-all hover:opacity-90"
                 style={{ backgroundColor: answers[q.id] ? accentColor : 'rgba(255,255,255,0.1)' }}
               >
-                Sonraki →
+                Sonraki Soru →
               </button>
             ) : (
               <button

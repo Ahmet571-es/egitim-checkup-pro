@@ -238,7 +238,7 @@ function QuestionStage({
           disabled={currentQ === 0}
           className="px-5 py-3 rounded-xl bg-white/80 border border-white/80 font-bold text-sm text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 min-h-[48px]"
         >
-          <ArrowLeft className="w-4 h-4" /> Geri
+          <ArrowLeft className="w-4 h-4" /> Önceki Soru
         </button>
         <button
           type="button"
@@ -249,7 +249,7 @@ function QuestionStage({
               ? 'bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white shadow-lg shadow-fuchsia-500/30 hover:shadow-xl hover:-translate-y-0.5'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
         >
-          {isLast ? 'Sonucu Gör' : 'İleri'}
+          {isLast ? 'Sonucu Gör' : 'Sonraki Soru'}
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
