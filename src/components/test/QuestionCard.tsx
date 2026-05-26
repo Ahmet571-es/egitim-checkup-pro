@@ -76,21 +76,25 @@ export default function QuestionCard({
         </div>
       )}
 
-      {/* Görsel prompt — type='visual' iken soru metninden önce SVG göster */}
-      {questionType === 'visual' && promptSvg && (
-        <div
-          className="rounded-2xl overflow-hidden bg-white/95 border-2 border-white/30 shadow-2xl shadow-black/30 mb-2"
-          dangerouslySetInnerHTML={{ __html: promptSvg }}
-        />
-      )}
-
-      {/* Question */}
+      {/* Question — görselli sorularda da metin önce gelmeli (UX) */}
       <div>
         <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">
           Soru {questionNumber}{questionType === 'visual' ? ' · Görsel' : ''}
         </p>
         <p className="text-white font-medium text-base sm:text-lg leading-relaxed">{questionText}</p>
       </div>
+
+      {/* Görsel prompt — type='visual' iken soru metninden SONRA SVG göster.
+          SVG'ye viewport-tabanlı max-height verilerek ekran taşması engellenir;
+          [&>svg] descendant selector'ları ile orantı korunur (w-auto + max-h). */}
+      {questionType === 'visual' && promptSvg && (
+        <div
+          className="rounded-2xl overflow-hidden bg-white/95 border-2 border-white/30 shadow-2xl shadow-black/30 flex items-center justify-center p-2 sm:p-3 mx-auto w-full max-w-xl
+                     [&>svg]:block [&>svg]:w-auto [&>svg]:max-w-full
+                     [&>svg]:max-h-[32vh] sm:[&>svg]:max-h-[38vh] lg:[&>svg]:max-h-[42vh]"
+          dangerouslySetInnerHTML={{ __html: promptSvg }}
+        />
+      )}
 
       {/* Options */}
       {questionType === 'likert5' && (
