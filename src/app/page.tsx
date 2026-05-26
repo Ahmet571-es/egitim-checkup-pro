@@ -52,10 +52,10 @@ const TESTS = [
 ];
 
 // Şu anda ücretsiz trial (kayıtsız) sayfası hazır olan testler.
-// Çalışma Davranışı engine yazıldıktan sonra buraya eklenecek.
-// Diğer 6 test (Enneagram, Sınav Kaygısı, Meslek, Akademik, Dikkat, Hızlı Okuma)
+// Sınav Kaygısı ölçeği literatürde açık kaynak olduğu için trial pakete dahil edildi.
+// Diğer 5 test (Enneagram, Meslek, Akademik, Dikkat, Hızlı Okuma)
 // için kullanıcı kayıt olmak zorunda.
-const TRIAL_AVAILABLE = ['vark', 'beyin', 'coklu-zeka', 'calisma'];
+const TRIAL_AVAILABLE = ['vark', 'beyin', 'coklu-zeka', 'calisma', 'kaygi'];
 
 const STEPS = [
   { num: '01', title: 'Kişisel Bilgilerinizi Girin', desc: 'Ad, soyad, doğum tarihi ve sınıfınızı (veya mezun olduğunuzu) belirtin. Yaş otomatik hesaplanır.', gradient: 'from-emerald-500 to-teal-600', icon: UserCheck },
