@@ -26,12 +26,14 @@ const LIKERT5_LABELS = [
   { value: 5, label: 'Her Zaman', short: '5' },
 ];
 
+// NOT: `value` skoru (0..4) backend'de saklandığı için DEĞİŞMEZ.
+// `short` sadece UI rozeti — Mehmet'in isteği üzerine sayısal yerine A..E.
 const LIKERT4_LABELS = [
-  { value: 0, label: 'Bana hiç uygun değil', short: '0' },
-  { value: 1, label: 'Bana az uygun', short: '1' },
-  { value: 2, label: 'Bana kısmen uygun', short: '2' },
-  { value: 3, label: 'Bana çok uygun', short: '3' },
-  { value: 4, label: 'Bana tamamen uygun', short: '4' },
+  { value: 0, label: 'Bana hiç uygun değil', short: 'A' },
+  { value: 1, label: 'Bana az uygun', short: 'B' },
+  { value: 2, label: 'Bana kısmen uygun', short: 'C' },
+  { value: 3, label: 'Bana çok uygun', short: 'D' },
+  { value: 4, label: 'Bana tamamen uygun', short: 'E' },
 ];
 
 /** Madde 16: Interactive question card with hover lift, selection feedback, check icon slide-in */
