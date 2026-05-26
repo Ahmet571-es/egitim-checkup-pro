@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 /**
@@ -16,7 +17,11 @@ import { X } from 'lucide-react';
  * - "Atla" butonu sağ üst köşe (kullanıcı acelesi varsa)
  * - Video bittiğinde otomatik kapanır
  * - prefers-reduced-motion → hiç gösterilmez
- * - Mobil uyumlu (object-cover + center)
+ * - Tam ekran (sidebar dahil) — React Portal ile <body>'ye render edilir,
+ *   böylece üst panel/sidebar parent'larının stacking context'inden bağımsız
+ *   olarak tüm viewport'u kaplar.
+ * - object-cover ile siyah letterbox bantları engellenir (aspect oranı
+ *   uyumsuzluğunda video kenarları hafifçe kırpılır).
  *
  * Kullanım:
  * <IntroVideoOverlay
@@ -39,7 +44,13 @@ export default function IntroVideoOverlay({
 }: IntroVideoOverlayProps) {
   const [show, setShow] = useState(false);
   const [exiting, setExiting] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // SSR-safe portal: client mount'tan sonra createPortal'a izin ver
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -84,9 +95,9 @@ export default function IntroVideoOverlay({
     return () => window.removeEventListener('keydown', onKey);
   }, [show]);
 
-  if (!show) return null;
+  if (!show || !mounted) return null;
 
-  return (
+  const overlay = (
     <div
       className={`fixed inset-0 z-[9999] bg-black flex items-center justify-center transition-opacity duration-[400ms] ${
         exiting ? 'opacity-0' : 'opacity-100'
@@ -94,7 +105,7 @@ export default function IntroVideoOverlay({
       role="dialog"
       aria-label="Karşılama videosu"
     >
-      {/* Video — fullscreen, object-cover */}
+      {/* Video — fullscreen, object-cover (siyah letterbox engellenir) */}
       <video
         ref={videoRef}
         src={src}
@@ -103,7 +114,7 @@ export default function IntroVideoOverlay({
         muted
         playsInline
         onEnded={handleClose}
-        className="w-full h-full object-cover sm:object-contain"
+        className="w-full h-full object-cover"
       />
 
       {/* Atla butonu — sağ üst */}
@@ -137,4 +148,9 @@ export default function IntroVideoOverlay({
       `}</style>
     </div>
   );
+
+  // React Portal: overlay'i doğrudan <body>'ye render et.
+  // Bu sayede üst sidebar/panel layout'ların stacking context'inden bağımsız
+  // olarak gerçek viewport-fullscreen davranış elde edilir.
+  return createPortal(overlay, document.body);
 }
