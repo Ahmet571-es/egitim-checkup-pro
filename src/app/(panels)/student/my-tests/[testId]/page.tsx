@@ -493,9 +493,14 @@ export default function TestPage() {
           setResult({
             main: `${s.levelEmoji} ${s.overallLevel}`,
             desc: `Kaygı puanı: ${s.total}/${s.maxTotal} (%${s.totalPct})`,
-            scores: Object.entries(s.categories).map(([k, v]) => ({
-              label: k.replace(/_/g, ' '), value: v.toString(),
-            })),
+            scores: [
+              // Toplam kaygı yüzdesi en başta — gauge + advisory'nin tek kaynak (source of truth) olarak kullandığı değer.
+              // `buildSinavKaygisi` pickScore('toplam','kaygı','genel'...) ile bu entry'yi yakalar.
+              { label: 'Toplam Kaygı', value: `${s.totalPct}`, pct: s.totalPct },
+              ...Object.entries(s.categories).map(([k, v]) => ({
+                label: k.replace(/_/g, ' '), value: v.toString(),
+              })),
+            ],
             report: r,
           });
           break;

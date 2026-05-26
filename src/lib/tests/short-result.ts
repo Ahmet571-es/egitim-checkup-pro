@@ -173,16 +173,27 @@ function buildHolland(scores: Record<string, unknown>, main: string): ShortResul
 // SINAV KAYGISI — Gauge (0-100)
 // ─────────────────────────────────────────────────────────
 function buildSinavKaygisi(scores: Record<string, unknown>, main: string): ShortResult {
-  const puan = pickScore(scores, 'kaygı', 'kaygi', 'total', 'genel');
+  // Toplam kaygı yüzdesi — page.tsx tarafından 'Toplam Kaygı' label'ı ile injekte ediliyor.
+  // Eski davranışla uyumluluk için 'kaygı'/'total'/'genel' anahtarlarına da bakıyoruz.
+  const puan = pickScore(scores, 'toplam', 'kaygı', 'kaygi', 'total', 'genel');
+
+  // Advisory'yi PUAN üzerinden belirle — main string parsing'i emoji/whitespace
+  // varyasyonlarına duyarlıydı ve gauge ile çelişki üretebiliyordu. Tek kaynak (totalPct).
+  // Eşikler engine ile aynı: <15 çok düşük, 15-35 düşük, 35-55 orta, 55-75 yüksek, 75+ çok yüksek
   let advisory = '';
-  const m = main.toLowerCase();
-  if (m.includes('düşük') || m.includes('dusuk')) {
-    advisory = 'Sınav kaygın düşük seviyede — bu güzel bir durum. Şu anki rahat halini koruyabilmek için düzenli uyku ve sağlıklı beslenmen yeterli.';
-  } else if (m.includes('yüksek') || m.includes('yuksek')) {
+  if (puan >= 55) {
     advisory = 'Sınav kaygın yüksek seviyede — bu seninle ilgili bir kusur değil. Nefes egzersizleri, derin uyku ve sevdiğin biriyle konuşmak çok yardımcı olur. Rehber öğretmenle paylaşmaktan çekinme.';
+  } else if (puan >= 35) {
+    advisory = 'Sınav kaygın orta seviyede — herkesin bir miktar kaygısı vardır, bu normal. Sınavdan önce kısa nefes egzersizleri ve planlı çalışma seni rahatlatır.';
+  } else if (puan >= 15) {
+    advisory = 'Sınav kaygın hafif seviyede — sınavlara karşı sağlıklı bir tutum içindesin. Düzenli uyku ve düzenli çalışma bu sağlıklı dengeni korur.';
   } else {
-    advisory = 'Sınav kaygın orta seviyede — herkesin bir miktar kaygısı vardır, normal. Sınavdan önce kısa nefes egzersizleri ve planlı çalışma seni rahatlatır.';
+    advisory = 'Sınav kaygın çok düşük seviyede — sınavlara karşı son derece rahat bir tutumun var. Şu anki halini koruyabilmek için düzenli uyku ve sağlıklı beslenmen yeterli.';
   }
+
+  // Gözden geçirme: main string'i overallLevel ile geliyorsa rapor uyumlu olmalı
+  // (debug için: m parsing artık kullanılmıyor)
+  void main;
 
   return {
     main,
