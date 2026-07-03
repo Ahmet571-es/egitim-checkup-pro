@@ -6,6 +6,7 @@ import type { NavItem } from '@/types';
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/teacher/dashboard', icon: 'dashboard' },
   { label: 'Öğrencilerim', href: '/teacher/students', icon: 'students' },
+  { label: 'Testlerim', href: '/teacher/my-tests', icon: 'my-tests' },
   { label: 'AI Koç', href: '/teacher/coach', icon: 'coach' },
   { label: 'Profilim', href: '/teacher/profile', icon: 'profile' },
 ];
