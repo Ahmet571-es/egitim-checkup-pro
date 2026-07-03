@@ -15,6 +15,10 @@ import { createClient } from '@/lib/supabase/client';
 export interface TestSavePayload {
   takerId: string;
   testId: string;
+  /** Sonuç başlığı (ör. "Tip 5 — Araştırmacı"). */
+  mainResult: string;
+  /** Motorun ürettiği tam rapor metni (AI'sız). Bazı testlerde boş olabilir. */
+  report: string;
   scores: Record<string, unknown>;
   rawAnswers: Record<string | number, string | number>;
 }
@@ -365,6 +369,8 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
       const { error } = await saver({
         takerId: currentTakerId,
         testId,
+        mainResult: result.main,
+        report: result.report ?? '',
         scores: scoresObj,
         rawAnswers: answers,
       });

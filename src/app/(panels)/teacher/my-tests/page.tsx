@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Play, Clock, CheckCircle, BookOpen, ListChecks, Inbox, RotateCcw, Lock } from 'lucide-react';
+import { Play, Clock, CheckCircle, BookOpen, ListChecks, Inbox, RotateCcw, Lock, History } from 'lucide-react';
 import Link from 'next/link';
 import { ALL_TESTS } from '@/lib/tests/index';
 import type { RegisteredTest } from '@/lib/tests/types';
@@ -145,6 +145,21 @@ export default function TeacherMyTestsPage() {
         count={items.length}
         countLabel="test"
       />
+
+      {/* Sonuç geçmişine kısayol */}
+      <Link
+        href="/teacher/my-results"
+        className="group flex items-center gap-3 mb-4 p-4 rounded-2xl bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all"
+      >
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white flex items-center justify-center shadow-md shrink-0">
+          <History size={18} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-extrabold text-[#0f2847] dark:text-slate-100 text-[14px]">Sonuç Geçmişim</p>
+          <p className="text-[12px] text-gray-500 dark:text-slate-400">Çözdüğün testlerin sonuçlarını ve raporlarını gör</p>
+        </div>
+        <span className="text-teal-600 dark:text-teal-400 text-[13px] font-extrabold shrink-0 group-hover:translate-x-0.5 transition-transform">Aç →</span>
+      </Link>
 
       {/* Gizlilik notu */}
       <div className="flex items-start gap-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 rounded-2xl p-4 mb-6">

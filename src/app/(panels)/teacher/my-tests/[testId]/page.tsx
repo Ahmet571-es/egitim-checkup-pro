@@ -13,11 +13,13 @@ export default function TeacherTestPage() {
   const testId = params?.testId as string;
 
   // Kayıt stratejisi: öğretmen → teacher_test_results
-  const saver = async ({ takerId, testId, scores, rawAnswers }: TestSavePayload) => {
+  const saver = async ({ takerId, testId, mainResult, report, scores, rawAnswers }: TestSavePayload) => {
     const supabase = createClient();
     const res = await supabase.from('teacher_test_results').insert({
       teacher_id: takerId,
       test_type: testId,
+      main_result: mainResult,
+      report,
       scores,
       raw_answers: rawAnswers,
       completed_at: new Date().toISOString(),
