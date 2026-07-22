@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { inlineBold } from '@/lib/html/safe-inline';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
@@ -217,7 +218,7 @@ function ThemedSectionContent({ content, theme }: { content: string; theme: type
                       {cell.includes('🔴') ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-semibold">{cell}</span> :
                        cell.includes('🟡') ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">{cell}</span> :
                        cell.includes('🟢') ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">{cell}</span> :
-                       <span dangerouslySetInnerHTML={{ __html: cell.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }} />}
+                       <span dangerouslySetInnerHTML={{ __html: inlineBold(cell) }} />}
                     </td>
                   ))}
                 </tr>
@@ -249,7 +250,7 @@ function ThemedSectionContent({ content, theme }: { content: string; theme: type
             return (
               <div key={i} className={`flex items-start gap-2 py-1 pl-2 ${hasCheck ? 'text-emerald-700' : hasWarn ? 'text-amber-700' : 'text-gray-700 dark:text-slate-300'}`}>
                 <span className="mt-1.5 w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: hasCheck ? '#10b981' : hasWarn ? '#f59e0b' : theme.accentColor }} />
-                <span className="text-sm" dangerouslySetInnerHTML={{ __html: text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }} />
+                <span className="text-sm" dangerouslySetInnerHTML={{ __html: inlineBold(text) }} />
               </div>
             );
           }
@@ -262,7 +263,7 @@ function ThemedSectionContent({ content, theme }: { content: string; theme: type
             return <p key={i} className="text-gray-500 dark:text-slate-400 italic text-xs mt-1 mb-2">{trimmed.replace(/\*/g, '')}</p>;
           }
 
-          return <p key={i} className="text-sm mb-1" dangerouslySetInnerHTML={{ __html: trimmed.replace(/\*\*(.+?)\*\*/g, `<strong style="color:${theme.barColors[0]}">$1</strong>`) }} />;
+          return <p key={i} className="text-sm mb-1" dangerouslySetInnerHTML={{ __html: inlineBold(trimmed, { strongStyle: `color:${theme.barColors[0]}` }) }} />;
         })}
       </div>
     </div>
@@ -371,9 +372,7 @@ export default function IntegratedReportRenderer({ text, reportType, scores }: I
               {isExecutiveSummary ? (
                 <p className="text-sm leading-relaxed"
                    dangerouslySetInnerHTML={{
-                     __html: section.content
-                       .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white">$1</strong>')
-                       .replace(/\n/g, '<br/>')
+                     __html: inlineBold(section.content, { strongClass: 'text-white', nl2br: true })
                    }}
                 />
               ) : (
