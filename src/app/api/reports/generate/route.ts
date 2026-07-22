@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateAIReport } from '@/lib/ai/claude-client';
 import { buildSingleTestPrompt } from '@/lib/ai/prompts/single-test';
+import { buildCokluZekaDetailedReport } from '@/lib/tests/coklu-zeka/detailed-report';
+import type { CokluZekaScores } from '@/lib/tests/types';
 import { buildHolisticPrompt } from '@/lib/ai/prompts/holistic';
 import { calculateRiskScore, getRiskLevel } from '@/lib/services/riskScore';
 import { identifyPatterns } from '@/lib/services/correlation';
@@ -348,15 +350,28 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const prompt = buildSingleTestPrompt({
-      studentName: student.full_name,
-      studentAge: '—',
-      studentGender: '—',
-      testName: testResult.test_type,
-      testData: testResult.scores ?? {},
-    });
+    // ── Çoklu Zekâ → DETERMİNİSTİK MOTOR (API kullanmaz) ──
+    // Öğretmen panelindeki "analiz" butonu artık bu test için kendi sistem
+    // analizimizi üretir. Diğer testler şimdilik AI ile devam eder.
+    const isCokluZeka =
+      testResult.test_type === 'coklu-zeka' || testResult.test_type === 'coklu_zeka';
 
-    const report = await generateAIReport(prompt, { maxTokens: 16000 });
+    let report: string;
+    if (isCokluZeka) {
+      report = buildCokluZekaDetailedReport(
+        testResult.scores as unknown as CokluZekaScores,
+        { studentName: student.full_name, studentGrade: null },
+      );
+    } else {
+      const prompt = buildSingleTestPrompt({
+        studentName: student.full_name,
+        studentAge: '—',
+        studentGender: '—',
+        testName: testResult.test_type,
+        testData: testResult.scores ?? {},
+      });
+      report = await generateAIReport(prompt, { maxTokens: 16000 });
+    }
 
     // Admin client ile raporu kaydet (RLS bypass — outer scope admin)
     const { error: updateErr } = await admin
@@ -440,15 +455,28 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Test sonucu bulunamadı.' }, { status: 404 });
     }
 
-    const prompt = buildSingleTestPrompt({
-      studentName: student.full_name,
-      studentAge: '—',
-      studentGender: '—',
-      testName: testResult.test_type,
-      testData: testResult.scores ?? {},
-    });
+    // ── Çoklu Zekâ → DETERMİNİSTİK MOTOR (API kullanmaz) ──
+    // Öğretmen panelindeki "analiz" butonu artık bu test için kendi sistem
+    // analizimizi üretir. Diğer testler şimdilik AI ile devam eder.
+    const isCokluZeka =
+      testResult.test_type === 'coklu-zeka' || testResult.test_type === 'coklu_zeka';
 
-    const report = await generateAIReport(prompt, { maxTokens: 16000 });
+    let report: string;
+    if (isCokluZeka) {
+      report = buildCokluZekaDetailedReport(
+        testResult.scores as unknown as CokluZekaScores,
+        { studentName: student.full_name, studentGrade: null },
+      );
+    } else {
+      const prompt = buildSingleTestPrompt({
+        studentName: student.full_name,
+        studentAge: '—',
+        studentGender: '—',
+        testName: testResult.test_type,
+        testData: testResult.scores ?? {},
+      });
+      report = await generateAIReport(prompt, { maxTokens: 16000 });
+    }
 
     // Admin client ile kaydet (RLS bypass — outer scope admin)
     const { error: saveErr } = await admin
