@@ -11,7 +11,10 @@ import { buildCokluZekaDetailedReport } from '../tests/coklu-zeka/detailed-repor
 import { buildVarkDetailedReport } from '../tests/vark/detailed-report';
 import { buildHollandDetailedReport } from '../tests/holland/detailed-report';
 import { buildEnneagramDetailedReport } from '../tests/enneagram/detailed-report';
-import type { CokluZekaScores, VarkScores, HollandScores, EnneagramScores } from '../tests/types';
+import { buildSinavKaygisiDetailedReport } from '../tests/sinav-kaygisi/detailed-report';
+import { buildCalismaDavranisiDetailedReport } from '../tests/calisma-davranisi/detailed-report';
+import { buildSagSolBeyinDetailedReport } from '../tests/sag-sol-beyin/detailed-report';
+import type { CokluZekaScores, VarkScores, HollandScores, EnneagramScores, SinavKaygisiScores, CalismaDavranisiScores, SagSolBeyinScores } from '../tests/types';
 
 /**
  * @returns Deterministik rapor (markdown) veya motoru yoksa `null`.
@@ -31,10 +34,16 @@ export function buildDeterministicReport(
       return buildHollandDetailedReport(scores as HollandScores, student);
     case 'enneagram':
       return buildEnneagramDetailedReport(scores as EnneagramScores, student);
+    case 'sinav-kaygisi':
+      return buildSinavKaygisiDetailedReport(scores as SinavKaygisiScores, student);
+    case 'calisma-davranisi':
+      return buildCalismaDavranisiDetailedReport(scores as CalismaDavranisiScores, student);
+    case 'sag-sol-beyin':
+      return buildSagSolBeyinDetailedReport(scores as SagSolBeyinScores, student);
     default:
       return null;
   }
 }
 
 /** Deterministik motoru olan test_type'lar (bilgi amaçlı). */
-export const DETERMINISTIC_TEST_TYPES = ['coklu-zeka', 'coklu_zeka', 'vark', 'holland', 'enneagram'];
+export const DETERMINISTIC_TEST_TYPES = ['coklu-zeka', 'coklu_zeka', 'vark', 'holland', 'enneagram', 'sinav-kaygisi', 'calisma-davranisi', 'sag-sol-beyin'];
