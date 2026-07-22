@@ -186,7 +186,7 @@ export async function GET(
     });
   } catch (err) {
     console.error('[export/holistic]', err);
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: 'Export sırasında hata oluştu.', detail: msg }, { status: 500 });
+    console.error('[export/holistic]', err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: 'Export sırasında hata oluştu.' }, { status: 500 });
   }
 }

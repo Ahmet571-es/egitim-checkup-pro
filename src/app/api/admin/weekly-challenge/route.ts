@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 
 // 52 haftalık dönen meydan okuma havuzu
@@ -62,7 +63,7 @@ export async function POST() {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return serverError('admin/weekly-challenge', error, 500);
     }
 
     return NextResponse.json({ message: 'Haftalık meydan okuma oluşturuldu', challenge: created });

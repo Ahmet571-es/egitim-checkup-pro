@@ -17,6 +17,7 @@
  *  - auth.users DELETE service role gerektirir
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { listAllAuthUsers } from '@/lib/auth/admin-users';
@@ -89,7 +90,7 @@ export async function POST(req: NextRequest) {
 
       const { data: profiles, error: profilesErr } = await profilesQuery;
       if (profilesErr) {
-        return NextResponse.json({ error: profilesErr.message }, { status: 500 });
+        return serverError('admin/users', profilesErr, 500);
       }
 
       // Auth metadata'dan assigned_teacher_id (öğrenciler için)
@@ -186,7 +187,7 @@ export async function POST(req: NextRequest) {
       });
 
       if (authErr) {
-        return NextResponse.json({ error: authErr.message }, { status: 500 });
+        return serverError('admin/users', authErr, 500);
       }
 
       // profiles tablosunda is_approved güncelle (admin panelinde okunuyor)
@@ -196,7 +197,7 @@ export async function POST(req: NextRequest) {
         .eq('id', user_id);
 
       if (profileErr) {
-        return NextResponse.json({ error: profileErr.message }, { status: 500 });
+        return serverError('admin/users', profileErr, 500);
       }
 
       return NextResponse.json({ success: true, user_id, approved });
@@ -243,7 +244,7 @@ export async function POST(req: NextRequest) {
       const { error: delErr } = await admin.auth.admin.deleteUser(user_id);
 
       if (delErr) {
-        return NextResponse.json({ error: delErr.message }, { status: 500 });
+        return serverError('admin/users', delErr, 500);
       }
 
       return NextResponse.json({
@@ -265,7 +266,7 @@ export async function POST(req: NextRequest) {
         .order('full_name');
 
       if (tErr) {
-        return NextResponse.json({ error: tErr.message }, { status: 500 });
+        return serverError('admin/users', tErr, 500);
       }
 
       return NextResponse.json({ teachers: teachers || [] });
@@ -339,15 +340,14 @@ export async function POST(req: NextRequest) {
           });
 
           if (updErr) {
-            failed.push({ id: sid, reason: updErr.message });
+            console.error('[admin/users] bulk assign:', updErr.message);
+            failed.push({ id: sid, reason: 'Güncellenemedi.' });
           } else {
             updated.push(sid);
           }
         } catch (err) {
-          failed.push({
-            id: sid,
-            reason: err instanceof Error ? err.message : 'unknown',
-          });
+          console.error('[admin/users] bulk assign:', err instanceof Error ? err.message : err);
+          failed.push({ id: sid, reason: 'Güncellenemedi.' });
         }
       }
 

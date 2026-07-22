@@ -310,7 +310,7 @@ export async function GET(
     return NextResponse.json({ error: `Desteklenmeyen format: ${format}` }, { status: 400 });
   } catch (err) {
     console.error('[export]', err);
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: 'Export sırasında hata oluştu.', detail: msg }, { status: 500 });
+    console.error('[export/[format]]', err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: 'Export sırasında hata oluştu.' }, { status: 500 });
   }
 }

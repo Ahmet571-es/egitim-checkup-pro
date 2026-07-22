@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -69,7 +70,7 @@ export async function DELETE(
 
     if (delErr) {
       console.error('[holistic delete]', delErr.message);
-      return NextResponse.json({ error: 'Rapor silinemedi: ' + delErr.message }, { status: 500 });
+      return serverError('reports/holistic/[id]', delErr, 500, 'Rapor silinemedi.');
     }
 
     return NextResponse.json({ success: true });

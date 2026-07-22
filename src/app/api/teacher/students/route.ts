@@ -10,6 +10,7 @@
  * Tamamlanan testler test_results'tan gelir, otomatik filtrelenir.
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError, logAndMsg } from '@/lib/api/errors';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { listAllAuthUsers } from '@/lib/auth/admin-users';
 import { createClient } from '@/lib/supabase/server';
@@ -352,7 +353,7 @@ export async function POST(req: NextRequest) {
       const { error: updateErr } = await admin.auth.admin.updateUserById(studentId, {
         user_metadata: { ...meta, assigned_tests: merged },
       });
-      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+      if (updateErr) return serverError('teacher/students', updateErr, 500);
 
       return NextResponse.json({ success: true, assigned: merged });
     }
@@ -374,7 +375,7 @@ export async function POST(req: NextRequest) {
       const { error: updateErr } = await admin.auth.admin.updateUserById(studentId, {
         user_metadata: { ...meta, assigned_tests: filtered },
       });
-      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+      if (updateErr) return serverError('teacher/students', updateErr, 500);
 
       return NextResponse.json({ success: true, assigned: filtered });
     }
@@ -469,7 +470,7 @@ export async function POST(req: NextRequest) {
 
       if (updateErr) {
         console.error('[transfer] updateUserById error:', updateErr.message);
-        return NextResponse.json({ error: 'Aktarım başarısız: ' + updateErr.message }, { status: 500 });
+        return serverError('teacher/students', updateErr, 500, 'Aktarım başarısız.');
       }
 
       // ── TRANSFER LOG (best-effort, tablo yoksa sessizce geç) ──
@@ -660,7 +661,7 @@ export async function POST(req: NextRequest) {
       });
 
       if (updErr) {
-        return NextResponse.json({ error: updErr.message }, { status: 500 });
+        return serverError('teacher/students', updErr, 500);
       }
 
       return NextResponse.json({
@@ -761,7 +762,7 @@ export async function POST(req: NextRequest) {
       if (createErr || !newUser?.user) {
         console.error('[teacher/students/create] auth user error', createErr);
         return NextResponse.json(
-          { error: createErr?.message || 'Kullanıcı oluşturulamadı.' },
+          { error: logAndMsg('teacher/students', createErr, 'Kullanıcı oluşturulamadı.') },
           { status: 500 }
         );
       }
@@ -788,7 +789,7 @@ export async function POST(req: NextRequest) {
         console.error('[teacher/students/create] profile insert error', profileErr);
         await admin.auth.admin.deleteUser(newUser.user.id).catch(() => {});
         return NextResponse.json(
-          { error: 'Profil oluşturulamadı: ' + profileErr.message },
+          { error: logAndMsg('teacher/students', profileErr, 'Profil oluşturulamadı.') },
           { status: 500 }
         );
       }

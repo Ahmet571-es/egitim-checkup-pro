@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -205,7 +206,7 @@ export async function POST(request: Request) {
     if (pErr) {
       console.error('[profile/update] profiles update error:', pErr.message);
       return NextResponse.json(
-        { error: `Profil güncellenirken hata: ${pErr.message}` },
+        { error: logAndMsg('profile/update', pErr, 'Profil güncellenirken hata.') },
         { status: 500 },
       );
     }
@@ -227,7 +228,7 @@ export async function POST(request: Request) {
   if (aErr) {
     console.error('[profile/update] auth update error:', aErr.message);
     return NextResponse.json(
-      { error: `Hesap bilgisi güncellenirken hata: ${aErr.message}` },
+      { error: logAndMsg('profile/update', aErr, 'Hesap bilgisi güncellenirken hata.') },
       { status: 500 },
     );
   }

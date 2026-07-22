@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { generateAIReport } from '@/lib/ai/claude-client';
 import { buildCoachingTaskPrompt } from '@/lib/ai/prompts/coaching';
@@ -82,7 +83,7 @@ export async function POST(request: Request) {
       .select();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return serverError('coaching/generate-tasks', error, 500);
     }
 
     return NextResponse.json({ tasks: inserted });

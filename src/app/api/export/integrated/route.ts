@@ -201,7 +201,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Desteklenmeyen format.' }, { status: 400 });
   } catch (err) {
     console.error('[integrated-export]', err);
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: 'Export sırasında hata oluştu.', detail: msg }, { status: 500 });
+    console.error('[export/integrated]', err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: 'Export sırasında hata oluştu.' }, { status: 500 });
   }
 }

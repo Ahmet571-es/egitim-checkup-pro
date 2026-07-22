@@ -8,6 +8,7 @@
  *   student / parent → 403 (HİÇBİR ŞEY)
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -106,7 +107,7 @@ export async function DELETE(
     if (deleteErr) {
       console.error('[holistic/attachments DELETE]', deleteErr);
       return NextResponse.json(
-        { error: 'Silinemedi: ' + deleteErr.message },
+        { error: logAndMsg('reports/holistic/[id]/attachments/[attachment_id]', deleteErr, 'Silinemedi.') },
         { status: 500 },
       );
     }

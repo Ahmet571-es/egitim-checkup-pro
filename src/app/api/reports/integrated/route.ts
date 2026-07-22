@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError, logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateAIReport } from '@/lib/ai/claude-client';
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
 
     if (resultsErr) {
       console.error('[integrated] results fetch error:', resultsErr.message);
-      return NextResponse.json({ error: 'Test sonuçları çekilemedi: ' + resultsErr.message }, { status: 500 });
+      return serverError('reports/integrated', resultsErr, 500, 'Test sonuçları çekilemedi.');
     }
 
     if (!allResults || allResults.length < 2) {
@@ -248,7 +249,7 @@ export async function POST(request: NextRequest) {
       // Rapor üretildi ama kaydedilemedi — kullanıcıya bildir
       return NextResponse.json({
         success: true,
-        warning: 'Raporlar üretildi ancak veritabanına kaydedilemedi: ' + insertErr.message,
+        warning: logAndMsg('reports/integrated', insertErr, 'Raporlar üretildi ancak veritabanına kaydedilemedi.'),
         reports,
         saved: false,
       });
@@ -280,8 +281,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     console.error('[reports/integrated]', err);
-    const msg = err instanceof Error ? err.message : 'Sunucu hatası.';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: 'Sunucu hatası. Lütfen tekrar deneyin.' }, { status: 500 });
   }
 }
 
@@ -470,7 +470,7 @@ export async function PUT(request: NextRequest) {
       console.error('[integrated PUT insert]', insErr.message);
       return NextResponse.json({
         success: true,
-        warning: 'Rapor üretildi ama kaydedilemedi: ' + insErr.message,
+        warning: logAndMsg('reports/integrated', insErr, 'Rapor üretildi ama kaydedilemedi.'),
         reports,
       });
     }
@@ -478,7 +478,6 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ success: true, reports });
   } catch (err) {
     console.error('[reports/integrated PUT]', err);
-    const msg = err instanceof Error ? err.message : 'Sunucu hatası.';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: 'Sunucu hatası. Lütfen tekrar deneyin.' }, { status: 500 });
   }
 }

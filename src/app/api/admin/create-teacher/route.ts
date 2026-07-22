@@ -5,6 +5,7 @@
  * profili çağıranın school_id'sine bağlar.
  */
 import { NextResponse } from 'next/server';
+import { serverError, logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { findExistingUserByEmail, buildDuplicateEmailError, normalizeEmail } from '@/lib/auth/find-existing-user';
@@ -79,7 +80,7 @@ export async function POST(req: Request) {
 
     if (createErr || !created.user) {
       return NextResponse.json(
-        { error: createErr?.message || 'Öğretmen oluşturulamadı.' },
+        { error: logAndMsg('admin/create-teacher', createErr, 'Öğretmen oluşturulamadı.') },
         { status: 400 },
       );
     }
@@ -97,7 +98,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, id: created.user.id });
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : 'Sunucu hatası.';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return serverError('admin/create-teacher', e);
   }
 }

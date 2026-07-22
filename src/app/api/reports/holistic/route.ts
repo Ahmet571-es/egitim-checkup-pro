@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -81,7 +82,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('[holistic list]', error.message);
-      return NextResponse.json({ error: 'Raporlar çekilemedi: ' + error.message }, { status: 500 });
+      return serverError('reports/holistic', error, 500, 'Raporlar çekilemedi.');
     }
 
     return NextResponse.json({

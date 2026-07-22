@@ -101,7 +101,7 @@ export async function POST(request: Request) {
       const msg = createErr?.message ?? 'Kayıt oluşturulamadı.';
       const already = /already registered|already exists/i.test(msg);
       return NextResponse.json(
-        { error: already ? 'Bu e-posta ile zaten bir hesap var.' : msg },
+        { error: already ? 'Bu e-posta ile zaten bir hesap var.' : 'Kayıt oluşturulamadı. Lütfen tekrar deneyin.' },
         { status: already ? 409 : 400 },
       );
     }

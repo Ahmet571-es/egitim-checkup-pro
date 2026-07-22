@@ -23,6 +23,7 @@
  *   Bir conversation'ın history'sini döner (yetki check).
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateAIReport } from '@/lib/ai/claude-client';
@@ -396,8 +397,7 @@ export async function POST(
     });
   } catch (err) {
     console.error('[coach POST]', err);
-    const msg = err instanceof Error ? err.message : 'Sunucu hatası.';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return serverError('coach/[role]', err);
   }
 }
 

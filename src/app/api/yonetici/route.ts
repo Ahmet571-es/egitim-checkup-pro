@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/errors';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { listAllAuthUsers } from '@/lib/auth/admin-users';
 
@@ -50,7 +51,10 @@ async function purgeUser(
 
   // 4) En son auth.users — bu silindikten sonra giriş yapılamaz
   const { error: authErr } = await admin.auth.admin.deleteUser(userId);
-  if (authErr) return { ok: false, error: authErr.message };
+  if (authErr) {
+    console.error('[yonetici/purgeUser] deleteUser:', authErr.message);
+    return { ok: false, error: 'Kullanıcı silinemedi.' };
+  }
 
   return { ok: true };
 }
@@ -72,7 +76,7 @@ export async function POST(req: NextRequest) {
         .eq('role', 'teacher')
         .order('created_at', { ascending: false });
 
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) return serverError('yonetici', error, 500);
 
       // Tüm kullanıcı metadata + auth.users.email (login email, source of truth)
       const allUsers = await listAllAuthUsers(supabase);
@@ -378,7 +382,7 @@ export async function POST(req: NextRequest) {
       const { error: updateErr } = await supabase.auth.admin.updateUserById(userId, {
         user_metadata: { is_approved: true },
       });
-      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+      if (updateErr) return serverError('yonetici', updateErr, 500);
 
       // Profiles tablosunda da güncelle (varsa)
       await supabase
@@ -448,7 +452,7 @@ export async function POST(req: NextRequest) {
         const list = await listUsersByRoleAndApproval('student', false);
         return NextResponse.json({ users: list });
       } catch (e) {
-        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+        return serverError('yonetici', e, 500);
       }
     }
 
@@ -457,7 +461,7 @@ export async function POST(req: NextRequest) {
         const list = await listUsersByRoleAndApproval('parent', false);
         return NextResponse.json({ users: list });
       } catch (e) {
-        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+        return serverError('yonetici', e, 500);
       }
     }
 
@@ -480,7 +484,7 @@ export async function POST(req: NextRequest) {
         }));
         return NextResponse.json({ users: enriched });
       } catch (e) {
-        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+        return serverError('yonetici', e, 500);
       }
     }
 
@@ -489,7 +493,7 @@ export async function POST(req: NextRequest) {
         const list = await listUsersByRoleAndApproval('parent', true);
         return NextResponse.json({ users: list });
       } catch (e) {
-        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+        return serverError('yonetici', e, 500);
       }
     }
 
@@ -501,7 +505,7 @@ export async function POST(req: NextRequest) {
           teachers: teachers.map(t => ({ id: t.id, full_name: t.full_name, email: t.email, branch: t.branch })),
         });
       } catch (e) {
-        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+        return serverError('yonetici', e, 500);
       }
     }
 
@@ -523,7 +527,7 @@ export async function POST(req: NextRequest) {
       const { error: updateErr } = await supabase.auth.admin.updateUserById(userId, {
         user_metadata: newMeta,
       });
-      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+      if (updateErr) return serverError('yonetici', updateErr, 500);
 
       // profiles tablosunda da güncelle
       await supabase.from('profiles').update({ is_approved: true }).eq('id', userId);
@@ -543,7 +547,7 @@ export async function POST(req: NextRequest) {
       const { error: updateErr } = await supabase.auth.admin.updateUserById(userId, {
         user_metadata: newMeta,
       });
-      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+      if (updateErr) return serverError('yonetici', updateErr, 500);
 
       await supabase.from('profiles').update({ is_approved: true }).eq('id', userId);
 
@@ -573,7 +577,7 @@ export async function POST(req: NextRequest) {
       const { error: updateErr } = await supabase.auth.admin.updateUserById(userId, {
         user_metadata: newMeta,
       });
-      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+      if (updateErr) return serverError('yonetici', updateErr, 500);
 
       return NextResponse.json({ success: true });
     }
@@ -640,7 +644,7 @@ export async function POST(req: NextRequest) {
           .select('id, student_id, test_type, completed_at, ai_report')
           .order('completed_at', { ascending: false })
           .limit(2000);
-        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        if (error) return serverError('yonetici', error, 500);
 
         const studentIds = Array.from(new Set((tests || []).map(t => t.student_id as string).filter(Boolean)));
         const studentMap = await buildStudentMap(studentIds);
@@ -661,7 +665,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ tests: enriched });
       } catch (e) {
-        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+        return serverError('yonetici', e, 500);
       }
     }
 
@@ -674,7 +678,7 @@ export async function POST(req: NextRequest) {
           .not('ai_report', 'is', null)
           .order('ai_report_generated_at', { ascending: false, nullsFirst: false })
           .limit(2000);
-        if (sErr) return NextResponse.json({ error: sErr.message }, { status: 500 });
+        if (sErr) return serverError('yonetici', sErr, 500);
 
         // Entegre raporlar
         const { data: integrated, error: iErr } = await supabase
@@ -682,7 +686,7 @@ export async function POST(req: NextRequest) {
           .select('id, student_id, generated_at')
           .order('generated_at', { ascending: false })
           .limit(2000);
-        if (iErr) return NextResponse.json({ error: iErr.message }, { status: 500 });
+        if (iErr) return serverError('yonetici', iErr, 500);
 
         // Holistic raporlar (varsa)
         const { data: holistic } = await supabase
@@ -750,7 +754,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ reports });
       } catch (e) {
-        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+        return serverError('yonetici', e, 500);
       }
     }
 
@@ -814,7 +818,7 @@ export async function POST(req: NextRequest) {
         },
       });
       if (updErr) {
-        return NextResponse.json({ error: updErr.message }, { status: 500 });
+        return serverError('yonetici', updErr, 500);
       }
 
       // Eğer bu kullanıcı için bekleyen şifre talebi varsa otomatik resolve et
@@ -857,7 +861,7 @@ export async function POST(req: NextRequest) {
         if (error.code === 'PGRST205' || error.message?.includes('does not exist')) {
           return NextResponse.json({ requests: [] });
         }
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return serverError('yonetici', error, 500);
       }
 
       // user_id'leri alıp profilleri çek (rol bilgisi için)
@@ -900,7 +904,7 @@ export async function POST(req: NextRequest) {
         })
         .eq('id', requestId);
 
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) return serverError('yonetici', error, 500);
       return NextResponse.json({ success: true });
     }
 
@@ -927,7 +931,7 @@ export async function POST(req: NextRequest) {
       const { data: profiles, error: pErr } = await supabase
         .from('profiles')
         .select('id, email, role, full_name, created_at');
-      if (pErr) return NextResponse.json({ error: pErr.message }, { status: 500 });
+      if (pErr) return serverError('yonetici', pErr, 500);
 
       // Auth users'ı paginated çek (10K user safety)
       const PER_PAGE = 500;
@@ -1122,7 +1126,7 @@ export async function POST(req: NextRequest) {
           .from('profiles')
           .update({ role: authRole })
           .eq('id', userId);
-        if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 });
+        if (updErr) return serverError('yonetici', updErr, 500);
         return NextResponse.json({
           success: true,
           changed: { profiles_role: { from: profileRole, to: authRole } },
@@ -1139,7 +1143,7 @@ export async function POST(req: NextRequest) {
         const { error: updErr } = await supabase.auth.admin.updateUserById(userId, {
           user_metadata: { role: profileRole },
         });
-        if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 });
+        if (updErr) return serverError('yonetici', updErr, 500);
         return NextResponse.json({
           success: true,
           changed: { auth_role: { from: authRole, to: profileRole } },
@@ -1162,7 +1166,7 @@ export async function POST(req: NextRequest) {
       }
 
       const { error: delErr } = await supabase.from('profiles').delete().eq('id', profileId);
-      if (delErr) return NextResponse.json({ error: delErr.message }, { status: 500 });
+      if (delErr) return serverError('yonetici', delErr, 500);
       return NextResponse.json({ success: true });
     }
 

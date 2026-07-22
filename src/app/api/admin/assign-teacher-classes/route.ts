@@ -6,6 +6,7 @@
  * Sadece çağıranın okulundaki sınıflar etkilenir.
  */
 import { NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
       .eq('teacher_id', teacher_id)
       .eq('school_id', caller.school_id);
     if (clearErr) {
-      return NextResponse.json({ error: clearErr.message }, { status: 400 });
+      return serverError('admin/assign-teacher-classes', clearErr, 400);
     }
 
     // 2) Yeni atamaları yap (yalnız çağıranın okulundaki sınıflar)
@@ -78,13 +79,12 @@ export async function POST(req: Request) {
         .in('id', classIds)
         .eq('school_id', caller.school_id);
       if (assignErr) {
-        return NextResponse.json({ error: assignErr.message }, { status: 400 });
+        return serverError('admin/assign-teacher-classes', assignErr, 400);
       }
     }
 
     return NextResponse.json({ ok: true, count: classIds.length });
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : 'Sunucu hatası.';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return serverError('admin/assign-teacher-classes', e);
   }
 }

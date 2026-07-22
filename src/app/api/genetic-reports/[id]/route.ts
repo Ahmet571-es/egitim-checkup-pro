@@ -12,6 +12,7 @@
  * birinde hata olursa response 500 döner ama eldeki başarılı işlemi log'lar.
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -110,7 +111,7 @@ export async function DELETE(
     if (dbError) {
       console.error('[genetic-reports/delete] db error', dbError);
       return NextResponse.json(
-        { error: 'Kayıt silinemedi: ' + dbError.message },
+        { error: logAndMsg('genetic-reports/[id]', dbError, 'Kayıt silinemedi.') },
         { status: 500 }
       );
     }

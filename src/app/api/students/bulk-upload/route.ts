@@ -78,7 +78,8 @@ export async function POST(request: Request) {
           });
 
           if (createError) {
-            results.push({ email, success: false, error: createError.message });
+            console.error('[bulk-upload]', createError.message);
+            results.push({ email, success: false, error: 'Kullanıcı oluşturulamadı.' });
             continue;
           }
 

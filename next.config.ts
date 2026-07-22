@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  compiler: {
+    // Prod bundle'da console.log/info/debug kaldirilir (tarayiciya sizmasin).
+    // error + warn korunur: sunucu ops log'u ve serverError() icin gerekli.
+    removeConsole: { exclude: ['error', 'warn'] },
+  },
   distDir: process.env.NEXT_DIST_DIR || '.next',
   bundlePagesRouterDependencies: true,
   outputFileTracingIncludes: {

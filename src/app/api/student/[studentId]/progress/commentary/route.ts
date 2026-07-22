@@ -226,7 +226,6 @@ export async function POST(
     });
   } catch (err) {
     console.error('[progress/commentary]', err);
-    const msg = err instanceof Error ? err.message : 'Sunucu hatası.';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: 'Sunucu hatası. Lütfen tekrar deneyin.' }, { status: 500 });
   }
 }

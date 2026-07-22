@@ -169,7 +169,6 @@ export async function GET(request: NextRequest) {
       console.error('[direct-analysis] engine error:', e);
       return NextResponse.json({
         error: 'Rapor üretilemedi.',
-        detail: String((e as Error).message ?? e),
       }, { status: 500 });
     }
   } catch (e) {

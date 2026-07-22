@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
     .limit(200);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return serverError('admin/password-resets', error, 500);
   }
 
   return NextResponse.json({ requests: requests ?? [] });
@@ -135,7 +136,7 @@ export async function POST(request: Request) {
       password: newPassword,
     });
     if (updErr) {
-      return NextResponse.json({ error: updErr.message }, { status: 400 });
+      return serverError('admin/password-resets', updErr, 400);
     }
 
     // Talebi resolved işaretle
@@ -150,7 +151,7 @@ export async function POST(request: Request) {
       .eq('id', requestId);
 
     if (markErr) {
-      return NextResponse.json({ error: markErr.message }, { status: 500 });
+      return serverError('admin/password-resets', markErr, 500);
     }
 
     return NextResponse.json({
@@ -171,7 +172,7 @@ export async function POST(request: Request) {
       .eq('id', requestId);
 
     if (cancelErr) {
-      return NextResponse.json({ error: cancelErr.message }, { status: 500 });
+      return serverError('admin/password-resets', cancelErr, 500);
     }
 
     return NextResponse.json({ success: true, message: 'Talep iptal edildi.' });

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 
 // Rate limit: basit in-memory (production'da Redis kullanılmalı)
@@ -70,7 +71,7 @@ export async function GET(request: Request) {
     const { data, error } = await query;
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return serverError('v1/results', error, 500);
     }
 
     // API key kullanımını güncelle

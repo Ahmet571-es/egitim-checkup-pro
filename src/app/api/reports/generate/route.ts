@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError, logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateAIReport } from '@/lib/ai/claude-client';
@@ -248,7 +249,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           report,
-          warning: 'Rapor üretildi ancak kaydedilemedi: ' + saveErr.message,
+          warning: logAndMsg('reports/generate', saveErr, 'Rapor üretildi ancak kaydedilemedi.'),
         });
       }
 
@@ -368,7 +369,7 @@ export async function POST(request: NextRequest) {
 
     if (updateErr) {
       console.error('[tekil save]', updateErr.message);
-      return NextResponse.json({ error: 'Rapor kaydedilemedi: ' + updateErr.message }, { status: 500 });
+      return serverError('reports/generate', updateErr, 500, 'Rapor kaydedilemedi.');
     }
 
     return NextResponse.json({ success: true, report });

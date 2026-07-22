@@ -17,6 +17,7 @@
  * Not: CSRF muafiyeti proxy.ts içinde /api/auth/* için zaten var.
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
     if (updErr) {
       console.error('[change-password] update error:', updErr);
       return NextResponse.json(
-        { error: 'Şifre güncellenemedi: ' + updErr.message },
+        { error: logAndMsg('auth/change-password', updErr, 'Şifre güncellenemedi.') },
         { status: 500 },
       );
     }
@@ -82,9 +83,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('[change-password] unexpected error:', err);
-    const msg = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: 'Beklenmeyen bir hata oluştu.', detail: msg },
+      { error: 'Beklenmeyen bir hata oluştu.' },
       { status: 500 },
     );
   }

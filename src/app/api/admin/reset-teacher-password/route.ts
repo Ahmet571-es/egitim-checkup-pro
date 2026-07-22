@@ -4,6 +4,7 @@
  * Auth: school_admin only. Yalnızca kendi okulundaki öğretmenler için.
  */
 import { NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -70,12 +71,11 @@ export async function POST(req: Request) {
       password,
     });
     if (updErr) {
-      return NextResponse.json({ error: updErr.message }, { status: 400 });
+      return serverError('admin/reset-teacher-password', updErr, 400);
     }
 
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : 'Sunucu hatası.';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return serverError('admin/reset-teacher-password', e);
   }
 }

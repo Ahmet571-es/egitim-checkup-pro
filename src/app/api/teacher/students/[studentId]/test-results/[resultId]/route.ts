@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -124,7 +125,7 @@ export async function DELETE(
     .eq('student_id', studentId);
 
   if (error) {
-    return NextResponse.json({ error: 'Silme başarısız: ' + error.message }, { status: 500 });
+    return serverError('teacher/students/[studentId]/test-results/[resultId]', error, 500, 'Silme başarısız.');
   }
 
   // Bağlı holistic raporları etkilememek için: holistic_reports'u silme

@@ -20,6 +20,7 @@
  *   - student: skor yok, etiketleme yok, "henüz" çerçeve
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateAIReport } from '@/lib/ai/claude-client';
@@ -289,7 +290,7 @@ export async function POST(request: NextRequest) {
     if (insertErr) {
       console.error('[package/generate] insert error', insertErr);
       return NextResponse.json(
-        { error: 'Raporlar kaydedilemedi: ' + insertErr.message },
+        { error: logAndMsg('reports/package/generate', insertErr, 'Raporlar kaydedilemedi.') },
         { status: 500 },
       );
     }
@@ -356,7 +357,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     console.error('[package/generate]', err);
-    const msg = err instanceof Error ? err.message : 'Sunucu hatası.';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: 'Sunucu hatası. Lütfen tekrar deneyin.' }, { status: 500 });
   }
 }

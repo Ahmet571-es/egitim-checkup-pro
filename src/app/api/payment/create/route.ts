@@ -4,6 +4,7 @@
  * Response: { ok, paymentPageUrl, conversationId }
  */
 import { NextResponse } from 'next/server';
+import { logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { getPlan, type PlanKey } from '@/lib/payment/types';
 import {
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
     });
     if (insErr) {
       return NextResponse.json(
-        { ok: false, error: 'Ödeme kaydı oluşturulamadı: ' + insErr.message },
+        { ok: false, error: logAndMsg('payment/create', insErr, 'Ödeme kaydı oluşturulamadı.') },
         { status: 500 },
       );
     }
@@ -134,8 +135,9 @@ export async function POST(req: Request) {
       mock: result.mock,
     });
   } catch (err) {
+    console.error('[payment/create]', err instanceof Error ? err.message : err);
     return NextResponse.json(
-      { ok: false, error: (err as Error).message },
+      { ok: false, error: 'Sunucu hatası. Lütfen tekrar deneyin.' },
       { status: 500 },
     );
   }

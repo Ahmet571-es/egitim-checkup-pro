@@ -15,6 +15,7 @@
  * Storage path: students/{student_id}/{timestamp}.pdf
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -138,7 +139,7 @@ export async function POST(req: NextRequest) {
     if (uploadError) {
       console.error('[genetic-reports/upload] storage error', uploadError);
       return NextResponse.json(
-        { error: 'Dosya yüklenemedi: ' + uploadError.message },
+        { error: logAndMsg('genetic-reports/upload', uploadError, 'Dosya yüklenemedi.') },
         { status: 500 }
       );
     }
@@ -163,7 +164,7 @@ export async function POST(req: NextRequest) {
       await admin.storage.from(BUCKET_NAME).remove([filePath]);
       console.error('[genetic-reports/upload] db error', insertError);
       return NextResponse.json(
-        { error: 'Kayıt oluşturulamadı: ' + insertError.message },
+        { error: logAndMsg('genetic-reports/upload', insertError, 'Kayıt oluşturulamadı.') },
         { status: 500 }
       );
     }

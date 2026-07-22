@@ -19,6 +19,7 @@
  *   kontamine etmek mümkün olmamalı).
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -160,7 +161,7 @@ export async function POST(
       }
       console.error('[holistic/attachments POST]', insertErr);
       return NextResponse.json(
-        { error: 'Bağlantı oluşturulamadı: ' + insertErr.message },
+        { error: logAndMsg('reports/holistic/[id]/attachments', insertErr, 'Bağlantı oluşturulamadı.') },
         { status: 500 },
       );
     }
