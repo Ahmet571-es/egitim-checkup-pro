@@ -175,13 +175,15 @@ export async function proxy(request: NextRequest) {
   }
 
   // Role kontrolu -- profiles tablosundan sunucu otoriteli olarak oku.
-  // user_metadata client tarafından yazılabildigi icin guvenilmez.
+  // Role + onay durumu -- profiles tablosundan sunucu otoriteli olarak oku.
+  // user_metadata client tarafından yazılabildigi icin guvenilmez (is_approved dahil).
   // Fail-safe: sorgu hatasında veya rol yoksa /login'e at.
   let role: UserRole | null = null;
+  let isApproved: boolean | null = null;
   try {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, is_approved')
       .eq('id', user.id)
       .single();
 
@@ -191,6 +193,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(url);
     }
     role = profile.role as UserRole;
+    isApproved = profile.is_approved as boolean | null;
   } catch {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
@@ -205,9 +208,8 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // Onaysız öğretmen kontrolü
+  // Onaysız öğretmen kontrolü — is_approved profiles'tan okundu (client forge edemez)
   if (role === 'teacher') {
-    const isApproved = user.user_metadata?.is_approved;
     if (isApproved === false) {
       // Oturumu kapat ve ÖĞRETMEN login'e yönlendir
       await supabase.auth.signOut();

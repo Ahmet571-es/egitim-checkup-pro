@@ -118,7 +118,16 @@ function TeacherLoginInner() {
         return;
       }
 
-      const isApproved = data.user?.user_metadata?.is_approved;
+      // Onay durumu profiles'tan okunur — user_metadata client tarafından yazılabildiği için güvenilmez
+      let isApproved: boolean | null | undefined;
+      if (data.user?.id) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('is_approved')
+          .eq('id', data.user.id)
+          .maybeSingle();
+        isApproved = prof?.is_approved;
+      }
       if (isApproved === false) {
         await supabase.auth.signOut();
         setPendingMsg(true);
