@@ -23,13 +23,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { generateAIReport } from '@/lib/ai/claude-client';
-import {
-  buildTeacherPackageReport,
-  buildParentPackageReport,
-  buildStudentPackageReport,
-  type PackageReportContext,
-} from '@/lib/ai/prompts/package-reports';
+import { buildIntegratedDeterministicReport, type IntegratedAudience } from '@/lib/report/integrated-report';
+import { type PackageReportContext } from '@/lib/ai/prompts/package-reports';
 import { PACKAGES, checkPackageCompletion, type PackageType } from '@/lib/packages';
 
 export const runtime = 'nodejs';
@@ -235,21 +230,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const teacherPrompt = buildTeacherPackageReport(ctx, pkgGeneticAttachments.length > 0);
-    const parentPrompt = buildParentPackageReport(ctx, callerProfile.full_name || undefined);
-    const studentPrompt = buildStudentPackageReport(ctx);
-
-    const [teacherText, parentText, studentText] = await Promise.all([
-      generateAIReport(teacherPrompt, {
-        maxTokens: 4000,
-        temperature: 0.4,
-        enableContinuation: true,
-        // KVKK: PDF SADECE teacher audience'a
-        pdfAttachments: pkgGeneticAttachments.length > 0 ? pkgGeneticAttachments : undefined,
-      }),
-      generateAIReport(parentPrompt, { maxTokens: 3000, temperature: 0.4, enableContinuation: true }),
-      generateAIReport(studentPrompt, { maxTokens: 2000, temperature: 0.5, enableContinuation: false }),
-    ]);
+    // Deterministik (API'SIZ) paket raporları — 3 hedef kitle, paket çerçevesiyle.
+    // NOT: DMIT PDF deterministik okunamaz → teacher raporunda 'mevcut' notu düşülür.
+    const pkgTests = testData
+      .filter((t): t is NonNullable<typeof t> => t !== null)
+      .map((t) => ({ test_type: t.test_type, scores: t.scores, date: t.date }));
+    const pkgInfo = { label: pkg.label, description: pkg.description, focus: pkg.audience_focus };
+    const mkReport = (audience: IntegratedAudience, hasGenetic: boolean) =>
+      buildIntegratedDeterministicReport(
+        pkgTests,
+        { studentName: ctx.studentName, studentGrade: ctx.studentGrade ?? null },
+        audience,
+        { hasGeneticContext: hasGenetic, geneticReportCount: pkgGeneticAttachments.length, packageInfo: pkgInfo },
+      );
+    const teacherText = mkReport('ogretmen', pkgGeneticAttachments.length > 0);
+    const parentText = mkReport('ebeveyn', false);
+    const studentText = mkReport('ogrenci', false);
 
     // ── 3 raporu DB'ye kaydet ──
     const reportsToInsert = [

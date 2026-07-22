@@ -205,7 +205,7 @@ export function buildIntegratedDeterministicReport(
   tests: Array<{ test_type: string; scores: unknown; date?: string }>,
   student: StudentInfo,
   reportType: IntegratedAudience,
-  opts?: { hasGeneticContext?: boolean; geneticReportCount?: number },
+  opts?: { hasGeneticContext?: boolean; geneticReportCount?: number; packageInfo?: { label: string; description: string; focus?: string } },
 ): string {
   const name = safeName(student);
   const aud = AUD[reportType];
@@ -223,8 +223,11 @@ export function buildIntegratedDeterministicReport(
 
   // Başlık + dosya
   const grade = student.studentGrade ? `${student.studentGrade}. Sınıf` : 'Belirtilmemiş';
-  P.push(`# 🎓 ENTEGRE DEĞERLENDİRME — ${aud.title}\n`);
-  P.push(`| Alan | Bilgi |\n|---|---|\n| İsim | ${name} |\n| Sınıf | ${grade} |\n| Değerlendirme | Entegre Analiz (${highlights.length} test) |\n`);
+  const pkg = opts?.packageInfo;
+  const mainTitle = pkg ? `${pkg.label.toLocaleUpperCase('tr-TR')} — ${aud.title}` : `ENTEGRE DEĞERLENDİRME — ${aud.title}`;
+  const evalLabel = pkg ? `${pkg.label} (${highlights.length} test)` : `Entegre Analiz (${highlights.length} test)`;
+  P.push(`# 🎓 ${mainTitle}\n`);
+  P.push(`| Alan | Bilgi |\n|---|---|\n| İsim | ${name} |\n| Sınıf | ${grade} |\n| Değerlendirme | ${evalLabel} |\n`);
 
   // Genel bakış grid'i (ilk 3 metrik)
   const metrics = highlights.filter((h) => h.metric).slice(0, 3).map((h) => ({ label: h.metric!.label, value: h.metric!.value, unit: '%', theme: h.metric!.theme, icon: 'star' }));
@@ -240,6 +243,7 @@ export function buildIntegratedDeterministicReport(
   } else {
     P.push(`Bu rapor, ${name}'in **${highlights.length} test sonucunu bütünleşik** olarak değerlendirir. Tekil test raporlarından farklı olarak, bulgular arasındaki **örüntüler ve bağlantılar** öne çıkarılır; sınıf içi uygulama ve rehberlik perspektifinden öneriler sunulur.\n`);
   }
+  if (pkg) P.push(`\n**Paket kapsamı:** ${pkg.description}${pkg.focus ? ` Bu değerlendirme özellikle ${pkg.focus.toLocaleLowerCase('tr-TR')} açısından ele alınmıştır.` : ''}\n`);
   P.push('---\n');
 
   // ── POTANSİYEL ANALİZ ──
