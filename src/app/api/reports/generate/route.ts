@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { serverError, logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { generateAIReport } from '@/lib/ai/claude-client';
-import { buildSingleTestPrompt } from '@/lib/ai/prompts/single-test';
-import { buildDeterministicReport } from '@/lib/report/detailed-report-router';
+import { buildDeterministicReport, buildGenericDeterministicReport } from '@/lib/report/detailed-report-router';
 import { buildHolisticDeterministicReport } from '@/lib/report/holistic-report';
 import { calculateRiskScore, getRiskLevel } from '@/lib/services/riskScore';
 import { identifyPatterns } from '@/lib/services/correlation';
@@ -327,19 +325,12 @@ export async function POST(request: NextRequest) {
       { studentName: student.full_name, studentGrade: null },
     );
 
-    let report: string;
-    if (deterministic !== null) {
-      report = deterministic;
-    } else {
-      const prompt = buildSingleTestPrompt({
-        studentName: student.full_name,
-        studentAge: '—',
-        studentGender: '—',
-        testName: testResult.test_type,
-        testData: testResult.scores ?? {},
-      });
-      report = await generateAIReport(prompt, { maxTokens: 16000 });
-    }
+    // Bilinmeyen tür gelirse generic deterministik fallback (API'SIZ)
+    const report = deterministic ?? buildGenericDeterministicReport(
+      testResult.test_type,
+      testResult.scores,
+      { studentName: student.full_name, studentGrade: null },
+    );
 
     // Admin client ile raporu kaydet (RLS bypass — outer scope admin)
     const { error: updateErr } = await admin
@@ -433,19 +424,12 @@ export async function PUT(request: NextRequest) {
       { studentName: student.full_name, studentGrade: null },
     );
 
-    let report: string;
-    if (deterministic !== null) {
-      report = deterministic;
-    } else {
-      const prompt = buildSingleTestPrompt({
-        studentName: student.full_name,
-        studentAge: '—',
-        studentGender: '—',
-        testName: testResult.test_type,
-        testData: testResult.scores ?? {},
-      });
-      report = await generateAIReport(prompt, { maxTokens: 16000 });
-    }
+    // Bilinmeyen tür gelirse generic deterministik fallback (API'SIZ)
+    const report = deterministic ?? buildGenericDeterministicReport(
+      testResult.test_type,
+      testResult.scores,
+      { studentName: student.full_name, studentGrade: null },
+    );
 
     // Admin client ile kaydet (RLS bypass — outer scope admin)
     const { error: saveErr } = await admin

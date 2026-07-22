@@ -7,6 +7,7 @@
  * Yeni bir test motoru eklendiğinde yalnızca buraya bir case eklenir.
  */
 import type { StudentInfo } from './report-blocks';
+import { clampPct, barsBlock, insight, reportHeader, reportFooter, safeName } from './report-blocks';
 import { buildCokluZekaDetailedReport } from '../tests/coklu-zeka/detailed-report';
 import { buildVarkDetailedReport } from '../tests/vark/detailed-report';
 import { buildHollandDetailedReport } from '../tests/holland/detailed-report';
@@ -59,3 +60,24 @@ export function buildDeterministicReport(
 
 /** Deterministik motoru olan test_type'lar (bilgi amaçlı). */
 export const DETERMINISTIC_TEST_TYPES = ['coklu-zeka', 'coklu_zeka', 'vark', 'holland', 'enneagram', 'sinav-kaygisi', 'calisma-davranisi', 'sag-sol-beyin', 'hizli-okuma', 'akademik-analiz', 'd2-dikkat', 'burdon-dikkat'];
+
+/**
+ * Bilinmeyen test_type için minimal deterministik rapor (API'SIZ güvenlik ağı).
+ * Kayıtlı 11 testin dışında bir tür gelirse (beklenmez) bile AI'a düşülmez.
+ */
+export function buildGenericDeterministicReport(testType: string, scores: unknown, student: StudentInfo): string {
+  const name = safeName(student);
+  const sc = (scores as Record<string, unknown>) || {};
+  const nums: [string, number][] = [];
+  for (const [k, v] of Object.entries(sc)) {
+    if (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 100) nums.push([k.replace(/_/g, ' '), clampPct(v)]);
+  }
+  const P: string[] = [];
+  P.push(reportHeader(`📋 ${testType} — DEĞERLENDİRME RAPORU`, `${testType} — Test Sonucu`, student));
+  P.push(`## Özet\n${name}'in bu testi tamamlandı. Aşağıda ölçülen değerler özetlenmiştir.\n`);
+  if (nums.length) P.push(barsBlock('Ölçülen Değerler', nums.slice(0, 8)));
+  else P.push(`Bu test için sayısal özet mevcut değil. Ayrıntılar için test sonucu ekranı incelenebilir.\n`);
+  P.push(insight('note', 'Not', `Bu rapor, ${name}'in test yanıtlarına göre otomatik üretilmiştir. Ayrıntılı yorum için ilgili uzmana danışılabilir.`));
+  P.push(reportFooter());
+  return P.join('\n');
+}
