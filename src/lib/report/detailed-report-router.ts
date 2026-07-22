@@ -14,7 +14,11 @@ import { buildEnneagramDetailedReport } from '../tests/enneagram/detailed-report
 import { buildSinavKaygisiDetailedReport } from '../tests/sinav-kaygisi/detailed-report';
 import { buildCalismaDavranisiDetailedReport } from '../tests/calisma-davranisi/detailed-report';
 import { buildSagSolBeyinDetailedReport } from '../tests/sag-sol-beyin/detailed-report';
-import type { CokluZekaScores, VarkScores, HollandScores, EnneagramScores, SinavKaygisiScores, CalismaDavranisiScores, SagSolBeyinScores } from '../tests/types';
+import { buildD2DikkatDetailedReport } from '../tests/d2-dikkat/detailed-report';
+import { buildBurdonDikkatDetailedReport } from '../tests/burdon-dikkat/detailed-report';
+import { buildHizliOkumaDetailedReport } from '../tests/hizli-okuma/detailed-report';
+import { buildAkademikDetailedReport } from '../tests/akademik-analiz/detailed-report';
+import type { CokluZekaScores, VarkScores, HollandScores, EnneagramScores, SinavKaygisiScores, CalismaDavranisiScores, SagSolBeyinScores, SpeedReadingScores, AkademikScores } from '../tests/types';
 
 /**
  * @returns Deterministik rapor (markdown) veya motoru yoksa `null`.
@@ -40,10 +44,18 @@ export function buildDeterministicReport(
       return buildCalismaDavranisiDetailedReport(scores as CalismaDavranisiScores, student);
     case 'sag-sol-beyin':
       return buildSagSolBeyinDetailedReport(scores as SagSolBeyinScores, student);
+    case 'hizli-okuma':
+      return buildHizliOkumaDetailedReport(scores as SpeedReadingScores, student);
+    case 'akademik-analiz':
+      return buildAkademikDetailedReport(scores as AkademikScores, student);
+    case 'd2-dikkat':
+      return buildD2DikkatDetailedReport(scores as Parameters<typeof buildD2DikkatDetailedReport>[0], student);
+    case 'burdon-dikkat':
+      return buildBurdonDikkatDetailedReport(scores as Parameters<typeof buildBurdonDikkatDetailedReport>[0], student);
     default:
       return null;
   }
 }
 
 /** Deterministik motoru olan test_type'lar (bilgi amaçlı). */
-export const DETERMINISTIC_TEST_TYPES = ['coklu-zeka', 'coklu_zeka', 'vark', 'holland', 'enneagram', 'sinav-kaygisi', 'calisma-davranisi', 'sag-sol-beyin'];
+export const DETERMINISTIC_TEST_TYPES = ['coklu-zeka', 'coklu_zeka', 'vark', 'holland', 'enneagram', 'sinav-kaygisi', 'calisma-davranisi', 'sag-sol-beyin', 'hizli-okuma', 'akademik-analiz', 'd2-dikkat', 'burdon-dikkat'];
