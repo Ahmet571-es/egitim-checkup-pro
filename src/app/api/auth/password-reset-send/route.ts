@@ -1,21 +1,23 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendEmail } from '@/lib/email/client';
+import { generateSecureCode, checkCodeCooldown } from '@/lib/auth/otp';
 
 /**
  * POST /api/auth/password-reset-send
  * Body: { email }
  *
- * Şifre sıfırlama için 6 haneli kod üretir, verification_codes
- * tablosuna yazar, Resend ile email gönderir. Supabase built-in
- * email servisine dokunmaz (rate limit yok).
+ * Şifre sıfırlama için kriptografik güvenli 6 haneli kod üretir,
+ * verification_codes tablosuna yazar, Resend ile e-posta gönderir.
  *
  * Güvenlik:
- * - Email sistemde yoksa yine 200 döner (user enumeration'a
- *   karşı koruma) — kod gönderilmez ama cevap aynı görünür
- * - Her istek önceki kodu siler (aynı email için)
- * - Kod 10 dk geçerli
+ * - E-posta sistemde yoksa yine 200 döner (user enumeration'a karşı)
+ * - Cooldown: aynı e-posta için 60 sn'de tek kod (brute-force + spam koruması)
+ * - Her istek önceki kodu siler; kod 10 dk geçerli
+ * - Doğrulama tarafında deneme sayacı + kilitleme (src/lib/auth/otp.ts)
  */
+
+export const runtime = 'nodejs';
 
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -30,18 +32,27 @@ export async function POST(request: Request) {
 
     const supabase = createAdminClient();
 
-    // Email sistemde mi? Varsa kod gönder, yoksa sessizce "başarılı" de.
-    // User enumeration'a karşı tek tip cevap.
+    // Cooldown — enumeration'ı bozmadan: kod sadece gerçek akışta üretildiği için
+    // 429 yalnızca daha önce kod almış (var olan) e-postalarda tetiklenir; bu da
+    // "kısa süre önce sıfırlama denedim" bilgisidir, hesap varlığını ifşa etmez.
+    const cooldown = await checkCodeCooldown(supabase, email, 60);
+    if (!cooldown.ok) {
+      return NextResponse.json(
+        {
+          error: `Çok sık kod talep ettiniz. Lütfen ${cooldown.retryAfter} saniye sonra tekrar deneyin.`,
+        },
+        { status: 429 },
+      );
+    }
+
+    // E-posta sistemde mi? Varsa kod gönder, yoksa sessizce "başarılı" de.
     const { data: userList } = await supabase.auth.admin.listUsers({
       page: 1,
-      perPage: 1000, // pratik: okul başına 1000 altı
+      perPage: 1000,
     });
-    const userExists = userList?.users?.some(
-      (u) => u.email?.toLowerCase() === email,
-    );
+    const userExists = userList?.users?.some((u) => u.email?.toLowerCase() === email);
 
     if (!userExists) {
-      // Sessiz başarı — aynı response
       console.log(`[password-reset-send] ${email} sistemde yok, sessiz ignore.`);
       return NextResponse.json({
         success: true,
@@ -49,29 +60,22 @@ export async function POST(request: Request) {
       });
     }
 
-    // 6 haneli kod üret
-    const code = String(Math.floor(100000 + Math.random() * 900000));
+    // 6 haneli KRİPTOGRAFİK GÜVENLİ kod
+    const code = generateSecureCode();
 
-    // Eski kodları sil (register-verify ile çakışmasın)
-    await supabase
-      .from('verification_codes')
-      .delete()
-      .eq('email', email);
+    await supabase.from('verification_codes').delete().eq('email', email);
 
-    const { error: insertErr } = await supabase
-      .from('verification_codes')
-      .insert({
-        email,
-        code,
-        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-      });
+    const { error: insertErr } = await supabase.from('verification_codes').insert({
+      email,
+      code,
+      expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    });
 
     if (insertErr) {
       console.error('[password-reset-send] insert error:', insertErr.message);
       return NextResponse.json({ error: 'Kod oluşturulamadı.' }, { status: 500 });
     }
 
-    // Resend ile gönder
     await sendEmail({
       to: email,
       subject: 'Eğitim Check-Up — Şifre Sıfırlama Kodu',

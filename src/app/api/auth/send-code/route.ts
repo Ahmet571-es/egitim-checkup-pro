@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendEmail } from '@/lib/email/client';
+import { generateSecureCode, checkCodeCooldown } from '@/lib/auth/otp';
+
+export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   try {
@@ -9,25 +12,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Geçerli bir e-posta adresi girin.' }, { status: 400 });
     }
 
-    // 6 haneli rastgele kod üret
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-
+    const normalizedEmail = email.toLowerCase().trim();
     const supabase = createAdminClient();
 
-    // Eski kodları sil
-    await supabase
-      .from('verification_codes')
-      .delete()
-      .eq('email', email.toLowerCase().trim());
+    // Cooldown: aynı e-posta için 60 sn içinde ikinci kod üretilemez.
+    // (E-posta bombardımanı + kod yenileme yoluyla brute-force'a karşı.)
+    const cooldown = await checkCodeCooldown(supabase, normalizedEmail, 60);
+    if (!cooldown.ok) {
+      return NextResponse.json(
+        {
+          error: `Çok sık kod talep ettiniz. Lütfen ${cooldown.retryAfter} saniye sonra tekrar deneyin.`,
+        },
+        { status: 429 },
+      );
+    }
 
-    // Yeni kodu kaydet (10 dk geçerli)
-    const { error: insertErr } = await supabase
-      .from('verification_codes')
-      .insert({
-        email: email.toLowerCase().trim(),
-        code,
-        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-      });
+    // 6 haneli KRİPTOGRAFİK GÜVENLİ kod (Math.random YASAK).
+    const code = generateSecureCode();
+
+    // Eski kodları sil
+    await supabase.from('verification_codes').delete().eq('email', normalizedEmail);
+
+    // Yeni kodu kaydet (10 dk geçerli, attempts=0 varsayılan)
+    const { error: insertErr } = await supabase.from('verification_codes').insert({
+      email: normalizedEmail,
+      code,
+      expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    });
 
     if (insertErr) {
       console.error('[send-code] insert error:', insertErr.message);
@@ -36,7 +47,7 @@ export async function POST(request: Request) {
 
     // E-posta gönder
     const result = await sendEmail({
-      to: email.toLowerCase().trim(),
+      to: normalizedEmail,
       subject: 'Eğitim Check-Up — Doğrulama Kodunuz',
       html: `
         <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
@@ -52,14 +63,13 @@ export async function POST(request: Request) {
 
     if (!result.success) {
       // Güvenlik: kodu response'ta ASLA döndürme. Sadece server log'a yaz.
-      // (KVKK + yetkisiz kayıt önleme: herkese açık endpoint herhangi bir email için kod veremez.)
-      console.warn('[send-code] email failed for %s: %s', email.toLowerCase().trim(), result.error);
+      console.warn('[send-code] email failed for %s: %s', normalizedEmail, result.error);
       return NextResponse.json(
         {
           success: false,
           error: 'E-posta servisi geçici olarak kullanılamıyor. Lütfen daha sonra tekrar deneyin.',
         },
-        { status: 503 }
+        { status: 503 },
       );
     }
 

@@ -1,18 +1,17 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { verifyOtpCode } from '@/lib/auth/otp';
 
 /**
  * POST /api/auth/password-reset-verify
  * Body: { email, code, new_password }
  *
- * Kodu doğrular, geçerliyse kullanıcının şifresini günceller.
- * admin.auth.admin.updateUserById ile Supabase email'i tetiklenmez.
- *
- * Kod bir kere kullanılır (used=true). Yanlış kod tekrarları için
- * frontend rate-limit yapsın (API tarafında ek koruma yok — veri
- * tabanı yavaş bir şey değil ama 1000 istekle brute force 6-haneli
- * kodu kırmak ~3 saat. Bu kod 10 dk sonra expired).
+ * Kodu doğrular (deneme sayacı + 5 yanlışta kilitleme — src/lib/auth/otp.ts),
+ * geçerliyse kullanıcının şifresini günceller.
+ * admin.auth.admin.updateUserById ile Supabase e-postası tetiklenmez.
  */
+
+export const runtime = 'nodejs';
 
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -35,15 +34,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '6 haneli doğrulama kodunu girin.' }, { status: 400 });
     }
     if (!newPassword || newPassword.length < 8) {
-      return NextResponse.json(
-        { error: 'Yeni şifre en az 8 karakter olmalı.' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: 'Yeni şifre en az 8 karakter olmalı.' }, { status: 400 });
     }
     if (newPassword.length > 72) {
       return NextResponse.json({ error: 'Şifre en fazla 72 karakter.' }, { status: 400 });
     }
-    // Basit karmaşıklık kontrolü
     if (!/[A-Za-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
       return NextResponse.json(
         { error: 'Şifre en az bir harf ve bir rakam içermeli.' },
@@ -53,35 +48,10 @@ export async function POST(request: Request) {
 
     const supabase = createAdminClient();
 
-    // Kodu doğrula
-    const { data: record } = await supabase
-      .from('verification_codes')
-      .select('id, code, expires_at, used')
-      .eq('email', email)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (!record) {
-      return NextResponse.json(
-        { error: 'Kod bulunamadı. Yeni bir kod talep edin.' },
-        { status: 404 },
-      );
-    }
-    if (record.used) {
-      return NextResponse.json(
-        { error: 'Bu kod daha önce kullanılmış. Yeni bir kod talep edin.' },
-        { status: 400 },
-      );
-    }
-    if (new Date(record.expires_at).getTime() < Date.now()) {
-      return NextResponse.json(
-        { error: 'Kodun süresi doldu. Yeni bir kod talep edin.' },
-        { status: 400 },
-      );
-    }
-    if (record.code !== code) {
-      return NextResponse.json({ error: 'Kod hatalı.' }, { status: 400 });
+    // Kodu doğrula — deneme sayacı + kilitleme burada devreye girer.
+    const verify = await verifyOtpCode(supabase, email, code);
+    if (!verify.ok) {
+      return NextResponse.json({ error: verify.error }, { status: verify.status });
     }
 
     // Kullanıcıyı bul
@@ -95,21 +65,14 @@ export async function POST(request: Request) {
     }
 
     // Şifreyi güncelle
-    const { error: updateErr } = await supabase.auth.admin.updateUserById(
-      user.id,
-      { password: newPassword },
-    );
+    const { error: updateErr } = await supabase.auth.admin.updateUserById(user.id, {
+      password: newPassword,
+    });
 
     if (updateErr) {
       console.error('[password-reset-verify] update error:', updateErr.message);
       return NextResponse.json({ error: 'Şifre güncellenemedi.' }, { status: 500 });
     }
-
-    // Kodu işaretle (used)
-    await supabase
-      .from('verification_codes')
-      .update({ used: true })
-      .eq('id', record.id);
 
     return NextResponse.json({
       success: true,
