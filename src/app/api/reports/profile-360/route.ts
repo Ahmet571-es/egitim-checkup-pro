@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { generateAIReport } from '@/lib/ai/claude-client';
-import { TEST_LABELS } from '@/lib/services/correlation';
+import { buildHolisticDeterministicReport } from '@/lib/report/holistic-report';
 import type { PatternInsight } from '@/lib/services/correlation';
 import type { RiskResult } from '@/lib/services/riskScore';
 import type { CareerMatchResult } from '@/lib/services/careerMatch';
@@ -49,67 +48,21 @@ export async function POST(request: NextRequest) {
     }
     const verifiedResults = Array.from(latestResults.values());
 
-    // Test verilerini formatla (sunucu doğrulamalı veriler)
-    const testSummary = verifiedResults
-      .map(r => {
-        const label = TEST_LABELS[r.test_type] || r.test_type;
-        return `### ${label}\n\`\`\`json\n${JSON.stringify(r.scores, null, 2)}\n\`\`\``;
-      })
-      .join('\n\n');
+    // Öğrenci adını al (kişiselleştirme için)
+    const { data: prof } = await supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
+    const studentName = prof?.full_name || 'Öğrenci';
 
-    // Korelasyon bulgularını formatla
-    const patternSummary = patterns.length > 0
-      ? patterns.map(p => `- **${p.title}** (${p.severity}): ${p.description}`).join('\n')
-      : 'Belirgin korelasyon bulgusu tespit edilmedi.';
-
-    // Risk özeti
-    const riskSummary = risk
-      ? `Risk Skoru: ${risk.overallScore}/100 (${risk.label})\nBoyutlar: ${risk.dimensions.map(d => `${d.name}: ${d.available ? d.score : 'veri yok'}`).join(', ')}\nUyarılar: ${risk.flags.map(f => f.message).join('; ') || 'Yok'}`
-      : 'Risk verisi mevcut değil.';
-
-    // Kariyer özeti
-    const careerSummary = careers && careers.topCareers.length > 0
-      ? `Holland Kodu: ${careers.hollandCode || 'N/A'}\nBaskın Zekâ: ${careers.dominantZeka || 'N/A'}\nÖğrenme Stili: ${careers.varkStyle || 'N/A'}\nÖnerilen Kariyerler: ${careers.topCareers.map(c => `${c.career} (%${c.matchScore})`).join(', ')}`
-      : 'Kariyer verisi mevcut değil.';
-
-    const prompt = `# ROL
-
-Sen, Türkiye'nin önde gelen eğitim psikolojisi merkezlerinde uzmanlaşmış bir Klinik Eğitim Psikoloğusun.
-Bu öğrencinin 360° bütüncül profil raporunu hazırla.
-
-# TEST VERİLERİ
-
-${testSummary}
-
-# ÇAPRAZ KORELASYON BULGULARI
-
-${patternSummary}
-
-# RİSK DEĞERLENDİRMESİ
-
-${riskSummary}
-
-# KARİYER EŞLEŞTİRMESİ
-
-${careerSummary}
-
-# RAPOR FORMATI
-
-Lütfen şu bölümleri içeren, yaklaşık 800-1000 kelimelik Türkçe bir rapor yaz:
-
-1. **Genel Profil Özeti**: Tüm test sonuçlarının sentezi
-2. **Güçlü Yönler**: Öğrencinin öne çıkan alanları (verilere dayalı)
-3. **Gelişim Alanları**: Dikkat gerektiren noktalar
-4. **Çapraz Analiz**: Testler arası korelasyonlar ve bağlantılar
-5. **Risk Değerlendirmesi**: Risk durumu ve öneriler
-6. **Kariyer Yönlendirmesi**: Test sonuçlarına dayalı kariyer önerileri
-7. **Eylem Planı**: Somut, uygulanabilir 5 öneri
-
-Her yorumu parantez içinde kaynak test ve puan ile destekle.
-Abartısız, dengeli, bilimsel bir dil kullan.
-Tıbbi tanı terimi kullanma.`;
-
-    const report = await generateAIReport(prompt, { maxTokens: 14000 });
+    // Deterministik (API'SIZ) 360° holistik profil.
+    // risk/örüntü/kariyer client'tan gelir (orijinal davranış), test verileri
+    // sunucudan doğrulanır. Güvenli varsayılanlarla korunur.
+    const report = buildHolisticDeterministicReport(
+      verifiedResults.map(r => ({ test_type: r.test_type, scores: r.scores })),
+      { studentName, studentGrade: null },
+      risk || { overallScore: 0, label: 'Veri yok', dimensions: [], flags: [] },
+      patterns || [],
+      careers || { topCareers: [], hollandCode: null, dominantZeka: null, varkStyle: null },
+      { hasGeneticReport: false, geneticReportCount: 0 },
+    );
     return NextResponse.json({ report });
   } catch {
     return NextResponse.json(
