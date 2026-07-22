@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { listAllAuthUsers } from '@/lib/auth/admin-users';
 
 /**
  * GET /api/teacher/pending-parents
@@ -38,13 +39,10 @@ export async function GET() {
     // Öğretmenin yetkili olduğu öğrencileri bul
     // Pattern: student.user_metadata.assigned_teacher_id = user.id
     // school_admin için tüm okul öğrencileri
-    const { data: allStudents } = await admin.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
-    });
+    const allStudents = await listAllAuthUsers(admin);
 
     const teacherStudentIds: string[] = [];
-    for (const u of allStudents?.users ?? []) {
+    for (const u of allStudents) {
       const meta = u.user_metadata as Record<string, unknown> | null;
       if (meta?.role !== 'student') continue;
       // Teacher: sadece kendi öğrencileri

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyOtpCode } from '@/lib/auth/otp';
+import { findAuthUserByEmail } from '@/lib/auth/admin-users';
 
 /**
  * POST /api/auth/password-reset-verify
@@ -54,12 +55,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: verify.error }, { status: verify.status });
     }
 
-    // Kullanıcıyı bul
-    const { data: userList } = await supabase.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
-    });
-    const user = userList?.users?.find((u) => u.email?.toLowerCase() === email);
+    // Kullanıcıyı bul (ölçek-güvenli: 1000+ kullanıcıda da bulur)
+    const user = await findAuthUserByEmail(supabase, email);
     if (!user) {
       return NextResponse.json({ error: 'Kullanıcı bulunamadı.' }, { status: 404 });
     }

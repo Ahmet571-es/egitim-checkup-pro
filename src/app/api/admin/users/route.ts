@@ -19,6 +19,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { listAllAuthUsers } from '@/lib/auth/admin-users';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -92,7 +93,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Auth metadata'dan assigned_teacher_id (öğrenciler için)
-      const { data: { users: authUsers } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const authUsers = await listAllAuthUsers(admin);
       const metaMap = new Map<string, Record<string, unknown>>();
       (authUsers || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
 

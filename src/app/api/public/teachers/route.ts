@@ -8,6 +8,7 @@
  */
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { listAllAuthUsers } from '@/lib/auth/admin-users';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +24,7 @@ export async function GET() {
       .order('full_name');
 
     // Auth user_metadata'dan branch + school_name + onay durumu
-    const { data: { users } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+    const users = await listAllAuthUsers(admin);
     const metaMap = new Map<string, Record<string, unknown>>();
     (users || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
 

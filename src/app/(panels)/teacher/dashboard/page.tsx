@@ -9,6 +9,7 @@
 import { getCurrentProfile } from '@/lib/actions/auth';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { listAllAuthUsers } from '@/lib/auth/admin-users';
 import DashboardClient from './DashboardClient';
 import IntroVideoOverlay from '@/components/ui/IntroVideoOverlay';
 
@@ -32,7 +33,7 @@ export default async function Page() {
       const admin = createAdminClient();
 
       // Atanmış öğrencileri auth.users metadata'dan bul
-      const { data: { users: authUsers } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const authUsers = await listAllAuthUsers(admin);
       const myStudentIds = (authUsers || [])
         .filter((u) => {
           const meta = (u.user_metadata || {}) as Record<string, unknown>;

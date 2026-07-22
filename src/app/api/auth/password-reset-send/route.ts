@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendEmail } from '@/lib/email/client';
 import { generateSecureCode, checkCodeCooldown } from '@/lib/auth/otp';
+import { findAuthUserByEmail } from '@/lib/auth/admin-users';
 
 /**
  * POST /api/auth/password-reset-send
@@ -46,11 +47,8 @@ export async function POST(request: Request) {
     }
 
     // E-posta sistemde mi? Varsa kod gönder, yoksa sessizce "başarılı" de.
-    const { data: userList } = await supabase.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
-    });
-    const userExists = userList?.users?.some((u) => u.email?.toLowerCase() === email);
+    // (Ölçek-güvenli: 1000+ kullanıcıda da doğru bulur.)
+    const userExists = !!(await findAuthUserByEmail(supabase, email));
 
     if (!userExists) {
       console.log(`[password-reset-send] ${email} sistemde yok, sessiz ignore.`);

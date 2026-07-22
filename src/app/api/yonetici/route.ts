@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { listAllAuthUsers } from '@/lib/auth/admin-users';
 
 const ADMIN_PASSWORD = 'ANKA_KUSU2026';
 
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
       // Tüm kullanıcı metadata + auth.users.email (login email, source of truth)
-      const { data: { users: allUsers } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      const allUsers = await listAllAuthUsers(supabase);
       const metaMap = new Map<string, Record<string, unknown>>();
       const authEmailMap = new Map<string, string>();
       (allUsers || []).forEach((u) => {
@@ -183,7 +184,7 @@ export async function POST(req: NextRequest) {
         .eq('role', 'student');
 
       // Tüm öğrenci user_metadata'larını çek
-      const { data: { users: allAuthUsers } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      const allAuthUsers = await listAllAuthUsers(supabase);
       const studentMetaMap = new Map<string, Record<string, string>>();
       (allAuthUsers || []).forEach((u) => {
         studentMetaMap.set(u.id, (u.user_metadata || {}) as Record<string, string>);
@@ -351,8 +352,7 @@ export async function POST(req: NextRequest) {
     // ═══ Onay Bekleyen Öğretmenler ═══
     if (action === 'list-pending-teachers') {
       // Auth admin API ile tüm kullanıcıları çek, is_approved=false olanları filtrele
-      const { data: { users }, error: listErr } = await supabase.auth.admin.listUsers({ perPage: 500 });
-      if (listErr) return NextResponse.json({ error: listErr.message }, { status: 500 });
+      const users = await listAllAuthUsers(supabase);
 
       const pending = (users || [])
         .filter(u => u.user_metadata?.role === 'teacher' && u.user_metadata?.is_approved === false)
@@ -409,8 +409,7 @@ export async function POST(req: NextRequest) {
       role: 'student' | 'parent' | 'teacher',
       approved: boolean
     ) {
-      const { data: { users }, error: listErr } = await supabase.auth.admin.listUsers({ perPage: 1000 });
-      if (listErr) throw new Error(listErr.message);
+      const users = await listAllAuthUsers(supabase);
 
       const wantsApproved = approved;
       const filtered = (users || []).filter(u => {
@@ -588,7 +587,7 @@ export async function POST(req: NextRequest) {
       if (studentIds.length === 0) return new Map<string, { full_name: string; teacher_name: string | null; teacher_id: string | null }>();
 
       // auth.users metadata (assigned_teacher_id için)
-      const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      const users = await listAllAuthUsers(supabase);
       const userMetaMap = new Map<string, Record<string, unknown>>();
       (users || []).forEach(u => userMetaMap.set(u.id, u.user_metadata || {}));
 
@@ -865,7 +864,7 @@ export async function POST(req: NextRequest) {
       const userIds = Array.from(new Set((requests || []).map(r => r.user_id).filter(Boolean) as string[]));
       let userMap = new Map<string, { full_name: string; role: string; email: string }>();
       if (userIds.length > 0) {
-        const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+        const users = await listAllAuthUsers(supabase);
         (users || []).forEach(u => {
           if (userIds.includes(u.id)) {
             userMap.set(u.id, {

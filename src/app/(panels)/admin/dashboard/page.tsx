@@ -9,6 +9,7 @@ import {
   Lock, AlertCircle, Clock, Crown,
 } from 'lucide-react';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { listAllAuthUsers } from '@/lib/auth/admin-users';
 import TiltStatCard from '@/components/ui/TiltStatCard';
 import PageHeader from '@/components/ui/PageHeader';
 import PendingResetBanner from '@/components/PendingResetBanner';
@@ -40,7 +41,7 @@ export default async function Page() {
     pending_student: 0, pending_teacher: 0, pending_parent: 0, total: 0,
   };
   try {
-    const { data: { users } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+    const users = await listAllAuthUsers(admin);
     (users || []).forEach((u) => {
       const role = (u.user_metadata?.role as string) || '';
       const isApproved = u.user_metadata?.is_approved !== false;

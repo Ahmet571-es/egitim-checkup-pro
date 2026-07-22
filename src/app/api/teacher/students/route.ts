@@ -11,6 +11,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { listAllAuthUsers } from '@/lib/auth/admin-users';
 import { createClient } from '@/lib/supabase/server';
 import { calculateCorrelation, identifyPatterns } from '@/lib/services/correlation';
 import { calculateRiskScore } from '@/lib/services/riskScore';
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
         .order('full_name');
 
       // Tüm öğrenci user_metadata
-      const { data: { users } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const users = await listAllAuthUsers(admin);
       const metaMap = new Map<string, Record<string, unknown>>();
       (users || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
 
@@ -387,9 +388,9 @@ export async function POST(req: NextRequest) {
         .eq('role', 'teacher')
         .order('full_name');
 
-      const { data: authList } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const authList = await listAllAuthUsers(admin);
       const metaMap = new Map<string, Record<string, unknown>>();
-      (authList?.users || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
+      (authList || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
 
       const teachers = (profiles || [])
         .map((p) => {
@@ -503,7 +504,7 @@ export async function POST(req: NextRequest) {
       (profiles || []).forEach((p) => profileMap.set(p.id, p));
 
       // Auth metadata (school_name + grade fallback için)
-      const { data: { users } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const users = await listAllAuthUsers(admin);
       const metaMap = new Map<string, Record<string, unknown>>();
       (users || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
 
@@ -574,7 +575,7 @@ export async function POST(req: NextRequest) {
         .order('created_at', { ascending: false });
 
       // Auth metadata ile assigned_teacher_id çek
-      const { data: { users: authUsers } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const authUsers = await listAllAuthUsers(admin);
       const metaMap = new Map<string, Record<string, unknown>>();
       (authUsers || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
 
