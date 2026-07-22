@@ -183,7 +183,7 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
   const [answers, setAnswers] = useState<AnswerMap>({});
   const [currentQ, setCurrentQ] = useState(0);
   const [elapsed, setElapsed] = useState(0);
-  const [result, setResult] = useState<{ main: string; desc: string; scores: { label: string; value: string; pct?: number }[]; report: string } | null>(null);
+  const [result, setResult] = useState<{ main: string; desc: string; scores: { label: string; value: string; pct?: number }[]; report: string; raw?: unknown } | null>(null);
   // Bölüm geçiş ekranı için onay seti (hangi sorulardaki geçiş ekranları gösterildi)
   const [acknowledgedSections, setAcknowledgedSections] = useState<Set<string | number>>(new Set());
 
@@ -362,6 +362,9 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
       }
       scoresObj._main = result.main;
       scoresObj._desc = result.desc;
+      // Deterministik rapor motorları için ZENGİN calculate çıktısını sakla.
+      // breakdownEntries gibi display tüketicileri '_' önekli anahtarları hariç tutar.
+      if (result.raw !== undefined && result.raw !== null) scoresObj._full = result.raw;
 
       // Kayıt stratejisi enjekte edilir:
       //   öğrenci  → test_results (school_id ile)
@@ -449,6 +452,7 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
               { label: '🔬 Sol Beyin', value: `${s.solBeyin}/${SAG_SOL_BEYIN_QUESTIONS.length}`, pct: s.solYuzde },
             ],
             report: r,
+            raw: s,
           });
           break;
         }
@@ -460,6 +464,7 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
             desc: s.isMultimodal ? 'Birden fazla öğrenme stilini dengeli kullanıyorsun.' : `${s.dominant[0]} stilinde güçlüsün.`,
             scores: s.sorted.map(([k, v]) => ({ label: k, value: v.toString(), pct: s.percentages[k] })),
             report: r,
+            raw: s,
           });
           break;
         }
@@ -471,6 +476,7 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
             desc: s.top3.map(([k]) => k).join(' • '),
             scores: s.sortedTypes.map(([k, v]) => ({ label: k, value: v.toString(), pct: Math.round(v / 56 * 100) })),
             report: r,
+            raw: s,
           });
           break;
         }
@@ -482,6 +488,7 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
             desc: `Baskın kişilik tipiniz tespit edildi.`,
             scores: s.sortedScores.slice(0, 5).map(([t, p]) => ({ label: `Tip ${t}`, value: `%${p}`, pct: p })),
             report: r,
+            raw: s,
           });
           break;
         }
@@ -493,6 +500,7 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
             desc: s.profile.description,
             scores: s.top3.map(([k, v]) => ({ label: k, value: `%${v.pct}`, pct: v.pct })),
             report: r,
+            raw: s,
           });
           break;
         }
@@ -511,6 +519,7 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
               })),
             ],
             report: r,
+            raw: s,
           });
           break;
         }
@@ -524,6 +533,7 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
               label: k, value: v.toString(),
             })),
             report: r,
+            raw: s,
           });
           break;
         }
@@ -539,6 +549,7 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
               { label: 'Gelişim', value: `${s.weakest.name} (%${s.weakest.pct})` },
             ],
             report: r,
+            raw: s,
           });
           break;
         }
@@ -581,6 +592,7 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
         { label: 'Tutarlılık', value: s.consistency },
       ],
       report: r,
+      raw: s,
     });
   };
 
@@ -605,6 +617,7 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
         { label: 'Yanlış İşaret (E2)', value: s.totalCommission.toString() },
       ],
       report: `${s.patternFinding}\n\n${s.patternSuggestion}`,
+      raw: s,
     });
   };
 
@@ -622,6 +635,7 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
         { label: 'Doğru/Toplam', value: `${s.correct}/${s.total}` },
       ],
       report: '',
+      raw: s,
     });
   };
 

@@ -35,9 +35,14 @@ function n(v: unknown, d = 0): number { const x = Number(v); return Number.isFin
 function s(v: unknown, d = '—'): string { return (v == null || v === '') ? d : String(v); }
 
 // ── Test bazlı özet çıkarıcı ─────────────────────────────
-export function extractHighlight(testType: string, sc: Record<string, unknown>): Highlight | null {
+export function extractHighlight(testType: string, scInput: Record<string, unknown>): Highlight | null {
   const t = testType.toLowerCase();
-  switch (t) {
+  // Zengin calculate çıktısı `_full` altında saklanır (display '_' anahtarları yok sayar).
+  // Varsa onu kullan; yoksa (eski/düz veri) gelen nesneyi dener.
+  const sc = scInput && typeof scInput === 'object' && '_full' in scInput && scInput._full != null
+    ? (scInput._full as Record<string, unknown>) : scInput;
+  try {
+    switch (t) {
     case 'vark': {
       const dom = (sc.dominant as [string, number]) || null;
       const pct = clampPct(n(dom?.[1]));
@@ -160,6 +165,10 @@ export function extractHighlight(testType: string, sc: Record<string, unknown>):
     }
     default:
       return null;
+    }
+  } catch (e) {
+    console.warn(`[extractHighlight] ${t} atlandı (veri şekli):`, (e as Error).message);
+    return null;
   }
 }
 

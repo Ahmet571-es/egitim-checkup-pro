@@ -29,32 +29,43 @@ export function buildDeterministicReport(
   scores: unknown,
   student: StudentInfo,
 ): string | null {
-  switch (testType) {
-    case 'coklu-zeka':
-    case 'coklu_zeka':
-      return buildCokluZekaDetailedReport(scores as CokluZekaScores, student);
-    case 'vark':
-      return buildVarkDetailedReport(scores as VarkScores, student);
-    case 'holland':
-      return buildHollandDetailedReport(scores as HollandScores, student);
-    case 'enneagram':
-      return buildEnneagramDetailedReport(scores as EnneagramScores, student);
-    case 'sinav-kaygisi':
-      return buildSinavKaygisiDetailedReport(scores as SinavKaygisiScores, student);
-    case 'calisma-davranisi':
-      return buildCalismaDavranisiDetailedReport(scores as CalismaDavranisiScores, student);
-    case 'sag-sol-beyin':
-      return buildSagSolBeyinDetailedReport(scores as SagSolBeyinScores, student);
-    case 'hizli-okuma':
-      return buildHizliOkumaDetailedReport(scores as SpeedReadingScores, student);
-    case 'akademik-analiz':
-      return buildAkademikDetailedReport(scores as AkademikScores, student);
-    case 'd2-dikkat':
-      return buildD2DikkatDetailedReport(scores as Parameters<typeof buildD2DikkatDetailedReport>[0], student);
-    case 'burdon-dikkat':
-      return buildBurdonDikkatDetailedReport(scores as Parameters<typeof buildBurdonDikkatDetailedReport>[0], student);
-    default:
-      return null;
+  // TestPlayer, zengin calculate çıktısını `_full` altında saklar (display
+  // tüketicileri '_' önekli anahtarları yok sayar). Zengin veri varsa onu kullan;
+  // yoksa (eski/düz veri) gelen scores'u olduğu gibi dener.
+  const obj = scores && typeof scores === 'object' ? (scores as Record<string, unknown>) : null;
+  const rich = obj && '_full' in obj && obj._full != null ? (obj._full as unknown) : scores;
+  try {
+    switch (testType) {
+      case 'coklu-zeka':
+      case 'coklu_zeka':
+        return buildCokluZekaDetailedReport(rich as CokluZekaScores, student);
+      case 'vark':
+        return buildVarkDetailedReport(rich as VarkScores, student);
+      case 'holland':
+        return buildHollandDetailedReport(rich as HollandScores, student);
+      case 'enneagram':
+        return buildEnneagramDetailedReport(rich as EnneagramScores, student);
+      case 'sinav-kaygisi':
+        return buildSinavKaygisiDetailedReport(rich as SinavKaygisiScores, student);
+      case 'calisma-davranisi':
+        return buildCalismaDavranisiDetailedReport(rich as CalismaDavranisiScores, student);
+      case 'sag-sol-beyin':
+        return buildSagSolBeyinDetailedReport(rich as SagSolBeyinScores, student);
+      case 'hizli-okuma':
+        return buildHizliOkumaDetailedReport(rich as SpeedReadingScores, student);
+      case 'akademik-analiz':
+        return buildAkademikDetailedReport(rich as AkademikScores, student);
+      case 'd2-dikkat':
+        return buildD2DikkatDetailedReport(rich as Parameters<typeof buildD2DikkatDetailedReport>[0], student);
+      case 'burdon-dikkat':
+        return buildBurdonDikkatDetailedReport(rich as Parameters<typeof buildBurdonDikkatDetailedReport>[0], student);
+      default:
+        return null;
+    }
+  } catch (e) {
+    // Bilinen tür ama veri şekli bozuk/eski → 500 yerine güvenli generic rapor
+    console.error(`[buildDeterministicReport] ${testType} builder hatası, generic fallback:`, (e as Error).message);
+    return buildGenericDeterministicReport(testType, scores, student);
   }
 }
 
