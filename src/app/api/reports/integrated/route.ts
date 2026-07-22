@@ -2,12 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { serverError, logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { generateAIReport } from '@/lib/ai/claude-client';
-import {
-  buildIntegratedReportPrompt,
-  normalizeTestName,
-  type IntegratedReportType,
-} from '@/lib/ai/prompts/integrated-report';
+import { normalizeTestName, type IntegratedReportType } from '@/lib/ai/prompts/integrated-report';
+import { buildIntegratedDeterministicReport, type IntegratedAudience } from '@/lib/report/integrated-report';
 import { checkRateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -139,6 +135,7 @@ export async function POST(request: NextRequest) {
     }
 
     const testDataList = results.map(r => ({
+      test_type: r.test_type,
       test_name: normalizeTestName(r.test_type),
       scores: r.scores ?? {},
       date: r.completed_at,
@@ -201,25 +198,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 3 raporu paralel uret (Vercel Hobby 60s limiti icin)
+    // Deterministik (API'SIZ) entegre rapor üretimi — 3 hedef kitle
     const reports: Record<string, string> = {};
-    const genPromises = (report_types as IntegratedReportType[]).map(async (reportType) => {
+    for (const reportType of (report_types as IntegratedReportType[])) {
       const isTeacher = reportType === 'ogretmen';
-      const prompt = buildIntegratedReportPrompt({
-        ...baseParams,
-        reportType,
-        // KVKK: DMIT context flag SADECE ogretmen'de true
-        hasGeneticContext: isTeacher && geneticAttachments.length > 0,
-        geneticReportCount: isTeacher ? geneticCount : 0,
-      });
-      const text = await generateAIReport(prompt, {
-        maxTokens: 16000,
-        // KVKK: PDF ekleri SADECE ogretmen audience'a
-        pdfAttachments: isTeacher && geneticAttachments.length > 0 ? geneticAttachments : undefined,
-      });
-      reports[reportType] = text;
-    });
-    await Promise.all(genPromises);
+      reports[reportType] = buildIntegratedDeterministicReport(
+        baseParams.testDataList,
+        { studentName: baseParams.studentName, studentGrade: null },
+        reportType as IntegratedAudience,
+        {
+          // KVKK: DMIT notu SADECE ogretmen'de
+          hasGeneticContext: isTeacher && geneticAttachments.length > 0,
+          geneticReportCount: isTeacher ? geneticCount : 0,
+        },
+      );
+    }
 
     // Admin client ile entegre raporları kaydet (RLS bypass)
     const sourceTestTypes = results.map(r => r.test_type);
@@ -395,6 +388,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const testDataList = results.map(r => ({
+      test_type: r.test_type,
       test_name: normalizeTestName(r.test_type),
       scores: r.scores ?? {},
       date: r.completed_at,
@@ -429,19 +423,18 @@ export async function PUT(request: NextRequest) {
     }
 
     const reports: Record<string, string> = {};
-    await Promise.all(reportTypes.map(async (reportType) => {
+    for (const reportType of reportTypes) {
       const isTeacher = reportType === 'ogretmen';
-      const prompt = buildIntegratedReportPrompt({
-        ...baseParams,
-        reportType,
-        hasGeneticContext: isTeacher && geneticAttachmentsPut.length > 0,
-        geneticReportCount: isTeacher ? geneticCountPut : 0,
-      });
-      reports[reportType] = await generateAIReport(prompt, {
-        maxTokens: 16000,
-        pdfAttachments: isTeacher && geneticAttachmentsPut.length > 0 ? geneticAttachmentsPut : undefined,
-      });
-    }));
+      reports[reportType] = buildIntegratedDeterministicReport(
+        baseParams.testDataList,
+        { studentName: baseParams.studentName, studentGrade: null },
+        reportType as IntegratedAudience,
+        {
+          hasGeneticContext: isTeacher && geneticAttachmentsPut.length > 0,
+          geneticReportCount: isTeacher ? geneticCountPut : 0,
+        },
+      );
+    }
 
     // Admin client ile kaydet (RLS bypass)
     const sourceTestTypesPut = results.map(r => r.test_type);
