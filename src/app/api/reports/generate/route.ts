@@ -4,8 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateAIReport } from '@/lib/ai/claude-client';
 import { buildSingleTestPrompt } from '@/lib/ai/prompts/single-test';
-import { buildCokluZekaDetailedReport } from '@/lib/tests/coklu-zeka/detailed-report';
-import type { CokluZekaScores } from '@/lib/tests/types';
+import { buildDeterministicReport } from '@/lib/report/detailed-report-router';
 import { buildHolisticPrompt } from '@/lib/ai/prompts/holistic';
 import { calculateRiskScore, getRiskLevel } from '@/lib/services/riskScore';
 import { identifyPatterns } from '@/lib/services/correlation';
@@ -353,15 +352,16 @@ export async function POST(request: NextRequest) {
     // ── Çoklu Zekâ → DETERMİNİSTİK MOTOR (API kullanmaz) ──
     // Öğretmen panelindeki "analiz" butonu artık bu test için kendi sistem
     // analizimizi üretir. Diğer testler şimdilik AI ile devam eder.
-    const isCokluZeka =
-      testResult.test_type === 'coklu-zeka' || testResult.test_type === 'coklu_zeka';
+    // Deterministik motor (API'SIZ) — motoru olan testler için. Yoksa AI'a düşer.
+    const deterministic = buildDeterministicReport(
+      testResult.test_type,
+      testResult.scores,
+      { studentName: student.full_name, studentGrade: null },
+    );
 
     let report: string;
-    if (isCokluZeka) {
-      report = buildCokluZekaDetailedReport(
-        testResult.scores as unknown as CokluZekaScores,
-        { studentName: student.full_name, studentGrade: null },
-      );
+    if (deterministic !== null) {
+      report = deterministic;
     } else {
       const prompt = buildSingleTestPrompt({
         studentName: student.full_name,
@@ -458,15 +458,16 @@ export async function PUT(request: NextRequest) {
     // ── Çoklu Zekâ → DETERMİNİSTİK MOTOR (API kullanmaz) ──
     // Öğretmen panelindeki "analiz" butonu artık bu test için kendi sistem
     // analizimizi üretir. Diğer testler şimdilik AI ile devam eder.
-    const isCokluZeka =
-      testResult.test_type === 'coklu-zeka' || testResult.test_type === 'coklu_zeka';
+    // Deterministik motor (API'SIZ) — motoru olan testler için. Yoksa AI'a düşer.
+    const deterministic = buildDeterministicReport(
+      testResult.test_type,
+      testResult.scores,
+      { studentName: student.full_name, studentGrade: null },
+    );
 
     let report: string;
-    if (isCokluZeka) {
-      report = buildCokluZekaDetailedReport(
-        testResult.scores as unknown as CokluZekaScores,
-        { studentName: student.full_name, studentGrade: null },
-      );
+    if (deterministic !== null) {
+      report = deterministic;
     } else {
       const prompt = buildSingleTestPrompt({
         studentName: student.full_name,
