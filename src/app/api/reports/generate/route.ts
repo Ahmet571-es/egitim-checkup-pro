@@ -5,7 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { generateAIReport } from '@/lib/ai/claude-client';
 import { buildSingleTestPrompt } from '@/lib/ai/prompts/single-test';
 import { buildDeterministicReport } from '@/lib/report/detailed-report-router';
-import { buildHolisticPrompt } from '@/lib/ai/prompts/holistic';
+import { buildHolisticDeterministicReport } from '@/lib/report/holistic-report';
 import { calculateRiskScore, getRiskLevel } from '@/lib/services/riskScore';
 import { identifyPatterns } from '@/lib/services/correlation';
 import { matchCareers } from '@/lib/services/careerMatch';
@@ -154,12 +154,6 @@ export async function POST(request: NextRequest) {
         selectedTypes = Array.from(new Set(results.map(r => normalize(r.test_type))));
       }
 
-      const testDataList = filteredResults.map(r => ({
-        test_name: r.test_type,
-        scores: r.scores ?? {},
-        date: r.completed_at,
-      }));
-
       // İleri Analiz verilerini hesapla (algoritmik, AI çağrısı yok)
       const advancedInput = filteredResults.map(r => ({
         test_type: r.test_type,
@@ -193,43 +187,17 @@ export async function POST(request: NextRequest) {
         }
       } catch { /* tablo yoksa sessiz geç */ }
 
-      const prompt = buildHolisticPrompt({
-        studentName: student.full_name,
-        studentAge: '—',
-        studentGender: '—',
-        testDataList,
+      // Deterministik (API'SIZ) holistic rapor — risk/örüntü/kariyer zaten
+      // deterministik hesaplandı; bu motor onları test bulgularıyla harmanlar.
+      // NOT: DMIT PDF'i deterministik okunamaz → sadece "mevcut" notu düşülür.
+      const report = buildHolisticDeterministicReport(
+        filteredResults.map(r => ({ test_type: r.test_type, scores: r.scores })),
+        { studentName: student.full_name, studentGrade: null },
         riskResult,
         patterns,
         careerMatch,
-        hasGeneticReport: geneticCount > 0,
-        geneticReportCount: geneticCount,
-      });
-
-      // ═══ DMIT PDF'lerini AI context'ine yükle (sadece holistic = teacher tarafı) ═══
-      // Frontend belirli ID'ler seçtiyse onları, yoksa öğrencinin tüm DMIT'ini gönder.
-      let geneticAttachments: import('@/lib/ai/claude-client').PdfAttachment[] = [];
-      if (geneticCount > 0) {
-        try {
-          const { fetchGeneticContext } = await import('@/lib/ai/genetic-context');
-          const ctx = await fetchGeneticContext(student_id, {
-            geneticReportIds: Array.isArray(selected_genetic_report_ids) && selected_genetic_report_ids.length > 0
-              ? selected_genetic_report_ids
-              : undefined,
-          });
-          geneticAttachments = ctx.attachments;
-          if (ctx.skippedReasons.length > 0) {
-            console.warn('[holistic] DMIT context skip:', ctx.skippedReasons.join(' | '));
-          }
-          console.log(`[holistic] ${ctx.count} adet DMIT PDF AI context'ine yüklendi.`);
-        } catch (e) {
-          console.warn('[holistic] DMIT context yükleme hatası:', (e as Error).message);
-        }
-      }
-
-      const report = await generateAIReport(prompt, {
-        maxTokens: 32000,
-        pdfAttachments: geneticAttachments.length > 0 ? geneticAttachments : undefined,
-      });
+        { hasGeneticReport: geneticCount > 0, geneticReportCount: geneticCount },
+      );
 
       // holistic_reports tablosuna YENİ KAYIT olarak ekle (üzerine yazmaz, geçmiş korunur)
       const { data: inserted, error: saveErr } = await admin

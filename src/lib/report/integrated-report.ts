@@ -18,7 +18,7 @@ import {
 
 export type IntegratedAudience = 'ogretmen' | 'ogrenci' | 'ebeveyn';
 
-interface Highlight {
+export interface Highlight {
   order: number;
   group: 'potansiyel' | 'performans';
   testType: string;
@@ -35,7 +35,7 @@ function n(v: unknown, d = 0): number { const x = Number(v); return Number.isFin
 function s(v: unknown, d = '—'): string { return (v == null || v === '') ? d : String(v); }
 
 // ── Test bazlı özet çıkarıcı ─────────────────────────────
-function extractHighlight(testType: string, sc: Record<string, unknown>): Highlight | null {
+export function extractHighlight(testType: string, sc: Record<string, unknown>): Highlight | null {
   const t = testType.toLowerCase();
   switch (t) {
     case 'vark': {
@@ -171,7 +171,7 @@ const AUD: Record<IntegratedAudience, { title: string; recTitle: string }> = {
 };
 
 // ── Çapraz bağlantı sentezi ──────────────────────────────
-function crossSynthesis(name: string, hs: Highlight[]): string[] {
+export function crossSynthesis(name: string, hs: Highlight[]): string[] {
   const out: string[] = [];
   const some = (tt: string, tag: string) => hs.some((h) => h.testType === tt && h.tag === tag);
 
