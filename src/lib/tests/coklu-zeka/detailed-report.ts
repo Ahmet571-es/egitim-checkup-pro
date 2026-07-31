@@ -10,7 +10,10 @@
  */
 import { COKLU_ZEKA_DATA, type ZekaKey } from './data';
 import type { CokluZekaScores, ZekaScore } from '../types';
-import { tamlayan } from '@/lib/utils/turkish';
+import {
+  compareBlock, chainBlock, timelineBlock, quadrantBlock, donutBlock, heatmapBlock, insight,
+} from '../../report/report-blocks';
+import { tamlayan, belirtme, yonelme } from '@/lib/utils/turkish';
 
 export interface CokluZekaStudentInfo {
   studentName: string;
@@ -52,6 +55,21 @@ const WEAK_OBS = [
 
 function pctOf(sd: ZekaScore): number { return clampPct(sd?.pct ?? 0); }
 function shortName(name: string): string { return name.replace(/\s*Zekâ$/, '').replace(/\s*\(.*\)$/, '').trim(); }
+
+/**
+ * Ders alanlarının zekâ türlerine bilinen yükü (0–1). Ölçüm değil; Gardner
+ * modelinin tanımından türetilmiş sabit ağırlıklardır.
+ */
+const SUBJECT_LOAD: Record<string, Partial<Record<ZekaKey, number>>> = {
+  'Matematik':          { mantiksal: 1.0, gorsel: 0.6, sozel: 0.3 },
+  'Fen / Fizik':        { mantiksal: 0.9, gorsel: 0.7, dogaci: 0.6 },
+  'Türkçe / Edebiyat':  { sozel: 1.0, icsel: 0.6, sosyal: 0.4 },
+  'Sosyal / Tarih':     { sozel: 0.8, sosyal: 0.7, gorsel: 0.5 },
+  'Yabancı dil':        { sozel: 0.9, muziksel: 0.6, sosyal: 0.6 },
+  'Görsel sanat':       { gorsel: 1.0, bedensel: 0.5, icsel: 0.4 },
+  'Müzik':              { muziksel: 1.0, bedensel: 0.5, sozel: 0.3 },
+  'Beden eğitimi':      { bedensel: 1.0, sosyal: 0.6, gorsel: 0.4 },
+};
 
 // ── Ana Fonksiyon ────────────────────────────────────────
 export function buildCokluZekaDetailedReport(
@@ -110,16 +128,17 @@ export function buildCokluZekaDetailedReport(
 
   // ── Giriş görsel özeti (renkli kart ızgarası)
   P.push(
-    `[!grid cols="3"]\n` +
+    `[!grid cols="4"]\n` +
     `[!stat label="En Güçlü Alan" value="${topPct}" unit="%" theme="success" icon="brain"]\n` +
     `[!stat label="Güçlü Alan Sayısı" value="${strongCount}" theme="info" icon="star"]\n` +
     `[!stat label="Profil Dengesi" value="${balanceLabel}" theme="primary" icon="compass"]\n` +
+    `[!stat label="Alanlar Arası Fark" value="${gap}" unit=" puan" theme="${gap <= 20 ? 'success' : 'warning'}" icon="activity"]\n` +
     `[/!grid]\n`,
   );
   P.push('---\n');
 
   // ══════════ ÇOKLU ZEKÂ NEDİR (bilgilendirici giriş) ══════════
-  P.push(`## 🔎 Bu Rapor Neyi Ölçüyor?\n`);
+  P.push(`## 🔎 Bu Rapor Neyi Ölçer, Neyi Ölçmez?\n`);
   P.push(
     `Çoklu zekâ kuramı (Howard Gardner), zekânın tek bir sayıya indirgenemeyeceğini; ` +
     `insanların **farklı yollarla** öğrendiğini savunur. Bu rapor "zeki mi değil mi" sorusuna değil, ` +
@@ -127,6 +146,11 @@ export function buildCokluZekaDetailedReport(
     `Sekiz zekâ alanının her biri, bir öğrenme ve ifade kanalıdır. Amaç, güçlü kanalları çalışmanın ` +
     `merkezine almak ve gelişime açık alanları yargılamadan desteklemektir.\n`,
   );
+  P.push(insight('note', 'Kapsam',
+    `**Ölçer:** ${name} hangi kanallardan daha kolay öğreniyor ve kendini ifade ediyor.\n\n` +
+    `**Ölçmez:** IQ, genel zekâ düzeyi, akademik başarı veya yetenek sınırı.\n\n` +
+    `Düşük çıkan bir alan "zayıflık" değil, **henüz daha az kullanılan bir kanal** anlamına gelir. ` +
+    `Çoklu zekâ kuramı bir öğretim çerçevesidir; standart bir zekâ testi değildir.`));
   P.push('---\n');
 
   // ══════════ 1. YÖNETİCİ ÖZETİ ══════════
@@ -153,6 +177,7 @@ export function buildCokluZekaDetailedReport(
     `\n[/!radar]\n`,
   );
   // Ring — en güçlü alanın skoru
+  P.push(donutBlock('En Güçlü Üç Zekâ Alanı', sorted.slice(0, 3).map(([k, sd]) => [shortName(COKLU_ZEKA_DATA[k].name), pctOf(sd)] as [string, number]), topShort));
   P.push(`[!ring label="${topShort}" value="${topPct}" max="100" caption="En güçlü zekâ alanı"]\n`);
   // Detaylı tablo
   P.push(`| Zekâ Türü | Puan | Yüzde | Grafik | Düzey |\n|---|---|---|---|---|`);
@@ -162,6 +187,90 @@ export function buildCokluZekaDetailedReport(
       return `| ${COKLU_ZEKA_DATA[k].icon} ${COKLU_ZEKA_DATA[k].name} | ${sd.raw}/${sd.max} | %${pctOf(sd)} | ${bar(pctOf(sd))} | ${b.risk} ${b.label} |`;
     }).join('\n') + '\n',
   );
+  P.push('---\n');
+
+  // ══════════ 2B. NEDEN — SKORUN ARKASINDAKİ ÖRÜNTÜ ══════════
+  P.push(`## 🧩 NEDEN Böyle Bir Profil Çıktı?\n`);
+  P.push(
+    `Her zekâ alanı için ayrı bir madde grubu sorulur. ${tamlayan(name)} katılım düzeyi ` +
+    `**${topInfo.name.toLocaleLowerCase('tr')}** maddelerinde en yükseğe çıktığı için bu alan öne çıktı. ` +
+    `Aşağıdaki grafik, her alanın **orta düzeyden (%50)** ne kadar saptığını gösterir.\n`,
+  );
+  P.push(compareBlock(
+    'Zekâ Alanları — Orta Düzeyle Karşılaştırma',
+    sorted.map(([k, sd]) => [shortName(COKLU_ZEKA_DATA[k].name), pctOf(sd), 50] as [string, number, number]),
+    { selfLabel: name.split(' ')[0] || name, refLabel: 'Orta düzey' },
+  ));
+  P.push(
+    `Pozitif fark, alanın **güçlü**; negatif fark **gelişime açık** olduğunu gösterir. ` +
+    `En yüksek ve en düşük alan arasındaki **${gap} puanlık** fark, profilin ne kadar uçlaştığını anlatır.\n`,
+  );
+  P.push('---\n');
+
+  // ══════════ 2C. DENGE ANALİZİ ══════════
+  P.push(`## ⚖️ Denge Analizi — Ne Kadar Güçlü, Ne Kadar Dengeli?\n`);
+  P.push(quadrantBlock(
+    'Güç Düzeyi × Profil Dengesi',
+    topPct, clampPct(100 - gap * 1.6),
+    'En güçlü alanın gücü', 'Alanlar arası denge',
+    ['Gelişmekte', 'Tek alan baskın', 'Dengeli ama orta', 'Güçlü ve dengeli'],
+    'Konum bir sıralama değildir; profilin nasıl kullanılacağını gösterir.',
+  ));
+  P.push(
+    gap <= 20
+      ? `Alanlar birbirine yakın (fark ${gap} puan). ${name} farklı kanalları esnekçe kullanabiliyor olabilir. Çeşitlendirilmiş görevler verimli olabilir.\n`
+      : gap <= 40
+        ? `Bazı alanlar belirgin şekilde öne çıkıyor (fark ${gap} puan). Güçlü kanalları merkeze alan bir plan verimli olabilir.\n`
+        : `Profil belirgin şekilde uçlaşmış (fark ${gap} puan). En güçlü alanları merkeze almak yüksek verim getirebilir; zayıf alanlar zorlamadan desteklenmelidir.\n`,
+  );
+  P.push('---\n');
+
+  // ══════════ 2D. NİÇİN — ETKİ ZİNCİRLERİ ══════════
+  P.push(`## 🔗 NİÇİN Önemli? — Neden, Etki ve Sonuç\n`);
+  P.push(`Aşağıdaki zincirler, profilin günlük okul hayatına nasıl yansıyabileceğini gösterir.\n`);
+  P.push(chainBlock('Zekâ Profilinin Yansımaları', [
+    [
+      `${shortName(topInfo.name)} güçlü (%${topPct})`,
+      topInfo.strengths[0],
+      `İlgili derslerde daha az zorlanabilir; bu kanal öğrenmeyi hızlandırabilir`,
+    ],
+    [
+      `${shortName(weakInfo.name)} gelişime açık (%${weakPct})`,
+      weakInfo.description.replace(/\s*$/, ''),
+      `Bu alandaki görevlerde ek zaman veya farklı sunum gerekebilir`,
+    ],
+    [
+      gap <= 20 ? `Alanlar dengeli (fark ${gap} puan)` : `Alanlar arası fark yüksek (${gap} puan)`,
+      gap <= 20 ? 'Farklı görev tiplerine uyum sağlaması kolay olabilir' : 'Görev tipi değiştiğinde performansı dalgalanabilir',
+      gap <= 20 ? 'Çeşitlendirilmiş ödevler verimli olabilir' : 'Güçlü kanaldan giriş yapan ödev tasarımı verimli olabilir',
+    ],
+    [
+      `Güçlü alan sayısı: ${strongCount}`,
+      strongCount >= 3 ? 'Birden fazla kanaldan öğrenebiliyor olabilir' : 'Öğrenme yolu daha dar bir kanala bağlı olabilir',
+      strongCount >= 3 ? 'Proje tabanlı çalışmalar iyi sonuç verebilir' : 'Tek ve tanıdık bir yöntemde derinleşmek daha verimli olabilir',
+    ],
+  ]));
+  P.push('---\n');
+
+  // ══════════ 2E. DERS ALANI UYUM HARİTASI ══════════
+  P.push(`## 🗺️ Ders Alanlarına Uyum Haritası\n`);
+  P.push(
+    `Aşağıdaki tablo, ${tamlayan(name)} zekâ profili ile ders alanlarının bilinen kanal yükünü birleştirir. ` +
+    `Yüksek değer, o dersin mevcut güçlü kanallarla **daha kolay eşleşebileceğini** gösterir. ` +
+    `Düşük değer başarısızlık değil, **farklı bir giriş yolu gerekebileceği** anlamına gelir.\n`,
+  );
+  {
+    const top3keys = sorted.slice(0, 3).map(([k]) => k);
+    const cols = top3keys.map((k) => shortName(COKLU_ZEKA_DATA[k].name));
+    const rows: [string, number[]][] = Object.keys(SUBJECT_LOAD).map((sub) => [
+      sub,
+      top3keys.map((k) => clampPct(pctOf(scores[k]) * (SUBJECT_LOAD[sub][k] ?? 0.3))),
+    ]);
+    P.push(heatmapBlock('Ders Alanı × Güçlü Zekâ Kanalları', cols, rows,
+      'Bu tablo bir başarı tahmini değil, profilden türetilmiş bir uyum göstergesidir.'));
+    const ranked = rows.map(([s, v]) => [s, Math.max(...v)] as [string, number]).sort((a, b) => b[1] - a[1]);
+    P.push(`En yüksek uyum **${ranked[0][0].toLocaleLowerCase('tr')}** alanında. En çok strateji desteği gerekebilecek alan: **${ranked[ranked.length - 1][0].toLocaleLowerCase('tr')}**.\n`);
+  }
   P.push('---\n');
 
   // ══════════ 3. DERİNLEMESİNE YORUM + GAUGE ══════════
@@ -262,6 +371,17 @@ export function buildCokluZekaDetailedReport(
     strategySources.map(([k, sd]) => `${shortName(COKLU_ZEKA_DATA[k].name)}: ${pctOf(sd)}`).join('\n') +
     `\n[/!bars]\n`,
   );
+  P.push(timelineBlock(`${shortName(topInfo.name)} Merkezli 8 Haftalık Plan`, [
+    ['Mevcut yöntemi konuşun', `${name} şu an nasıl çalışıyor — birlikte yazın.`, '1. hafta'],
+    [`${shortName(topInfo.name)} kanalını devreye al`, topInfo.studyTips[0], '1–2. hafta'],
+    ['Tek derste dene', 'En çok zorlandığı derste bu yöntemi uygulayın.', '2–3. hafta'],
+    ['Sonucu ölç', 'Aynı konuda öncesi/sonrası farkı konuşun.', '3. hafta'],
+    [strategySources[1] ? `İkinci kanalı ekle — ${shortName(COKLU_ZEKA_DATA[strategySources[1][0]].name)}` : 'İkinci yöntemi ekle',
+      strategySources[1] ? COKLU_ZEKA_DATA[strategySources[1][0]].studyTips[0] : 'Farklı bir çalışma biçimi deneyin.', '4–5. hafta'],
+    ['Gelişim alanına küçük dokunuş', `${shortName(weakInfo.name)} için: ${weakInfo.studyTips[0]}`, '5–6. hafta'],
+    ['Proje ile birleştir', 'Güçlü kanalları birlikte kullanan küçük bir proje verin.', '6–7. hafta'],
+    ['Rutine dönüştür', 'İşe yarayan yöntemleri haftalık plana sabitleyin.', '8. hafta'],
+  ]));
   strategySources.forEach(([k, sd], idx) => {
     const d = COKLU_ZEKA_DATA[k];
     P.push(
@@ -332,6 +452,16 @@ export function buildCokluZekaDetailedReport(
   P.push(`[!insight type="strength" title="Pekiştir"]\n${topInfo.name} (%${topPct}) en güçlü kanal. Çalışma planının merkezine almak verimi artırabilir.\n[/!insight]\n`);
   P.push(`[!insight type="action" title="Geliştir"]\n${weakInfo.name} (%${weakPct}) için "${weakInfo.studyTips[0]}" gibi küçük adımlar denenebilir.\n[/!insight]\n`);
   P.push(`[!insight type="note" title="Dengele"]\nFarklı yöntemleri deneyerek öğrenme esnekliğini artırmak, uzun vadede faydalı olabilir.\n[/!insight]\n`);
+  P.push('---\n');
+
+  // ══════════ 11. SINIRLILIKLAR ══════════
+  P.push(`## 📎 11. Sınırlılıklar ve Doğru Kullanım\n`);
+  P.push(insight('note', 'Bu Rapor Nasıl Okunmalı?',
+    `- Sonuçlar ${tamlayan(name)} kendi beyanına dayanır; günlük ruh hâli cevapları etkileyebilir.\n` +
+    `- Çoklu zekâ bir öğretim çerçevesidir; standart bir zekâ ölçeği değildir.\n` +
+    `- Düşük puanlı alan "yeteneksizlik" anlamına gelmez; desteklendikçe gelişebilir.\n` +
+    `- Uyum haritası ve kariyer bölümü ölçüm değil, yöntem seçimine yardımcı göstergelerdir.\n` +
+    `- Bu rapor tanı aracı değildir; öğrenme güçlüğü şüphesinde uzman değerlendirmesi gerekir.`));
   P.push(
     `\n### Kapanış Notu\n` +
     `${tamlayan(name)} çoklu zekâ profili, öğrenmeye açık ve yönlendirilebilir bir tabloyu işaret ediyor. ` +
