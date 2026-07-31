@@ -11,8 +11,9 @@
 import {
   clampPct, statGrid, gauge, barsBlock, insight,
   reportFooter, safeName, type StudentInfo,
+  radarBlock, compareBlock, chainBlock, timelineBlock,
 } from './report-blocks';
-import { extractHighlight, crossSynthesis, type Highlight } from './integrated-report';
+import { extractHighlight, crossPatterns, type Highlight } from './integrated-report';
 import { tamlayan } from '@/lib/utils/turkish';
 
 // Servis tipleriyle uyumlu gevşek arayüzler (bağımlılık gevşek tutulur)
@@ -82,15 +83,28 @@ export function buildHolisticDeterministicReport(
   }
   P.push('---\n');
 
+  // ── BÜTÜNLEŞİK PROFİL HARİTASI ──
+  {
+    const allMetrics = highlights.filter((h) => h.metric);
+    if (allMetrics.length >= 3) {
+      P.push(`## 🗺️ Bütünleşik Profil Haritası\n`);
+      P.push(`Tüm testlerin ana göstergeleri tek bir görüntüde. Uçlar arasındaki dengesizlik, öncelik belirlemede yol gösterir.\n`);
+      P.push(radarBlock('Tüm Göstergeler (%)', allMetrics.map((h) => [h.metric!.label, clampPct(h.metric!.value)] as [string, number])));
+      const ort = clampPct(allMetrics.reduce((a, h) => a + h.metric!.value, 0) / allMetrics.length);
+      P.push(compareBlock(
+        'Göstergeler — Kendi Genel Ortalamasıyla Karşılaştırma',
+        allMetrics.map((h) => [h.metric!.label, clampPct(h.metric!.value), ort] as [string, number, number]),
+        { selfLabel: name.split(' ')[0] || name, refLabel: 'Kendi ortalaması' },
+      ));
+      P.push('---\n');
+    }
+  }
+
   // ── 2. TEST PROFİLİ (potansiyel + performans) ──
   if (potansiyel.length) {
     P.push(`## 🌟 2. Potansiyel Profili — Öğrenme ve Kişilik\n`);
     for (const h of potansiyel) {
       P.push(`### ${h.icon} ${h.name}\n${h.headline}\n${h.points.length ? '\n' + h.points.map((p) => `- ${p}`).join('\n') + '\n' : ''}`);
-    }
-    if (potansiyel.length >= 2) {
-      P.push(`### 🔗 Örüntü Sentezi\n`);
-      for (const line of crossSynthesis(name, potansiyel)) P.push(insight('strength', 'Örüntü', line));
     }
     P.push('---\n');
   }
@@ -102,6 +116,45 @@ export function buildHolisticDeterministicReport(
       P.push(`### ${h.icon} ${h.name}\n${h.headline}\n${h.points.length ? '\n' + h.points.map((p) => `- ${p}`).join('\n') + '\n' : ''}`);
     }
     P.push('---\n');
+  }
+
+  // ── TESTLER ARASI ÖRÜNTÜLER (deterministik motor) ──
+  {
+    const pats = crossPatterns(name, highlights);
+    if (pats.length) {
+      const pek = pats.filter((p) => p.kind === 'pekistirme');
+      const ger = pats.filter((p) => p.kind === 'gerilim');
+      const fir = pats.filter((p) => p.kind === 'firsat');
+      P.push(`## 🔗 Testler Arası Örüntüler\n`);
+      P.push(`Testlerin birbirini doğruladığı, birbiriyle gerildiği ve birlikte fırsat yarattığı noktalar.\n`);
+      if (pek.length) {
+        P.push(`### ✅ Birbirini Doğrulayan Bulgular\n`);
+        P.push(chainBlock('Pekiştiren Örüntüler', pek.map((p) => p.chain)));
+        for (const p of pek) P.push(insight('strength', p.title, p.text));
+      }
+      if (ger.length) {
+        P.push(`### ⚠️ Dikkat Gerektiren Kombinasyonlar\n`);
+        P.push(`Bu kombinasyonlar, doğru önerinin yanlış soruna uygulanmasını önler. Sıralama önemlidir.\n`);
+        P.push(chainBlock('Gerilim Örüntüleri', ger.map((p) => p.chain)));
+        for (const p of ger) P.push(insight('risk', p.title, p.text));
+      }
+      if (fir.length) {
+        P.push(`### 🚀 Birlikte Yarattığı Fırsatlar\n`);
+        P.push(chainBlock('Fırsat Örüntüleri', fir.map((p) => p.chain)));
+        for (const p of fir) P.push(insight('action', p.title, p.text));
+      }
+      P.push('---\n');
+
+      // Öncelik sıralı plan
+      const steps: [string, string?, string?][] = [['Sonucu öğrenciyle paylaşın', 'Hangi bulguya şaşırdığını sorun; farkındalık ilk adımdır.', '1. hafta']];
+      for (const g of ger.slice(0, 3)) steps.push([g.title, g.chain[2], `${steps.length + 1}. hafta`]);
+      steps.push(['Ara değerlendirme', 'Ne değişti, hangi yaklaşım işe yaradı — birlikte konuşun.', `${steps.length + 1}. hafta`]);
+      steps.push(['Yeniden ölç', 'Testleri tekrar alıp profildeki değişimi karşılaştırın.', '8–10. hafta']);
+      P.push(`## 📅 Öncelik Sıralı Plan\n`);
+      P.push(`Sıra, tek tek test sonuçlarından değil testlerin birlikte söylediğinden çıkarıldı.\n`);
+      P.push(timelineBlock(`${tamlayan(name)} Yol Haritası`, steps));
+      P.push('---\n');
+    }
   }
 
   // ── 4. ÇAPRAZ ÖRÜNTÜLER (correlation servisi) ──
