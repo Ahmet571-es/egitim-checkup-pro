@@ -23,6 +23,7 @@ import {
   type InsightBlock,
   type BarsBlock,
   type GridBlock,
+  type RadarBlock,
   type CompareBlock,
   type ChainBlock,
   type TimelineBlock,
@@ -379,6 +380,120 @@ function heatmapToPdf(block: HeatmapBlock, audience: InfographicAudience): PdfCo
   return { stack, margin: [0, 6, 0, 8] };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Gerçek grafik çizimleri (pdfmake canvas)
+// Önceden radar → düz çubuk, donut → düz çubuk'a düşürülüyordu; web'deki
+// zengin görselin PDF karşılığı yoktu ve çıktı "basit" görünüyordu.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Radar (örümcek ağı) — eksen sayısı 3+ olduğunda çizilir. */
+function radarCanvasToPdf(block: RadarBlock, audience: InfographicAudience): PdfContentNode {
+  const palette = AUDIENCE_PALETTES[audience];
+  const items: { label: string; value: number }[] = block.items.slice(0, 10).map((i) => ({ label: String(i.label), value: Number(i.value) || 0 }));
+  const n = items.length;
+  const S = 220, R = 78, cx = S / 2, cy = S / 2 + 4;
+  const ang = (i: number) => (i / n) * 2 * Math.PI - Math.PI / 2;
+  const px = (i: number, r: number) => cx + r * Math.cos(ang(i));
+  const py = (i: number, r: number) => cy + r * Math.sin(ang(i));
+
+  const canvas: Record<string, unknown>[] = [];
+  // Izgara halkaları (polygon)
+  for (const frac of [0.25, 0.5, 0.75, 1]) {
+    canvas.push({
+      type: 'polyline',
+      closePath: true,
+      lineWidth: 0.6,
+      lineColor: frac === 1 ? '#cbd5e1' : '#e8edf3',
+      points: items.map((_, i) => ({ x: px(i, R * frac), y: py(i, R * frac) })),
+    });
+  }
+  // Eksen çizgileri
+  for (let i = 0; i < n; i++) {
+    canvas.push({ type: 'line', x1: cx, y1: cy, x2: px(i, R), y2: py(i, R), lineWidth: 0.5, lineColor: '#e2e8f0' });
+  }
+  // Veri poligonu
+  const pts = items.map((it, i) => {
+    const v = Math.max(0, Math.min(100, Number(it.value) || 0)) / 100;
+    return { x: px(i, R * v), y: py(i, R * v) };
+  });
+  canvas.push({ type: 'polyline', closePath: true, points: pts, color: palette.primary, fillOpacity: 0.22 });
+  canvas.push({ type: 'polyline', closePath: true, points: pts, lineWidth: 1.6, lineColor: palette.primary });
+  for (const p of pts) canvas.push({ type: 'ellipse', x: p.x, y: p.y, r1: 2.2, r2: 2.2, color: palette.primary });
+
+  // Etiketler tabloda (canvas metin desteklemiyor)
+  const legend = items.map((it) => ({
+    columns: [
+      { text: it.label, fontSize: 8.5, color: '#374151', width: '*' },
+      { text: `${Math.round(Number(it.value) || 0)}`, fontSize: 8.5, bold: true, color: palette.primary, width: 24, alignment: 'right' },
+    ],
+    margin: [0, 1, 0, 1],
+  }));
+
+  return {
+    stack: [
+      ...(block.title ? [{ text: block.title, bold: true, fontSize: 11, color: '#111827', margin: [0, 0, 0, 4] } as PdfContentNode] : []),
+      {
+        columns: [
+          { width: S + 8, canvas },
+          { width: '*', stack: legend, margin: [8, 14, 0, 0] },
+        ],
+      },
+    ],
+    margin: [0, 6, 0, 10],
+  };
+}
+
+/** Donut — halka dilimleri poligonla yaklaşık çizilir (pdfmake'te arc yok). */
+function donutCanvasToPdf(block: DonutBlock, audience: InfographicAudience): PdfContentNode {
+  const palette = AUDIENCE_PALETTES[audience];
+  const items = block.items.filter((i) => Number(i.value) > 0).slice(0, 8);
+  const total = items.reduce((a, b) => a + Number(b.value), 0) || 1;
+  const S = 150, R = 60, r = 34, cx = S / 2, cy = S / 2;
+  const colors = [palette.primary, palette.secondary, palette.info, palette.warning, palette.accent, '#94a3b8', '#a78bfa', '#f472b6'];
+
+  const canvas: Record<string, unknown>[] = [];
+  let acc = 0;
+  items.forEach((it, idx) => {
+    const frac = Number(it.value) / total;
+    const a0 = acc * 2 * Math.PI - Math.PI / 2;
+    acc += frac;
+    const a1 = acc * 2 * Math.PI - Math.PI / 2;
+    const steps = Math.max(3, Math.ceil((a1 - a0) / 0.18));
+    const pts: { x: number; y: number }[] = [];
+    for (let s = 0; s <= steps; s++) {
+      const a = a0 + ((a1 - a0) * s) / steps;
+      pts.push({ x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) });
+    }
+    for (let s = steps; s >= 0; s--) {
+      const a = a0 + ((a1 - a0) * s) / steps;
+      pts.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
+    }
+    canvas.push({ type: 'polyline', closePath: true, points: pts, color: colors[idx % colors.length] });
+  });
+
+  const legend = items.map((it, idx) => ({
+    columns: [
+      { canvas: [{ type: 'rect', x: 0, y: 2, w: 7, h: 7, r: 1.5, color: colors[idx % colors.length] }], width: 11 },
+      { text: it.label, fontSize: 8.5, color: '#374151', width: '*' },
+      { text: `%${Math.round((Number(it.value) / total) * 100)}`, fontSize: 8.5, bold: true, color: '#111827', width: 26, alignment: 'right' },
+    ],
+    margin: [0, 1.5, 0, 1.5],
+  }));
+
+  return {
+    stack: [
+      ...(block.title ? [{ text: block.title, bold: true, fontSize: 11, color: '#111827', margin: [0, 0, 0, 4] } as PdfContentNode] : []),
+      {
+        columns: [
+          { width: S + 8, canvas },
+          { width: '*', stack: legend, margin: [8, 10, 0, 0] },
+        ],
+      },
+    ],
+    margin: [0, 6, 0, 10],
+  };
+}
+
 function infographicToPdf(block: InfographicBlock, audience: InfographicAudience): PdfContentNode {
   switch (block.kind) {
     case 'stat':
@@ -390,8 +505,10 @@ function infographicToPdf(block: InfographicBlock, audience: InfographicAudience
     case 'bars':
       return barsToPdf(block, audience);
     case 'radar':
-      // PDF'te radar yerine bars (içerik aynı, formattan dolayı görsel değişiyor)
-      return barsToPdf({ kind: 'bars', title: block.title, items: block.items }, audience);
+      // Gerçek radar çizimi (3+ eksen). Daha azsa çubuk daha okunur.
+      return block.items.length >= 3
+        ? radarCanvasToPdf(block, audience)
+        : barsToPdf({ kind: 'bars', title: block.title, items: block.items.map((i) => ({ label: i.label, value: i.value, max: 100 })) }, audience);
     case 'gauge':
       // PDF'te gauge yerine ring (tek değer)
       return ringToPdf(
@@ -409,7 +526,7 @@ function infographicToPdf(block: InfographicBlock, audience: InfographicAudience
     case 'quadrant':
       return quadrantToPdf(block, audience);
     case 'donut':
-      return donutToPdf(block, audience);
+      return donutCanvasToPdf(block, audience);
     case 'heatmap':
       return heatmapToPdf(block, audience);
   }

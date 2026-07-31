@@ -154,12 +154,39 @@ export async function GET(request: NextRequest) {
     }
 
     // Raporu üret
+    //
+    // ÖNEMLİ: Önceden burada motorların kendi generate*Report() şablonları
+    // kullanılıyordu. Bu, aynı test için ÜÇÜNCÜ bir rapor üreticisi demekti;
+    // "Direkt Analiz" ile "Görüntüle/PDF" farklı içerik gösteriyor, kullanıcı
+    // tutarsız kalite görüyordu. Artık her yol AYNI derin motoru kullanıyor.
     try {
-      const report = await generateReportForTest(
+      let report: string;
+      const { buildDeterministicReport } = await import('@/lib/report/detailed-report-router');
+      const { data: prof } = await admin
+        .from('profiles')
+        .select('full_name, grade, birth_date')
+        .eq('id', tr.student_id)
+        .maybeSingle();
+      const { calculateAge } = await import('@/lib/utils/age');
+      const deep = buildDeterministicReport(
         tr.test_type as string,
-        (tr.raw_answers ?? {}) as Record<string | number, string | number | string[]>,
-        (tr.scores ?? {}) as Record<string, unknown>
+        (tr.scores ?? {}) as Record<string, unknown>,
+        {
+          studentName: (prof?.full_name as string) || 'Öğrenci',
+          studentGrade: (prof?.grade as string | number | null) ?? null,
+          studentAge: calculateAge(prof?.birth_date as string | null),
+        },
       );
+      if (deep && deep.trim().length > 0) {
+        report = deep;
+      } else {
+        // Derin motor bu test tipini tanımıyorsa eski şablona düş
+        report = await generateReportForTest(
+          tr.test_type as string,
+          (tr.raw_answers ?? {}) as Record<string | number, string | number | string[]>,
+          (tr.scores ?? {}) as Record<string, unknown>,
+        );
+      }
       return NextResponse.json({
         report,
         test_type: tr.test_type,

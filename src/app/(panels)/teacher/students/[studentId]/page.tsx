@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { secureFetch } from '@/lib/csrf-client';
+import { checkReportFreshness } from '@/lib/report/report-version';
 import ReportRenderer from '@/components/ReportRenderer';
 import TestAnswersViewer from '@/components/teacher/TestAnswersViewer';
 import GeneticReportsSection from '@/components/GeneticReportsSection';
@@ -309,6 +310,45 @@ export default function StudentDetailPage() {
   };
 
   // ═══ Tekil rapor üret ═══
+  /**
+   * Eski sürümle üretilmiş TÜM tekil raporları sırayla yeniler.
+   * Raporlar üretildikleri anda metin olarak saklandığı için motor geliştiğinde
+   * eski kayıtlar kendiliğinden güncellenmiyordu; öğretmen her testte tek tek
+   * "Yenile"ye basmak zorunda kalıyordu.
+   */
+  const refreshStaleReports = async () => {
+    const stale = completed.filter(
+      (c) => c.has_report && !checkReportFreshness(c.ai_report).fresh,
+    );
+    if (stale.length === 0) {
+      setSuccess('✅ Tüm raporlar zaten güncel sürümle üretilmiş.');
+      setTimeout(() => setSuccess(''), 3000);
+      return;
+    }
+    setBusyKey('bulk-refresh');
+    setError('');
+    let ok = 0;
+    for (const t of stale) {
+      try {
+        const res = await secureFetch('/api/reports/generate', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ student_id: studentId, test_result_id: t.id }),
+        });
+        const data = await res.json();
+        if (data.success || data.already_generated) ok++;
+      } catch { /* tek tek hata sessiz geç, sonuçta özet verilir */ }
+    }
+    setBusyKey(null);
+    await loadDetail();
+    if (ok === stale.length) {
+      setSuccess(`✅ ${ok} rapor güncel sürümle yeniden üretildi.`);
+      setTimeout(() => setSuccess(''), 4000);
+    } else {
+      setError(`${ok}/${stale.length} rapor yenilendi. Kalanlar için tek tek "Yenile" deneyin.`);
+    }
+  };
+
   const generateSingle = async (testResult: CompletedTest, force = false) => {
     setBusyKey(`single-${testResult.id}`);
     setError('');
@@ -919,7 +959,30 @@ export default function StudentDetailPage() {
                   <h3 className="text-[14px] font-extrabold text-[#0f2847] dark:text-slate-100 flex items-center gap-2">
                     <FileText className="w-4 h-4 text-sky-600" /> Tekil Raporlar
                   </h3>
-                  <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">Her test için ayrı AI analiz raporu.</p>
+                  <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">Her test için ayrı derinlemesine analiz raporu.</p>
+
+                  {/* Eski sürümle üretilmiş raporlar varsa toplu yenileme sun */}
+                  {(() => {
+                    const stale = completed.filter((t) => t.has_report && !checkReportFreshness(t.ai_report).fresh);
+                    if (stale.length === 0) return null;
+                    const bulkBusy = busyKey === 'bulk-refresh';
+                    return (
+                      <div className="mt-2.5 flex flex-wrap items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200">
+                        <span className="text-[11px] text-amber-900 font-semibold flex-1 min-w-[180px]">
+                          {stale.length} rapor eski sürümle üretilmiş. Yenilediğinizde çok daha ayrıntılı ve görselli olur.
+                        </span>
+                        <button
+                          onClick={refreshStaleReports}
+                          disabled={bulkBusy}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-white text-[11px] font-bold shadow-sm hover:bg-amber-600 disabled:opacity-60 transition-all"
+                        >
+                          {bulkBusy
+                            ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Yenileniyor…</>
+                            : <><RefreshCw className="w-3.5 h-3.5" /> {stale.length} Raporu Yenile</>}
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {completed.map((c) => {
@@ -952,6 +1015,11 @@ export default function StudentDetailPage() {
                           <p className="text-[11px] text-gray-400 dark:text-slate-500">
                             Tamamlandı: {formatDate(c.completed_at)}
                             {c.ai_report_generated_at && ` · Rapor: ${formatDate(c.ai_report_generated_at)}`}
+                            {c.has_report && !checkReportFreshness(c.ai_report).fresh && (
+                              <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                Eski sürüm
+                              </span>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -1027,7 +1095,11 @@ export default function StudentDetailPage() {
                             <button
                               onClick={() => generateSingle(c, true)}
                               disabled={isBusy}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-slate-700/60 text-gray-600 dark:text-slate-300 text-[12px] font-bold hover:bg-gray-200 disabled:opacity-60 transition-all"
+                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold disabled:opacity-60 transition-all ${
+                                checkReportFreshness(c.ai_report).fresh
+                                  ? 'bg-gray-100 dark:bg-slate-700/60 text-gray-600 dark:text-slate-300 hover:bg-gray-200'
+                                  : 'bg-amber-500 text-white shadow-md hover:bg-amber-600'
+                              }`}
                             >
                               {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Yenile
                             </button>
