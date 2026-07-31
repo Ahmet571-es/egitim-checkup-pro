@@ -24,13 +24,26 @@ function prefBand(pct: number): Band {
 
 export function buildVarkDetailedReport(scores: VarkScores, student: StudentInfo): string {
   const name = safeName(student);
-  const pct = scores.percentages || {};
-  const sorted = (scores.sorted && scores.sorted.length
-    ? scores.sorted
-    : ORDER.map((k) => [k, pct[k] ?? 0] as [string, number])
-  ).slice().sort((a, b) => clampPct(b[1]) - clampPct(a[1]));
+  // DİKKAT: `scores.sorted` ve `scores.dominant` [anahtar, HAM CEVAP SAYISI] taşır.
+  // Yüzde tek doğru kaynak `percentages`. Eski/eksik kayıtlarda sayımlardan
+  // yüzde türetilir; hiçbiri yoksa sıfırlanır.
+  const rawPct = scores.percentages || {};
+  const counts = (scores as unknown as { counts?: Record<string, number> }).counts || {};
+  const hasPct = ORDER.some((k) => Number.isFinite(Number(rawPct[k])) && Number(rawPct[k]) > 0);
+  const pct: Record<string, number> = {};
+  if (hasPct) {
+    for (const k of ORDER) pct[k] = clampPct(Number(rawPct[k]) || 0);
+  } else {
+    const tot = ORDER.reduce((a, k) => a + (Number(counts[k]) || 0), 0);
+    for (const k of ORDER) pct[k] = tot > 0 ? clampPct(Math.round(((Number(counts[k]) || 0) / tot) * 1000) / 10) : 0;
+  }
 
-  const dom = scores.dominant || sorted[0];
+  const sorted = ORDER.map((k) => [k, pct[k]] as [string, number])
+    .slice()
+    .sort((a, b) => b[1] - a[1]);
+
+  const domKey = scores.dominant?.[0] || sorted[0][0];
+  const dom: [string, number] = [domKey, pct[domKey] ?? sorted[0][1]];
   const domInfo = VARK_STYLES[dom[0]];
   const domPct = clampPct(dom[1]);
   const domShort = domInfo.name.replace(/\s*\(.*\)/, '');
