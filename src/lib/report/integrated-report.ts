@@ -207,6 +207,13 @@ const AUD: Record<IntegratedAudience, { title: string; recTitle: string }> = {
  * testlerin birbirini doğruladığı (pekiştirme), birbiriyle gerildiği (gerilim)
  * veya birlikte fırsat yarattığı (fırsat) noktalardadır.
  */
+/** Rapora harmanlanabilir DMIT/genetik rapor kaydı (PDF içeriği DEĞİL, metadata + not). */
+export interface GeneticReportRef {
+  filename: string;
+  notes?: string | null;
+  uploadedAt?: string | null;
+}
+
 export interface CrossPattern {
   kind: 'pekistirme' | 'gerilim' | 'firsat';
   title: string;
@@ -422,7 +429,13 @@ export function buildIntegratedDeterministicReport(
   tests: Array<{ test_type: string; scores: unknown; date?: string }>,
   student: StudentInfo,
   reportType: IntegratedAudience,
-  opts?: { hasGeneticContext?: boolean; geneticReportCount?: number; packageInfo?: { label: string; description: string; focus?: string } },
+  opts?: {
+    hasGeneticContext?: boolean;
+    geneticReportCount?: number;
+    /** DMIT kayıtlarının metadata'sı — dosya adı, tarih ve öğretmen notu rapora işlenir. */
+    geneticReports?: GeneticReportRef[];
+    packageInfo?: { label: string; description: string; focus?: string };
+  },
 ): string {
   const name = safeName(student);
   const aud = AUD[reportType];
@@ -560,8 +573,32 @@ export function buildIntegratedDeterministicReport(
 
   // ── DMIT / genetik not (deterministik PDF okuyamaz) ──
   if (opts?.hasGeneticContext && reportType === 'ogretmen') {
-    P.push(`## 🧬 3. Genetik Analiz (DMIT) Notu\n`);
-    P.push(insight('note', 'DMIT Raporu Mevcut', `${name} için ${opts.geneticReportCount ?? 1} adet DMIT/parmak izi raporu sistemde kayıtlı. Bu raporlar ayrı belgeler olarak incelenebilir; yukarıdaki test bulgularıyla birlikte değerlendirilmesi bütüncül bir bakış sağlayabilir.`));
+    const gr = opts.geneticReports || [];
+    const adet = gr.length || opts.geneticReportCount || 1;
+    P.push(`## 🧬 Genetik Analiz (DMIT) Eki\n`);
+    P.push(`${tamlayan(name)} dosyasında **${adet} adet** DMIT / parmak izi raporu kayıtlı.\n`);
+
+    if (gr.length) {
+      P.push(`| # | Belge | Yüklenme | Yükleyenin Notu |\n|---|---|---|---|`);
+      P.push(gr.map((g, i) => {
+        const tarih = g.uploadedAt ? new Date(g.uploadedAt).toLocaleDateString('tr-TR') : '—';
+        const not = (g.notes || '').trim().replace(/\|/g, '/').replace(/\n+/g, ' ');
+        return `| ${i + 1} | ${g.filename} | ${tarih} | ${not || '—'} |`;
+      }).join('\n') + '\n');
+
+      // Öğretmen notları varsa öne çıkar — rapora GERÇEKTEN harmanlanan içerik budur.
+      const notlar = gr.filter((g) => (g.notes || '').trim().length > 0);
+      if (notlar.length) {
+        P.push(insight('note', 'Belgelere Düşülen Notlar',
+          notlar.map((g) => `**${g.filename}:** ${(g.notes || '').trim()}`).join('\n\n')));
+      }
+    }
+
+    P.push(insight('note', 'Bu Ek Nasıl Okunmalı?',
+      `- Bu bölüm DMIT belgesinin **varlığını ve künyesini** bildirir; **belge içeriği otomatik olarak çözümlenmez**.\n` +
+      `- DMIT bulguları, yukarıdaki test sonuçlarıyla **birlikte** okunduğunda anlam kazanır; tek başına yönlendirici sayılmamalıdır.\n` +
+      `- Belgedeki bulgu ile test bulgusu çeliştiğinde, gözlenen performans ve öğretmen gözlemi önceliklidir.\n` +
+      `- Bu ek yalnızca öğretmen versiyonunda yer alır (KVKK m.6 — özel nitelikli kişisel veri).`));
     P.push('---\n');
   }
 

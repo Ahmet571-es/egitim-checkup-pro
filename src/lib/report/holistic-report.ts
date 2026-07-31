@@ -13,7 +13,7 @@ import {
   reportFooter, safeName, type StudentInfo,
   radarBlock, compareBlock, chainBlock, timelineBlock,
 } from './report-blocks';
-import { extractHighlight, crossPatterns, type Highlight } from './integrated-report';
+import { extractHighlight, crossPatterns, type Highlight, type GeneticReportRef } from './integrated-report';
 import { tamlayan } from '@/lib/utils/turkish';
 
 // Servis tipleriyle uyumlu gevşek arayüzler (bağımlılık gevşek tutulur)
@@ -30,7 +30,7 @@ export function buildHolisticDeterministicReport(
   riskResult: RiskResultLike,
   patterns: PatternLike[],
   careerMatch: CareerMatchLike,
-  opts?: { hasGeneticReport?: boolean; geneticReportCount?: number },
+  opts?: { hasGeneticReport?: boolean; geneticReportCount?: number; geneticReports?: GeneticReportRef[] },
 ): string {
   const name = safeName(student);
 
@@ -189,7 +189,28 @@ export function buildHolisticDeterministicReport(
   // ── 6. DMIT NOTU ──
   if (opts?.hasGeneticReport) {
     P.push(`## 🧬 6. Genetik Analiz (DMIT) Notu\n`);
-    P.push(insight('note', 'DMIT Raporu Mevcut', `${name} için ${opts.geneticReportCount ?? 1} adet DMIT/parmak izi raporu sistemde kayıtlı. Bu belgeler ayrıca incelenebilir; yukarıdaki bulgularla birlikte değerlendirilmesi bütüncül bir bakış sağlayabilir.`));
+    {
+      const gr = opts.geneticReports || [];
+      const adet = gr.length || opts.geneticReportCount || 1;
+      P.push(`${tamlayan(name)} dosyasında **${adet} adet** DMIT / parmak izi raporu kayıtlı.\n`);
+      if (gr.length) {
+        P.push(`| # | Belge | Yüklenme | Yükleyenin Notu |\n|---|---|---|---|`);
+        P.push(gr.map((g, i) => {
+          const tarih = g.uploadedAt ? new Date(g.uploadedAt).toLocaleDateString('tr-TR') : '—';
+          const not = (g.notes || '').trim().replace(/\|/g, '/').replace(/\n+/g, ' ');
+          return `| ${i + 1} | ${g.filename} | ${tarih} | ${not || '—'} |`;
+        }).join('\n') + '\n');
+        const notlar = gr.filter((g) => (g.notes || '').trim().length > 0);
+        if (notlar.length) {
+          P.push(insight('note', 'Belgelere Düşülen Notlar',
+            notlar.map((g) => `**${g.filename}:** ${(g.notes || '').trim()}`).join('\n\n')));
+        }
+      }
+      P.push(insight('note', 'Bu Ek Nasıl Okunmalı?',
+        `- Bu bölüm DMIT belgesinin **varlığını ve künyesini** bildirir; **belge içeriği otomatik olarak çözümlenmez**.\n` +
+        `- DMIT bulguları yukarıdaki test sonuçlarıyla **birlikte** okunduğunda anlam kazanır.\n` +
+        `- Belgedeki bulgu ile test bulgusu çeliştiğinde, gözlenen performans ve öğretmen gözlemi önceliklidir.`));
+    }
     P.push('---\n');
   }
 

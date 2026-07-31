@@ -39,6 +39,12 @@ export interface GeneticContextResult {
  * @param studentId Öğrenci profil ID'si
  * @param options Opsiyonel filtreleme
  */
+/**
+ * @deprecated Deterministik rapor motoru PDF okuyamaz; entegre/paket raporlarında
+ * artık `fetchGeneticSummary` kullanılıyor. Bu fonksiyon yalnızca AI tabanlı bir
+ * akış geri gelirse gereklidir. ÇAĞIRMADAN ÖNCE gerçekten PDF içeriği tüketilecek
+ * mi kontrol edin — indirme maliyeti dosya başına 10MB'a kadar çıkabilir.
+ */
 export async function fetchGeneticContext(
   studentId: string,
   options: FetchGeneticContextOptions = {},
@@ -120,4 +126,53 @@ export async function fetchGeneticContext(
     count: attachments.length,
     skippedReasons: skipped,
   };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DETERMİNİSTİK YOL — metadata'ya dayalı özet (PDF İNDİRMEZ)
+// ═══════════════════════════════════════════════════════════════════════════
+/**
+ * Deterministik rapor motoru PDF okuyamaz. Bu yüzden entegre/paket raporlarında
+ * PDF indirmek gereksizdir: indirilen içerik hiçbir yerde tüketilmiyordu, sadece
+ * "kayıt var mı" bilgisi için 3×10MB'a kadar dosya indirilip base64'e çevriliyordu.
+ *
+ * Bu fonksiyon yalnızca metadata çeker (indirme yok) ve rapora GERÇEKTEN
+ * harmanlanabilecek bilgiyi döndürür: dosya adı, yükleme tarihi ve
+ * öğretmenin yüklerken girdiği not.
+ */
+export interface GeneticReportMeta {
+  id: string;
+  filename: string;
+  notes: string | null;
+  uploadedAt: string | null;
+  sizeMb: number | null;
+}
+
+export async function fetchGeneticSummary(
+  studentId: string,
+  selectedIds?: string[],
+): Promise<GeneticReportMeta[]> {
+  const admin = createAdminClient();
+  let query = admin
+    .from('genetic_reports')
+    .select('id, original_filename, notes, uploaded_at, file_size')
+    .eq('student_id', studentId)
+    .order('uploaded_at', { ascending: true });
+
+  if (Array.isArray(selectedIds) && selectedIds.length > 0) {
+    query = query.in('id', selectedIds);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.warn('[genetic-summary] metadata fetch error:', error.message);
+    return [];
+  }
+  return (data || []).map((r) => ({
+    id: String(r.id),
+    filename: String(r.original_filename || `dmit_${String(r.id).slice(0, 8)}.pdf`),
+    notes: (r.notes as string | null) || null,
+    uploadedAt: (r.uploaded_at as string | null) || null,
+    sizeMb: r.file_size ? Math.round((Number(r.file_size) / 1024 / 1024) * 10) / 10 : null,
+  }));
 }

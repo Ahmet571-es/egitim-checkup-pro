@@ -23,7 +23,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { buildIntegratedDeterministicReport, type IntegratedAudience } from '@/lib/report/integrated-report';
+import { type GeneticReportRef, buildIntegratedDeterministicReport, type IntegratedAudience } from '@/lib/report/integrated-report';
 import { type PackageReportContext } from '@/lib/ai/prompts/package-reports';
 import { PACKAGES, checkPackageCompletion, type PackageType } from '@/lib/packages';
 
@@ -215,23 +215,22 @@ export async function POST(request: NextRequest) {
     // ── 3 versiyonu PARALEL üret (Promise.all) ──
     // ═══ DMIT (genetik) PDF'lerini yükle — SADECE teacher prompt'a ek olacak ═══
     // KVKK m.6: parent ve student AI promptlarına ham genetik veri YOLLANMAZ.
-    let pkgGeneticAttachments: import('@/lib/ai/claude-client').PdfAttachment[] = [];
+    // NOT: Deterministik motor PDF okuyamaz. Eskiden burada PDF indirilip base64'e
+    // çevriliyor, sonra yalnızca `.length` olarak kullanılıp atılıyordu.
+    // Artık sadece metadata çekiliyor ve rapora gerçekten işleniyor.
+    let pkgGeneticReports: GeneticReportRef[] = [];
     if (pkg.uses_genetic) {
       try {
-        const { fetchGeneticContext } = await import('@/lib/ai/genetic-context');
-        const ctx2 = await fetchGeneticContext(studentId);
-        pkgGeneticAttachments = ctx2.attachments;
-        if (ctx2.skippedReasons.length > 0) {
-          console.warn('[package/generate] DMIT context skip:', ctx2.skippedReasons.join(' | '));
-        }
-        console.log(`[package/generate] ${ctx2.count} adet DMIT PDF teacher prompt'a yüklendi.`);
+        const { fetchGeneticSummary } = await import('@/lib/ai/genetic-context');
+        pkgGeneticReports = await fetchGeneticSummary(studentId);
+        console.log(`[package/generate] ${pkgGeneticReports.length} adet DMIT kaydı rapora eklendi (metadata).`);
       } catch (e) {
-        console.warn('[package/generate] DMIT context yükleme hatası:', (e as Error).message);
+        console.warn('[package/generate] DMIT özeti alınamadı:', (e as Error).message);
       }
     }
 
     // Deterministik (API'SIZ) paket raporları — 3 hedef kitle, paket çerçevesiyle.
-    // NOT: DMIT PDF deterministik okunamaz → teacher raporunda 'mevcut' notu düşülür.
+    // DMIT: belge künyesi + yükleyenin notu teacher raporuna işlenir (PDF içeriği çözümlenmez).
     const pkgTests = testData
       .filter((t): t is NonNullable<typeof t> => t !== null)
       .map((t) => ({ test_type: t.test_type, scores: t.scores, date: t.date }));
@@ -241,9 +240,9 @@ export async function POST(request: NextRequest) {
         pkgTests,
         { studentName: ctx.studentName, studentGrade: ctx.studentGrade ?? null },
         audience,
-        { hasGeneticContext: hasGenetic, geneticReportCount: pkgGeneticAttachments.length, packageInfo: pkgInfo },
+        { hasGeneticContext: hasGenetic, geneticReportCount: pkgGeneticReports.length, geneticReports: hasGenetic ? pkgGeneticReports : undefined, packageInfo: pkgInfo },
       );
-    const teacherText = mkReport('ogretmen', pkgGeneticAttachments.length > 0);
+    const teacherText = mkReport('ogretmen', pkgGeneticReports.length > 0);
     const parentText = mkReport('ebeveyn', false);
     const studentText = mkReport('ogrenci', false);
 

@@ -3,6 +3,7 @@ import { serverError, logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { buildDeterministicReport, buildGenericDeterministicReport } from '@/lib/report/detailed-report-router';
+import { type GeneticReportRef } from '@/lib/report/integrated-report';
 import { buildHolisticDeterministicReport } from '@/lib/report/holistic-report';
 import { calculateRiskScore, getRiskLevel } from '@/lib/services/riskScore';
 import { identifyPatterns } from '@/lib/services/correlation';
@@ -166,36 +167,30 @@ export async function POST(request: NextRequest) {
       // - Frontend selected_genetic_report_ids gönderdiyse o sayı
       // - Yoksa (geri uyum) toplam sayı
       let geneticCount = 0;
+      let geneticReports: GeneticReportRef[] = [];
       try {
         if (Array.isArray(selected_genetic_report_ids)) {
-          // Sadece geçerli (öğrencinin) ID'leri say
           if (selected_genetic_report_ids.length > 0) {
-            const { data: validReports } = await admin
-              .from('genetic_reports')
-              .select('id')
-              .eq('student_id', student_id)
-              .in('id', selected_genetic_report_ids);
-            geneticCount = (validReports || []).length;
+            const { fetchGeneticSummary } = await import('@/lib/ai/genetic-context');
+            geneticReports = await fetchGeneticSummary(student_id, selected_genetic_report_ids);
           }
         } else {
-          const { count } = await admin
-            .from('genetic_reports')
-            .select('id', { count: 'exact', head: true })
-            .eq('student_id', student_id);
-          geneticCount = count || 0;
+          const { fetchGeneticSummary } = await import('@/lib/ai/genetic-context');
+          geneticReports = await fetchGeneticSummary(student_id);
         }
+        geneticCount = geneticReports.length;
       } catch { /* tablo yoksa sessiz geç */ }
 
       // Deterministik (API'SIZ) holistic rapor — risk/örüntü/kariyer zaten
       // deterministik hesaplandı; bu motor onları test bulgularıyla harmanlar.
-      // NOT: DMIT PDF'i deterministik okunamaz → sadece "mevcut" notu düşülür.
+      // DMIT: belge künyesi + yükleyenin notu rapora işlenir (PDF içeriği çözümlenmez).
       const report = buildHolisticDeterministicReport(
         filteredResults.map(r => ({ test_type: r.test_type, scores: r.scores })),
         { studentName: student.full_name, studentGrade: student.grade ?? null, studentAge: calculateAge(student.birth_date) },
         riskResult,
         patterns,
         careerMatch,
-        { hasGeneticReport: geneticCount > 0, geneticReportCount: geneticCount },
+        { hasGeneticReport: geneticCount > 0, geneticReportCount: geneticCount, geneticReports },
       );
 
       // holistic_reports tablosuna YENİ KAYIT olarak ekle (üzerine yazmaz, geçmiş korunur)

@@ -3,7 +3,7 @@ import { serverError, logAndMsg } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { normalizeTestName, type IntegratedReportType } from '@/lib/ai/prompts/integrated-report';
-import { buildIntegratedDeterministicReport, type IntegratedAudience } from '@/lib/report/integrated-report';
+import { type GeneticReportRef, buildIntegratedDeterministicReport, type IntegratedAudience } from '@/lib/report/integrated-report';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { calculateAge } from '@/lib/utils/age';
 
@@ -18,9 +18,11 @@ export async function POST(request: NextRequest) {
       report_types = ['ogretmen', 'ogrenci', 'ebeveyn'],
       selected_test_types,
       selected_result_ids,
+      selected_genetic_report_ids,
     } = body as {
       student_id: string;
       report_types?: IntegratedReportType[];
+      selected_genetic_report_ids?: string[];
       selected_test_types?: string[];
       selected_result_ids?: string[];
     };
@@ -176,27 +178,20 @@ export async function POST(request: NextRequest) {
 
     // ═══ DMIT (genetik) PDF'lerini yükle — SADECE ogretmen versiyonunda kullanılacak ═══
     // KVKK m.6: ham genetik veri öğretmen audience dışına gönderilemez.
-    let geneticAttachments: import('@/lib/ai/claude-client').PdfAttachment[] = [];
+    // NOT: Deterministik motor PDF okuyamaz. Eskiden burada 3×10MB'a kadar PDF
+    // indirilip base64'e çevriliyor, sonra yalnızca `.length > 0` olarak
+    // kullanılıp atılıyordu. Artık sadece metadata çekiliyor (indirme yok) ve
+    // dosya adı / tarih / öğretmen notu rapora GERÇEKTEN işleniyor.
+    let geneticReports: GeneticReportRef[] = [];
     let geneticCount = 0;
     if ((report_types as IntegratedReportType[]).includes('ogretmen')) {
       try {
-        const { count } = await admin
-          .from('genetic_reports')
-          .select('id', { count: 'exact', head: true })
-          .eq('student_id', student.id);
-        geneticCount = count || 0;
-
-        if (geneticCount > 0) {
-          const { fetchGeneticContext } = await import('@/lib/ai/genetic-context');
-          const ctx = await fetchGeneticContext(student.id);
-          geneticAttachments = ctx.attachments;
-          if (ctx.skippedReasons.length > 0) {
-            console.warn('[integrated] DMIT context skip:', ctx.skippedReasons.join(' | '));
-          }
-          console.log(`[integrated] ${ctx.count} adet DMIT PDF AI context'ine yüklendi (sadece ogretmen).`);
-        }
+        const { fetchGeneticSummary } = await import('@/lib/ai/genetic-context');
+        geneticReports = await fetchGeneticSummary(student.id, selected_genetic_report_ids);
+        geneticCount = geneticReports.length;
+        console.log(`[integrated] ${geneticCount} adet DMIT kaydı rapora eklendi (metadata; sadece ogretmen).`);
       } catch (e) {
-        console.warn('[integrated] DMIT context yükleme hatası:', (e as Error).message);
+        console.warn('[integrated] DMIT özeti alınamadı:', (e as Error).message);
       }
     }
 
@@ -210,8 +205,9 @@ export async function POST(request: NextRequest) {
         reportType as IntegratedAudience,
         {
           // KVKK: DMIT notu SADECE ogretmen'de
-          hasGeneticContext: isTeacher && geneticAttachments.length > 0,
+          hasGeneticContext: isTeacher && geneticCount > 0,
           geneticReportCount: isTeacher ? geneticCount : 0,
+          geneticReports: isTeacher ? geneticReports : undefined,
         },
       );
     }
@@ -407,22 +403,15 @@ export async function PUT(request: NextRequest) {
     const reportTypes: IntegratedReportType[] = ['ogretmen', 'ogrenci', 'ebeveyn'];
 
     // ═══ DMIT yükle (sadece ogretmen versiyonunda kullanılacak) ═══
-    let geneticAttachmentsPut: import('@/lib/ai/claude-client').PdfAttachment[] = [];
+    let geneticReportsPut: GeneticReportRef[] = [];
     let geneticCountPut = 0;
     try {
-      const { count } = await admin
-        .from('genetic_reports')
-        .select('id', { count: 'exact', head: true })
-        .eq('student_id', student.id);
-      geneticCountPut = count || 0;
-      if (geneticCountPut > 0) {
-        const { fetchGeneticContext } = await import('@/lib/ai/genetic-context');
-        const ctx = await fetchGeneticContext(student.id);
-        geneticAttachmentsPut = ctx.attachments;
-        console.log(`[integrated:PUT] ${ctx.count} adet DMIT PDF AI context'ine yüklendi (sadece ogretmen).`);
-      }
+      const { fetchGeneticSummary } = await import('@/lib/ai/genetic-context');
+      geneticReportsPut = await fetchGeneticSummary(student.id);
+      geneticCountPut = geneticReportsPut.length;
+      console.log(`[integrated:PUT] ${geneticCountPut} adet DMIT kaydı rapora eklendi (metadata).`);
     } catch (e) {
-      console.warn('[integrated:PUT] DMIT context yükleme hatası:', (e as Error).message);
+      console.warn('[integrated:PUT] DMIT özeti alınamadı:', (e as Error).message);
     }
 
     const reports: Record<string, string> = {};
@@ -433,8 +422,9 @@ export async function PUT(request: NextRequest) {
         { studentName: baseParams.studentName, studentGrade: baseParams.studentGrade, studentAge: baseParams.studentAge },
         reportType as IntegratedAudience,
         {
-          hasGeneticContext: isTeacher && geneticAttachmentsPut.length > 0,
+          hasGeneticContext: isTeacher && geneticCountPut > 0,
           geneticReportCount: isTeacher ? geneticCountPut : 0,
+          geneticReports: isTeacher ? geneticReportsPut : undefined,
         },
       );
     }
