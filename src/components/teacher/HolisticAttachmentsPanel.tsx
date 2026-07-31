@@ -8,7 +8,8 @@
  * UX:
  *   • Sol panel: bu öğrenciye yüklü ama henüz bu rapora eklenmemiş genetik PDF'ler.
  *   • Sağ panel (drop zone): bu rapora şu anda eklenenler.
- *   • Sürükle: kart sol → sağ → bağlantı oluşur (POST /attachments).
+ *   • Ekle düğmesi (birincil): POST /attachments — her ortamda güvenilir.
+ *   • Sürükle-bırak (alternatif): kart tutamacı sol → sağ.
  *   • Sağdaki "X" butonu: bağlantıyı kaldırır (DELETE /attachments/[id]).
  *
  * @dnd-kit/core kullanılır. Klavye sensörü ile a11y desteği var.
@@ -22,7 +23,7 @@ import {
 import { secureFetch } from '@/lib/csrf-client';
 import { useToast } from '@/components/ui/Toast';
 import {
-  FileText, GripVertical, X, Inbox, Loader2, AlertCircle, Lock,
+  FileText, GripVertical, X, Inbox, Loader2, AlertCircle, Lock, Plus,
 } from 'lucide-react';
 
 interface GeneticReport {
@@ -56,7 +57,27 @@ function formatBytes(bytes: number): string {
 }
 
 // ════════ Draggable: sol paneldeki PDF kartı ════════
-function DraggablePdfCard({ pdf, disabled }: { pdf: GeneticReport; disabled?: boolean }) {
+/**
+ * DİKKAT — iki ayrı hata buradan çıkmıştı:
+ *
+ * 1) Sürükleme çalışmıyordu: dnd-kit pointer olaylarıyla çalışır. Kartta
+ *    `select-none` / `touch-none` yoksa tarayıcının kendi metin-sürükleme
+ *    davranışı pointer dizisini kaçırır; imleç 🚫 gösterir ve bırakma
+ *    hiç gerçekleşmez. Bu sınıflar zorunludur.
+ *
+ * 2) Tıklama hiç bağlı değildi. Sürükle-bırak her zaman güvenilir değildir
+ *    (trackpad, dokunmatik, erişilebilirlik). Bu yüzden EKLE butonu birincil
+ *    yoldur; sürükleme yalnızca alternatiftir.
+ */
+function DraggablePdfCard({
+  pdf,
+  disabled,
+  onAdd,
+}: {
+  pdf: GeneticReport;
+  disabled?: boolean;
+  onAdd: (geneticReportId: string) => void;
+}) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: pdf.id,
     data: { pdf },
@@ -66,19 +87,23 @@ function DraggablePdfCard({ pdf, disabled }: { pdf: GeneticReport; disabled?: bo
   return (
     <div
       ref={setNodeRef}
-      {...attributes}
-      {...listeners}
-      className={`group flex items-center gap-2.5 p-3 rounded-xl border bg-white dark:bg-slate-800 shadow-sm transition-all ${
+      className={`group flex items-center gap-2.5 p-3 rounded-xl border bg-white dark:bg-slate-800 shadow-sm transition-all select-none touch-none ${
         disabled
           ? 'opacity-50 cursor-not-allowed border-gray-200'
           : isDragging
           ? 'border-violet-400 ring-2 ring-violet-200 cursor-grabbing'
-          : 'border-violet-200 hover:border-violet-400 hover:shadow-md cursor-grab'
+          : 'border-violet-200 hover:border-violet-400 hover:shadow-md'
       }`}
-      role="button"
-      aria-label={`Sürükle: ${pdf.original_filename}`}
     >
-      <GripVertical className="w-4 h-4 text-gray-400 group-hover:text-violet-500 shrink-0" aria-hidden />
+      {/* Tutamaç: yalnızca bu alan sürüklenir — kartın kalanı tıklanabilir kalır */}
+      <span
+        {...attributes}
+        {...listeners}
+        className={`shrink-0 -m-1 p-1 rounded ${disabled ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
+        aria-label={`Sürükle: ${pdf.original_filename}`}
+      >
+        <GripVertical className="w-4 h-4 text-gray-400 group-hover:text-violet-500" aria-hidden />
+      </span>
       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white shrink-0">
         <FileText className="w-4 h-4" />
       </div>
@@ -90,6 +115,17 @@ function DraggablePdfCard({ pdf, disabled }: { pdf: GeneticReport; disabled?: bo
           {formatBytes(pdf.file_size)} · {new Date(pdf.uploaded_at).toLocaleDateString('tr-TR')}
         </div>
       </div>
+
+      {/* Birincil yol: tıklayarak ekle. Sürükle-bırak yalnızca alternatif. */}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onAdd(pdf.id)}
+        className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-violet-600 text-white text-[11px] font-bold shadow-sm hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        aria-label={`Rapora ekle: ${pdf.original_filename}`}
+      >
+        <Plus className="w-3.5 h-3.5" aria-hidden /> Ekle
+      </button>
     </div>
   );
 }
@@ -126,7 +162,8 @@ function DroppableAttachedArea({
             Henüz ek yok
           </p>
           <p className="text-[11px] text-gray-400 dark:text-slate-500 max-w-[200px]">
-            Soldaki PDF kartlarını sürükleyip buraya bırakın
+            Soldaki PDF&apos;lerdeki <strong>Ekle</strong> düğmesine basın
+            <span className="block mt-0.5 opacity-70">(veya kartı tutamacından sürükleyip buraya bırakın)</span>
           </p>
         </div>
       ) : (
@@ -227,13 +264,8 @@ export default function HolisticAttachmentsPanel({ holisticReportId, studentId }
     setIsOver(false);
   };
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    setActiveDragId(null);
-    setIsOver(false);
-    const { active, over } = event;
-    if (!over || over.id !== 'attached-zone') return;
-
-    const geneticReportId = String(active.id);
+  /** Sürükle-bırak ve "Ekle" butonunun ortak yolu. */
+  const attachPdf = async (geneticReportId: string) => {
     setBusy(true);
     try {
       const res = await secureFetch(
@@ -256,6 +288,14 @@ export default function HolisticAttachmentsPanel({ holisticReportId, studentId }
     } finally {
       setBusy(false);
     }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveDragId(null);
+    setIsOver(false);
+    const { active, over } = event;
+    if (!over || over.id !== 'attached-zone') return;
+    await attachPdf(String(active.id));
   };
 
   const handleDragOver = (event: { over: { id: string | number } | null }) => {
@@ -322,7 +362,7 @@ export default function HolisticAttachmentsPanel({ holisticReportId, studentId }
             Bu öğrenciye henüz genetik rapor yüklenmemiş.
           </p>
           <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1">
-            Yöneticiye PDF yükletin, ardından buraya sürükleyebilirsiniz.
+            Yöneticiye PDF yükletin, ardından bu rapora ekleyebilirsiniz.
           </p>
         </div>
       ) : (
@@ -348,7 +388,7 @@ export default function HolisticAttachmentsPanel({ holisticReportId, studentId }
               ) : (
                 <div className="space-y-2">
                   {availablePdfs.map((p) => (
-                    <DraggablePdfCard key={p.id} pdf={p} disabled={busy} />
+                    <DraggablePdfCard key={p.id} pdf={p} disabled={busy} onAdd={attachPdf} />
                   ))}
                 </div>
               )}

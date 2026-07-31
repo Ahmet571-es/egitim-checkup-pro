@@ -358,6 +358,7 @@ export default function StudentDetailPage() {
         setSuccess(`✅ ${selectedIds.length} test için harmanlanmış rapor üretildi${genMsg}.`);
         setTimeout(() => setSuccess(''), 3500);
         setHolisticSelected(new Set());
+        setHolisticGeneticSelected(new Set());
         setHolisticExpanded(false);
         await loadDetail();
       } else {
@@ -1245,6 +1246,11 @@ export default function StudentDetailPage() {
                             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                             <p className="text-[12px] text-amber-800">
                               Harmanlama için en az <strong>2 test</strong> seçmelisiniz.
+                              {holisticGeneticSelected.size > 0 && (
+                                <span className="block mt-1 font-normal">
+                                  Genetik (DMIT) belgeleri rapora <strong>ek</strong> olarak bağlanır; test sayısına dahil edilmez.
+                                </span>
+                              )}
                             </p>
                           </div>
                         ) : (
@@ -1256,7 +1262,11 @@ export default function StudentDetailPage() {
                             {busyKey === 'holistic' ? (
                               <><Loader2 className="w-4 h-4 animate-spin" /> Üretiliyor...</>
                             ) : (
-                              <><Sparkles className="w-4 h-4" /> Seçili {holisticSelected.size} Testi Harmanla</>
+                              <>
+                                <Sparkles className="w-4 h-4" />
+                                Seçili {holisticSelected.size} Testi Harmanla
+                                {holisticGeneticSelected.size > 0 && ` + ${holisticGeneticSelected.size} DMIT Ekle`}
+                              </>
                             )}
                           </button>
                         )}
