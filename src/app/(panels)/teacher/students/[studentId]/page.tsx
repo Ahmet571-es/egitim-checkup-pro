@@ -356,6 +356,15 @@ export default function StudentDetailPage() {
       if (data.success && data.report) {
         const genMsg = data.auto_attached_genetic > 0 ? ` (${data.auto_attached_genetic} DMIT eki dahil)` : '';
         setSuccess(`✅ ${selectedIds.length} test için harmanlanmış rapor üretildi${genMsg}.`);
+        // DMIT seçilmiş ama eklenememişse SESSİZ KALMA — kullanıcı raporun eksik
+        // olduğunu fark edemiyordu (ek paneli 'Henüz ek yok' gösteriyordu).
+        if (selectedGeneticIds.length > 0 && !data.auto_attached_genetic) {
+          setError(
+            `Rapor üretildi ancak ${selectedGeneticIds.length} DMIT eki eklenemedi` +
+            `${data.auto_attach_error ? ` (${data.auto_attach_error})` : ''}. ` +
+            `Aşağıdaki "Genetik Rapor Ek'leri" panelinden elle ekleyebilirsiniz.`,
+          );
+        }
         setTimeout(() => setSuccess(''), 3500);
         setHolisticSelected(new Set());
         setHolisticGeneticSelected(new Set());

@@ -224,6 +224,7 @@ export async function POST(request: NextRequest) {
       // selected_genetic_report_ids verildiyse SADECE seçilenler eklenir.
       // Verilmediyse (geriye uyum) öğrencinin TÜM DMIT raporları eklenir.
       let autoAttachedCount = 0;
+      let autoAttachError: string | null = null;
       if (inserted?.id) {
         try {
           let geneticIdsToAttach: string[] = [];
@@ -256,6 +257,9 @@ export async function POST(request: NextRequest) {
                 holistic_report_id: inserted.id,
                 genetic_report_id: gid,
                 position: idx,
+                // ZORUNLU: holistic_report_attachments.attached_by NOT NULL.
+                // Eksik olduğunda insert sessizce patlıyor ve ekler hiç oluşmuyordu.
+                attached_by: user.id,
               }));
 
             if (attachmentRows.length > 0) {
@@ -263,15 +267,17 @@ export async function POST(request: NextRequest) {
                 .from('holistic_report_attachments')
                 .insert(attachmentRows);
               if (attachErr) {
-                console.warn('[holistic auto-attach]', attachErr.message);
+                // Sessizce yutma: kullanıcı 'DMIT eklenmedi'yi fark edemiyordu.
+                console.error('[holistic auto-attach] BAŞARISIZ:', attachErr.message);
+                autoAttachError = attachErr.message;
               } else {
                 autoAttachedCount = attachmentRows.length;
               }
             }
           }
         } catch (e) {
-          // Tablo yoksa veya başka hata: sessiz geç, ana rapor zaten kaydedildi
-          console.warn('[holistic auto-attach exception]', e);
+          console.error('[holistic auto-attach exception]', e);
+          autoAttachError = (e as Error).message;
         }
       }
 
@@ -283,6 +289,7 @@ export async function POST(request: NextRequest) {
         selected_test_types: selectedTypes,
         test_count: filteredResults.length,
         auto_attached_genetic: autoAttachedCount,
+        auto_attach_error: autoAttachError,
       });
     }
 

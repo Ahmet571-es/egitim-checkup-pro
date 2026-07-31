@@ -315,7 +315,7 @@ export async function POST(request: NextRequest) {
         .order('uploaded_at', { ascending: true });
 
       if (Array.isArray(studentGeneticReports) && studentGeneticReports.length > 0 && inserted) {
-        const attachmentRows: Array<{ holistic_report_id: string; genetic_report_id: string; position: number }> = [];
+        const attachmentRows: Array<{ holistic_report_id: string; genetic_report_id: string; position: number; attached_by: string }> = [];
         for (const rep of inserted) {
           // Her audience versiyonu için tüm DMIT raporlarını ek yap.
           // Veli versiyonuna eklenmesi: KVKK m.6 — pkg.uses_genetic kontrolü +
@@ -326,6 +326,8 @@ export async function POST(request: NextRequest) {
               holistic_report_id: rep.id,
               genetic_report_id: g.id,
               position: idx,
+              // ZORUNLU: holistic_report_attachments.attached_by NOT NULL.
+              attached_by: user.id,
             });
           });
         }
@@ -334,7 +336,7 @@ export async function POST(request: NextRequest) {
           .from('holistic_report_attachments')
           .insert(attachmentRows);
         if (attachErr) {
-          console.warn('[package/generate auto-attach]', attachErr.message);
+          console.error('[package/generate auto-attach] BAŞARISIZ:', attachErr.message);
         } else {
           autoAttachedCount = studentGeneticReports.length;
         }

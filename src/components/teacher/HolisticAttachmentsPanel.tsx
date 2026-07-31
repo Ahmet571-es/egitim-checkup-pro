@@ -87,22 +87,24 @@ function DraggablePdfCard({
   return (
     <div
       ref={setNodeRef}
+      // Sürükleme dinleyicileri KARTIN TAMAMINDA. Önceden yalnızca 16px'lik
+      // tutamaç ikonu sürüklenebiliyordu; kullanıcılar kartı tutup çekince
+      // hiçbir şey olmuyor, "sürüklenmiyor" sanıyorlardı.
+      // PointerSensor'da activationConstraint.distance = 5 olduğu için
+      // hareketsiz tıklama sürükleme başlatmaz; "Ekle" butonu çalışmaya devam eder.
+      {...attributes}
+      {...listeners}
       className={`group flex items-center gap-2.5 p-3 rounded-xl border bg-white dark:bg-slate-800 shadow-sm transition-all select-none touch-none ${
         disabled
           ? 'opacity-50 cursor-not-allowed border-gray-200'
           : isDragging
           ? 'border-violet-400 ring-2 ring-violet-200 cursor-grabbing'
-          : 'border-violet-200 hover:border-violet-400 hover:shadow-md'
+          : 'border-violet-200 hover:border-violet-400 hover:shadow-md cursor-grab active:cursor-grabbing'
       }`}
+      aria-label={`Sürükle veya Ekle: ${pdf.original_filename}`}
     >
-      {/* Tutamaç: yalnızca bu alan sürüklenir — kartın kalanı tıklanabilir kalır */}
-      <span
-        {...attributes}
-        {...listeners}
-        className={`shrink-0 -m-1 p-1 rounded ${disabled ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
-        aria-label={`Sürükle: ${pdf.original_filename}`}
-      >
-        <GripVertical className="w-4 h-4 text-gray-400 group-hover:text-violet-500" aria-hidden />
+      <span className="shrink-0 -m-1 p-1 rounded" aria-hidden>
+        <GripVertical className="w-4 h-4 text-gray-400 group-hover:text-violet-500" />
       </span>
       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white shrink-0">
         <FileText className="w-4 h-4" />
@@ -120,8 +122,11 @@ function DraggablePdfCard({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => onAdd(pdf.id)}
-        className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-violet-600 text-white text-[11px] font-bold shadow-sm hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        onClick={(e) => { e.stopPropagation(); onAdd(pdf.id); }}
+        // Sürükleme dinleyicileri kartın kökünde; buton üzerindeki basışın
+        // sürüklemeyi başlatmasını engelle.
+        onPointerDown={(e) => e.stopPropagation()}
+        className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-violet-600 text-white text-[11px] font-bold shadow-sm hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
         aria-label={`Rapora ekle: ${pdf.original_filename}`}
       >
         <Plus className="w-3.5 h-3.5" aria-hidden /> Ekle
