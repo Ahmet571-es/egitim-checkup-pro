@@ -165,6 +165,41 @@ export default function StudentDetailPage() {
     notes: string | null;
   }
   const [geneticReports, setGeneticReports] = useState<GeneticReportInfo[]>([]);
+  const [geneticBusyId, setGeneticBusyId] = useState<string | null>(null);
+
+  /**
+   * DMIT belgesini aç veya indir.
+   *
+   * DİKKAT: /api/genetic-reports/[id]/download endpoint'i PDF DEĞİL, JSON döner
+   * ({ signed_url, ... }). Bu adrese doğrudan <a href> ile gidilirse tarayıcıda
+   * ham JSON görünür; `download` attribute'u ile de JSON dosyası .pdf adıyla
+   * inip bozuk dosya oluşur. Bu yüzden önce fetch edip signed_url alınmalı.
+   */
+  const openGeneticReport = async (reportId: string, filename: string, mode: 'view' | 'download') => {
+    setGeneticBusyId(reportId);
+    try {
+      const res = await fetch(`/api/genetic-reports/${reportId}/download${mode === 'view' ? '?mode=view' : ''}`);
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.signed_url) {
+        alert(data?.error || 'İndirme bağlantısı oluşturulamadı. Lütfen tekrar deneyin.');
+        return;
+      }
+      if (mode === 'view') {
+        window.open(data.signed_url, '_blank', 'noopener,noreferrer');
+      } else {
+        const link = document.createElement('a');
+        link.href = data.signed_url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch {
+      alert('Bağlantı hatası. Lütfen tekrar deneyin.');
+    } finally {
+      setGeneticBusyId(null);
+    }
+  };
   const [answersViewer, setAnswersViewer] = useState<{ resultId: string } | null>(null);
 
   // ═══ Öğrenci Aktarma State'leri ═══
@@ -1018,21 +1053,22 @@ export default function StudentDetailPage() {
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2 ml-11">
-                      <a
-                        href={`/api/genetic-reports/${g.id}/download`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[12px] font-bold border border-amber-200 dark:border-amber-700/50 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-all"
+                      <button
+                        type="button"
+                        disabled={geneticBusyId === g.id}
+                        onClick={() => openGeneticReport(g.id, g.original_filename, 'view')}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[12px] font-bold border border-amber-200 dark:border-amber-700/50 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-all disabled:opacity-50 disabled:cursor-wait"
                       >
-                        <Eye className="w-3.5 h-3.5" /> PDF Görüntüle
-                      </a>
-                      <a
-                        href={`/api/genetic-reports/${g.id}/download`}
-                        download={g.original_filename}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-[12px] font-bold border border-red-200 hover:bg-red-100 transition-all"
+                        <Eye className="w-3.5 h-3.5" /> {geneticBusyId === g.id ? 'Açılıyor…' : 'PDF Görüntüle'}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={geneticBusyId === g.id}
+                        onClick={() => openGeneticReport(g.id, g.original_filename, 'download')}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-[12px] font-bold border border-red-200 hover:bg-red-100 transition-all disabled:opacity-50 disabled:cursor-wait"
                       >
                         <Download className="w-3.5 h-3.5" /> İndir
-                      </a>
+                      </button>
                     </div>
                   </div>
                 ))}

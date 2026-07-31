@@ -9,10 +9,15 @@
  *   • teacher → kendine atanmış öğrenciler
  *   • student / parent → 403
  *
- * Response: { signed_url: string, expires_in: 60 }
+ * Query: ?mode=view  → tarayıcıda AÇMAK için (Content-Disposition: inline)
+ *        (varsayılan)  → İNDİRMEK için (Content-Disposition: attachment)
+ *
+ * Response: { signed_url: string, expires_in: 60, filename: string }
  *   • Signed URL 60 saniye geçerli (kısa süre — KVKK için).
- *   • Bu URL'i client tarayıcısı doğrudan kullanır (window.open / download).
- *   • URL'in süresi dolduktan sonra tekrar bu endpoint çağrılır.
+ *   • DİKKAT: Bu endpoint JSON döner, PDF DÖNMEZ. İstemci önce fetch edip
+ *     signed_url'i almalı, sonra o URL'i açmalıdır. Bu adrese doğrudan
+ *     <a href> ile gidilirse tarayıcıda ham JSON görünür (veya JSON dosyası
+ *     .pdf adıyla inip bozuk dosya oluşur).
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
@@ -99,11 +104,16 @@ export async function GET(
     }
 
     // ── Signed URL üret ──
+    // mode=view → tarayıcıda inline açılsın (PDF görüntüleyici)
+    // varsayılan → indirme (attachment) olarak gelsin
+    const mode = req.nextUrl.searchParams.get('mode');
+    const signOpts = mode === 'view'
+      ? undefined
+      : { download: report.original_filename };
+
     const { data: signed, error: signError } = await admin.storage
       .from(BUCKET_NAME)
-      .createSignedUrl(report.file_path, SIGNED_URL_TTL, {
-        download: report.original_filename, // Tarayıcıya indirme adıyla göster
-      });
+      .createSignedUrl(report.file_path, SIGNED_URL_TTL, signOpts);
 
     if (signError || !signed?.signedUrl) {
       console.error('[genetic-reports/download] sign error', signError);
@@ -117,6 +127,7 @@ export async function GET(
       signed_url: signed.signedUrl,
       expires_in: SIGNED_URL_TTL,
       filename: report.original_filename,
+      mode: mode === 'view' ? 'view' : 'download',
     });
   } catch (err) {
     console.error('[genetic-reports/download]', err);
