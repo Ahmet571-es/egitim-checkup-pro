@@ -168,7 +168,7 @@ function insightToDocx(block: InsightBlock, audience: InfographicAudience): Tabl
                 spacing: { before: 120, after: 60 },
               }),
               new Paragraph({
-                children: [new TextRun({ text: block.content, size: 20 })],
+                children: inlineDocxRuns(block.content, 20),
                 spacing: { after: 120 },
               }),
             ],
@@ -394,6 +394,26 @@ function heatmapToDocx(block: HeatmapBlock, audience: InfographicAudience): Arra
   }));
   if (block.caption) out.push(p(block.caption, { size: 16, before: 60 }));
   out.push(p('', { after: 100 }));
+  return out;
+}
+
+/**
+ * Satır içi **kalın** işaretlerini docx TextRun'larına çevirir.
+ * Insight/chain gibi blok gövdelerinde markdown işlenmediği için '**' ham
+ * olarak DOCX'e sızıyordu.
+ */
+function inlineDocxRuns(text: string, size = 20): TextRun[] {
+  const out: TextRun[] = [];
+  const re = /\*\*(.+?)\*\*/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) out.push(new TextRun({ text: text.slice(last, m.index), size }));
+    out.push(new TextRun({ text: m[1], bold: true, size }));
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out.push(new TextRun({ text: text.slice(last), size }));
+  if (!out.length) out.push(new TextRun({ text, size }));
   return out;
 }
 

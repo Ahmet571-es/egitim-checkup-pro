@@ -158,7 +158,7 @@ function insightToPdf(block: InsightBlock, audience: InfographicAudience): PdfCo
               ],
               margin: [0, 0, 0, 4],
             },
-            { text: block.content, fontSize: 10, color: '#374151', lineHeight: 1.3 },
+            { text: inlineRuns(block.content), fontSize: 10, color: '#374151', lineHeight: 1.3 },
           ],
           fillColor: color + '0d',
           margin: [10, 8, 10, 8],
@@ -419,6 +419,49 @@ function infographicToPdf(block: InfographicBlock, audience: InfographicAudience
 export { infographicToPdf };
 
 // ─── Metin parçası → pdfmake içerik (eski markdownToContent, satır satır) ───
+/**
+ * Satır içi **kalın** işaretlerini pdfmake text run'larına çevirir.
+ * Insight/chain gibi blok gövdelerinde markdown işlenmediği için '**' ham
+ * olarak PDF'e sızıyordu; bu yardımcı onu düzeltir.
+ */
+function inlineRuns(text: string): Array<Record<string, unknown>> {
+  const out: Array<Record<string, unknown>> = [];
+  const re = /\*\*(.+?)\*\*/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) out.push({ text: text.slice(last, m.index) });
+    out.push({ text: m[1], bold: true });
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out.push({ text: text.slice(last) });
+  if (!out.length) out.push({ text });
+  return out;
+}
+
+/** Metin barı (███░░░) — Roboto'da blok karakteri glifi yok. */
+const BAR_RE = /[\u2588\u2591]/;
+
+/**
+ * '███░░░░░░░' gibi metin barını gerçek çizime çevirir.
+ * Roboto U+2588/U+2591 glifi taşımadığı için bu hücreler PDF'te BOŞ çıkıyordu;
+ * tablolarda başlıklı ama içi boş bir 'Grafik' sütunu kalıyordu.
+ */
+function textBarToCanvas(cell: string, color: string): Record<string, unknown> {
+  const filled = (cell.match(/\u2588/g) || []).length;
+  const empty = (cell.match(/\u2591/g) || []).length;
+  const total = filled + empty;
+  const W = 74, H = 7;
+  const w = total > 0 ? Math.max(2, Math.round((filled / total) * W)) : 0;
+  return {
+    canvas: [
+      { type: 'rect', x: 0, y: 2, w: W, h: H, r: 2, color: '#eef2f7' },
+      ...(w > 0 ? [{ type: 'rect', x: 0, y: 2, w, h: H, r: 2, color }] : []),
+    ],
+    margin: [0, 1, 0, 1],
+  };
+}
+
 function textSegmentToContent(markdown: string): Array<Record<string, unknown>> {
   const content: Array<Record<string, unknown>> = [];
   const lines = markdown.split('\n');
@@ -469,11 +512,18 @@ function textSegmentToContent(markdown: string): Array<Record<string, unknown>> 
       const cells = line
         .split('|')
         .filter((_, idx, arr) => idx > 0 && idx < arr.length - 1)
-        .map(cell => ({
-          text: cell.trim().replace(/\*\*/g, '').replace(/\*/g, ''),
-          style: 'tableCell',
-          margin: [4, 3, 4, 3],
-        }));
+        .map(cell => {
+          const raw = cell.trim();
+          // '███░░░' metin barı: Roboto'da blok karakteri glifi yok → çizime çevir.
+          if (BAR_RE.test(raw)) {
+            return { ...textBarToCanvas(raw, '#10b981'), style: 'tableCell', margin: [4, 3, 4, 3] };
+          }
+          return {
+            text: raw.replace(/\*\*/g, '').replace(/\*/g, ''),
+            style: 'tableCell',
+            margin: [4, 3, 4, 3],
+          };
+        });
 
       if (cells.length > 0) {
         content.push({

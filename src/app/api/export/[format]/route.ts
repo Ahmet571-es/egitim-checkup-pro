@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { buildContentDisposition } from '@/lib/export/content-disposition';
+import { TEST_LABELS } from '@/lib/services/correlation';
 
 export async function GET(
   request: NextRequest,
@@ -130,7 +131,7 @@ export async function GET(
               className: classInfo?.name ?? '—',
               testResults: (results ?? []).map(r => ({
                 testType: r.test_type,
-                testName: r.test_type,
+                testName: TEST_LABELS[r.test_type] ?? r.test_type,
                 completedAt: r.completed_at,
                 scores: r.scores ?? {},
                 aiReport: r.ai_report,
@@ -193,7 +194,7 @@ export async function GET(
         studentName: student?.full_name ?? 'Öğrenci',
         testResults: (results ?? []).map(r => ({
           testType: r.test_type,
-          testName: r.test_type,
+          testName: TEST_LABELS[r.test_type] ?? r.test_type,
           completedAt: r.completed_at,
           scores: r.scores ?? {},
           aiReport: r.ai_report,
@@ -273,7 +274,7 @@ export async function GET(
     const safeName = (student?.full_name ?? 'ogrenci').replace(/\s+/g, '_');
     const meta = {
       studentName: student?.full_name ?? 'Öğrenci',
-      testName: testResult.test_type,
+      testName: TEST_LABELS[testResult.test_type] ?? testResult.test_type,
       reportType,
       audience,
       generatedAt: testResult.ai_report_generated_at ?? undefined,
