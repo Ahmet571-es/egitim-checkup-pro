@@ -23,6 +23,12 @@ import type {
   RingBlock,
   InsightBlock,
   BarsBlock,
+  CompareBlock,
+  ChainBlock,
+  TimelineBlock,
+  QuadrantBlock,
+  DonutBlock,
+  HeatmapBlock,
   RadarBlock,
   GaugeBlock,
   GridBlock,
@@ -514,6 +520,235 @@ function GaugeChart({ block, palette }: { block: GaugeBlock; palette: AudiencePa
 }
 
 // ─── Ana render dispatcher ───────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// FAZ 0 — Derinleştirilmiş rapor blokları
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Öğrenci ↔ referans karşılaştırması (gruplu yatay bar). */
+function CompareBars({ block, palette }: { block: CompareBlock; palette: AudiencePalette }) {
+  const data = block.items.map((i) => ({
+    label: i.label,
+    [block.selfLabel]: i.self,
+    [block.refLabel]: i.ref,
+    delta: Math.round((i.self - i.ref) * 10) / 10,
+  }));
+  return (
+    <div className="my-4 rounded-2xl border border-gray-100 bg-white shadow-sm p-4">
+      {block.title && <h4 className="text-sm font-bold text-gray-800 mb-1">{block.title}</h4>}
+      <p className="text-[11px] text-gray-500 mb-3">
+        Koyu çubuk {block.selfLabel.toLocaleLowerCase('tr')}, açık çubuk {block.refLabel.toLocaleLowerCase('tr')}.
+      </p>
+      <div style={{ width: '100%', height: Math.max(190, data.length * 46) }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} layout="vertical" margin={{ top: 4, right: 28, left: 4, bottom: 4 }} barGap={2}>
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+            <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11, fill: '#64748b' }} />
+            <YAxis type="category" dataKey="label" width={128} tick={{ fontSize: 11, fill: '#334155' }} />
+            <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ fontSize: 12, borderRadius: 10 }} />
+            <Bar dataKey={block.selfLabel} fill={palette.primary} radius={[0, 5, 5, 0]} barSize={13}>
+              <LabelList dataKey={block.selfLabel} position="right" style={{ fontSize: 10, fill: '#334155' }} />
+            </Bar>
+            <Bar dataKey={block.refLabel} fill="#cbd5e1" radius={[0, 5, 5, 0]} barSize={13} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {data.map((d) => (
+          <span
+            key={d.label}
+            className="text-[11px] px-2 py-0.5 rounded-full font-medium"
+            style={{
+              background: d.delta >= 0 ? `${palette.primary}14` : '#fee2e2',
+              color: d.delta >= 0 ? palette.primary : '#b91c1c',
+            }}
+          >
+            {d.label}: {d.delta >= 0 ? '+' : ''}{d.delta}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Neden → Etki → Sonuç zinciri. */
+function ChainFlow({ block, palette }: { block: ChainBlock; palette: AudiencePalette }) {
+  const cols: { key: 'cause' | 'effect' | 'result'; head: string; color: string; bg: string }[] = [
+    { key: 'cause', head: 'NEDEN', color: '#475569', bg: '#f1f5f9' },
+    { key: 'effect', head: 'NİÇİN / ETKİ', color: palette.info, bg: `${palette.info}12` },
+    { key: 'result', head: 'SONUÇ', color: palette.primary, bg: `${palette.primary}12` },
+  ];
+  return (
+    <div className="my-4 rounded-2xl border border-gray-100 bg-white shadow-sm p-4">
+      {block.title && <h4 className="text-sm font-bold text-gray-800 mb-3">{block.title}</h4>}
+      <div className="space-y-3">
+        {block.links.map((l, i) => (
+          <div key={i} className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr_auto_1fr] gap-2 items-stretch">
+            {cols.map((c, ci) => (
+              <React.Fragment key={c.key}>
+                <div className="rounded-xl px-3 py-2" style={{ background: c.bg }}>
+                  <div className="text-[10px] font-bold tracking-wide mb-0.5" style={{ color: c.color }}>{c.head}</div>
+                  <div className="text-xs text-gray-700 leading-snug">{l[c.key]}</div>
+                </div>
+                {ci < 2 && (
+                  <div className="hidden sm:flex items-center justify-center text-gray-300 font-bold">→</div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Sıralı yol haritası. */
+function TimelineSteps({ block, palette }: { block: TimelineBlock; palette: AudiencePalette }) {
+  return (
+    <div className="my-4 rounded-2xl border border-gray-100 bg-white shadow-sm p-4">
+      {block.title && <h4 className="text-sm font-bold text-gray-800 mb-3">{block.title}</h4>}
+      <ol className="relative border-l-2 pl-5 space-y-4" style={{ borderColor: `${palette.primary}33` }}>
+        {block.steps.map((s, i) => (
+          <li key={i} className="relative">
+            <span
+              className="absolute -left-[27px] flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white"
+              style={{ background: palette.primary }}
+            >
+              {i + 1}
+            </span>
+            <div className="text-sm font-semibold text-gray-800">{s.title}</div>
+            {s.detail && <div className="text-xs text-gray-600 mt-0.5 leading-relaxed">{s.detail}</div>}
+            {s.tag && (
+              <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full font-medium"
+                style={{ background: `${palette.secondary}18`, color: palette.secondary }}>
+                {s.tag}
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+/** İki eksende konumlandırma. */
+function QuadrantPlot({ block, palette }: { block: QuadrantBlock; palette: AudiencePalette }) {
+  const S = 260, pad = 34;
+  const px = pad + (block.x / 100) * (S - 2 * pad);
+  const py = S - pad - (block.y / 100) * (S - 2 * pad);
+  const labels = [
+    { t: block.quadrants[0], x: pad + (S - 2 * pad) * 0.25, y: S - pad - (S - 2 * pad) * 0.25 },
+    { t: block.quadrants[1], x: pad + (S - 2 * pad) * 0.75, y: S - pad - (S - 2 * pad) * 0.25 },
+    { t: block.quadrants[2], x: pad + (S - 2 * pad) * 0.25, y: S - pad - (S - 2 * pad) * 0.75 },
+    { t: block.quadrants[3], x: pad + (S - 2 * pad) * 0.75, y: S - pad - (S - 2 * pad) * 0.75 },
+  ];
+  return (
+    <div className="my-4 rounded-2xl border border-gray-100 bg-white shadow-sm p-4">
+      {block.title && <h4 className="text-sm font-bold text-gray-800 mb-2">{block.title}</h4>}
+      <svg viewBox={`0 0 ${S} ${S}`} width="100%" style={{ maxWidth: 320 }}>
+        <rect x={pad} y={pad} width={S - 2 * pad} height={S - 2 * pad} fill="#f8fafc" rx="10" />
+        <line x1={S / 2} y1={pad} x2={S / 2} y2={S - pad} stroke="#e2e8f0" strokeWidth="1.5" />
+        <line x1={pad} y1={S / 2} x2={S - pad} y2={S / 2} stroke="#e2e8f0" strokeWidth="1.5" />
+        {labels.map((l, i) =>
+          l.t ? (
+            <text key={i} x={l.x} y={l.y} textAnchor="middle" fontSize="9" fill="#94a3b8" fontWeight="600">
+              {l.t.length > 18 ? l.t.slice(0, 17) + '…' : l.t}
+            </text>
+          ) : null
+        )}
+        <circle cx={px} cy={py} r="9" fill={palette.primary} opacity="0.22" />
+        <circle cx={px} cy={py} r="5" fill={palette.primary} />
+        <text x={S / 2} y={S - 8} textAnchor="middle" fontSize="10" fill="#475569" fontWeight="600">{block.xLabel} →</text>
+        <text x={11} y={S / 2} textAnchor="middle" fontSize="10" fill="#475569" fontWeight="600"
+          transform={`rotate(-90 11 ${S / 2})`}>{block.yLabel} →</text>
+      </svg>
+      {block.caption && <p className="text-[11px] text-gray-500 mt-1">{block.caption}</p>}
+    </div>
+  );
+}
+
+/** Parça-bütün halka grafiği. */
+function DonutChart({ block, palette }: { block: DonutBlock; palette: AudiencePalette }) {
+  const total = block.items.reduce((a, b) => a + b.value, 0) || 1;
+  const colors = [palette.primary, palette.secondary, palette.info, palette.warning, palette.accent, '#94a3b8'];
+  const S = 190, R = 74, r = 46, cx = S / 2, cy = S / 2;
+  let acc = 0;
+  const arcs = block.items.map((it, i) => {
+    const frac = it.value / total;
+    const a0 = acc * 2 * Math.PI - Math.PI / 2;
+    acc += frac;
+    const a1 = acc * 2 * Math.PI - Math.PI / 2;
+    const large = frac > 0.5 ? 1 : 0;
+    const d = [
+      `M ${cx + R * Math.cos(a0)} ${cy + R * Math.sin(a0)}`,
+      `A ${R} ${R} 0 ${large} 1 ${cx + R * Math.cos(a1)} ${cy + R * Math.sin(a1)}`,
+      `L ${cx + r * Math.cos(a1)} ${cy + r * Math.sin(a1)}`,
+      `A ${r} ${r} 0 ${large} 0 ${cx + r * Math.cos(a0)} ${cy + r * Math.sin(a0)}`,
+      'Z',
+    ].join(' ');
+    return { d, color: colors[i % colors.length], label: it.label, pct: Math.round(frac * 100) };
+  });
+  return (
+    <div className="my-4 rounded-2xl border border-gray-100 bg-white shadow-sm p-4">
+      {block.title && <h4 className="text-sm font-bold text-gray-800 mb-2">{block.title}</h4>}
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        <svg viewBox={`0 0 ${S} ${S}`} width={S} height={S} style={{ flexShrink: 0 }}>
+          {arcs.map((a, i) => <path key={i} d={a.d} fill={a.color} />)}
+          {block.centerLabel && (
+            <text x={cx} y={cy + 4} textAnchor="middle" fontSize="13" fontWeight="700" fill="#334155">
+              {block.centerLabel}
+            </text>
+          )}
+        </svg>
+        <ul className="space-y-1.5 w-full">
+          {arcs.map((a, i) => (
+            <li key={i} className="flex items-center gap-2 text-xs text-gray-700">
+              <span className="inline-block w-3 h-3 rounded-sm" style={{ background: a.color }} />
+              <span className="flex-1">{a.label}</span>
+              <span className="font-semibold text-gray-800">%{a.pct}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+/** Satır × sütun yoğunluk matrisi. */
+function HeatmapGrid({ block, palette }: { block: HeatmapBlock; palette: AudiencePalette }) {
+  const shade = (v: number) => {
+    const t = Math.max(0, Math.min(100, v)) / 100;
+    return { background: `${palette.primary}${Math.round(12 + t * 220).toString(16).padStart(2, '0')}`, color: t > 0.55 ? '#fff' : '#334155' };
+  };
+  return (
+    <div className="my-4 rounded-2xl border border-gray-100 bg-white shadow-sm p-4 overflow-x-auto">
+      {block.title && <h4 className="text-sm font-bold text-gray-800 mb-3">{block.title}</h4>}
+      <table className="w-full border-separate" style={{ borderSpacing: 3 }}>
+        <thead>
+          <tr>
+            <th className="text-left text-[11px] font-semibold text-gray-500 pr-2" />
+            {block.cols.map((c) => (
+              <th key={c} className="text-[11px] font-semibold text-gray-500 px-1 pb-1 text-center">{c}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {block.rows.map((r) => (
+            <tr key={r.label}>
+              <td className="text-xs text-gray-700 pr-2 whitespace-nowrap font-medium">{r.label}</td>
+              {r.values.map((v, i) => (
+                <td key={i} className="text-center text-[11px] font-bold rounded-md py-2 px-1 min-w-[42px]" style={shade(v)}>
+                  {Math.round(v)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {block.caption && <p className="text-[11px] text-gray-500 mt-2">{block.caption}</p>}
+    </div>
+  );
+}
+
 export default function InfographicBlockRenderer({
   block,
   audience = 'ogretmen',
@@ -550,6 +785,22 @@ export default function InfographicBlockRenderer({
       );
     case 'grid':
       return <GridOfStats block={block} palette={palette} />;
+    case 'compare':
+      return <CompareBars block={block} palette={palette} />;
+    case 'chain':
+      return <ChainFlow block={block} palette={palette} />;
+    case 'timeline':
+      return <TimelineSteps block={block} palette={palette} />;
+    case 'quadrant':
+      return (
+        <div className="my-3 flex justify-center sm:justify-start">
+          <QuadrantPlot block={block} palette={palette} />
+        </div>
+      );
+    case 'donut':
+      return <DonutChart block={block} palette={palette} />;
+    case 'heatmap':
+      return <HeatmapGrid block={block} palette={palette} />;
     default: {
       const _exhaustive: never = block;
       void _exhaustive;
@@ -558,4 +809,5 @@ export default function InfographicBlockRenderer({
   }
 }
 
-export { StatCard, ScoreRing, InsightCard, BarBlock, RadarChartBlock, GaugeChart, GridOfStats };
+export { StatCard, ScoreRing, InsightCard, BarBlock, RadarChartBlock, GaugeChart, GridOfStats,
+  CompareBars, ChainFlow, TimelineSteps, QuadrantPlot, DonutChart, HeatmapGrid };

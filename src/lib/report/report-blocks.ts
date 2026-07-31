@@ -108,3 +108,64 @@ export function reportFooter(): string {
 export function safeName(student: StudentInfo): string {
   return (student.studentName || 'Öğrenci').trim();
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FAZ 0 — Derinleştirilmiş rapor blokları (üreteçler)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Öğrenciyi bir referansla kıyaslar. items: [etiket, öğrenci, referans] */
+export function compareBlock(
+  title: string,
+  items: [string, number, number][],
+  opts?: { selfLabel?: string; refLabel?: string },
+): string {
+  const head = `[!compare title="${title}" self="${opts?.selfLabel ?? 'Öğrenci'}" ref="${opts?.refLabel ?? 'Yaş grubu ortalaması'}"]`;
+  const body = items.map(([l, s, r]) => `${l}: ${clampPct(s)} | ${clampPct(r)}`).join('\n');
+  return `${head}\n${body}\n[/!compare]\n`;
+}
+
+/** Neden → Etki → Sonuç zinciri. */
+export function chainBlock(title: string, links: [string, string, string][]): string {
+  const body = links.map(([c, e, r]) => `${c} :: ${e} :: ${r}`).join('\n');
+  return `[!chain title="${title}"]\n${body}\n[/!chain]\n`;
+}
+
+/** Sıralı yol haritası. steps: [başlık, açıklama?, etiket?] */
+export function timelineBlock(title: string, steps: [string, string?, string?][]): string {
+  const body = steps
+    .map(([t, d, g]) => [t, d ?? '', g ?? ''].join(' :: ').replace(/(\s*::\s*)+$/, ''))
+    .join('\n');
+  return `[!timeline title="${title}"]\n${body}\n[/!timeline]\n`;
+}
+
+/** İki eksende konumlandırma. quadrants: [sol-alt, sağ-alt, sol-üst, sağ-üst] */
+export function quadrantBlock(
+  title: string,
+  x: number, y: number,
+  xLabel: string, yLabel: string,
+  quadrants: [string, string, string, string],
+  caption?: string,
+): string {
+  const q = quadrants.join('|');
+  const cap = caption ? ` caption="${caption}"` : '';
+  return `[!quadrant title="${title}" x="${clampPct(x)}" y="${clampPct(y)}" xlabel="${xLabel}" ylabel="${yLabel}" quadrants="${q}"${cap}]\n`;
+}
+
+/** Parça-bütün halka grafiği. */
+export function donutBlock(title: string, items: [string, number][], centerLabel?: string): string {
+  const center = centerLabel ? ` center="${centerLabel}"` : '';
+  const body = items.filter(([, v]) => v > 0).map(([l, v]) => `${l}: ${v}`).join('\n');
+  return `[!donut title="${title}"${center}]\n${body}\n[/!donut]\n`;
+}
+
+/** Satır × sütun yoğunluk matrisi. */
+export function heatmapBlock(
+  title: string,
+  cols: string[],
+  rows: [string, number[]][],
+  caption?: string,
+): string {
+  const cap = caption ? ` caption="${caption}"` : '';
+  const body = rows.map(([l, vs]) => `${l}: ${vs.map((v) => clampPct(v)).join(',')}`).join('\n');
+  return `[!heatmap title="${title}" cols="${cols.join(',')}"${cap}]\n${body}\n[/!heatmap]\n`;
+}

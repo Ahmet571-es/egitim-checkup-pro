@@ -23,6 +23,12 @@ import {
   type InsightBlock,
   type BarsBlock,
   type GridBlock,
+  type CompareBlock,
+  type ChainBlock,
+  type TimelineBlock,
+  type QuadrantBlock,
+  type DonutBlock,
+  type HeatmapBlock,
 } from '@/lib/report/infographic-blocks';
 
 // Resolve pdfmake package root via require.resolve on package.json so bundlers
@@ -228,6 +234,151 @@ function gridToPdf(block: GridBlock, audience: InfographicAudience): PdfContentN
   return { stack: rows, margin: [0, 4, 0, 4] };
 }
 
+// ─── FAZ 0 blokları — PDF karşılıkları ───────────────────────────────────────
+function compareToPdf(block: CompareBlock, audience: InfographicAudience): PdfContentNode {
+  const palette = AUDIENCE_PALETTES[audience];
+  const barMax = 300, labelW = 120;
+  const stack: PdfContentNode[] = [];
+  if (block.title) stack.push({ text: block.title, bold: true, fontSize: 11, color: '#111827', margin: [0, 0, 0, 3] });
+  stack.push({ text: `Dolu çubuk: ${block.selfLabel} · Açık çubuk: ${block.refLabel}`, fontSize: 8, color: '#6b7280', margin: [0, 0, 0, 6] });
+  for (const it of block.items) {
+    const mx = it.max ?? 100;
+    const ws = Math.max(2, Math.round((it.self / mx) * barMax));
+    const wr = Math.max(2, Math.round((it.ref / mx) * barMax));
+    const d = Math.round((it.self - it.ref) * 10) / 10;
+    stack.push({
+      columns: [
+        { text: it.label, width: labelW, fontSize: 9, color: '#374151', alignment: 'right', margin: [0, 4, 6, 0] },
+        {
+          width: barMax + 4,
+          canvas: [
+            { type: 'rect', x: 0, y: 1, w: barMax, h: 8, r: 2, color: '#f3f4f6' },
+            { type: 'rect', x: 0, y: 1, w: ws, h: 8, r: 2, color: palette.primary },
+            { type: 'rect', x: 0, y: 11, w: barMax, h: 6, r: 2, color: '#f3f4f6' },
+            { type: 'rect', x: 0, y: 11, w: wr, h: 6, r: 2, color: '#cbd5e1' },
+          ],
+        },
+        { text: `${it.self} / ${it.ref}  (${d >= 0 ? '+' : ''}${d})`, width: 85, fontSize: 9, bold: true, color: '#111827', margin: [6, 4, 0, 0] },
+      ],
+      margin: [0, 3, 0, 3],
+    });
+  }
+  return { stack, margin: [0, 6, 0, 8] };
+}
+
+function chainToPdf(block: ChainBlock, audience: InfographicAudience): PdfContentNode {
+  const palette = AUDIENCE_PALETTES[audience];
+  const body: PdfContentNode[][] = [[
+    { text: 'NEDEN', bold: true, fontSize: 8, color: '#ffffff', fillColor: palette.primary, margin: [4, 4, 4, 4] },
+    { text: 'NİÇİN / ETKİ', bold: true, fontSize: 8, color: '#ffffff', fillColor: palette.primary, margin: [4, 4, 4, 4] },
+    { text: 'SONUÇ', bold: true, fontSize: 8, color: '#ffffff', fillColor: palette.primary, margin: [4, 4, 4, 4] },
+  ]];
+  for (const l of block.links) {
+    body.push([
+      { text: l.cause, fontSize: 9, color: '#374151', margin: [4, 4, 4, 4] },
+      { text: l.effect, fontSize: 9, color: '#374151', margin: [4, 4, 4, 4] },
+      { text: l.result, fontSize: 9, color: '#111827', bold: true, margin: [4, 4, 4, 4] },
+    ]);
+  }
+  const stack: PdfContentNode[] = [];
+  if (block.title) stack.push({ text: block.title, bold: true, fontSize: 11, color: '#111827', margin: [0, 0, 0, 6] });
+  stack.push({ table: { widths: ['*', '*', '*'], body }, layout: 'lightHorizontalLines' });
+  return { stack, margin: [0, 6, 0, 8] };
+}
+
+function timelineToPdf(block: TimelineBlock, audience: InfographicAudience): PdfContentNode {
+  const palette = AUDIENCE_PALETTES[audience];
+  const stack: PdfContentNode[] = [];
+  if (block.title) stack.push({ text: block.title, bold: true, fontSize: 11, color: '#111827', margin: [0, 0, 0, 6] });
+  block.steps.forEach((s, i) => {
+    stack.push({
+      columns: [
+        { text: String(i + 1), width: 16, fontSize: 10, bold: true, color: palette.primary, alignment: 'center', margin: [0, 2, 0, 0] },
+        {
+          width: '*',
+          stack: [
+            { text: s.title, fontSize: 10, bold: true, color: '#111827' },
+            ...(s.detail ? [{ text: s.detail, fontSize: 9, color: '#4b5563', margin: [0, 1, 0, 0] } as PdfContentNode] : []),
+            ...(s.tag ? [{ text: s.tag, fontSize: 8, color: palette.secondary, margin: [0, 1, 0, 0] } as PdfContentNode] : []),
+          ],
+        },
+      ],
+      margin: [0, 3, 0, 3],
+    });
+  });
+  return { stack, margin: [0, 6, 0, 8] };
+}
+
+function quadrantToPdf(block: QuadrantBlock, audience: InfographicAudience): PdfContentNode {
+  const palette = AUDIENCE_PALETTES[audience];
+  const S = 150, pad = 12;
+  const px = pad + (block.x / 100) * (S - 2 * pad);
+  const py = S - pad - (block.y / 100) * (S - 2 * pad);
+  const idx = (block.x >= 50 ? 1 : 0) + (block.y >= 50 ? 2 : 0);
+  const stack: PdfContentNode[] = [];
+  if (block.title) stack.push({ text: block.title, bold: true, fontSize: 11, color: '#111827', margin: [0, 0, 0, 6] });
+  stack.push({
+    columns: [
+      {
+        width: S + 6,
+        canvas: [
+          { type: 'rect', x: pad, y: pad, w: S - 2 * pad, h: S - 2 * pad, r: 4, color: '#f8fafc' },
+          { type: 'line', x1: S / 2, y1: pad, x2: S / 2, y2: S - pad, lineWidth: 1, lineColor: '#e2e8f0' },
+          { type: 'line', x1: pad, y1: S / 2, x2: S - pad, y2: S / 2, lineWidth: 1, lineColor: '#e2e8f0' },
+          { type: 'ellipse', x: px, y: py, r1: 5, r2: 5, color: palette.primary },
+        ],
+      },
+      {
+        width: '*',
+        stack: [
+          { text: `${block.xLabel}: ${Math.round(block.x)}`, fontSize: 9, color: '#374151' },
+          { text: `${block.yLabel}: ${Math.round(block.y)}`, fontSize: 9, color: '#374151', margin: [0, 2, 0, 4] },
+          { text: `Konum: ${block.quadrants[idx] || '—'}`, fontSize: 10, bold: true, color: palette.primary },
+          ...(block.caption ? [{ text: block.caption, fontSize: 8, color: '#6b7280', margin: [0, 4, 0, 0] } as PdfContentNode] : []),
+        ],
+        margin: [10, 20, 0, 0],
+      },
+    ],
+  });
+  return { stack, margin: [0, 6, 0, 8] };
+}
+
+function donutToPdf(block: DonutBlock, audience: InfographicAudience): PdfContentNode {
+  const total = block.items.reduce((a, b) => a + b.value, 0) || 1;
+  return barsToPdf({
+    kind: 'bars',
+    title: block.title,
+    items: block.items.map((i) => ({ label: i.label, value: Math.round((i.value / total) * 100), max: 100 })),
+  }, audience);
+}
+
+function heatmapToPdf(block: HeatmapBlock, audience: InfographicAudience): PdfContentNode {
+  const palette = AUDIENCE_PALETTES[audience];
+  const head: PdfContentNode[] = [{ text: '', fontSize: 8, margin: [3, 3, 3, 3] }];
+  for (const cl of block.cols) {
+    head.push({ text: cl, fontSize: 8, bold: true, color: '#ffffff', fillColor: palette.primary, alignment: 'center', margin: [3, 3, 3, 3] });
+  }
+  const body: PdfContentNode[][] = [head];
+  for (const r of block.rows) {
+    const row: PdfContentNode[] = [{ text: r.label, fontSize: 9, bold: true, color: '#374151', margin: [3, 3, 3, 3] }];
+    for (const v of r.values) {
+      const t = Math.max(0, Math.min(100, v)) / 100;
+      row.push({
+        text: String(Math.round(v)), fontSize: 9, bold: true, alignment: 'center',
+        color: t > 0.55 ? '#ffffff' : '#334155',
+        fillColor: t > 0.55 ? palette.primary : '#eef2f7',
+        margin: [3, 3, 3, 3],
+      });
+    }
+    body.push(row);
+  }
+  const stack: PdfContentNode[] = [];
+  if (block.title) stack.push({ text: block.title, bold: true, fontSize: 11, color: '#111827', margin: [0, 0, 0, 6] });
+  stack.push({ table: { widths: ['auto', ...block.cols.map(() => '*')], body }, layout: 'noBorders' });
+  if (block.caption) stack.push({ text: block.caption, fontSize: 8, color: '#6b7280', margin: [0, 4, 0, 0] });
+  return { stack, margin: [0, 6, 0, 8] };
+}
+
 function infographicToPdf(block: InfographicBlock, audience: InfographicAudience): PdfContentNode {
   switch (block.kind) {
     case 'stat':
@@ -249,6 +400,18 @@ function infographicToPdf(block: InfographicBlock, audience: InfographicAudience
       );
     case 'grid':
       return gridToPdf(block, audience);
+    case 'compare':
+      return compareToPdf(block, audience);
+    case 'chain':
+      return chainToPdf(block, audience);
+    case 'timeline':
+      return timelineToPdf(block, audience);
+    case 'quadrant':
+      return quadrantToPdf(block, audience);
+    case 'donut':
+      return donutToPdf(block, audience);
+    case 'heatmap':
+      return heatmapToPdf(block, audience);
   }
 }
 

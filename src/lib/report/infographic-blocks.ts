@@ -88,6 +88,64 @@ export interface GridBlock {
   children: StatBlock[]; // Grid yalnızca stat bloklarını içerir (v1)
 }
 
+
+// ─── FAZ 0: Derinleştirilmiş rapor blokları ──────────────────────────────────
+
+/** Öğrenciyi bir referansla (norm/sınıf ort./hedef) yan yana kıyaslar. */
+export interface CompareBlock {
+  kind: 'compare';
+  title?: string;
+  /** Referans serisinin adı (ör. "Yaş grubu ortalaması"). */
+  refLabel: string;
+  /** Öğrenci serisinin adı (varsayılan "Öğrenci"). */
+  selfLabel: string;
+  items: { label: string; self: number; ref: number; max?: number }[];
+}
+
+/** Neden → Etki → Sonuç zinciri. Raporun "niçin"ini görselleştirir. */
+export interface ChainBlock {
+  kind: 'chain';
+  title?: string;
+  links: { cause: string; effect: string; result: string }[];
+}
+
+/** Sıralı yol haritası / uygulama adımları. */
+export interface TimelineBlock {
+  kind: 'timeline';
+  title?: string;
+  steps: { title: string; detail?: string; tag?: string }[];
+}
+
+/** İki eksende konumlandırma (ör. hız × anlama, kaygı × hazırlık). */
+export interface QuadrantBlock {
+  kind: 'quadrant';
+  title?: string;
+  xLabel: string;
+  yLabel: string;
+  /** Çeyrek adları: sol-alt, sağ-alt, sol-üst, sağ-üst */
+  quadrants: [string, string, string, string];
+  x: number;
+  y: number;
+  caption?: string;
+}
+
+/** Parça-bütün dağılımı (halka grafik). */
+export interface DonutBlock {
+  kind: 'donut';
+  title?: string;
+  centerLabel?: string;
+  items: { label: string; value: number }[];
+}
+
+/** Satır × sütun yoğunluk matrisi (ör. alan × dönem). */
+export interface HeatmapBlock {
+  kind: 'heatmap';
+  title?: string;
+  cols: string[];
+  rows: { label: string; values: number[] }[];
+  caption?: string;
+}
+
 export type InfographicBlock =
   | StatBlock
   | RingBlock
@@ -95,7 +153,13 @@ export type InfographicBlock =
   | BarsBlock
   | RadarBlock
   | GaugeBlock
-  | GridBlock;
+  | GridBlock
+  | CompareBlock
+  | ChainBlock
+  | TimelineBlock
+  | QuadrantBlock
+  | DonutBlock
+  | HeatmapBlock;
 
 /** Parse sonucunda metin parçaları (string) ile bloklar sıralı dönüyor. */
 export type ReportSegment =
@@ -261,6 +325,108 @@ function parseGauge(attrStr: string): GaugeBlock | null {
  * Single-line bloklar: [!stat ...], [!ring ...]
  * Multi-line bloklar: [!insight ...]...[/!insight], [!bars ...]...[/!bars], [!grid ...]...[/!grid]
  */
+
+// ─── FAZ 0 parser'ları ───────────────────────────────────────────────────────
+const num = (v: string, d = 0): number => { const x = Number(v); return Number.isFinite(x) ? x : d; };
+
+/** Gövde satırı: "Etiket: 72 | 55"  → self=72, ref=55 */
+function parseCompare(attrStr: string, body: string): CompareBlock | null {
+  const a = parseAttrs(attrStr);
+  const items: CompareBlock['items'] = [];
+  for (const raw of body.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    const m = line.match(/^(.+?):\s*(-?\d+(?:\.\d+)?)\s*\|\s*(-?\d+(?:\.\d+)?)\s*(?:\/\s*(\d+(?:\.\d+)?))?$/);
+    if (!m) continue;
+    items.push({ label: m[1].trim(), self: num(m[2]), ref: num(m[3]), max: m[4] ? num(m[4]) : undefined });
+  }
+  if (!items.length) return null;
+  return { kind: 'compare', title: a.title, refLabel: a.ref || 'Referans', selfLabel: a.self || 'Öğrenci', items };
+}
+
+/** Gövde satırı: "Neden :: Etki :: Sonuç" */
+function parseChain(attrStr: string, body: string): ChainBlock | null {
+  const a = parseAttrs(attrStr);
+  const links: ChainBlock['links'] = [];
+  for (const raw of body.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    const parts = line.split('::').map((s) => s.trim()).filter(Boolean);
+    if (parts.length < 3) continue;
+    links.push({ cause: parts[0], effect: parts[1], result: parts.slice(2).join(' — ') });
+  }
+  if (!links.length) return null;
+  return { kind: 'chain', title: a.title, links };
+}
+
+/** Gövde satırı: "Başlık :: açıklama" (açıklama isteğe bağlı) */
+function parseTimeline(attrStr: string, body: string): TimelineBlock | null {
+  const a = parseAttrs(attrStr);
+  const steps: TimelineBlock['steps'] = [];
+  for (const raw of body.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    const parts = line.split('::').map((s) => s.trim());
+    if (!parts[0]) continue;
+    steps.push({ title: parts[0], detail: parts[1] || undefined, tag: parts[2] || undefined });
+  }
+  if (!steps.length) return null;
+  return { kind: 'timeline', title: a.title, steps };
+}
+
+function parseQuadrant(attrStr: string): QuadrantBlock | null {
+  const a = parseAttrs(attrStr);
+  if (!a.x || !a.y) return null;
+  const q = (a.quadrants || '').split('|').map((s) => s.trim());
+  return {
+    kind: 'quadrant',
+    title: a.title,
+    xLabel: a.xlabel || 'X',
+    yLabel: a.ylabel || 'Y',
+    quadrants: [q[0] || '', q[1] || '', q[2] || '', q[3] || ''],
+    x: Math.max(0, Math.min(100, num(a.x))),
+    y: Math.max(0, Math.min(100, num(a.y))),
+    caption: a.caption,
+  };
+}
+
+/** Gövde satırı: "Etiket: 40" */
+function parseDonut(attrStr: string, body: string): DonutBlock | null {
+  const a = parseAttrs(attrStr);
+  const items: DonutBlock['items'] = [];
+  for (const raw of body.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    const m = line.match(/^(.+?):\s*(-?\d+(?:\.\d+)?)$/);
+    if (!m) continue;
+    const v = num(m[2]);
+    if (v <= 0) continue;
+    items.push({ label: m[1].trim(), value: v });
+  }
+  if (!items.length) return null;
+  return { kind: 'donut', title: a.title, centerLabel: a.center, items };
+}
+
+/** Gövde satırı: "Satır: 40,70,20" — cols attr ile sütun adları verilir. */
+function parseHeatmap(attrStr: string, body: string): HeatmapBlock | null {
+  const a = parseAttrs(attrStr);
+  const cols = (a.cols || '').split(',').map((s) => s.trim()).filter(Boolean);
+  if (!cols.length) return null;
+  const rows: HeatmapBlock['rows'] = [];
+  for (const raw of body.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    const i = line.indexOf(':');
+    if (i < 0) continue;
+    const label = line.slice(0, i).trim();
+    const values = line.slice(i + 1).split(',').map((s) => num(s.trim()));
+    if (!label || values.length !== cols.length) continue;
+    rows.push({ label, values });
+  }
+  if (!rows.length) return null;
+  return { kind: 'heatmap', title: a.title, cols, rows, caption: a.caption };
+}
+
 export function parseReport(text: string): ReportSegment[] {
   if (!text) return [];
   const segments: ReportSegment[] = [];
@@ -274,7 +440,7 @@ export function parseReport(text: string): ReportSegment[] {
   const matches: Match[] = [];
 
   // Multi-line: [!insight]...[/!insight], [!bars]...[/!bars], [!grid]...[/!grid], [!radar]...[/!radar]
-  const multilineTags = ['insight', 'bars', 'grid', 'radar'] as const;
+  const multilineTags = ['insight', 'bars', 'grid', 'radar', 'compare', 'chain', 'timeline', 'donut', 'heatmap'] as const;
   for (const tag of multilineTags) {
     const re = new RegExp(
       `\\[!${tag}(\\s+[^\\]]*)?\\]([\\s\\S]*?)\\[\\/!${tag}\\]`,
@@ -289,6 +455,11 @@ export function parseReport(text: string): ReportSegment[] {
       else if (tag === 'bars') block = parseBars(attrStr, body);
       else if (tag === 'grid') block = parseGrid(attrStr, body);
       else if (tag === 'radar') block = parseRadar(attrStr, body);
+      else if (tag === 'compare') block = parseCompare(attrStr, body);
+      else if (tag === 'chain') block = parseChain(attrStr, body);
+      else if (tag === 'timeline') block = parseTimeline(attrStr, body);
+      else if (tag === 'donut') block = parseDonut(attrStr, body);
+      else if (tag === 'heatmap') block = parseHeatmap(attrStr, body);
       matches.push({ start: m.index, end: m.index + m[0].length, block });
     }
   }
@@ -302,7 +473,7 @@ export function parseReport(text: string): ReportSegment[] {
   const isInGrid = (pos: number) =>
     gridRanges.some(([s, e]) => pos >= s && pos < e);
 
-  const singleTags = ['stat', 'ring', 'gauge'] as const;
+  const singleTags = ['stat', 'ring', 'gauge', 'quadrant'] as const;
   for (const tag of singleTags) {
     const re = new RegExp(`\\[!${tag}\\s+([^\\]]+)\\]`, 'g');
     let m: RegExpExecArray | null;
@@ -312,6 +483,7 @@ export function parseReport(text: string): ReportSegment[] {
       const block =
         tag === 'stat' ? parseStat(attrStr)
         : tag === 'ring' ? parseRing(attrStr)
+        : tag === 'quadrant' ? parseQuadrant(attrStr)
         : parseGauge(attrStr);
       matches.push({ start: m.index, end: m.index + m[0].length, block });
     }

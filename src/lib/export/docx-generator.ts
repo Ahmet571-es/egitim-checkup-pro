@@ -28,6 +28,12 @@ import {
   type InsightBlock,
   type BarsBlock,
   type GridBlock,
+  type CompareBlock,
+  type ChainBlock,
+  type TimelineBlock,
+  type QuadrantBlock,
+  type DonutBlock,
+  type HeatmapBlock,
 } from '@/lib/report/infographic-blocks';
 
 export interface DocxMetadata {
@@ -280,6 +286,117 @@ function gridToDocx(block: GridBlock, audience: InfographicAudience): Table {
   });
 }
 
+// ─── FAZ 0 blokları — DOCX karşılıkları ──────────────────────────────────────
+function p(text: string, opts?: { bold?: boolean; size?: number; before?: number; after?: number }): Paragraph {
+  return new Paragraph({
+    children: [new TextRun({ text, bold: opts?.bold, size: opts?.size ?? 20 })],
+    spacing: { before: opts?.before ?? 0, after: opts?.after ?? 60 },
+  });
+}
+
+function compareToDocx(block: CompareBlock, audience: InfographicAudience): Array<Paragraph | Table> {
+  const out: Array<Paragraph | Table> = [];
+  if (block.title) out.push(p(block.title, { bold: true, size: 22, before: 120, after: 80 }));
+  out.push(p(`${block.selfLabel} / ${block.refLabel} karşılaştırması`, { size: 18, after: 60 }));
+  for (const it of block.items) {
+    const mx = it.max ?? 100;
+    const f = (v: number) => '█'.repeat(Math.max(1, Math.round((v / mx) * 16))) + '░'.repeat(Math.max(0, 16 - Math.round((v / mx) * 16)));
+    const d = Math.round((it.self - it.ref) * 10) / 10;
+    out.push(p(`${it.label.padEnd(22, ' ').slice(0, 22)} ${f(it.self)} ${it.self}   (${block.refLabel}: ${it.ref}, fark ${d >= 0 ? '+' : ''}${d})`, { size: 18 }));
+  }
+  void audience;
+  return out;
+}
+
+function chainToDocx(block: ChainBlock, audience: InfographicAudience): Array<Paragraph | Table> {
+  const palette = AUDIENCE_PALETTES[audience];
+  const out: Array<Paragraph | Table> = [];
+  if (block.title) out.push(p(block.title, { bold: true, size: 22, before: 120, after: 80 }));
+  const head = ['NEDEN', 'NİÇİN / ETKİ', 'SONUÇ'];
+  out.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({
+        children: head.map((h) => new TableCell({
+          shading: { fill: hex(palette.primary) },
+          children: [new Paragraph({ children: [new TextRun({ text: h, bold: true, size: 16, color: 'FFFFFF' })] })],
+        })),
+      }),
+      ...block.links.map((l) => new TableRow({
+        children: [l.cause, l.effect, l.result].map((t) => new TableCell({
+          children: [new Paragraph({ children: [new TextRun({ text: t, size: 18 })] })],
+        })),
+      })),
+    ],
+  }));
+  out.push(p('', { after: 100 }));
+  return out;
+}
+
+function timelineToDocx(block: TimelineBlock): Array<Paragraph | Table> {
+  const out: Array<Paragraph | Table> = [];
+  if (block.title) out.push(p(block.title, { bold: true, size: 22, before: 120, after: 80 }));
+  block.steps.forEach((s, i) => {
+    out.push(p(`${i + 1}. ${s.title}`, { bold: true, size: 19 }));
+    if (s.detail) out.push(p(`    ${s.detail}`, { size: 18 }));
+    if (s.tag) out.push(p(`    [${s.tag}]`, { size: 16 }));
+  });
+  out.push(p('', { after: 100 }));
+  return out;
+}
+
+function quadrantToDocx(block: QuadrantBlock): Array<Paragraph | Table> {
+  const idx = (block.x >= 50 ? 1 : 0) + (block.y >= 50 ? 2 : 0);
+  const where = block.quadrants[idx] || '—';
+  const out: Array<Paragraph | Table> = [];
+  if (block.title) out.push(p(block.title, { bold: true, size: 22, before: 120, after: 80 }));
+  out.push(p(`${block.xLabel}: ${Math.round(block.x)} · ${block.yLabel}: ${Math.round(block.y)}`, { size: 19 }));
+  out.push(p(`Konum: ${where}`, { bold: true, size: 19 }));
+  if (block.caption) out.push(p(block.caption, { size: 17 }));
+  out.push(p('', { after: 100 }));
+  return out;
+}
+
+function donutToDocx(block: DonutBlock, audience: InfographicAudience): Array<Paragraph | Table> {
+  const total = block.items.reduce((a, b) => a + b.value, 0) || 1;
+  return barsToDocx({
+    kind: 'bars',
+    title: block.title,
+    items: block.items.map((i) => ({ label: i.label, value: Math.round((i.value / total) * 100), max: 100 })),
+  }, audience);
+}
+
+function heatmapToDocx(block: HeatmapBlock, audience: InfographicAudience): Array<Paragraph | Table> {
+  const palette = AUDIENCE_PALETTES[audience];
+  const out: Array<Paragraph | Table> = [];
+  if (block.title) out.push(p(block.title, { bold: true, size: 22, before: 120, after: 80 }));
+  out.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '', size: 16 })] })] }),
+          ...block.cols.map((cl) => new TableCell({
+            shading: { fill: hex(palette.primary) },
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: cl, bold: true, size: 15, color: 'FFFFFF' })] })],
+          })),
+        ],
+      }),
+      ...block.rows.map((r) => new TableRow({
+        children: [
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: r.label, bold: true, size: 17 })] })] }),
+          ...r.values.map((v) => new TableCell({
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(Math.round(v)), size: 17 })] })],
+          })),
+        ],
+      })),
+    ],
+  }));
+  if (block.caption) out.push(p(block.caption, { size: 16, before: 60 }));
+  out.push(p('', { after: 100 }));
+  return out;
+}
+
 function infographicToDocx(
   block: InfographicBlock,
   audience: InfographicAudience
@@ -293,6 +410,18 @@ function infographicToDocx(
       return [insightToDocx(block, audience), new Paragraph({ text: '', spacing: { after: 100 } })];
     case 'bars':
       return barsToDocx(block, audience);
+    case 'compare':
+      return compareToDocx(block, audience);
+    case 'chain':
+      return chainToDocx(block, audience);
+    case 'timeline':
+      return timelineToDocx(block);
+    case 'quadrant':
+      return quadrantToDocx(block);
+    case 'donut':
+      return donutToDocx(block, audience);
+    case 'heatmap':
+      return heatmapToDocx(block, audience);
     case 'radar':
       // DOCX'te radar render etmiyoruz; bars olarak göster (içerik aynı)
       return barsToDocx({ kind: 'bars', title: block.title, items: block.items }, audience);
