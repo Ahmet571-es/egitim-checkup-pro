@@ -4,6 +4,7 @@ import { buildHolisticDeterministicReport } from '@/lib/report/holistic-report';
 import type { PatternInsight } from '@/lib/services/correlation';
 import type { RiskResult } from '@/lib/services/riskScore';
 import type { CareerMatchResult } from '@/lib/services/careerMatch';
+import { calculateAge } from '@/lib/utils/age';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
     const verifiedResults = Array.from(latestResults.values());
 
     // Öğrenci adını al (kişiselleştirme için)
-    const { data: prof } = await supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
+    const { data: prof } = await supabase.from('profiles').select('full_name, grade, birth_date').eq('id', user.id).maybeSingle();
     const studentName = prof?.full_name || 'Öğrenci';
 
     // Deterministik (API'SIZ) 360° holistik profil.
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
     // sunucudan doğrulanır. Güvenli varsayılanlarla korunur.
     const report = buildHolisticDeterministicReport(
       verifiedResults.map(r => ({ test_type: r.test_type, scores: r.scores })),
-      { studentName, studentGrade: null },
+      { studentName, studentGrade: prof?.grade ?? null, studentAge: calculateAge(prof?.birth_date) },
       risk || { overallScore: 0, label: 'Veri yok', dimensions: [], flags: [] },
       patterns || [],
       careers || { topCareers: [], hollandCode: null, dominantZeka: null, varkStyle: null },

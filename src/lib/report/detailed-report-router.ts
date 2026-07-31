@@ -20,6 +20,7 @@ import { buildBurdonDikkatDetailedReport } from '../tests/burdon-dikkat/detailed
 import { buildHizliOkumaDetailedReport } from '../tests/hizli-okuma/detailed-report';
 import { buildAkademikDetailedReport } from '../tests/akademik-analiz/detailed-report';
 import type { CokluZekaScores, VarkScores, HollandScores, EnneagramScores, SinavKaygisiScores, CalismaDavranisiScores, SagSolBeyinScores, SpeedReadingScores, AkademikScores } from '../tests/types';
+import { tamlayan } from '@/lib/utils/turkish';
 
 /**
  * @returns Deterministik rapor (markdown) veya motoru yoksa `null`.
@@ -85,10 +86,10 @@ export function buildGenericDeterministicReport(testType: string, scores: unknow
   }
   const P: string[] = [];
   P.push(reportHeader(`📋 ${testType} — DEĞERLENDİRME RAPORU`, `${testType} — Test Sonucu`, student));
-  P.push(`## Özet\n${name}'in bu testi tamamlandı. Aşağıda ölçülen değerler özetlenmiştir.\n`);
+  P.push(`## Özet\n${tamlayan(name)} bu testi tamamlandı. Aşağıda ölçülen değerler özetlenmiştir.\n`);
   if (nums.length) P.push(barsBlock('Ölçülen Değerler', nums.slice(0, 8)));
   else P.push(`Bu test için sayısal özet mevcut değil. Ayrıntılar için test sonucu ekranı incelenebilir.\n`);
-  P.push(insight('note', 'Not', `Bu rapor, ${name}'in test yanıtlarına göre otomatik üretilmiştir. Ayrıntılı yorum için ilgili uzmana danışılabilir.`));
+  P.push(insight('note', 'Not', `Bu rapor, ${tamlayan(name)} test yanıtlarına göre otomatik üretilmiştir. Ayrıntılı yorum için ilgili uzmana danışılabilir.`));
   P.push(reportFooter());
   return P.join('\n');
 }

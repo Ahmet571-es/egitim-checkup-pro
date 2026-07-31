@@ -13,6 +13,7 @@ import {
   reportFooter, safeName, type StudentInfo,
 } from './report-blocks';
 import { extractHighlight, crossSynthesis, type Highlight } from './integrated-report';
+import { tamlayan } from '@/lib/utils/turkish';
 
 // Servis tipleriyle uyumlu gevşek arayüzler (bağımlılık gevşek tutulur)
 interface RiskDimensionLike { key: string; name: string; score: number | null; weight: number; available: boolean; }
@@ -58,7 +59,7 @@ export function buildHolisticDeterministicReport(
 
   P.push(`## 🔎 Bu Rapor Nedir?\n`);
   P.push(
-    `Bu holistik rapor, ${name}'in **${highlights.length} test sonucunu** bütünleşik olarak değerlendirir ve üç ek katman sunar: ` +
+    `Bu holistik rapor, ${tamlayan(name)} **${highlights.length} test sonucunu** bütünleşik olarak değerlendirir ve üç ek katman sunar: ` +
     `**gelişim/risk analizi**, **çapraz örüntüler** ve **kariyer eşleşmesi**. ` +
     `Öğretmen ve koç perspektifinden, sınıf içi uygulama ve bireysel rehberlik için tasarlanmıştır.\n`,
   );
@@ -121,7 +122,7 @@ export function buildHolisticDeterministicReport(
     if (careerMatch.dominantZeka) bits.push(`baskın zekâ **${careerMatch.dominantZeka}**`);
     if (careerMatch.hollandCode) bits.push(`Holland kodu **${careerMatch.hollandCode}**`);
     if (careerMatch.varkStyle) bits.push(`öğrenme stili **${careerMatch.varkStyle}**`);
-    if (bits.length) P.push(`${name}'in profili (${bits.join(', ')}) temel alınarak aşağıdaki alanlar öne çıkıyor. Bunlar bir öneri havuzudur; ilgi, yetenek ve olanaklarla birlikte değerlendirilmesi yerinde olur.\n`);
+    if (bits.length) P.push(`${tamlayan(name)} profili (${bits.join(', ')}) temel alınarak aşağıdaki alanlar öne çıkıyor. Bunlar bir öneri havuzudur; ilgi, yetenek ve olanaklarla birlikte değerlendirilmesi yerinde olur.\n`);
     if (careerMatch.topCareers?.length) {
       P.push(`| # | Meslek / Alan | Uyum |\n|---|---|---|`);
       P.push(careerMatch.topCareers.slice(0, 5).map((c) => `| ${c.rank} | ${c.icon || ''} ${c.career} (${c.field}) | %${clampPct(c.matchScore)} |`).join('\n') + '\n');
@@ -146,11 +147,11 @@ export function buildHolisticDeterministicReport(
   if (criticalFlag) P.push(insight('action', 'Öncelikli İzleme', criticalFlag.message));
   const focusPerf = performans.find((h) => h.metric && h.metric.value < 60);
   if (focusPerf) P.push(insight('action', 'Gelişim Alanı', `${focusPerf.name}: ${focusPerf.points[0] || 'hedefli, düzenli çalışma önerilebilir.'}`));
-  P.push(`- ${name}'in güçlü öğrenme kanalını görev ve materyal seçiminde işe koşmak, katılımı ve motivasyonu artırabilir.\n- Somut, yönteme dönük geri bildirim, genel övgüden daha etkili olabilir.\n- Gelişim alanlarını güçlü yönler üzerinden desteklemek (köprü kurmak) verimli olabilir.\n`);
+  P.push(`- ${tamlayan(name)} güçlü öğrenme kanalını görev ve materyal seçiminde işe koşmak, katılımı ve motivasyonu artırabilir.\n- Somut, yönteme dönük geri bildirim, genel övgüden daha etkili olabilir.\n- Gelişim alanlarını güçlü yönler üzerinden desteklemek (köprü kurmak) verimli olabilir.\n`);
   P.push('---\n');
 
   P.push(`## 🌱 Kapanış\n`);
-  P.push(`${name}'in holistik profili, güçlü yönleri belirgin, yönlendirilebilir bir tabloyu işaret ediyor. Güçlü yönleri merkeze alan, gelişim ve risk alanlarını yargılamadan izleyen bütüncül bir yaklaşım en verimli sonucu getirebilir. Bu profil zamanla gelişebilir.\n`);
+  P.push(`${tamlayan(name)} holistik profili, güçlü yönleri belirgin, yönlendirilebilir bir tabloyu işaret ediyor. Güçlü yönleri merkeze alan, gelişim ve risk alanlarını yargılamadan izleyen bütüncül bir yaklaşım en verimli sonucu getirebilir. Bu profil zamanla gelişebilir.\n`);
   P.push(reportFooter());
   return P.join('\n');
 }

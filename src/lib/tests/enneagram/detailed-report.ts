@@ -8,6 +8,7 @@ import {
   clampPct, bar, statGrid, ring, gauge, radarBlock, insight,
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
+import { belirtme, tamlayan } from '@/lib/utils/turkish';
 
 function shortTitle(t: number): string {
   const title = ENNEAGRAM_DATA[t]?.title || `Tip ${t}`;
@@ -43,14 +44,14 @@ export function buildEnneagramDetailedReport(scores: EnneagramScores, student: S
   P.push(
     `Enneagram, dokuz kişilik tipini temel **korku**, **arzu** ve motivasyonlar üzerinden inceleyen bir modeldir. ` +
     `"İyi/kötü tip" yoktur; her tipin güçlü yönleri ve gelişim alanları vardır. ` +
-    `Bu rapor **"${name}'i ne motive ediyor, hangi örüntülerle hareket ediyor?"** sorusuna yanıt arar. ` +
+    `Bu rapor **"${belirtme(name)} ne motive ediyor, hangi örüntülerle hareket ediyor?"** sorusuna yanıt arar. ` +
     `Ana tip **${typeStr}**, baskın örüntüyü temsil eder.\n`,
   );
   P.push('---\n');
 
   P.push(`## 📋 1. Yönetici Özeti\n`);
   P.push(
-    `**${name}**'in ana kişilik tipi **${main.title} (${main.role})** olarak beliriyor (rezonans %${mainPct}). ` +
+    `**${tamlayan(name)}** ana kişilik tipi **${main.title} (${main.role})** olarak beliriyor (rezonans %${mainPct}). ` +
     `${wing ? `Kanat tipi ise ${wing.title.split(':')[1]?.trim()} yönünde; bu, ana tipe ek bir renk katar. ` : ''}` +
     `Temel motivasyon: ${main.desire.toLowerCase()} Temel kaygı: ${main.fear.toLowerCase()} ` +
     `Aşağıdaki bölümler; ana tipin örüntüsünü, güçlü/gelişim yönlerini, stres–gelişim yönelimlerini ve pratik önerileri ayrıntılandırır.\n`,
@@ -81,12 +82,12 @@ export function buildEnneagramDetailedReport(scores: EnneagramScores, student: S
   P.push('---\n');
 
   P.push(`## 🎯 5. Gelişim Yol Haritası\n`);
-  P.push(`*${name}'in ana tipine (${main.role}) göre, dengeyi ve gelişimi destekleyebilecek pratik öneriler.*\n`);
+  P.push(`*${tamlayan(name)} ana tipine (${main.role}) göre, dengeyi ve gelişimi destekleyebilecek pratik öneriler.*\n`);
   P.push(`${(main.prescription || []).map((p: string) => `- ${p}`).join('\n')}\n`);
   P.push('---\n');
 
   P.push(`## 👨‍👩‍👦 6. Aile ve 👩‍🏫 Öğretmen İçin\n`);
-  P.push(`- ${name}'in temel motivasyonunu (${main.desire.toLowerCase()}) anlamak, iletişimi kolaylaştırabilir.\n- İlişki stili: ${main.relationshipStyle}\n- Stres işaretleri görüldüğünde (${main.role.toLowerCase()} örüntüsü), yargılamadan alan tanımak faydalı olabilir.\n`);
+  P.push(`- ${tamlayan(name)} temel motivasyonunu (${main.desire.toLowerCase()}) anlamak, iletişimi kolaylaştırabilir.\n- İlişki stili: ${main.relationshipStyle}\n- Stres işaretleri görüldüğünde (${main.role.toLowerCase()} örüntüsü), yargılamadan alan tanımak faydalı olabilir.\n`);
   P.push('---\n');
 
   P.push(`## 📌 7. Öncelik Özeti\n`);
@@ -95,7 +96,7 @@ export function buildEnneagramDetailedReport(scores: EnneagramScores, student: S
   P.push(insight('note', 'Denge', `Stres yönelimi (Tip ${main.stress}) yerine gelişim yönelimini (Tip ${main.growth}) bilinçli tercih etmek, dengeyi destekleyebilir.`));
   P.push(
     `\n### Kapanış Notu\n` +
-    `${name}'in Enneagram profili, davranışların ardındaki motivasyonu anlamak için değerli bir ayna sunuyor. ` +
+    `${tamlayan(name)} Enneagram profili, davranışların ardındaki motivasyonu anlamak için değerli bir ayna sunuyor. ` +
     `${main.famousExamples ? `Aynı tipten bilinen örnekler: ${main.famousExamples}. ` : ''}` +
     `Enneagram bir etiket değil, öz-farkındalık ve gelişim aracıdır. 🌱\n`,
   );

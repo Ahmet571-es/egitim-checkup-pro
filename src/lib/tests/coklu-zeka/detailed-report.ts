@@ -10,6 +10,7 @@
  */
 import { COKLU_ZEKA_DATA, type ZekaKey } from './data';
 import type { CokluZekaScores, ZekaScore } from '../types';
+import { tamlayan } from '@/lib/utils/turkish';
 
 export interface CokluZekaStudentInfo {
   studentName: string;
@@ -131,7 +132,7 @@ export function buildCokluZekaDetailedReport(
   // ══════════ 1. YÖNETİCİ ÖZETİ ══════════
   P.push(`## 📋 1. Yönetici Özeti\n`);
   P.push(
-    `**${name}**'in en güçlü zekâ alanı **${topInfo.name} (%${topPct})** olarak öne çıkıyor — ${band(topPct).frame}. ` +
+    `**${tamlayan(name)}** en güçlü zekâ alanı **${topInfo.name} (%${topPct})** olarak öne çıkıyor — ${band(topPct).frame}. ` +
     `${profile?.name ? `Genel profil: ${profile.name.replace(/^[^ ]+ /, '')}. ${profile.description} ` : ''}` +
     `Profilin genel dağılımı **${balanceLabel.toLowerCase()}** görünüyor: ${balanceDesc} ` +
     `En çok gelişime açık alan ise **${weakInfo.name} (%${weakPct})** olarak beliriyor. ` +
@@ -222,7 +223,7 @@ export function buildCokluZekaDetailedReport(
   P.push(`## 💪 4. Güçlü Yönler Analizi\n`);
   P.push(
     `[!insight type="strength" title="Öne Çıkan Güç: ${topShort}"]\n` +
-    `${topInfo.strengths.slice(0, 3).join(', ')} gibi yönler ${name}'in en güçlü kanalını oluşturuyor (%${topPct}). Bu alanı görevlerde ve çalışma yönteminde öne çıkarmak faydalı olabilir.\n[/!insight]\n`,
+    `${topInfo.strengths.slice(0, 3).join(', ')} gibi yönler ${tamlayan(name)} en güçlü kanalını oluşturuyor (%${topPct}). Bu alanı görevlerde ve çalışma yönteminde öne çıkarmak faydalı olabilir.\n[/!insight]\n`,
   );
   P.push(`| # | Güçlü Alan | Kanıt | Okulda Nasıl Görünür? | Nasıl İleri Taşınır? | Kariyer Bağlantısı |\n|---|---|---|---|---|---|`);
   P.push(
@@ -239,7 +240,7 @@ export function buildCokluZekaDetailedReport(
   P.push(`## 🌱 5. Gelişim Alanları ve Destek Önerileri\n`);
   P.push(
     `[!insight type="action" title="Öncelikli Destek: ${shortName(weakInfo.name)}"]\n` +
-    `${weakInfo.name} (%${weakPct}) şu an en çok gelişime açık alan. "${weakInfo.studyTips[0]}" gibi küçük adımlarla, ${name}'in güçlü olduğu kanallar üzerinden desteklemek denenebilir.\n[/!insight]\n`,
+    `${weakInfo.name} (%${weakPct}) şu an en çok gelişime açık alan. "${weakInfo.studyTips[0]}" gibi küçük adımlarla, ${tamlayan(name)} güçlü olduğu kanallar üzerinden desteklemek denenebilir.\n[/!insight]\n`,
   );
   P.push(`| # | Gelişim Alanı | Mevcut Durum | Düzey | Bu Neden Önemli? | Önerilen Çalışma |\n|---|---|---|---|---|---|`);
   P.push(
@@ -253,7 +254,7 @@ export function buildCokluZekaDetailedReport(
 
   // ══════════ 6. AKADEMİK ÇALIŞMA YOL HARİTASI + BARS ══════════
   P.push(`## 🎯 6. Akademik Çalışma Yol Haritası\n`);
-  P.push(`*${name}'in güçlü zekâ alanlarından türetilmiş, uygulanabilir çalışma stratejileri.*\n`);
+  P.push(`*${tamlayan(name)} güçlü zekâ alanlarından türetilmiş, uygulanabilir çalışma stratejileri.*\n`);
   const strategySources = sorted.slice(0, 3);
   // Bars — hangi kanallar öne çıkıyor
   P.push(
@@ -265,9 +266,9 @@ export function buildCokluZekaDetailedReport(
     const d = COKLU_ZEKA_DATA[k];
     P.push(
       `**📌 Strateji ${idx + 1}: ${d.name} Yöntemiyle Çalışma**\n` +
-      `- **Neden:** Çünkü ${name}'in ${d.name.toLowerCase()} puanı (%${pctOf(sd)}) bu yaklaşımı destekliyor.\n` +
+      `- **Neden:** Çünkü ${tamlayan(name)} ${d.name.toLowerCase()} puanı (%${pctOf(sd)}) bu yaklaşımı destekliyor.\n` +
       `- **Nasıl uygulanabilir:**\n${d.studyTips.map((t) => `   - ${t}`).join('\n')}\n` +
-      `- **Beklenen fayda:** Bilgi, ${name}'in en rahat öğrendiği kanaldan işlendiği için kalıcılığın artması beklenebilir.\n`,
+      `- **Beklenen fayda:** Bilgi, ${tamlayan(name)} en rahat öğrendiği kanaldan işlendiği için kalıcılığın artması beklenebilir.\n`,
     );
   });
   P.push('---\n');
@@ -275,7 +276,7 @@ export function buildCokluZekaDetailedReport(
   // ══════════ 7. KARİYER YÖNELİMLERİ (yeni, bilgilendirici) ══════════
   P.push(`## 🧭 7. Kariyer Yönelimleri\n`);
   P.push(
-    `Aşağıdaki alanlar, ${name}'in en güçlü üç zekâ kanalıyla ilişkili mesleklerden derlenmiştir. ` +
+    `Aşağıdaki alanlar, ${tamlayan(name)} en güçlü üç zekâ kanalıyla ilişkili mesleklerden derlenmiştir. ` +
     `Bunlar bir **öneri havuzudur**, kesin bir yönlendirme değil — ilgi ve değerlerle birlikte değerlendirilmesi yerinde olur.\n`,
   );
   P.push(
@@ -290,7 +291,7 @@ export function buildCokluZekaDetailedReport(
   P.push(`## 👨‍👩‍👦 8. Aile İçin Rehber\n`);
   P.push(
     `### Bu Sonuçlar Ne Anlama Geliyor?\n` +
-    `${name}'in profili, öğrenmeyi en çok **${topInfo.name.toLowerCase()}** üzerinden desteklediğini gösteriyor olabilir. ` +
+    `${tamlayan(name)} profili, öğrenmeyi en çok **${topInfo.name.toLowerCase()}** üzerinden desteklediğini gösteriyor olabilir. ` +
     `Evdeki desteği, bu güçlü kanalı gözeterek düzenlemek verimi artırabilir.\n`,
   );
   P.push(
@@ -310,12 +311,12 @@ export function buildCokluZekaDetailedReport(
   P.push(
     `### Sınıf İçi Stratejiler\n` +
     strategySources.map(([k]) => `- **${COKLU_ZEKA_DATA[k].name}:** ${COKLU_ZEKA_DATA[k].studyTips[0]}`).join('\n') + '\n' +
-    `- Güçlü alanları görev seçiminde işe koşmak, ${name}'in derse katılımını artırabilir.\n`,
+    `- Güçlü alanları görev seçiminde işe koşmak, ${tamlayan(name)} derse katılımını artırabilir.\n`,
   );
   P.push(
     `### Geri Bildirim Yaklaşımı\n` +
     `- Somut ve yönteme dönük geri bildirim, genel övgüden daha etkili olabilir.\n` +
-    `- Gelişim alanlarında ilerlemeyi, ${name}'in güçlü olduğu kanallar üzerinden desteklemek denenebilir.\n`,
+    `- Gelişim alanlarında ilerlemeyi, ${tamlayan(name)} güçlü olduğu kanallar üzerinden desteklemek denenebilir.\n`,
   );
   P.push('---\n');
 
@@ -333,7 +334,7 @@ export function buildCokluZekaDetailedReport(
   P.push(`[!insight type="note" title="Dengele"]\nFarklı yöntemleri deneyerek öğrenme esnekliğini artırmak, uzun vadede faydalı olabilir.\n[/!insight]\n`);
   P.push(
     `\n### Kapanış Notu\n` +
-    `${name}'in çoklu zekâ profili, öğrenmeye açık ve yönlendirilebilir bir tabloyu işaret ediyor. ` +
+    `${tamlayan(name)} çoklu zekâ profili, öğrenmeye açık ve yönlendirilebilir bir tabloyu işaret ediyor. ` +
     `Güçlü alanları merkeze alan, gelişim alanlarını yargılamadan destekleyen bir yaklaşım en verimli sonucu getirebilir. ` +
     `Bu profil bir kader değil, bir yol haritasıdır ve zamanla gelişebilir. 🌱\n`,
   );

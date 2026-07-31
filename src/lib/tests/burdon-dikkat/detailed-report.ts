@@ -6,6 +6,7 @@ import {
   clampPct, statGrid, gauge, barsBlock, insight,
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
+import { tamlayan } from '@/lib/utils/turkish';
 
 interface BurdonResult {
   totalCorrect?: number; totalOmission?: number; totalCommission?: number; totalTargets?: number;
@@ -40,7 +41,7 @@ export function buildBurdonDikkatDetailedReport(scores: BurdonResult, student: S
 
   P.push(`## 📋 1. Yönetici Özeti\n`);
   P.push(
-    `**${name}**'in dikkat skoru %${score}, doğruluk oranı %${acc} olarak görünüyor. ` +
+    `**${tamlayan(name)}** dikkat skoru %${score}, doğruluk oranı %${acc} olarak görünüyor. ` +
     `Dikkat örüntüsü **${scores.patternTitle || scores.attentionPattern || '—'}** olarak beliriyor. ${scores.patternFinding || ''} ` +
     `Aşağıdaki bölümler; hata türlerini (atlama/yanlış), dikkat örüntüsünü ve geliştirme önerilerini ayrıntılandırır.\n`,
   );
@@ -79,7 +80,7 @@ export function buildBurdonDikkatDetailedReport(scores: BurdonResult, student: S
   P.push('---\n');
 
   P.push(`## 👨‍👩‍👦 5. Aile ve 👩‍🏫 Öğretmen İçin\n`);
-  P.push(`- ${name}'in dikkat örüntüsü göz önünde bulundurularak, görevler kısa ve net adımlara bölünebilir.\n- Doğruluğu övmek (hızdan çok), sağlıklı bir dikkat alışkanlığı geliştirebilir.\n- Sürekli ve belirgin dikkat güçlüğünde okul rehberlik servisiyle görüşmek faydalı olabilir.\n`);
+  P.push(`- ${tamlayan(name)} dikkat örüntüsü göz önünde bulundurularak, görevler kısa ve net adımlara bölünebilir.\n- Doğruluğu övmek (hızdan çok), sağlıklı bir dikkat alışkanlığı geliştirebilir.\n- Sürekli ve belirgin dikkat güçlüğünde okul rehberlik servisiyle görüşmek faydalı olabilir.\n`);
   P.push('---\n');
 
   P.push(`## 📌 6. Öncelik Özeti\n`);

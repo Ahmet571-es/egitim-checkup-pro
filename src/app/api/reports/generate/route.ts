@@ -8,6 +8,7 @@ import { calculateRiskScore, getRiskLevel } from '@/lib/services/riskScore';
 import { identifyPatterns } from '@/lib/services/correlation';
 import { matchCareers } from '@/lib/services/careerMatch';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { calculateAge } from '@/lib/utils/age';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
     // Öğrenci bilgilerini çek (admin client ile RLS bypass)
     const { data: student, error: studentErr } = await admin
       .from('profiles')
-      .select('id, full_name, school_id')
+      .select('id, full_name, school_id, grade, birth_date')
       .eq('id', student_id)
       .single();
 
@@ -190,7 +191,7 @@ export async function POST(request: NextRequest) {
       // NOT: DMIT PDF'i deterministik okunamaz → sadece "mevcut" notu düşülür.
       const report = buildHolisticDeterministicReport(
         filteredResults.map(r => ({ test_type: r.test_type, scores: r.scores })),
-        { studentName: student.full_name, studentGrade: null },
+        { studentName: student.full_name, studentGrade: student.grade ?? null, studentAge: calculateAge(student.birth_date) },
         riskResult,
         patterns,
         careerMatch,
@@ -322,14 +323,14 @@ export async function POST(request: NextRequest) {
     const deterministic = buildDeterministicReport(
       testResult.test_type,
       testResult.scores,
-      { studentName: student.full_name, studentGrade: null },
+      { studentName: student.full_name, studentGrade: student.grade ?? null, studentAge: calculateAge(student.birth_date) },
     );
 
     // Bilinmeyen tür gelirse generic deterministik fallback (API'SIZ)
     const report = deterministic ?? buildGenericDeterministicReport(
       testResult.test_type,
       testResult.scores,
-      { studentName: student.full_name, studentGrade: null },
+      { studentName: student.full_name, studentGrade: student.grade ?? null, studentAge: calculateAge(student.birth_date) },
     );
 
     // Admin client ile raporu kaydet (RLS bypass — outer scope admin)
@@ -396,7 +397,7 @@ export async function PUT(request: NextRequest) {
 
     const { data: student } = await admin
       .from('profiles')
-      .select('id, full_name')
+      .select('id, full_name, grade, birth_date')
       .eq('id', student_id)
       .single();
 
@@ -421,14 +422,14 @@ export async function PUT(request: NextRequest) {
     const deterministic = buildDeterministicReport(
       testResult.test_type,
       testResult.scores,
-      { studentName: student.full_name, studentGrade: null },
+      { studentName: student.full_name, studentGrade: student.grade ?? null, studentAge: calculateAge(student.birth_date) },
     );
 
     // Bilinmeyen tür gelirse generic deterministik fallback (API'SIZ)
     const report = deterministic ?? buildGenericDeterministicReport(
       testResult.test_type,
       testResult.scores,
-      { studentName: student.full_name, studentGrade: null },
+      { studentName: student.full_name, studentGrade: student.grade ?? null, studentAge: calculateAge(student.birth_date) },
     );
 
     // Admin client ile kaydet (RLS bypass — outer scope admin)

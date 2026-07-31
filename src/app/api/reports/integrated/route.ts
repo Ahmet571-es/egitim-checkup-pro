@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { normalizeTestName, type IntegratedReportType } from '@/lib/ai/prompts/integrated-report';
 import { buildIntegratedDeterministicReport, type IntegratedAudience } from '@/lib/report/integrated-report';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { calculateAge } from '@/lib/utils/age';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
     // Öğrenci bilgilerini çek (admin — RLS bypass)
     const { data: student, error: studentErr } = await admin
       .from('profiles')
-      .select('id, full_name, school_id')
+      .select('id, full_name, school_id, grade, birth_date')
       .eq('id', student_id)
       .single();
 
@@ -167,7 +168,8 @@ export async function POST(request: NextRequest) {
     // 3 raporu üret (sıralı — rate limit için)
     const baseParams = {
       studentName: student.full_name,
-      studentAge: '—',
+      studentGrade: student.grade ?? null,
+      studentAge: calculateAge(student.birth_date),
       studentGender: '—',
       testDataList,
     };
@@ -204,7 +206,7 @@ export async function POST(request: NextRequest) {
       const isTeacher = reportType === 'ogretmen';
       reports[reportType] = buildIntegratedDeterministicReport(
         baseParams.testDataList,
-        { studentName: baseParams.studentName, studentGrade: null },
+        { studentName: baseParams.studentName, studentGrade: baseParams.studentGrade, studentAge: baseParams.studentAge },
         reportType as IntegratedAudience,
         {
           // KVKK: DMIT notu SADECE ogretmen'de
@@ -332,7 +334,7 @@ export async function PUT(request: NextRequest) {
     // Admin ile çek (RLS bypass)
     const { data: student } = await admin
       .from('profiles')
-      .select('id, full_name, school_id')
+      .select('id, full_name, school_id, grade, birth_date')
       .eq('id', student_id)
       .single();
 
@@ -396,7 +398,8 @@ export async function PUT(request: NextRequest) {
 
     const baseParams = {
       studentName: student.full_name,
-      studentAge: '—',
+      studentGrade: student.grade ?? null,
+      studentAge: calculateAge(student.birth_date),
       studentGender: '—',
       testDataList,
     };
@@ -427,7 +430,7 @@ export async function PUT(request: NextRequest) {
       const isTeacher = reportType === 'ogretmen';
       reports[reportType] = buildIntegratedDeterministicReport(
         baseParams.testDataList,
-        { studentName: baseParams.studentName, studentGrade: null },
+        { studentName: baseParams.studentName, studentGrade: baseParams.studentGrade, studentAge: baseParams.studentAge },
         reportType as IntegratedAudience,
         {
           hasGeneticContext: isTeacher && geneticAttachmentsPut.length > 0,

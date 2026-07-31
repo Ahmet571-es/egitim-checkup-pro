@@ -9,6 +9,7 @@ import {
   clampPct, bar, statGrid, gauge, barsBlock, insight,
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
+import { tamlayan } from '@/lib/utils/turkish';
 
 interface Interp { level: 'high' | 'mid' | 'low'; text: string; tips: string[]; }
 function pickInterp(score: number, interp: { high: { range: number[]; text: string; tips: string[] }; mid: { range: number[]; text: string; tips: string[] }; low: { range: number[]; text: string; tips: string[] } }): Interp {
@@ -47,14 +48,14 @@ export function buildSinavKaygisiDetailedReport(scores: SinavKaygisiScores, stud
   P.push(`## 🔎 Bu Rapor Neyi Ölçüyor?\n`);
   P.push(
     `Sınav kaygısı, sınav öncesi ve sırasında yaşanan gerginliktir ve **çok yaygındır** — belirli bir düzeyi normaldir, hatta performansı destekleyebilir. ` +
-    `Bu rapor **"${name}'in kaygısı hangi düzeyde ve nasıl kendini gösteriyor?"** sorusuna yanıt arar. ` +
+    `Bu rapor **"${tamlayan(name)} kaygısı hangi düzeyde ve nasıl kendini gösteriyor?"** sorusuna yanıt arar. ` +
     `Amaç, kaygıyı yargılamak değil, onunla başa çıkmayı kolaylaştıracak yolları görünür kılmaktır.\n`,
   );
   P.push('---\n');
 
   P.push(`## 📋 1. Yönetici Özeti\n`);
   P.push(
-    `**${name}**'in genel sınav kaygısı düzeyi **${scores.overallLevel} (%${totalPct})** olarak görünüyor. ` +
+    `**${tamlayan(name)}** genel sınav kaygısı düzeyi **${scores.overallLevel} (%${totalPct})** olarak görünüyor. ` +
     `${dom ? `Kaygı ağırlıklı olarak **${dom.name.toLowerCase()}** biçiminde kendini gösteriyor: ${dom.description} ` : ''}` +
     `${totalPct >= 70
       ? 'Bu düzey, günlük destek ve başa çıkma tekniklerinin faydalı olabileceğine işaret ediyor olabilir. '
@@ -94,7 +95,7 @@ export function buildSinavKaygisiDetailedReport(scores: SinavKaygisiScores, stud
   P.push('---\n');
 
   P.push(`## 👨‍👩‍👦 5. Aile ve 👩‍🏫 Öğretmen İçin\n`);
-  P.push(`- ${name}'in kaygısını küçümsemeden, "başarabilirsin" baskısı kurmadan dinlemek rahatlatıcı olabilir.\n- Sonuçtan çok çabayı takdir etmek, kaygıyı azaltabilir.\n- Yüksek ve sürekli kaygı gözlenirse, okul rehberlik servisiyle görüşmek faydalı olabilir.\n`);
+  P.push(`- ${tamlayan(name)} kaygısını küçümsemeden, "başarabilirsin" baskısı kurmadan dinlemek rahatlatıcı olabilir.\n- Sonuçtan çok çabayı takdir etmek, kaygıyı azaltabilir.\n- Yüksek ve sürekli kaygı gözlenirse, okul rehberlik servisiyle görüşmek faydalı olabilir.\n`);
   P.push('---\n');
 
   P.push(`## 📌 6. Öncelik Özeti\n`);
@@ -103,7 +104,7 @@ export function buildSinavKaygisiDetailedReport(scores: SinavKaygisiScores, stud
   P.push(
     `\n### Kapanış Notu\n` +
     `Sınav kaygısı yaşamak bir zayıflık değildir; çok yaygındır ve **yönetilebilir**. ` +
-    `${name}'in kaygısı, doğru tekniklerle zamanla azalabilir. Küçük adımlar, kalıcı rahatlama getirebilir. 🌱\n`,
+    `${tamlayan(name)} kaygısı, doğru tekniklerle zamanla azalabilir. Küçük adımlar, kalıcı rahatlama getirebilir. 🌱\n`,
   );
   P.push(reportFooter());
   return P.join('\n');

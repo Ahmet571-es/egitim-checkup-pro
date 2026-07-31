@@ -8,6 +8,7 @@ import {
   clampPct, bar, statGrid, gauge, radarBlock, barsBlock, insight,
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
+import { tamlayan } from '@/lib/utils/turkish';
 
 function label(k: string): string { return SKILL_LABELS[k] ?? k.replace(/_/g, ' '); }
 
@@ -40,14 +41,14 @@ export function buildAkademikDetailedReport(scores: AkademikScores, student: Stu
 
   P.push(`## 🔎 Bu Rapor Neyi Ölçüyor?\n`);
   P.push(
-    `Bu analiz, ${name}'in farklı akademik becerilerdeki (örn. anlama, problem çözme, veri yorumlama) performansını ayrı ayrı inceler. ` +
+    `Bu analiz, ${tamlayan(name)} farklı akademik becerilerdeki (örn. anlama, problem çözme, veri yorumlama) performansını ayrı ayrı inceler. ` +
     `Amaç, tek bir not yerine **beceri bazında** güçlü ve gelişime açık alanları görünür kılmak ve çalışmayı buna göre önceliklendirmektir.\n`,
   );
   P.push('---\n');
 
   P.push(`## 📋 1. Yönetici Özeti\n`);
   P.push(
-    `**${name}**'in genel akademik başarısı **%${overall}** (${scores.level || '—'}) düzeyinde. ${scores.levelDesc || ''} ` +
+    `**${tamlayan(name)}** genel akademik başarısı **%${overall}** (${scores.level || '—'}) düzeyinde. ${scores.levelDesc || ''} ` +
     `En güçlü alan **${scores.strongest?.name || sectionList[0]?.name} (%${scores.strongest?.pct ?? sectionList[0]?.pct})**, ` +
     `en çok gelişime açık alan **${scores.weakest?.name || sectionList[sectionList.length - 1]?.name} (%${scores.weakest?.pct ?? sectionList[sectionList.length - 1]?.pct})**. ` +
     `${scores.gapDesc ? scores.gapDesc + ' ' : ''}` +
@@ -86,7 +87,7 @@ export function buildAkademikDetailedReport(scores: AkademikScores, student: Stu
   P.push('---\n');
 
   P.push(`## 👨‍👩‍👦 5. Aile ve 👩‍🏫 Öğretmen İçin\n`);
-  P.push(`- ${name}'in en çok gelişime açık becerilerine (${(weak[0]?.name) || sectionList[sectionList.length - 1]?.name}) küçük, düzenli çalışmalarla odaklanmak fark yaratabilir.\n- Güçlü becerileri fark ettirmek ve takdir etmek, motivasyonu besleyebilir.\n${scores.gapType ? `- Öz-değerlendirme ile performans arasındaki fark (${scores.gapType.toLowerCase()}), gerçekçi hedefler koymada dikkate alınabilir.\n` : ''}`);
+  P.push(`- ${tamlayan(name)} en çok gelişime açık becerilerine (${(weak[0]?.name) || sectionList[sectionList.length - 1]?.name}) küçük, düzenli çalışmalarla odaklanmak fark yaratabilir.\n- Güçlü becerileri fark ettirmek ve takdir etmek, motivasyonu besleyebilir.\n${scores.gapType ? `- Öz-değerlendirme ile performans arasındaki fark (${scores.gapType.toLowerCase()}), gerçekçi hedefler koymada dikkate alınabilir.\n` : ''}`);
   P.push('---\n');
 
   P.push(`## 📌 6. Öncelik Özeti\n`);

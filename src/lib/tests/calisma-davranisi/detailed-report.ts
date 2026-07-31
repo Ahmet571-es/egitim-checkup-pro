@@ -8,6 +8,7 @@ import {
   clampPct, bar, statGrid, gauge, barsBlock, insight,
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
+import { tamlayan } from '@/lib/utils/turkish';
 
 interface Interp { level: 'high' | 'mid' | 'low'; text: string; tips: string[]; }
 function pickInterp(score: number, interp: { high: { range: number[]; text: string; tips: string[] }; mid: { range: number[]; text: string; tips: string[] }; low: { range: number[]; text: string; tips: string[] } }): Interp {
@@ -44,7 +45,7 @@ export function buildCalismaDavranisiDetailedReport(scores: CalismaDavranisiScor
 
   P.push(`## 🔎 Bu Rapor Neyi Ölçüyor?\n`);
   P.push(
-    `Bu değerlendirme, ${name}'in **ders çalışma alışkanlıklarını** farklı alanlarda inceler: ` +
+    `Bu değerlendirme, ${tamlayan(name)} **ders çalışma alışkanlıklarını** farklı alanlarda inceler: ` +
     `çalışmaya başlama, sürdürme, planlama, dikkat ve sınav hazırlığı gibi. ` +
     `Amaç, güçlü alışkanlıkları görünür kılmak ve güçlük yaşanan alanlara pratik öneriler sunmaktır. ` +
     `Bir alandaki yüksek puan, o konuda daha çok desteğe ihtiyaç olabileceğini gösterir.\n`,
@@ -54,7 +55,7 @@ export function buildCalismaDavranisiDetailedReport(scores: CalismaDavranisiScor
   P.push(`## 📋 1. Yönetici Özeti\n`);
   const worst = catList[0];
   P.push(
-    `**${name}**'in genel çalışma davranışı düzeyi **${scores.level} (%${posPct} olumlu)** olarak görünüyor. ` +
+    `**${tamlayan(name)}** genel çalışma davranışı düzeyi **${scores.level} (%${posPct} olumlu)** olarak görünüyor. ` +
     `${worst ? `En çok gelişime açık alan **${worst.info.name.toLowerCase()}** görünüyor. ` : ''}` +
     `${posPct >= 70 ? 'Genel tablo güçlü; birkaç ince ayarla daha da verimli olabilir. ' : posPct >= 40 ? 'Sağlam bir temel var; birkaç alanda çalışma faydalı olabilir. ' : 'Alışkanlıkları yapılandırmak belirgin fayda getirebilir. '}` +
     `Aşağıdaki bölümler; her alanı, önerileri ve davranış birleşimlerini ayrıntılandırır.\n`,

@@ -7,6 +7,7 @@ import {
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
 import type { SpeedReadingScores } from '../types';
+import { tamlayan } from '@/lib/utils/turkish';
 
 export function buildHizliOkumaDetailedReport(scores: SpeedReadingScores, student: StudentInfo): string {
   const name = safeName(student);
@@ -69,7 +70,7 @@ export function buildHizliOkumaDetailedReport(scores: SpeedReadingScores, studen
   P.push('---\n');
 
   P.push(`## 👨‍👩‍👦 5. Aile ve 👩‍🏫 Öğretmen İçin\n`);
-  P.push(`- ${name}'in ilgisini çeken kitaplar, düzenli okuma alışkanlığını destekleyebilir.\n- Okuduğu üzerine sohbet etmek, anlama becerisini besleyebilir.\n- Hız ile anlamayı birlikte gözetmek (yalnız hız değil) sağlıklı bir hedef olabilir.\n`);
+  P.push(`- ${tamlayan(name)} ilgisini çeken kitaplar, düzenli okuma alışkanlığını destekleyebilir.\n- Okuduğu üzerine sohbet etmek, anlama becerisini besleyebilir.\n- Hız ile anlamayı birlikte gözetmek (yalnız hız değil) sağlıklı bir hedef olabilir.\n`);
   P.push('---\n');
 
   P.push(`## 📌 6. Öncelik Özeti\n`);

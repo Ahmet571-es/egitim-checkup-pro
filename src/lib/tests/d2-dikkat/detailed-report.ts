@@ -6,6 +6,7 @@ import {
   clampPct, statGrid, gauge, barsBlock, insight,
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
+import { tamlayan } from '@/lib/utils/turkish';
 
 interface D2Result {
   cpPct?: number; hitRate?: number; errorPct?: number;
@@ -41,7 +42,7 @@ export function buildD2DikkatDetailedReport(scores: D2Result, student: StudentIn
 
   P.push(`## 📋 1. Yönetici Özeti\n`);
   P.push(
-    `**${name}**'in dikkat performansı **${scores.level || '—'}** düzeyinde görünüyor. ${scores.levelDesc || ''} ` +
+    `**${tamlayan(name)}** dikkat performansı **${scores.level || '—'}** düzeyinde görünüyor. ${scores.levelDesc || ''} ` +
     `Konsantrasyon oranı %${cp}; işaretleme dengesi ${scores.balance ? `"${scores.balance.toLowerCase()}"` : '—'} ve satırlar arası tutarlılık ${scores.consistency ? `"${scores.consistency.toLowerCase()}"` : '—'} olarak beliriyor. ` +
     `Aşağıdaki bölümler; hız-doğruluk dengesini, tutarlılığı ve dikkat geliştirme önerilerini ayrıntılandırır.\n`,
   );
@@ -75,7 +76,7 @@ export function buildD2DikkatDetailedReport(scores: D2Result, student: StudentIn
   P.push('---\n');
 
   P.push(`## 👨‍👩‍👦 5. Aile ve 👩‍🏫 Öğretmen İçin\n`);
-  P.push(`- ${name}'in dikkat süresi göz önünde bulundurularak, çalışma kısa bloklara bölünebilir.\n- Dikkat gerektiren görevler, günün en zinde olduğu saatlere denk getirilebilir.\n- Sürekli ve belirgin dikkat güçlüğü gözlenirse, okul rehberlik servisiyle görüşmek faydalı olabilir.\n`);
+  P.push(`- ${tamlayan(name)} dikkat süresi göz önünde bulundurularak, çalışma kısa bloklara bölünebilir.\n- Dikkat gerektiren görevler, günün en zinde olduğu saatlere denk getirilebilir.\n- Sürekli ve belirgin dikkat güçlüğü gözlenirse, okul rehberlik servisiyle görüşmek faydalı olabilir.\n`);
   P.push('---\n');
 
   P.push(`## 📌 6. Öncelik Özeti\n`);

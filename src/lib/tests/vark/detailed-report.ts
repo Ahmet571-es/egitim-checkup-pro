@@ -8,6 +8,7 @@ import {
   clampPct, bar, statGrid, ring, gauge, radarBlock, insight,
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
+import { tamlayan, yonelme } from '@/lib/utils/turkish';
 
 const ORDER = ['V', 'A', 'R', 'K'] as const;
 
@@ -56,7 +57,7 @@ export function buildVarkDetailedReport(scores: VarkScores, student: StudentInfo
 
   P.push(`## 📋 1. Yönetici Özeti\n`);
   P.push(
-    `**${name}**'in baskın öğrenme stili **${domInfo.name} (%${domPct})** olarak öne çıkıyor — ${prefBand(domPct).frame}. ` +
+    `**${tamlayan(name)}** baskın öğrenme stili **${domInfo.name} (%${domPct})** olarak öne çıkıyor — ${prefBand(domPct).frame}. ` +
     `${multimodal
       ? 'Profil çok modlu görünüyor: birden fazla kanal birbirine yakın; bu, farklı yöntemleri esnekçe kullanabildiğine işaret edebilir. '
       : 'Profil tek baskın kanal etrafında şekilleniyor; bu kanalı merkeze almak verimi artırabilir. '}` +
@@ -92,7 +93,7 @@ export function buildVarkDetailedReport(scores: VarkScores, student: StudentInfo
 
   P.push(`## 🎯 4. Baskın Stile Göre Çalışma Yol Haritası\n`);
   P.push(insight('strength', `Öne Çıkan Kanal: ${domShort}`,
-    `${name}'in en güçlü öğrenme kanalı ${domInfo.name} (%${domPct}). Aşağıdaki yöntemler bu kanala göre seçildi.`));
+    `${tamlayan(name)} en güçlü öğrenme kanalı ${domInfo.name} (%${domPct}). Aşağıdaki yöntemler bu kanala göre seçildi.`));
   P.push(`**${domInfo.icon} ${domInfo.name} için önerilen çalışma yöntemleri:**\n${domInfo.studyTips.map((t) => `- ${t}`).join('\n')}\n`);
   if (domInfo.avoid) P.push(insight('note', 'Dikkat', domInfo.avoid));
   // İkincil kanal desteği
@@ -103,12 +104,12 @@ export function buildVarkDetailedReport(scores: VarkScores, student: StudentInfo
   P.push('---\n');
 
   P.push(`## 👨‍👩‍👦 5. Aile İçin Rehber\n`);
-  P.push(`${name}'in profili, öğrenmeyi en çok **${domInfo.name.toLowerCase()}** üzerinden desteklediğini gösteriyor olabilir. Evdeki çalışma düzenini bu kanala göre kurmak faydalı olabilir.\n`);
+  P.push(`${tamlayan(name)} profili, öğrenmeyi en çok **${domInfo.name.toLowerCase()}** üzerinden desteklediğini gösteriyor olabilir. Evdeki çalışma düzenini bu kanala göre kurmak faydalı olabilir.\n`);
   P.push(`### ✅ Evde Denenebilecekler\n${domInfo.studyTips.slice(0, 4).map((t) => `- ${t}`).join('\n')}\n`);
   P.push('---\n');
 
   P.push(`## 👩‍🏫 6. Öğretmen İçin\n`);
-  P.push(`- ${name}'e bilgi sunarken baskın kanalı (${domShort.toLowerCase()}) gözetmek, kavramayı kolaylaştırabilir.\n- Çok modlu materyaller (görsel + sözlü + uygulamalı), farklı kanalları aynı anda desteklemek için denenebilir.\n`);
+  P.push(`- ${yonelme(name)} bilgi sunarken baskın kanalı (${domShort.toLowerCase()}) gözetmek, kavramayı kolaylaştırabilir.\n- Çok modlu materyaller (görsel + sözlü + uygulamalı), farklı kanalları aynı anda desteklemek için denenebilir.\n`);
   P.push('---\n');
 
   P.push(`## 📌 7. Öncelik Özeti\n`);
@@ -116,7 +117,7 @@ export function buildVarkDetailedReport(scores: VarkScores, student: StudentInfo
   P.push(insight('action', 'Zenginleştir', `Diğer kanalları da devreye sokan çok modlu çalışma, öğrenmeyi pekiştirebilir.`));
   P.push(
     `\n### Kapanış Notu\n` +
-    `${name}'in VARK profili, öğrenmeyi kolaylaştıracak net bir kanal önceliği sunuyor. ` +
+    `${tamlayan(name)} VARK profili, öğrenmeyi kolaylaştıracak net bir kanal önceliği sunuyor. ` +
     `Baskın kanalı merkeze alan, diğerlerini de zaman zaman kullanan bir yaklaşım en verimli sonucu getirebilir. Öğrenme stili zamanla gelişebilir. 🌱\n`,
   );
   P.push(reportFooter());

@@ -15,6 +15,7 @@ import {
   clampPct, statGrid, barsBlock, insight,
   reportFooter, safeName, type StudentInfo, type StatTheme,
 } from './report-blocks';
+import { belirtme, tamlayan } from '@/lib/utils/turkish';
 
 export type IntegratedAudience = 'ogretmen' | 'ogrenci' | 'ebeveyn';
 
@@ -45,9 +46,12 @@ export function extractHighlight(testType: string, scInput: Record<string, unkno
     switch (t) {
     case 'vark': {
       const dom = (sc.dominant as [string, number]) || null;
-      const pct = clampPct(n(dom?.[1]));
       const styleMap: Record<string, [string, string]> = { V: ['Görsel', 'gorsel'], A: ['İşitsel', 'isitsel'], R: ['Okuma/Yazma', 'okuma'], K: ['Kinestetik', 'kinestetik'] };
       const key = dom?.[0] || 'V';
+      // DİKKAT: `dominant` = [anahtar, HAM CEVAP SAYISI] — yüzde DEĞİL.
+      // Yüzde `percentages` içindedir. Ham sayı basılırsa "%5" gibi yanlış değer çıkar.
+      const varkPcts = (sc.percentages as Record<string, number>) || {};
+      const pct = clampPct(n(varkPcts[key], n(dom?.[1])));
       const [label, tag] = styleMap[key] || ['Görsel', 'gorsel'];
       return {
         order: 1, group: 'potansiyel', testType: t, name: 'Öğrenme Stili (VARK)', icon: '👁️',
@@ -205,7 +209,7 @@ export function crossSynthesis(name: string, hs: Highlight[]): string[] {
   const calisma = hs.find((h) => h.testType === 'calisma-davranisi');
   if (kaygi && calisma) out.push(`**Kaygı–çalışma bağlantısı:** Sınav kaygısı ile çalışma alışkanlıkları ilişkilidir; düzenli ve planlı çalışma, kontrol duygusunu artırarak kaygıyı azaltabilir.`);
 
-  if (!out.length) out.push(`Testler birlikte değerlendirildiğinde, ${name}'in öğrenme profili güçlü yönleri merkeze alan bir yaklaşıma uygun görünüyor.`);
+  if (!out.length) out.push(`Testler birlikte değerlendirildiğinde, ${tamlayan(name)} öğrenme profili güçlü yönleri merkeze alan bir yaklaşıma uygun görünüyor.`);
   return out;
 }
 
@@ -248,9 +252,9 @@ export function buildIntegratedDeterministicReport(
   if (isStudent) {
     P.push(`Merhaba ${name}! Bu rapor, çözdüğün **${highlights.length} testi birlikte** değerlendirip seni daha iyi tanımana yardımcı olmak için hazırlandı. Amaç bir not vermek değil; nasıl daha kolay öğrendiğini, güçlü yönlerini ve gelişebileceğin alanları birlikte görmek. 🌱\n`);
   } else if (reportType === 'ebeveyn') {
-    P.push(`Bu rapor, ${name}'in çözdüğü **${highlights.length} testin sonuçlarını birlikte** değerlendirerek bütüncül bir profil sunar. Bilimsel terimler sade bir dille açıklanmıştır. Amaç, ${name}'i evde nasıl daha iyi destekleyebileceğinize dair somut bir çerçeve sunmaktır.\n`);
+    P.push(`Bu rapor, ${tamlayan(name)} çözdüğü **${highlights.length} testin sonuçlarını birlikte** değerlendirerek bütüncül bir profil sunar. Bilimsel terimler sade bir dille açıklanmıştır. Amaç, ${belirtme(name)} evde nasıl daha iyi destekleyebileceğinize dair somut bir çerçeve sunmaktır.\n`);
   } else {
-    P.push(`Bu rapor, ${name}'in **${highlights.length} test sonucunu bütünleşik** olarak değerlendirir. Tekil test raporlarından farklı olarak, bulgular arasındaki **örüntüler ve bağlantılar** öne çıkarılır; sınıf içi uygulama ve rehberlik perspektifinden öneriler sunulur.\n`);
+    P.push(`Bu rapor, ${tamlayan(name)} **${highlights.length} test sonucunu bütünleşik** olarak değerlendirir. Tekil test raporlarından farklı olarak, bulgular arasındaki **örüntüler ve bağlantılar** öne çıkarılır; sınıf içi uygulama ve rehberlik perspektifinden öneriler sunulur.\n`);
   }
   if (pkg) P.push(`\n**Paket kapsamı:** ${pkg.description}${pkg.focus ? ` Bu değerlendirme özellikle ${pkg.focus.toLocaleLowerCase('tr-TR')} açısından ele alınmıştır.` : ''}\n`);
   P.push('---\n');
@@ -258,7 +262,7 @@ export function buildIntegratedDeterministicReport(
   // ── POTANSİYEL ANALİZ ──
   if (potansiyel.length) {
     P.push(`## 🌟 1. Potansiyel Analiz — Öğrenme ve Kişilik Profili\n`);
-    P.push(`*${name}'in nasıl öğrendiğini, düşündüğünü ve neye yatkın olduğunu gösteren testler.*\n`);
+    P.push(`*${tamlayan(name)} nasıl öğrendiğini, düşündüğünü ve neye yatkın olduğunu gösteren testler.*\n`);
     for (const h of potansiyel) {
       P.push(`### ${h.icon} ${h.name}\n${h.headline}\n${h.points.length ? '\n' + h.points.map((p) => `- ${p}`).join('\n') + '\n' : ''}`);
     }
@@ -273,7 +277,7 @@ export function buildIntegratedDeterministicReport(
   // ── PERFORMANS VE GELİŞİM ──
   if (performans.length) {
     P.push(`## 📈 2. Performans ve Gelişim — Akademik, Dikkat ve Alışkanlıklar\n`);
-    P.push(`*${name}'in mevcut performansını ve gelişim alanlarını gösteren testler.*\n`);
+    P.push(`*${tamlayan(name)} mevcut performansını ve gelişim alanlarını gösteren testler.*\n`);
     // Performans metrikleri bars
     const perfMetrics = performans.filter((h) => h.metric).map((h) => [h.metric!.label, h.metric!.value] as [string, number]);
     if (perfMetrics.length >= 2) P.push(barsBlock('Performans Alanları (%)', perfMetrics));
@@ -300,9 +304,9 @@ export function buildIntegratedDeterministicReport(
   if (isStudent) {
     P.push(`- Güçlü yönlerini çalışmanın merkezine al — en kolay öğrendiğin kanalı bilerek kullan.\n- Zorlandığın alanlarda küçük adımlarla ilerle; her adım bir ilerlemedir.\n- Kendine gerçekçi hedefler koy ve küçük başarılarını kutla.\n`);
   } else if (reportType === 'ebeveyn') {
-    P.push(`- ${name}'in güçlü öğrenme kanalını gözeten bir çalışma ortamı, evde öğrenmeyi kolaylaştırabilir.\n- Sonuçtan çok çabayı ve süreci takdir etmek, motivasyonu ve özgüveni besleyebilir.\n- Gelişim alanlarında küçük, düzenli desteklerle ilerlemek fark yaratabilir.\n`);
+    P.push(`- ${tamlayan(name)} güçlü öğrenme kanalını gözeten bir çalışma ortamı, evde öğrenmeyi kolaylaştırabilir.\n- Sonuçtan çok çabayı ve süreci takdir etmek, motivasyonu ve özgüveni besleyebilir.\n- Gelişim alanlarında küçük, düzenli desteklerle ilerlemek fark yaratabilir.\n`);
   } else {
-    P.push(`- ${name}'in güçlü zekâ/öğrenme kanalını görev ve materyal seçiminde işe koşmak, derse katılımı artırabilir.\n- Güçlü yönler üzerinden gelişim alanlarını desteklemek (köprü kurmak) verimli olabilir.\n- Somut, yönteme dönük geri bildirim, genel övgüden daha etkili olabilir.\n`);
+    P.push(`- ${tamlayan(name)} güçlü zekâ/öğrenme kanalını görev ve materyal seçiminde işe koşmak, derse katılımı artırabilir.\n- Güçlü yönler üzerinden gelişim alanlarını desteklemek (köprü kurmak) verimli olabilir.\n- Somut, yönteme dönük geri bildirim, genel övgüden daha etkili olabilir.\n`);
   }
   // Özet aksiyon içgörüleri
   if (topPot) P.push(insight('strength', 'Merkeze Al', `${topPot.headline.replace(/\*\*/g, '')}`));
@@ -315,7 +319,7 @@ export function buildIntegratedDeterministicReport(
   if (isStudent) {
     P.push(`${name}, bu profil senin bir fotoğrafın — bir kader değil. Güçlü yönlerini kullanarak ve gelişim alanlarında sabırla çalışarak istediğin yere ulaşabilirsin. Kendine güven! 💪\n`);
   } else {
-    P.push(`${name}'in entegre profili, öğrenmeye açık ve yönlendirilebilir bir tabloyu işaret ediyor. Güçlü yönleri merkeze alan, gelişim alanlarını yargılamadan destekleyen bütüncül bir yaklaşım en verimli sonucu getirebilir. Bu profil zamanla gelişebilir.\n`);
+    P.push(`${tamlayan(name)} entegre profili, öğrenmeye açık ve yönlendirilebilir bir tabloyu işaret ediyor. Güçlü yönleri merkeze alan, gelişim alanlarını yargılamadan destekleyen bütüncül bir yaklaşım en verimli sonucu getirebilir. Bu profil zamanla gelişebilir.\n`);
   }
   P.push(reportFooter());
   return P.join('\n');

@@ -8,6 +8,7 @@ import {
   clampPct, statGrid, gauge, barsBlock, insight,
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
+import { tamlayan } from '@/lib/utils/turkish';
 
 export function buildSagSolBeyinDetailedReport(scores: SagSolBeyinScores, student: StudentInfo): string {
   const name = safeName(student);
@@ -30,13 +31,13 @@ export function buildSagSolBeyinDetailedReport(scores: SagSolBeyinScores, studen
   P.push(
     `Sol beyin genelde **mantık, analiz ve sıralı düşünme** ile; sağ beyin ise **yaratıcılık, sezgi ve bütüncül düşünme** ile ilişkilendirilir. ` +
     `Bu bir yetenek ölçümü değil, bir **düşünme stili eğilimidir** — "iyi/kötü" yoktur. ` +
-    `Amaç, ${name}'in doğal eğilimini anlayıp çalışma yöntemini buna göre düzenlemektir.\n`,
+    `Amaç, ${tamlayan(name)} doğal eğilimini anlayıp çalışma yöntemini buna göre düzenlemektir.\n`,
   );
   P.push('---\n');
 
   P.push(`## 📋 1. Yönetici Özeti\n`);
   P.push(
-    `**${name}**'in düşünme stili **${d.title.toLowerCase()}** yönünde eğilim gösteriyor (Sol %${sol} · Sağ %${sag}). ` +
+    `**${tamlayan(name)}** düşünme stili **${d.title.toLowerCase()}** yönünde eğilim gösteriyor (Sol %${sol} · Sağ %${sag}). ` +
     `${d.description} ` +
     `${dom === 'dengeli' ? 'Dengeli profil, her iki stili de esnekçe kullanabildiğine işaret edebilir. ' : 'Bu eğilimi çalışma yönteminin merkezine almak verimi artırabilir. '}` +
     `Aşağıdaki bölümler; güçlü yönleri, gelişim alanlarını, çalışma stratejilerini ve ilgi alanlarını ayrıntılandırır.\n`,
@@ -58,7 +59,7 @@ export function buildSagSolBeyinDetailedReport(scores: SagSolBeyinScores, studen
   P.push('---\n');
 
   P.push(`## 🎯 4. Çalışma Yol Haritası\n`);
-  P.push(`*${name}'in ${d.title.toLowerCase()} eğilimine uygun çalışma yöntemleri.*\n`);
+  P.push(`*${tamlayan(name)} ${d.title.toLowerCase()} eğilimine uygun çalışma yöntemleri.*\n`);
   P.push(`${d.studyTips.map((t) => `- ${t}`).join('\n')}\n`);
   P.push('---\n');
 
@@ -67,7 +68,7 @@ export function buildSagSolBeyinDetailedReport(scores: SagSolBeyinScores, studen
   P.push('---\n');
 
   P.push(`## 👨‍👩‍👦 6. Aile ve 👩‍🏫 Öğretmen İçin\n`);
-  P.push(`- ${name}'in doğal düşünme stilini (${d.title.toLowerCase()}) desteklemek, öğrenmeyi kolaylaştırabilir.\n- Diğer yarımküreyi de geliştiren etkinlikler (örn. analitik için bulmaca, yaratıcı için sanat) dengeyi besleyebilir.\n`);
+  P.push(`- ${tamlayan(name)} doğal düşünme stilini (${d.title.toLowerCase()}) desteklemek, öğrenmeyi kolaylaştırabilir.\n- Diğer yarımküreyi de geliştiren etkinlikler (örn. analitik için bulmaca, yaratıcı için sanat) dengeyi besleyebilir.\n`);
   P.push('---\n');
 
   P.push(`## 📌 7. Öncelik Özeti\n`);

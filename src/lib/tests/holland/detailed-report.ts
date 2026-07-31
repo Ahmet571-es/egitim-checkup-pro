@@ -8,6 +8,7 @@ import {
   clampPct, bar, statGrid, ring, gauge, radarBlock, insight,
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
+import { tamlayan } from '@/lib/utils/turkish';
 
 const RIASEC = ['R', 'I', 'A', 'S', 'E', 'C'] as const;
 
@@ -63,7 +64,7 @@ export function buildHollandDetailedReport(scores: HollandScores, student: Stude
 
   P.push(`## 📋 1. Yönetici Özeti\n`);
   P.push(
-    `**${name}**'in en baskın mesleki ilgi alanı **${topInfo.name} (%${topPct})** — ${ilgiBand(topPct).frame}. ` +
+    `**${tamlayan(name)}** en baskın mesleki ilgi alanı **${topInfo.name} (%${topPct})** — ${ilgiBand(topPct).frame}. ` +
     `Holland kodu **${code}**; bu, en güçlü üç ilgi alanının birleşimini temsil eder. ` +
     `Aşağıdaki bölümler; her alanın anlamını, koda uygun meslek yönelimlerini ve uygun öğrenme ortamlarını ayrıntılandırır.\n`,
   );
@@ -94,12 +95,12 @@ export function buildHollandDetailedReport(scores: HollandScores, student: Stude
   P.push('---\n');
 
   P.push(`## 🎯 4. Kariyer Yönelimleri\n`);
-  P.push(`Aşağıdaki meslekler, ${name}'in en güçlü üç ilgi alanından (**${code}**) derlenmiştir. Bunlar bir öneri havuzudur; yetenek, değer ve olanaklarla birlikte değerlendirilmesi yerinde olur.\n`);
+  P.push(`Aşağıdaki meslekler, ${tamlayan(name)} en güçlü üç ilgi alanından (**${code}**) derlenmiştir. Bunlar bir öneri havuzudur; yetenek, değer ve olanaklarla birlikte değerlendirilmesi yerinde olur.\n`);
   P.push(insight('note', `İlgili Meslek Alanları (${code})`, careerSet.slice(0, 12).join(' · ')));
   P.push('---\n');
 
   P.push(`## 👨‍👩‍👦 5. Aile ve 👩‍🏫 Öğretmen İçin\n`);
-  P.push(`- ${name}'in baskın ilgisi **${topInfo.name.toLowerCase()}**; bu yöndeki etkinlikler (kulüp, proje, staj) ilgiyi besleyebilir.\n- Öğrenme ortamı önerisi: ${topInfo.studyEnvironment}\n- Kariyer keşfi bir süreçtir; farklı alanları deneyimlemek sağlıklı olabilir.\n`);
+  P.push(`- ${tamlayan(name)} baskın ilgisi **${topInfo.name.toLowerCase()}**; bu yöndeki etkinlikler (kulüp, proje, staj) ilgiyi besleyebilir.\n- Öğrenme ortamı önerisi: ${topInfo.studyEnvironment}\n- Kariyer keşfi bir süreçtir; farklı alanları deneyimlemek sağlıklı olabilir.\n`);
   P.push('---\n');
 
   P.push(`## 📌 6. Öncelik Özeti\n`);
@@ -107,7 +108,7 @@ export function buildHollandDetailedReport(scores: HollandScores, student: Stude
   P.push(insight('action', 'Keşfet', `${code} kodundaki diğer alanları da (${sorted.slice(1, 3).map(([k]) => HOLLAND_TYPES[k].short).join(', ')}) deneyimlemek yönelimi netleştirebilir.`));
   P.push(
     `\n### Kapanış Notu\n` +
-    `${name}'in Holland profili, meslek keşfi için net bir başlangıç pusulası sunuyor. ` +
+    `${tamlayan(name)} Holland profili, meslek keşfi için net bir başlangıç pusulası sunuyor. ` +
     `İlgiyi yetenek ve değerlerle birlikte değerlendiren bir yaklaşım en sağlıklı yönlendirmeyi getirebilir. İlgiler zamanla gelişebilir. 🌱\n`,
   );
   P.push(reportFooter());
