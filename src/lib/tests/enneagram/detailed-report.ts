@@ -14,7 +14,7 @@ import {
   compareBlock, chainBlock, timelineBlock, quadrantBlock, donutBlock, heatmapBlock,
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
-import { belirtme, tamlayan, yonelme } from '@/lib/utils/turkish';
+import { belirtme, tamlayan, yonelme, ucuncuSahis } from '@/lib/utils/turkish';
 
 /** Dokuz tip eşit dağılsa her biri ~%11 olurdu. Sapma referansı. */
 const EVEN_SHARE = 11;
@@ -148,10 +148,10 @@ export function buildEnneagramDetailedReport(scores: EnneagramScores, student: S
   P.push(`## 🔗 5. NİÇİN Önemli? — Motivasyondan Davranışa\n`);
   P.push(`Aşağıdaki zincirler, kişilik örüntüsünün okul hayatına nasıl yansıyabileceğini gösterir.\n`);
   P.push(chainBlock('Motivasyon → Davranış → Sınıf İçi Sonuç', [
-    [`Temel arzu: ${main.desire.replace(/\.$/, '')}`, main.workStyle, 'Bu koşullar sağlandığında verimi yükselebilir'],
+    [`Temel arzu: ${main.desire.replace(/\.$/, '')}`, ucuncuSahis(main.workStyle), 'Bu koşullar sağlandığında verimi yükselebilir'],
     [`Temel korku: ${main.fear.replace(/\.$/, '')}`, main.weaknesses[0], 'Bu noktada yargısız destek fayda sağlayabilir'],
     ['Güçlü yön', main.strengths[0], 'Sınıf içi rol dağılımında bundan yararlanılabilir'],
-    ['Stres altında', main.stressBehavior, `Erken fark edilirse Tip ${growthType} yönü bilinçli desteklenebilir`],
+    ['Stres altında', ucuncuSahis(main.stressBehavior), `Erken fark edilirse Tip ${growthType} yönü bilinçli desteklenebilir`],
   ]));
   P.push('---\n');
 
@@ -179,9 +179,14 @@ export function buildEnneagramDetailedReport(scores: EnneagramScores, student: S
   // ═══ 7. ANA TİP DERİN YORUM ═══
   P.push(`## 🧠 7. Ana Tipin Derinlemesine Yorumu — ${main.title}\n`);
   P.push(gauge(`Tip ${mainType}`, mainPct, { zones: 'Hafif:0-40,Belirgin:40-65,Baskın:65-100', caption: 'Ana tip rezonansı' }));
-  P.push(`${main.desc}\n`);
+  // ENNEAGRAM_DATA metinleri öğrenciye 2. tekil şahısla yazılmıştır
+  // ("Sen dünyaya ... bakıyorsun", "güçlüsün"). Öğretmen raporunun 3. şahıs
+  // anlatımına ham karışınca ton çakışıyordu. Açıkça etiketli alıntı olarak
+  // veriliyor — böylece öğretmen bu cümleleri öğrenciyle doğrudan kullanabilir.
+  P.push(`> **Öğrenciye anlatım:** "${main.desc}"\n`);
   P.push(insight('note', 'Temel Motivasyon ve Kaygı',
-    `**Arzu:** ${main.desire}\n**Korku:** ${main.fear}\n**Çalışma stili:** ${main.workStyle}\n**İlişki stili:** ${main.relationshipStyle}`));
+    `**Arzu:** ${main.desire}\n**Korku:** ${main.fear}\n\n` +
+    `*Öğrenciye anlatım dilinde:*\n**Çalışma stili:** "${main.workStyle}"\n**İlişki stili:** "${main.relationshipStyle}"`));
   P.push(`### 💪 Güçlü Yönler\n${main.strengths.map((s: string) => `- ${s}`).join('\n')}\n`);
   P.push(`### 🌱 Gelişim Alanları\n${main.weaknesses.map((w: string) => `- ${w}`).join('\n')}\n`);
   if (wing && wingType) {
@@ -199,13 +204,13 @@ export function buildEnneagramDetailedReport(scores: EnneagramScores, student: S
     `**gelişim → Tip ${growthType} (${roleOf(growthType)})**.\n`,
   );
   P.push(chainBlock('İki Yön', [
-    ['Baskı, yorgunluk veya çatışma', main.stressBehavior, `Tip ${stressType} örüntüsünün gölge tarafı belirginleşebilir`],
-    ['Güven, destek ve alan', main.growthBehavior, `Tip ${growthType} örüntüsünün güçlü tarafı devreye girebilir`],
+    ['Baskı, yorgunluk veya çatışma', ucuncuSahis(main.stressBehavior), `Tip ${stressType} örüntüsünün gölge tarafı belirginleşebilir`],
+    ['Güven, destek ve alan', ucuncuSahis(main.growthBehavior), `Tip ${growthType} örüntüsünün güçlü tarafı devreye girebilir`],
   ]));
-  P.push(insight('risk', 'Stres Altında', main.stressBehavior));
-  P.push(insight('strength', 'Gelişim Yolunda', main.growthBehavior));
+  P.push(insight('risk', 'Stres Altında', ucuncuSahis(main.stressBehavior)));
+  P.push(insight('strength', 'Gelişim Yolunda', ucuncuSahis(main.growthBehavior)));
   if (main.dangerSignals?.length) {
-    P.push(insight('note', 'Dikkat Edilebilecek İşaretler', main.dangerSignals.map((x: string) => `• ${x}`).join('\n')));
+    P.push(insight('note', 'Dikkat Edilebilecek İşaretler', main.dangerSignals.map((x: string) => `• ${ucuncuSahis(x)}`).join('\n')));
   }
   P.push('---\n');
 
@@ -216,14 +221,14 @@ export function buildEnneagramDetailedReport(scores: EnneagramScores, student: S
     P.push(timelineBlock(`${roleOf(mainType)} Örüntüsü İçin 8 Haftalık Plan`, [
       ['Örüntüyü birlikte adlandırın', `${belirtme(name)} sonucu anlatın; kendini ne kadar tanıdığını sorun.`, '1. hafta'],
       ['Güçlü yönü görünür kıl', `${main.strengths[0]} — bunu kullanabileceği bir görev verin.`, '1–2. hafta'],
-      [rx[0] ? 'İlk gelişim adımı' : 'Gelişim adımı', rx[0] || main.growthBehavior, '2–3. hafta'],
-      ['Stres işaretlerini tanı', `${(main.dangerSignals?.[0]) || main.stressBehavior}`, '3–4. hafta'],
+      [rx[0] ? 'İlk gelişim adımı' : 'Gelişim adımı', ucuncuSahis(rx[0] || main.growthBehavior), '2–3. hafta'],
+      ['Stres işaretlerini tanı', ucuncuSahis((main.dangerSignals?.[0]) || main.stressBehavior), '3–4. hafta'],
       [rx[1] ? 'İkinci gelişim adımı' : 'Alışkanlığı pekiştir', rx[1] || 'Küçük ama düzenli bir rutin kurun.', '4–5. hafta'],
-      [`Tip ${growthType} yönünü besle`, main.growthBehavior, '5–6. hafta'],
+      [`Tip ${growthType} yönünü besle`, ucuncuSahis(main.growthBehavior), '5–6. hafta'],
       ['Zor durumda prova', 'Uyumun düşük olduğu okul durumunda küçük bir deneme yapın.', '6–7. hafta'],
       ['Değerlendir ve sabitle', 'Ne değişti, ne işe yaradı — birlikte konuşun.', '8. hafta'],
     ]));
-    if (rx.length) P.push(`**Ek öneriler:**\n${rx.map((x: string) => `- ${x}`).join('\n')}\n`);
+    if (rx.length) P.push(`**Ek öneriler:**\n${rx.map((x: string) => `- ${ucuncuSahis(x)}`).join('\n')}\n`);
   }
   P.push('---\n');
 
@@ -231,11 +236,11 @@ export function buildEnneagramDetailedReport(scores: EnneagramScores, student: S
   P.push(`## 👩‍🏫 10. Öğretmen İçin Hızlı Kart\n`);
   P.push(insight('strength', 'İşe Yarayabilecekler',
     `- ${tamlayan(name)} temel motivasyonu: ${main.desire.toLocaleLowerCase('tr')} Bunu bilerek görev vermek işbirliğini kolaylaştırır.\n` +
-    `- Verimli olduğu ortam: ${main.workStyle.toLocaleLowerCase('tr')}\n` +
+    `- Verimli olduğu ortam: ${ucuncuSahis(main.workStyle).toLocaleLowerCase('tr')}\n` +
     `- Güçlü yön: ${main.strengths[0].toLocaleLowerCase('tr')} — sınıfta bu role alan açılabilir.`));
   P.push(insight('risk', 'Dikkat Edilebilecekler',
     `- Temel kaygı: ${main.fear.toLocaleLowerCase('tr')} Bu kaygıyı tetikleyen geri bildirim savunmaya itebilir.\n` +
-    `- Stres tepkisi: ${main.stressBehavior.toLocaleLowerCase('tr')}\n` +
+    `- Stres tepkisi: ${ucuncuSahis(main.stressBehavior).toLocaleLowerCase('tr')}\n` +
     `- Enneagram bir etiket değildir; ${name} bu tanımın dışına çıkabilir ve çıkması normaldir.`));
   P.push('---\n');
 
@@ -243,7 +248,7 @@ export function buildEnneagramDetailedReport(scores: EnneagramScores, student: S
   P.push(`## 👨‍👩‍👦 11. Aile İçin Rehber\n`);
   P.push(
     `- ${tamlayan(name)} temel motivasyonunu anlamak iletişimi kolaylaştırabilir.\n` +
-    `- İlişki stili: ${main.relationshipStyle}\n` +
+    `- İlişki stili: ${ucuncuSahis(main.relationshipStyle)}\n` +
     `- Stres işaretleri göründüğünde yargılamadan alan tanımak faydalı olabilir.\n`,
   );
   P.push(insight('action', 'Küçük Bir Deney',
@@ -253,7 +258,7 @@ export function buildEnneagramDetailedReport(scores: EnneagramScores, student: S
 
   // ═══ 12. KARİYER ═══
   P.push(`## 🧭 12. Çalışma Ortamı ve Kariyer Penceresi\n`);
-  P.push(`**Verimli olduğu ortam:** ${main.workStyle}\n`);
+  P.push(`**Verimli olduğu ortam:** ${ucuncuSahis(main.workStyle)}\n`);
   if (main.careers?.length) P.push(insight('note', 'İlişkili Alanlar', main.careers.join(' · ')));
   P.push(
     `Bu alanlar bir yönlendirme değil, sohbet başlatıcıdır. Kişilik tipi meslek seçmez; ` +

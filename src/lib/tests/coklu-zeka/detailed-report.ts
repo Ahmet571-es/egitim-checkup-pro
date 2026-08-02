@@ -157,7 +157,7 @@ export function buildCokluZekaDetailedReport(
   P.push(`## 📋 1. Yönetici Özeti\n`);
   P.push(
     `**${tamlayan(name)}** en güçlü zekâ alanı **${topInfo.name} (%${topPct})** olarak öne çıkıyor — ${band(topPct).frame}. ` +
-    `${profile?.name ? `Genel profil: ${profile.name.replace(/^[^ ]+ /, '')}. ${profile.description} ` : ''}` +
+    `${profile?.name ? `Genel profil: ${profile.name.replace(/^[^ ]+ /, '')}. > **Öğrenciye anlatım:** "${profile.description}" ` : ''}` +
     `Profilin genel dağılımı **${balanceLabel.toLowerCase()}** görünüyor: ${balanceDesc} ` +
     `En çok gelişime açık alan ise **${weakInfo.name} (%${weakPct})** olarak beliriyor. ` +
     `Aşağıdaki bölümler; güçlü yönleri, gelişim alanlarını, uygulanabilir bir çalışma yol haritasını ve kariyer yönelimlerini ayrıntılandırır.\n`,
@@ -297,7 +297,7 @@ export function buildCokluZekaDetailedReport(
       const obs = STRONG_OBS[strongIdx++ % STRONG_OBS.length];
       P.push(
         `**${d.icon} ${d.name}: %${p}** — ${b.frame}.\n\n` +
-        `${d.description} Özellikle "${d.strengths[0].toLowerCase()}" ve "${(d.strengths[1] ?? d.strengths[0]).toLowerCase()}" gibi yönler bu tabloyu destekliyor. ${obs}\n\n` +
+        `> **Öğrenciye anlatım:** "${d.description}" Özellikle "${d.strengths[0].toLowerCase()}" ve "${(d.strengths[1] ?? d.strengths[0]).toLowerCase()}" gibi yönler bu tabloyu destekliyor. ${obs}\n\n` +
         `*Okulda nasıl görünür:* Bu alan; ${d.careers.slice(0, 2).join(' ve ').toLowerCase()} gibi yönelimlerle ilişkili derslerde daha rahat ilerlemeyi getirebilir.\n\n` +
         `*Öneri:* ${name} için "${d.studyTips[0]}" yaklaşımı, bu güçlü alanı çalışmanın merkezine almanın somut bir yolu olabilir.\n`,
       );
@@ -305,7 +305,7 @@ export function buildCokluZekaDetailedReport(
       const obs = WEAK_OBS[weakIdx++ % WEAK_OBS.length];
       P.push(
         `**${d.icon} ${d.name}: %${p}** — ${b.frame}.\n\n` +
-        `${d.description} ${obs}\n\n` +
+        `> **Öğrenciye anlatım:** "${d.description}" ${obs}\n\n` +
         `*Öneri:* "${d.studyTips[0]}" adımını denemek, bu alanı zorlamadan desteklemeye yardımcı olabilir.\n`,
       );
     }
@@ -314,7 +314,7 @@ export function buildCokluZekaDetailedReport(
 
   if (profile?.name) {
     P.push(
-      `### 🎯 Genel Profil Sentezi: ${profile.name}\n\n${profile.description} ` +
+      `### 🎯 Genel Profil Sentezi: ${profile.name}\n\n> **Öğrenciye anlatım:** "${profile.description}" ` +
       `Profilin dağılımı **${balanceLabel.toLowerCase()}**: ${balanceDesc}\n`,
     );
   }

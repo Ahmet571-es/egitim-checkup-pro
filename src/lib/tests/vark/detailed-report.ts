@@ -20,6 +20,9 @@ import { tamlayan, belirtme, yonelme } from '@/lib/utils/turkish';
 
 const ORDER = ['V', 'A', 'R', 'K'] as const;
 
+/** "Kinestetik (Kinesthetic)" → "Kinestetik" — Türkçe raporda İngilizce parantez gereksiz. */
+function shortOf(name: string): string { return name.replace(/\s*\(.*?\)/g, '').trim(); }
+
 /** Dengeli profilde her kanal ~%25 olur. Sapmayı okumak için referans. */
 const EVEN_SHARE = 25;
 
@@ -48,30 +51,41 @@ const ACTIVITY_LOAD: Record<string, Record<string, number>> = {
 };
 
 /** Kanal başına: sınıf içi görünüm, sınav davranışı, kariyer penceresi, zayıfsa risk. */
-const CHANNEL_LENS: Record<string, { classroom: string; exam: string; career: string; risk: string }> = {
+/**
+ * Kanal mercekleri.
+ *  risk    : o kanal GÜÇLÜ olduğunda ortaya çıkan yan etki
+ *  lowRisk : o kanal ZAYIF olduğunda ortaya çıkan zorluk
+ * İkisi karıştırıldığında rapor ters yorum veriyordu (zayıf kanala güçlü
+ * olanın riski yazılıyordu).
+ */
+const CHANNEL_LENS: Record<string, { classroom: string; exam: string; career: string; risk: string; lowRisk: string }> = {
   V: {
     classroom: 'Tahtaya çizilen şema ve tabloları hızlı yakalar; yalnızca sözel akışta dikkati dağılabilir.',
     exam: 'Konu haritası çıkarınca hatırlaması kolaylaşır; düz metinden ezber zorlayabilir.',
     career: 'Tasarım, mimarlık, mühendislik, veri görselleştirme, coğrafya gibi alanlar ilgisini çekebilir.',
     risk: 'Görsel destek olmadan uzun anlatımlarda kopma yaşayabilir.',
+    lowRisk: 'Yalnızca yazılı veya sözlü anlatımda konuyu zihninde canlandırmakta zorlanabilir.',
   },
   A: {
     classroom: 'Anlatımı ve tartışmayı iyi takip eder; sessiz bireysel çalışmada verim düşebilir.',
     exam: 'Konuyu sesli anlatarak tekrar etmek kalıcılığı artırabilir.',
     career: 'Öğretmenlik, hukuk, psikoloji, iletişim, müzik gibi alanlar ilgisini çekebilir.',
     risk: 'Gürültülü ortamda odaklanması zorlaşabilir; sessiz çalışma alışkanlığı gelişmemiş olabilir.',
+    lowRisk: 'Sözlü anlatımı takip etmek yorabilir; dinleyerek öğrenmesi beklenen derslerde kopma olabilir.',
   },
   R: {
     classroom: 'Yazılı kaynakla iyi ilerler; not tutması düzenli olabilir.',
     exam: 'Yazarak tekrar ve özet çıkarma en verimli hazırlık yolu olabilir.',
     career: 'Edebiyat, hukuk, akademi, yazılım, editörlük gibi alanlar ilgisini çekebilir.',
     risk: 'Uygulamalı derslerde teoriden pratiğe geçişte zorlanabilir.',
+    lowRisk: 'Yazılı kaynaktan çalışmak ve not tutmak zorlayabilir; ders kitabıyla baş başa kaldığında verim düşebilir.',
   },
   K: {
     classroom: 'Yaparak öğrenir; uzun süre oturarak dinlemek zorlayabilir.',
     exam: 'Örnek çözerek ve deneyerek çalışmak, okumaktan daha kalıcı olabilir.',
     career: 'Sağlık, spor, teknik meslekler, laboratuvar, sahne sanatları ilgisini çekebilir.',
     risk: 'Teorik ağırlıklı derslerde motivasyonu düşebilir.',
+    lowRisk: 'Uzun süre hareketsiz oturmak sorun olmayabilir, ancak uygulamalı derslerde ilk adımı atmakta çekingen kalabilir.',
   },
 };
 
@@ -96,20 +110,24 @@ export function buildVarkDetailedReport(scores: VarkScores, student: StudentInfo
   const domKey = scores.dominant?.[0] && VARK_STYLES[scores.dominant[0]] ? scores.dominant[0] : sorted[0][0];
   const domInfo = VARK_STYLES[domKey];
   const domPct = clampPct(pct[domKey] ?? sorted[0][1]);
-  const domShort = domInfo.name.replace(/\s*\(.*\)/, '');
+  const domShort = shortOf(domInfo.name);
   const multimodal = !!scores.isMultimodal;
 
   const weakKey = sorted[sorted.length - 1][0];
   const weakInfo = VARK_STYLES[weakKey];
-  const weakShort = weakInfo.name.replace(/\s*\(.*\)/, '');
+  const weakShort = shortOf(weakInfo.name);
   const weakPct = clampPct(sorted[sorted.length - 1][1]);
   const secKey = sorted[1]?.[0];
   const secInfo = secKey ? VARK_STYLES[secKey] : null;
-  const secShort = secInfo ? secInfo.name.replace(/\s*\(.*\)/, '') : '';
+  const secShort = secInfo ? shortOf(secInfo.name) : '';
 
   const spread = clampPct(domPct - weakPct);
-  const esneklik = clampPct(100 - spread * 2.5);   // kanallar birbirine yakınsa yüksek
-  const baskinlik = clampPct(domPct * 2);          // %25 dengeli → 50
+  // Yayılım 0 (tam dengeli) → %100 esnek; yayılım ~60 → %0. Önceki 2.5 katsayısı
+  // 56/19/13/13 gibi normal bir profili bile %0'a düşürüyordu.
+  const esneklik = clampPct(100 - spread * 1.6);
+  // Dengeli profil %25'tir; gerçekçi tavan ~%70. Bu aralık 0–100'e eşlenir.
+  // Önceki `domPct * 2` %50 üstündeki her profili 100'e sabitliyordu.
+  const baskinlik = clampPct(((domPct - EVEN_SHARE) / 45) * 100);
 
   const P: string[] = [];
 
@@ -138,7 +156,7 @@ export function buildVarkDetailedReport(scores: VarkScores, student: StudentInfo
   // ═══ 1. YÖNETİCİ ÖZETİ ═══
   P.push(`## 📋 1. Yönetici Özeti\n`);
   P.push(
-    `**${tamlayan(name)}** baskın öğrenme kanalı **${domInfo.name} (%${domPct})** — ${prefBand(domPct).frame}. ` +
+    `**${tamlayan(name)}** baskın öğrenme kanalı **${domShort} (%${domPct})** — ${prefBand(domPct).frame}. ` +
     `${multimodal
       ? `Profil çok modlu: kanallar birbirine yakın (yayılım %${spread}). Bu, farklı yöntemleri esnekçe kullanabildiğine işaret edebilir. `
       : `Profil tek kanal etrafında toplanıyor (yayılım %${spread}). Bu kanalı merkeze almak verimi artırabilir. `}` +
@@ -148,12 +166,12 @@ export function buildVarkDetailedReport(scores: VarkScores, student: StudentInfo
 
   // ═══ 2. PROFİL HARİTASI ═══
   P.push(`## 📊 2. Profil Haritası\n`);
-  P.push(radarBlock('Dört Kanalın Dağılımı (%)', sorted.map(([k, v]) => [VARK_STYLES[k].name, clampPct(v)])));
-  P.push(donutBlock('Tercih Payları', sorted.map(([k, v]) => [VARK_STYLES[k].name.replace(/\s*\(.*\)/, ''), clampPct(v)]), domShort));
+  P.push(radarBlock('Dört Kanalın Dağılımı (%)', sorted.map(([k, v]) => [shortOf(VARK_STYLES[k].name), clampPct(v)])));
+  P.push(donutBlock('Tercih Payları', sorted.map(([k, v]) => [shortOf(VARK_STYLES[k].name), clampPct(v)]), domShort));
   P.push(`| Kanal | Oran | Grafik | Düzey |\n|---|---|---|---|`);
   P.push(sorted.map(([k, v]) => {
     const b = prefBand(v);
-    return `| ${VARK_STYLES[k].icon} ${VARK_STYLES[k].name} | %${clampPct(v)} | ${bar(v)} | ${b.risk} ${b.label} |`;
+    return `| ${VARK_STYLES[k].icon} ${shortOf(VARK_STYLES[k].name)} | %${clampPct(v)} | ${bar(v)} | ${b.risk} ${b.label} |`;
   }).join('\n') + '\n');
   P.push('---\n');
 
@@ -166,7 +184,7 @@ export function buildVarkDetailedReport(scores: VarkScores, student: StudentInfo
   );
   P.push(compareBlock(
     'Kanal Payları — Dengeli Profille Karşılaştırma',
-    sorted.map(([k, v]) => [VARK_STYLES[k].name.replace(/\s*\(.*\)/, ''), clampPct(v), EVEN_SHARE] as [string, number, number]),
+    sorted.map(([k, v]) => [shortOf(VARK_STYLES[k].name), clampPct(v), EVEN_SHARE] as [string, number, number]),
     { selfLabel: first, refLabel: 'Dengeli profil' },
   ));
   P.push(
@@ -199,7 +217,7 @@ export function buildVarkDetailedReport(scores: VarkScores, student: StudentInfo
   P.push(`Aşağıdaki zincirler, test sonucunun günlük okul hayatına nasıl yansıyabileceğini gösterir.\n`);
   P.push(chainBlock('Öğrenme Profilinin Yansımaları', [
     [`${domShort} tercihi yüksek (%${domPct})`, CHANNEL_LENS[domKey].classroom, 'Bu kanala uygun materyalde kavrama hızlanabilir'],
-    [`${weakShort} tercihi düşük (%${weakPct})`, CHANNEL_LENS[weakKey].risk, 'Bu tür derslerde ek destek veya farklı sunum denenebilir'],
+    [`${weakShort} tercihi düşük (%${weakPct})`, CHANNEL_LENS[weakKey].lowRisk, 'Bu tür derslerde ek destek veya farklı sunum denenebilir'],
     [
       multimodal ? `Kanallar birbirine yakın (yayılım %${spread})` : `Tek kanal belirgin (yayılım %${spread})`,
       multimodal ? 'Yöntem değiştiğinde uyum sağlaması kolay olabilir' : 'Yöntem değiştiğinde geçiş süresi uzayabilir',
@@ -217,7 +235,7 @@ export function buildVarkDetailedReport(scores: VarkScores, student: StudentInfo
   );
   {
     const acts = Object.keys(ACTIVITY_LOAD);
-    const cols = sorted.map(([k]) => VARK_STYLES[k].name.replace(/\s*\(.*\)/, ''));
+    const cols = sorted.map(([k]) => shortOf(VARK_STYLES[k].name));
     const rows: [string, number[]][] = acts.map((act) => [
       act,
       sorted.map(([k]) => clampPct(pct[k] * (ACTIVITY_LOAD[act][k] ?? 0) * 2)),
@@ -237,15 +255,23 @@ export function buildVarkDetailedReport(scores: VarkScores, student: StudentInfo
     const lens = CHANNEL_LENS[k];
     const p = clampPct(v);
     const b = prefBand(p);
+    // ÖNEMLİ: d.description öğrenciye 2. tekil şahısla yazılmıştır
+    // ("Sen görsel bir öğrenicisin!") ve o kanalın BASKIN olduğunu varsayar.
+    // Öğretmen raporunda 3. şahıs anlatımın içine ham konursa hem ton çakışıyor
+    // hem de %13'lük bir kanal "en iyi öğrenme yolun" diye tanıtılıyordu.
+    // Çözüm: yalnızca baskın kanalda, açıkça "öğrenciye anlatım" olarak etiketli
+    // alıntı biçiminde verilir.
+    const isDom = k === domKey;
+    const tip = d.studyTips[0].replace(/^[^\p{L}\p{N}]+/u, '').trim();
     P.push(
-      `### ${d.icon} ${d.name} — %${p} ${b.risk} ${b.label}\n\n` +
-      `${d.description}\n\n` +
+      `### ${d.icon} ${shortOf(d.name)} — %${p} ${b.risk} ${b.label}\n\n` +
+      (isDom ? `> **Öğrenciye anlatım:** "${d.description}"\n\n` : '') +
       `**Sınıfta nasıl görünür:** ${lens.classroom}\n\n` +
       `**Sınav ve ödevde:** ${lens.exam}\n\n` +
       `**Belirgin özellikleri:** ${d.characteristics.slice(0, 3).join(', ').toLocaleLowerCase('tr')}.\n\n` +
       `*Öneri:* ${p >= 30
-        ? `Bu güçlü kanalı kullanmak için "${d.studyTips[0]}" yaklaşımı ${name} için verimli olabilir.`
-        : `Bu kanal ikincil görünüyor; ihtiyaç halinde "${d.studyTips[0]}" denenebilir.`}\n`,
+        ? `Bu güçlü kanalı kullanmak için **${tip.toLocaleLowerCase('tr')}** yaklaşımı ${name} için verimli olabilir.`
+        : `Bu kanal ikincil görünüyor; ihtiyaç halinde **${tip.toLocaleLowerCase('tr')}** denenebilir.`}\n`,
     );
   });
   P.push('---\n');
@@ -273,7 +299,7 @@ export function buildVarkDetailedReport(scores: VarkScores, student: StudentInfo
     `- Sınav öncesi tekrarda: ${CHANNEL_LENS[domKey].exam.toLocaleLowerCase('tr')}`));
   P.push(insight('risk', 'Dikkat Edilebilecekler',
     `- ${domInfo.avoid}\n` +
-    `- ${weakShort} ağırlıklı etkinliklerde ek yönerge gerekebilir: ${CHANNEL_LENS[weakKey].risk.toLocaleLowerCase('tr')}\n` +
+    `- ${weakShort} ağırlıklı etkinliklerde ek yönerge gerekebilir: ${CHANNEL_LENS[weakKey].lowRisk.toLocaleLowerCase('tr')}\n` +
     `- Bu profil bir etiket değildir; ${name} farklı yöntemleri de öğrenebilir.`));
   P.push('---\n');
 

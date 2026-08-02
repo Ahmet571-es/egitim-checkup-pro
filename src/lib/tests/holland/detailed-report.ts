@@ -107,7 +107,7 @@ export function buildHollandDetailedReport(scores: HollandScores, student: Stude
   P.push(`## 🔎 Bu Rapor Neyi Ölçer, Neyi Ölçmez?\n`);
   P.push(
     `Holland (RIASEC) modeli mesleki ilgileri altı alanda inceler: ` +
-    `**Gerçekçi (R)**, **Araştırmacı (I)**, **Sanatsal (A)**, **Sosyal (S)**, **Girişimci (E)**, **Geleneksel (C)**. ` +
+    `${RIASEC.map((k) => `**${HOLLAND_TYPES[k].short} (${k})**`).join(', ')}. ` +
     `Baskın üç harf (Holland kodu: **${code}**) meslek keşfi için bir pusula sunar.\n`,
   );
   P.push(insight('note', 'Kapsam',

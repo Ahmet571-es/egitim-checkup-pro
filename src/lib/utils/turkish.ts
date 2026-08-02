@@ -85,3 +85,48 @@ export function yonelme(name: string): string {
   const a = ikili(lastVowel(w));
   return `${name}'${endsWithVowel(w) ? 'y' : ''}${a}`;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 2. tekil şahıs → 3. şahıs dönüşümü
+// ═══════════════════════════════════════════════════════════════════════════
+/**
+ * Test veri dosyalarındaki açıklamalar öğrenciye 2. tekil şahısla yazılmıştır
+ * ("güçlüsün", "kayarsın", "bakıyorsun"). Bu metinler öğretmen raporunun
+ * 3. şahıs anlatımına ham karıştığında ton çakışıyordu.
+ *
+ * Bu dönüştürücü BİLEREK dar kapsamlıdır: yalnızca kesin tanınan ekleri
+ * çevirir, tanımadığını olduğu gibi bırakır. Yanlış çevirmektense
+ * dokunmamak yeğdir.
+ *
+ *   -ebilirsin / -abilirsin  → -ebilir / -abilir     (olabilirsin → olabilir)
+ *   -yorsun                  → -yor                   (bakıyorsun → bakıyor)
+ *   -rsın/-rsin/-rsun/-rsün  → -r                     (kayarsın → kayar)
+ *   sıfat + -sın/-sin/...    → sıfat + " olabilir"    (güçlüsün → güçlü olabilir)
+ */
+export function ucuncuSahis(text: string): string {
+  if (!text) return text;
+  let t = text;
+
+  // 1) yeterlilik kipi: -ebilirsin / -abilirsin → -ebilir / -abilir
+  t = t.replace(/([a-zçğıöşü])(ebilir|abilir)s[ıiuü]n\b/gi, '$1$2');
+
+  // 2) şimdiki zaman: -yorsun → -yor
+  t = t.replace(/([a-zçğıöşü])yors[uü]n\b/gi, '$1yor');
+
+  // 3) geniş zaman: -rsın/-rsin/-rsun/-rsün → -r
+  t = t.replace(/([a-zçğıöşü])rs[ıiuü]n\b/gi, '$1r');
+
+  // 4) ad/sıfat + kişi eki: "güçlüsün" → "güçlü olabilir"
+  //    Yalnızca ünlüyle biten gövdelerde uygulanır; fiil çekimleriyle
+  //    karışmaması için yukarıdaki kurallardan SONRA gelir.
+  t = t.replace(/\b([a-zçğıöşü]*[aeıioöuü])s[ıiuü]n\b/gi, (m, stem) => {
+    // "sensin", "bunun" gibi kısa zamir/edatlara dokunma
+    if (stem.length < 3) return m;
+    return `${stem} olabilir`;
+  });
+
+  // 5) doğrudan hitap zamiri
+  t = t.replace(/\bSen\b\s+/g, '').replace(/\bsen\b\s+/g, '');
+
+  return t;
+}
