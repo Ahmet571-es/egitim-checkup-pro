@@ -474,7 +474,12 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
           setResult({
             main: `Holland Kodu: ${s.hollandCode}`,
             desc: s.top3.map(([k]) => k).join(' • '),
-            scores: s.sortedTypes.map(([k, v]) => ({ label: k, value: v.toString(), pct: Math.round(v / 56 * 100) })),
+            // Tip başına maksimum = (soru sayısı / 6 tip) x 5 puan. Sabit 56 yanlıştı;
+            // 84 soruda gerçek tavan 70'tir ve yüzdeler %25 şişiyordu.
+            scores: (() => {
+              const maxPerType = (HOLLAND_QUESTIONS.length / 6) * 5 || 70;
+              return s.sortedTypes.map(([k, v]) => ({ label: k, value: v.toString(), pct: Math.round((v / maxPerType) * 100) }));
+            })(),
             report: r,
             raw: s,
           });
@@ -690,6 +695,9 @@ export default function TestPlayer({ testId, saver, onSaved, backHref = '/studen
           advisory={shortRes.advisory}
           chart={shortRes.chart}
           accentColor={test.color}
+          saveStatus={saveStatus}
+          saveError={saveError}
+          onRetrySave={() => { setSaveStatus('idle'); }}
           onRetake={() => {
             setResult(null); setAnswers({}); setCurrentQ(0); setElapsed(0); setDbSaved(false); setSaveStatus('idle');
             if (testId === 'd2-dikkat') setD2Rows(generateD2Test());

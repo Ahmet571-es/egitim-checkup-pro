@@ -44,16 +44,46 @@ const COLORS = {
 const PALETTE = Object.values(COLORS);
 
 // ── Skorlardan sayısal değer çek (label match'le) ──
+/** Değeri sayıya çevirir; olmuyorsa null. */
+function toNum(v: unknown): number | null {
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  if (typeof v === 'string') {
+    const n = parseFloat(v.replace(/[^0-9.-]/g, ''));
+    return isNaN(n) ? null : n;
+  }
+  return null;
+}
+
+/**
+ * Skor nesnesinden bir alanı bulur.
+ *
+ * ÖNCE TAM EŞLEŞME denenir. Bu şart: Holland skorları tek harfli anahtarlarla
+ * (R, I, A, S, E, C) saklanır ve anahtar kelime listesinde ' R ' gibi boşluklu
+ * girdiler var. Yalnızca alt dize araması yapıldığında hiçbiri eşleşmiyor,
+ * altı boyut da 0 dönüyor ve sıralama daima ilk elemanı ("Gerçekçi") baskın
+ * gösteriyordu — radar da sıfır çiziliyordu.
+ */
 function pickScore(scores: Record<string, unknown>, ...keywords: string[]): number {
-  for (const key of Object.keys(scores)) {
+  const keys = Object.keys(scores);
+
+  // 1) Tam eşleşme (boşluklar kırpılır, büyük/küçük harf duyarsız)
+  for (const kw of keywords) {
+    const needle = kw.trim().toLowerCase();
+    if (!needle) continue;
+    const hit = keys.find((k) => k.toLowerCase() === needle);
+    if (hit !== undefined) {
+      const n = toNum(scores[hit]);
+      if (n !== null) return n;
+    }
+  }
+
+  // 2) Alt dize eşleşmesi (ör. 'muzik' → 'muziksel')
+  for (const key of keys) {
+    if (key.startsWith('_')) continue;   // _main/_desc/_full display alanları
     const lower = key.toLowerCase();
-    if (keywords.some((kw) => lower.includes(kw.toLowerCase()))) {
-      const v = scores[key];
-      if (typeof v === 'number') return v;
-      if (typeof v === 'string') {
-        const n = parseFloat(v.replace(/[^0-9.-]/g, ''));
-        if (!isNaN(n)) return n;
-      }
+    if (keywords.some((kw) => { const n = kw.trim().toLowerCase(); return n.length >= 3 && lower.includes(n); })) {
+      const n = toNum(scores[key]);
+      if (n !== null) return n;
     }
   }
   return 0;

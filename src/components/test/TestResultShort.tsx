@@ -19,6 +19,14 @@ export interface TestResultShortProps {
   chart: ChartConfig;
   accentColor?: string;
   onRetake?: () => void;
+  /**
+   * Sunucuya kayıt durumu. Önceden "kaydedildi" metni KOŞULSUZ basılıyordu;
+   * kayıt sürerken ya da başarısız olduğunda bile öğrenci kaydedildiğini
+   * sanıyordu. Artık gerçek durum gösteriliyor.
+   */
+  saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
+  saveError?: string | null;
+  onRetrySave?: () => void;
 }
 
 function ChartRenderer({ chart, accentColor }: { chart: ChartConfig; accentColor: string }) {
@@ -140,6 +148,9 @@ function ChartRenderer({ chart, accentColor }: { chart: ChartConfig; accentColor
 
 export default function TestResultShort({
   testName, testIcon, mainResult, advisory, chart, accentColor = '#7c3aed', onRetake,
+  saveStatus = 'saved',
+  saveError = null,
+  onRetrySave,
 }: TestResultShortProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-8 sm:py-12">
@@ -188,12 +199,36 @@ export default function TestResultShort({
           </div>
         </div>
 
-        {/* ── Detaylı analiz öğretmende notu ── */}
-        <div className="rounded-2xl bg-blue-500/10 border border-blue-400/20 p-4 mb-6 text-center animate-[fade-up_0.8s_ease-out_0.3s_both]">
-          <p className="text-sm text-white/75 leading-relaxed">
-            <span className="font-bold text-blue-200">📊 Detaylı analiz</span> öğretmenin görmesi için kaydedildi. Daha fazla bilgi için öğretmenine danışabilirsin.
-          </p>
-        </div>
+        {/* ── Kayıt durumu (gerçek durumu yansıtır) ── */}
+        {saveStatus === 'error' ? (
+          <div className="rounded-2xl bg-red-500/15 border border-red-400/30 p-4 mb-6 text-center animate-[fade-up_0.8s_ease-out_0.3s_both]">
+            <p className="text-sm text-white/90 leading-relaxed">
+              <span className="font-bold text-red-200">⚠️ Sonucun kaydedilemedi.</span>{' '}
+              {saveError || 'Bağlantı sorunu olabilir.'} Sayfadan ayrılmadan tekrar dene.
+            </p>
+            {onRetrySave && (
+              <button
+                type="button"
+                onClick={onRetrySave}
+                className="mt-3 px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white text-sm font-bold transition-all"
+              >
+                Tekrar Kaydet
+              </button>
+            )}
+          </div>
+        ) : saveStatus === 'saved' ? (
+          <div className="rounded-2xl bg-blue-500/10 border border-blue-400/20 p-4 mb-6 text-center animate-[fade-up_0.8s_ease-out_0.3s_both]">
+            <p className="text-sm text-white/75 leading-relaxed">
+              <span className="font-bold text-blue-200">📊 Detaylı analiz</span> öğretmenin görmesi için kaydedildi. Daha fazla bilgi için öğretmenine danışabilirsin.
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-2xl bg-amber-500/10 border border-amber-400/25 p-4 mb-6 text-center animate-[fade-up_0.8s_ease-out_0.3s_both]">
+            <p className="text-sm text-white/80 leading-relaxed">
+              <span className="font-bold text-amber-200">⏳ Sonucun kaydediliyor…</span> Lütfen bu sayfadan ayrılma.
+            </p>
+          </div>
+        )}
 
         {/* ── Butonlar ── */}
         <div className="flex flex-col sm:flex-row gap-3 animate-[fade-up_0.9s_ease-out_0.4s_both]">

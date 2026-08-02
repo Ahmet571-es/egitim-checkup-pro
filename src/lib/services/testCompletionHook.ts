@@ -9,6 +9,27 @@ const XP_TEST_COMPLETE = 50;
 const XP_IMPROVEMENT = 30;
 
 /** Test tamamlandığında çağrılacak ana fonksiyon */
+/**
+ * scores (JSONB) içinden karşılaştırılabilir tek bir sayı çıkarır.
+ * Bu tabloda `score` diye bir sütun YOK — sorgular 'score' seçtiği için
+ * Supabase 400 (42703) döndürüyor ve gelişim/rozet mantığı sessizce çalışmıyordu.
+ */
+function mainScoreOf(row: { scores?: unknown } | null | undefined): number {
+  const s = row?.scores;
+  if (typeof s === 'number') return s;
+  if (s && typeof s === 'object') {
+    const o = s as Record<string, unknown>;
+    const m = o._main;
+    if (typeof m === 'number') return m;
+    if (typeof m === 'string') { const n = parseFloat(m.replace(/[^0-9.-]/g, '')); if (!isNaN(n)) return n; }
+    const nums = Object.entries(o)
+      .filter(([k, v]) => !k.startsWith('_') && typeof v === 'number')
+      .map(([, v]) => v as number);
+    if (nums.length) return Math.round(nums.reduce((a, b) => a + b, 0) / nums.length);
+  }
+  return 0;
+}
+
 export async function onTestCompleted(studentId: string, testType: string, score: number): Promise<{
   xpGained: number;
   newBadges: string[];
@@ -26,14 +47,14 @@ export async function onTestCompleted(studentId: string, testType: string, score
     // 2. Gelişim kontrolü (tekrar testte ilerleme varsa bonus)
     const { data: prevResults } = await supabase
       .from('test_results')
-      .select('score')
+      .select('scores')
       .eq('student_id', studentId)
       .eq('test_type', testType)
       .order('created_at', { ascending: false })
       .limit(2);
 
     if (prevResults && prevResults.length >= 2) {
-      const prevScore = prevResults[1]?.score || 0;
+      const prevScore = mainScoreOf(prevResults[1]);
       if (score > prevScore) {
         totalXP += XP_IMPROVEMENT;
       }
@@ -165,14 +186,14 @@ async function checkAndAwardBadges(
         // Gelişim gösterildi mi kontrol (basit: skor > 0 ve tekrar test)
         const { data: attempts } = await supabase
           .from('test_results')
-          .select('score')
+          .select('scores')
           .eq('student_id', studentId)
           .order('created_at', { ascending: false })
           .limit(10);
         if (attempts && attempts.length >= 2) {
           let improvements = 0;
           for (let i = 0; i < attempts.length - 1; i++) {
-            if (attempts[i].score > attempts[i + 1].score) improvements++;
+            if (mainScoreOf(attempts[i]) > mainScoreOf(attempts[i + 1])) improvements++;
           }
           shouldAward = improvements >= badge.requirement_value;
         }
