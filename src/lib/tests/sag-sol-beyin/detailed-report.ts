@@ -15,6 +15,10 @@ import {
   reportHeader, reportFooter, safeName, ogrenciIpucu, type StudentInfo,
 } from '../../report/report-blocks';
 import { tamlayan, belirtme, yonelme, ucuncuSahis } from '@/lib/utils/turkish';
+import {
+  bilimselTemel, ucPencere, gozlemListesi, akademikYansima,
+  ilerlemeTakibi, sikSorulanlar, gelecekPenceresi, gorusmeSorulari, okumaKilavuzu, butceliEkle,
+} from '../../report/common-sections';
 
 /** Ders alanlarının sol/sağ düşünme yüküne dair sabit ağırlıklar (0–1). Ölçüm değil. */
 const SUBJECT_LOAD: Record<string, { sol: number; sag: number }> = {
@@ -254,6 +258,120 @@ export function buildSagSolBeyinDetailedReport(scores: SagSolBeyinScores, studen
     `Düşünme stili bir sınır değil, bir başlangıç noktasıdır. ${name} her iki yaklaşımı da zamanla geliştirebilir; ` +
     `güçlü yönü merkeze alan bir plan en verimli sonucu getirebilir. 🌱\n`,
   );
+  // ── Ortak zenginleştirme (hedef ~18.000 karakter) ──
+  const kapanis = P.pop() || '';
+  P.push(...butceliEkle(P.join('\n'), [
+    () => ucPencere({
+      ad: name,
+      anaBulgu: `düşünme stili ${d.title.toLocaleLowerCase('tr')} yönünde (Sol %${sol} · Sağ %${sag})`,
+      ogretmen: {
+        yarin: [
+          dom === 'sol' ? 'Yeni konuya kural ve adım listesiyle girin; büyük resmi sonra verin.'
+            : dom === 'sag' ? 'Yeni konuya büyük resimle girin; ayrıntıyı sonra ekleyin.'
+            : 'Aynı konuyu hem adım listesiyle hem görsel özetle sunun; ikisine de uyum sağlıyor.',
+          'Ödev yönergesini iki biçimde verin: maddeler hâlinde ve tek cümlelik özet olarak.',
+          'Grup çalışmasında rolü bu güce göre dağıtın.',
+        ],
+        kacin: [
+          'Bu sonucu sabit bir etiket gibi kullanmak; düşünme stili gelişir.',
+          '"Sağ beyinli/sol beyinli" ayrımını nöroloji bulgusu gibi sunmak.',
+        ],
+      },
+      veli: {
+        buHafta: [
+          dom === 'sol' ? 'Ödeve başlamadan önce yapılacakları maddeleyerek yazmasını önerin.' : 'Ödeve başlamadan konuyu tek cümleyle anlatmasını isteyin.',
+          'Çalışma düzenini onun tercih ettiği biçimde kurmasına izin verin.',
+          'Diğer tarafı besleyen bir etkinlik ekleyin (bulmaca, çizim, müzik).',
+        ],
+        kacin: ['Kendi çalışma tarzınızı dayatmak.', 'Sonucu bir kapasite ölçüsü gibi anlamak.'],
+      },
+      ogrenci: {
+        deneyebilir: [
+          dom === 'sol' ? 'Konuya başlarken önce adımları yaz, sonra çöz.' : 'Konuya başlarken önce şema çiz, sonra ayrıntıya in.',
+          'Zorlandığın derste diğer yöntemi de bir kez dene.',
+          'Hangi yöntemin işe yaradığını not et.',
+        ],
+        hatirlat: 'Bu bir kapasite ölçüsü değil, tercih haritası. İki yaklaşımı da öğrenebilirsin.',
+      },
+    }),
+    () => gozlemListesi({
+      ad: name,
+      destekleyen: [
+        dom === 'sol' ? 'Adım adım anlatımı rahat takip ediyor; serbest ödevde başlamakta gecikiyor.' : 'Büyük resmi hızlı yakalıyor; sıralı yönergede takılıyor.',
+        'Not tutma biçimi bu eğilimi yansıtıyor (liste mi, şema mı).',
+        'Problem çözerken önce plan mı yapıyor, önce deniyor mu.',
+      ],
+      celisen: [
+        'Derse göre yaklaşımı belirgin değişiyor.',
+        'Sevdiği konuda tam tersi biçimde çalışıyor.',
+        'Zaman baskısı altında farklı davranıyor.',
+      ],
+    }),
+    () => akademikYansima({
+      ad: name,
+      dersler: [
+        ['Matematik', clampPct(sol * 1.6), 'Kural ve işlem sırası analitik yaklaşımla eşleşir.'],
+        ['Fen Bilimleri', clampPct(sol * 1.3 + sag * 0.5), 'Hem kural hem model kurma gerektirir.'],
+        ['Türkçe / Edebiyat', clampPct(sag * 1.4 + sol * 0.4), 'Yorum ve bütüncül okuma öne çıkar.'],
+        ['Görsel sanatlar / Müzik', clampPct(sag * 1.7), 'Bütüncül ve sezgisel yaklaşımla eşleşir.'],
+        ['Sosyal / Tarih', clampPct(sol * 0.8 + sag * 0.9), 'Kronoloji ile bağlam birlikte gerekir.'],
+      ],
+    }),
+    () => ilerlemeTakibi({
+      ad: name,
+      hafta4: 'Yeni yöntemi denediği derste ödeve başlama süresi kısaldı mı?',
+      hafta8: 'Kendi yöntemini kendisi seçip uygulayabiliyor mu?',
+      hafta12: 'Zorlandığı derste yaklaşımını değiştirebiliyor mu?',
+      olcut: '**Ödeve başlama süresi.** Masaya oturduktan kaç dakika sonra gerçekten başlıyor? Bu süre kısalıyorsa yöntem oturuyor demektir.',
+    }),
+    () => sikSorulanlar({
+      ad: name,
+      sorular: [
+        ['Sağ beyin / sol beyin ayrımı gerçek mi?',
+         'Bir benzetmedir. Sinirbilimde iki yarımküre neredeyse her işte birlikte çalışır. Bu rapor beyin ölçümü değil, tercih edilen düşünme yaklaşımının haritasıdır — ve bu hâliyle yöntem seçmekte işe yarar.'],
+        ['Diğer tarafı geliştirebilir miyiz?',
+         'Evet. Az kullanılan yaklaşım, o tarzı gerektiren etkinliklerle desteklenerek güçlenir. Amaç birini bırakmak değil, ikisini de kullanabilmektir.'],
+        ['Bu sonuç meslek seçimini belirler mi?',
+         'Hayır. Yalnızca hangi ortamda daha rahat çalışılabileceğine dair ipucu verir. Meslek seçimi ilgi, yetenek ve değerlerle birlikte konuşulur.'],
+      ],
+    }),
+    () => gorusmeSorulari({
+      ad: name,
+      acilis: ['Yeni bir konuya başlarken önce ne yaparsın?', 'Hangi ders sana daha kolay geliyor, neden?', 'Ödeve başlamak mı zor, bitirmek mi?'],
+      derinlestiren: ['Bir problemi çözerken önce plan mı yaparsın, hemen mi denersin?', 'Not tutarken liste mi yazarsın, şema mı çizersin?', 'Serbest ödev mi kolay, kurallı ödev mi?'],
+      kapanis: ['Bu hafta zorlandığın derste farklı bir yöntem denemek ister misin?', 'Hangi yöntemin işe yaradığını not eder misin?', 'Bir hafta sonra karşılaştıralım mı?'],
+    }),
+    () => okumaKilavuzu({
+      ad: name,
+      anaMesaj: `Bu raporun tek mesajı: bu bir **kapasite ölçüsü değil, tercih haritasıdır**. ${tamlayan(name)} doğal yaklaşımını bilmek, hangi yöntemle çalışacağını seçmesini kolaylaştırır.`,
+      yanlisOkumalar: [
+        ['"Sağ beyinli, sayısal olamaz."', 'Düşünme stili ders başarısını belirlemez. Yalnızca hangi yolun daha rahat geldiğini gösterir.'],
+        ['"Bu bir beyin taraması."', 'Değildir. Öz-beyana dayanan bir tercih ölçümüdür; nörolojik bulgu içermez.'],
+        ['"Zayıf taraf geliştirilemez."', 'Geliştirilir. Desteklenen taraf zamanla güçlenir.'],
+        ['"Sonuç kesin ve kalıcı."', 'Düşünme stili yaşla ve deneyimle değişir.'],
+      ],
+    }),
+    () => gelecekPenceresi({
+      ad: name,
+      guclu: [
+        dom === 'sol' ? 'Sistemli düşünme; mühendislik, hukuk, finans gibi alanlarda doğrudan avantajdır.'
+          : dom === 'sag' ? 'Bütüncül ve yaratıcı düşünme; tasarım, iletişim, girişimcilik gibi alanlarda öne çıkar.'
+          : 'İki yaklaşımı da kullanabilmek, ekip içinde köprü rolü oynamayı kolaylaştırır.',
+        'Kendi düşünme tarzını bilmek, iş hayatında doğru rolü seçmeyi kolaylaştırır.',
+      ],
+      gelistirilecek: ['Az kullanılan yaklaşımı desteklemek, esnekliği artırır.', 'Farklı düşünen insanlarla çalışma pratiği, uzun vadede en değerli beceridir.'],
+      alanlar: d.careerAreas,
+    }),
+    () => bilimselTemel({
+      modelAdi: 'Yarımküre baskınlığı (düşünme stili) yaklaşımı',
+      gelistiren: 'Roger Sperry\'nin yarımküre çalışmalarından esinlenen eğitim modelleri',
+      nedirTekCumle: 'Analitik-sıralı düşünme ile bütüncül-sezgisel düşünme arasındaki tercihi inceler.',
+      neyeDayanir: 'Öğrencinin kendi beyanına dayalı tercih ifadeleri; sözel ve görsel olmak üzere iki bölümde ölçülür.',
+      kanitDurumu: 'Eğitimde yaygın kullanılan bir çerçevedir. Ancak sinirbilim açısından "sol beyinli / sağ beyinli insan" ayrımı bir basitleştirmedir; iki yarımküre neredeyse her işte birlikte çalışır.',
+      siniri: 'Beyin aktivitesi ölçmez. Tercih edilen düşünme yaklaşımının haritasıdır; bu hâliyle yöntem seçmekte yararlıdır.',
+    }),
+  ]));
+  P.push(kapanis);
   P.push(reportFooter());
   return P.join('\n');
 }

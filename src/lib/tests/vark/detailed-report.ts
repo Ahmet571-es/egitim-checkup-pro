@@ -17,6 +17,10 @@ import {
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
 import { tamlayan, belirtme, yonelme } from '@/lib/utils/turkish';
+import {
+  bilimselTemel, ucPencere, gozlemListesi, akademikYansima,
+  ilerlemeTakibi, sikSorulanlar, gelecekPenceresi, gorusmeSorulari, okumaKilavuzu, butceliEkle,
+} from '../../report/common-sections';
 
 const ORDER = ['V', 'A', 'R', 'K'] as const;
 
@@ -337,6 +341,59 @@ export function buildVarkDetailedReport(scores: VarkScores, student: StudentInfo
     `Baskın kanalı merkeze alan, diğerlerini de zaman zaman kullanan bir yaklaşım en verimli sonucu getirebilir. ` +
     `Öğrenme stili sabit bir özellik değildir; desteklendikçe gelişebilir. 🌱\n`,
   );
+  // ── Ortak zenginleştirme (hedef ~18.000 karakter) ──
+  const kapanis = P.pop() || '';
+  P.push(...butceliEkle(P.join('\n'), [
+    () => ucPencere({
+      ad: name, anaBulgu: `baskın öğrenme kanalı ${domShort.toLocaleLowerCase('tr')} (%${domPct})`,
+      ogretmen: {
+        yarin: [
+          `Yeni konuyu ${domShort.toLocaleLowerCase('tr')} kanaldan açın; ilk temas bu kanaldan olsun.`,
+          'Aynı içeriği iki kanaldan sunun (ör. anlatım + şema); kalıcılık artar.',
+          'Sınav öncesi tekrarda bu kanalı merkeze alın.',
+        ],
+        kacin: ['Tek kanala hapsetmek; en iyi öğrenme birden çok kanalın birlikte kullanılmasıyla olur.', 'Bu sonucu yetenek ölçüsü gibi sunmak.'],
+      },
+      veli: {
+        buHafta: [`Bir dersi ${domShort.toLocaleLowerCase('tr')} yöntemle çalıştırın, sonucu birlikte konuşun.`, 'Çalışma masasını bu kanala uygun donatın.', 'Hangi yöntemin işe yaradığını birlikte not edin.'],
+        kacin: ['Kendi öğrenme tarzınızı dayatmak.', 'Sonucu değişmez bir özellik gibi anlamak.'],
+      },
+      ogrenci: { deneyebilir: ['Bir konuyu bu kanaldan çalış, farkı ölç.', 'İkinci kanalı da dene; ikisi birlikte daha kalıcı.', 'Hangisinin işe yaradığını yaz.'],
+        hatirlat: 'Bu bir sınır değil, kısayol. Diğer yolları da öğrenebilirsin.' },
+    }),
+    () => gozlemListesi({ ad: name,
+      destekleyen: ['Bu kanaldan sunulan içeriği belirgin daha hızlı kavrıyor.', 'Kendi notlarını bu biçimde tutuyor.', 'Zorlandığında kendiliğinden bu yönteme dönüyor.'],
+      celisen: ['Derse göre yaklaşımı belirgin değişiyor.', 'Sevdiği konuda tüm kanalları rahat kullanıyor.', 'Test günü isteksizdi.'] }),
+    () => ilerlemeTakibi({ ad: name,
+      hafta4: 'Bu kanaldan çalıştığı derste konu tekrar süresi kısaldı mı?',
+      hafta8: 'Yöntemi hatırlatmadan kendisi uyguluyor mu?',
+      hafta12: 'Testi tekrar alın; esneklik yükseldi mi?',
+      olcut: '**Konu tekrar süresi.** Aynı uzunlukta bir konuyu kaç dakikada tekrar ediyor? Süre kısalıyorsa yöntem oturuyor demektir.' }),
+    () => sikSorulanlar({ ad: name, sorular: [
+      ['Öğrenme stili bilimsel olarak kanıtlı mı?', 'VARK yaygın kullanılan bir çerçevedir. Ancak "sadece kendi stiline uygun öğretilirse başarı artar" iddiası araştırmalarda güçlü destek bulmamıştır. Doğru kullanım: baskın kanalı GİRİŞ kapısı olarak kullanmak, sonra çok kanallı devam etmek.'],
+      ['Düşük çıkan kanal zayıflık mı?', 'Hayır. "Daha az tercih edilen yol" demektir. Zorunlu durumlarda o kanal da kullanılabilir.'],
+      ['Stil zamanla değişir mi?', 'Evet. Deneyim ve derse göre değişebilir; yılda bir tekrar ölçmek yerinde olur.'] ] }),
+    () => gorusmeSorulari({ ad: name,
+      acilis: ['Bir konuyu en iyi nasıl öğrendiğini fark ettin mi?', 'Hangi ders sana kolay geliyor, neden?', 'Ders çalışırken en çok ne yapıyorsun?'],
+      derinlestiren: ['Anlamadığın bir konuyu nasıl çözüyorsun?', 'Not tutarken yazıyor musun, çiziyor musun?', 'Bir şeyi birine anlatınca daha iyi anlıyor musun?'],
+      kapanis: ['Bu hafta bir dersi farklı yöntemle çalışmayı denemek ister misin?', 'Hangisinin işe yaradığını not eder misin?', 'Bir hafta sonra konuşalım mı?'] }),
+    () => okumaKilavuzu({ ad: name,
+      anaMesaj: `Bu raporun tek mesajı: baskın kanal bir **giriş kapısıdır**, sınır değil. ${tamlayan(name)} bu kanaldan başlayıp diğerlerini de kullanması en verimli yoldur.`,
+      yanlisOkumalar: [
+        ['"Sadece bu kanaldan öğretilmeli."', 'Araştırmalar bunu desteklemez. Baskın kanal giriş kapısıdır; çok kanallı sunum daha kalıcıdır.'],
+        ['"Düşük kanal = zayıflık."', 'Daha az tercih edilen yol demektir; kullanılamaz demek değildir.'],
+        ['"Bu bir yetenek ölçümü."', 'Tercih ölçümüdür. Zekâ, yetenek veya başarı ölçmez.'],
+        ['"Sonuç kalıcıdır."', 'Öğrenme tercihi derse ve deneyime göre değişir.'] ] }),
+    () => gelecekPenceresi({ ad: name,
+      guclu: ['Kendi öğrenme yolunu bilmek, üniversitede kendi başına çalışırken en çok işe yarayan bilgidir.', 'Bilgiyi hangi biçimde alacağını seçebilmek, iş hayatında da hız kazandırır.'],
+      gelistirilecek: ['Az kullanılan kanalları denemek, esnekliği artırır.', 'Farklı biçimlerde sunulan bilgiye uyum, hayat boyu gerekecek.'] }),
+    () => bilimselTemel({ modelAdi: 'VARK Öğrenme Tercihleri Modeli', gelistiren: 'Neil Fleming', yil: 1987,
+      nedirTekCumle: 'Bilginin hangi duyusal kanaldan daha rahat alındığını dört başlıkta inceler.',
+      neyeDayanir: 'Günlük durumlarda hangi seçeneğin tercih edildiğini soran öz-beyan maddeleri.',
+      kanitDurumu: 'Yaygın kullanılan bir çerçevedir. "Yalnızca kendi stiline uygun öğretim başarıyı artırır" iddiası ise araştırmalarda güçlü destek bulmamıştır; çok kanallı sunum genelde daha etkilidir.',
+      siniri: 'Tercih ölçer; yetenek, zekâ veya başarı ölçmez. Baskın kanal bir giriş kapısıdır, sınır değil.' }),
+  ]));
+  P.push(kapanis);
   P.push(reportFooter());
   return P.join('\n');
 }

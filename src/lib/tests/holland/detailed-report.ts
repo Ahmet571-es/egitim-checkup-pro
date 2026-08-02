@@ -14,6 +14,10 @@ import {
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
 import { tamlayan, belirtme, yonelme } from '@/lib/utils/turkish';
+import {
+  bilimselTemel, ucPencere, gozlemListesi, ilerlemeTakibi,
+  sikSorulanlar, gelecekPenceresi, gorusmeSorulari, okumaKilavuzu, butceliEkle,
+} from '../../report/common-sections';
 
 /** Holland altıgeninin sırası — komşuluk tutarlılığı bu sıraya göre hesaplanır. */
 const RIASEC = ['R', 'I', 'A', 'S', 'E', 'C'] as const;
@@ -302,6 +306,49 @@ export function buildHollandDetailedReport(scores: HollandScores, student: Stude
     `${tamlayan(name)} Holland profili, meslek keşfi için net bir başlangıç pusulası sunuyor. ` +
     `İlgiyi yetenek ve değerlerle birlikte değerlendiren bir yaklaşım en sağlıklı yönlendirmeyi getirir. İlgiler zamanla gelişebilir. 🌱\n`,
   );
+  // ── Ortak zenginleştirme (hedef ~18.000 karakter) ──
+  const kapanis = P.pop() || '';
+  P.push(...butceliEkle(P.join('\n'), [
+    () => ucPencere({ ad: name, anaBulgu: `Holland kodu ${code}, baskın ilgi ${topShortName(topInfo.name).toLocaleLowerCase('tr')} (%${topPct})`,
+      ogretmen: { yarin: [`Kulüp/proje seçiminde ${code} koduna uygun bir seçenek önerin.`, 'Ders içi görev dağıtırken bu ilgi alanına denk gelen rolü verin.', farklilasma < 15 ? 'Alan daraltmayı erteleyin; profil henüz netleşmemiş.' : 'Meslek araştırması ödevinde bu koddan üç meslek seçtirin.'],
+        kacin: ['İlgiyi yetenekle karıştırmak; ikisi ayrı ayrı değerlendirilmeli.', 'Bu kodu bir yönlendirme kararı gibi kullanmak.'] },
+      veli: { buHafta: ['Kodun ilk harfine denk gelen bir mesleği yapan biriyle 15 dakikalık sohbet ayarlayın.', 'İlgi duyduğu alanda bir video/belgesel birlikte izleyin.', 'Karar baskısı kurmadan seçenekleri konuşun.'],
+        kacin: ['"Bu meslek para kazandırmaz" gibi erken filtreler.', 'Kendi mesleğinizi hedef olarak sunmak.'] },
+      ogrenci: { deneyebilir: [`${code} havuzundan ilgini çeken üç mesleği araştır.`, 'O mesleği yapan birine üç soru sor.', 'Denediğin etkinliklerde ne hissettiğini not et.'],
+        hatirlat: 'İlgi zamanla değişir. Şimdi karar vermek zorunda değilsin; denemek yeterli.' } }),
+    () => gozlemListesi({ ad: name,
+      destekleyen: ['Bu alandaki etkinliklerde gönüllü öne çıkıyor.', 'Serbest zamanında benzer işlere yöneliyor.', 'İlgili derste soru sorma sıklığı artıyor.'],
+      celisen: ['Kodla ilgisiz bir alanda çok istekli.', 'Seçimleri arkadaş grubuna göre değişiyor.', 'Henüz tanımadığı meslekleri düşük puanlamış olabilir.'] }),
+    () => ilerlemeTakibi({ ad: name,
+      hafta4: 'Seçtiği üç meslekten hangisi hâlâ ilgisini çekiyor?',
+      hafta8: 'Uyum haritasındaki etkinliğe katıldı mı, nasıl geçti?',
+      hafta12: 'Kod hâlâ uyuyor mu? Testi tekrar alıp karşılaştırın.',
+      olcut: '**Kendi başlattığı araştırma sayısı.** Kaç kez kendiliğinden bir mesleği araştırdı? Bu sayı artıyorsa keşif süreci işliyor.' }),
+    () => sikSorulanlar({ ad: name, sorular: [
+      ['Bu kod meslek seçimimi belirler mi?', 'Hayır. Kod bir keşif pusulasıdır, karar değil. Meslek seçimi ilgi, yetenek, değerler ve koşullar birlikte değerlendirilerek yapılır.'],
+      ['İlgi ile yetenek aynı şey mi?', 'Değil. Bir alana ilgi duymak orada başarılı olunacağını garanti etmez; ilgi duymamak da o alanın kapalı olduğu anlamına gelmez.'],
+      ['Çocuğum hiçbir alana ilgi göstermiyor, normal mi?', 'Bu yaşta yaygındır. İlgi, deneyimle oluşur. Farklı alanları denemek — kulüp, staj, gönüllülük — en etkili yoldur.'] ] }),
+    () => gorusmeSorulari({ ad: name,
+      acilis: ['Boş zamanında en çok ne yapmaktan hoşlanıyorsun?', 'Hangi ders sana hiç sıkıcı gelmiyor?', 'Büyüyünce ne olmak istediğini düşündün mü?'],
+      derinlestiren: ['Bir işi yaparken seni en çok ne motive ediyor?', 'Tek başına mı, ekiple mi çalışmayı seversin?', 'Hiç denemediğin ama merak ettiğin bir alan var mı?'],
+      kapanis: ['Bu ay bir mesleği araştırmak ister misin?', 'O işi yapan biriyle konuşmayı denemek ister misin?', 'Bir kulübe katılmayı düşünür müsün?'] }),
+    () => okumaKilavuzu({ ad: name,
+      anaMesaj: `Bu raporun tek mesajı: kod bir **keşif pusulasıdır, karar değil**. ${tamlayan(name)} ilgileri deneyimle netleşir; şimdi denemek, karar vermekten önemlidir.`,
+      yanlisOkumalar: [['"Kod meslek seçimini gösterir."', 'Kod yalnızca hangi tür işlerden hoşlanıldığını gösterir. Yetenek ve koşullar ayrıca değerlendirilmeli.'],
+        ['"İlgi düşükse o alan kapalı."', 'İlgi, tanımadığı alanlarda düşük çıkar. Deneyim ilgiyi değiştirir.'],
+        ['"Sonuç kesin ve kalıcı."', 'Ergenlikte ilgiler hızla değişir; yılda bir gözden geçirilmeli.'],
+        ['"Yüksek ilgi = başarı garantisi."', 'İlgi motivasyon sağlar; başarı için yetenek ve çalışma da gerekir.'] ] }),
+    () => gelecekPenceresi({ ad: name,
+      guclu: ['Kendi ilgi yönünü erken tanımak, üniversite tercihinde büyük avantajdır.', 'İlgiyle uyuşan işte çalışmak, uzun vadede tükenmişliği azaltır.'],
+      gelistirilecek: ['Farklı alanlarda deneyim (staj, gönüllülük) profili netleştirir.', 'İlgi ile yetenek arasındaki farkı görmek, gerçekçi hedef koymayı sağlar.'],
+      alanlar: careerSet.slice(0, 10) }),
+    () => bilimselTemel({ modelAdi: 'Holland Mesleki İlgi Kuramı (RIASEC)', gelistiren: 'John L. Holland', yil: 1959,
+      nedirTekCumle: 'Mesleki ilgileri altı tipte inceler ve kişi ile çalışma ortamı arasındaki uyumu esas alır.',
+      neyeDayanir: 'Farklı iş ve etkinliklere duyulan ilginin öz-beyanla derecelendirilmesi.',
+      kanitDurumu: 'Kariyer psikolojisinde en çok araştırılmış modellerden biridir; altıgen yapısı ve tutarlılık-farklılaşma ölçütleri geniş biçimde incelenmiştir.',
+      siniri: 'İlgi ölçer; yetenek, başarı şansı veya bir mesleği yapabilme kapasitesi ölçmez. Tanınmayan meslekler düşük puan alabilir.' }),
+  ]));
+  P.push(kapanis);
   P.push(reportFooter());
   return P.join('\n');
 }

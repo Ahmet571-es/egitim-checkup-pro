@@ -18,6 +18,10 @@ import {
   reportHeader, reportFooter, safeName, emojisiz, type StudentInfo,
 } from '../../report/report-blocks';
 import { tamlayan, belirtme, yonelme } from '@/lib/utils/turkish';
+import {
+  bilimselTemel, ucPencere, gozlemListesi, ilerlemeTakibi,
+  sikSorulanlar, gelecekPenceresi, gorusmeSorulari, okumaKilavuzu, butceliEkle,
+} from '../../report/common-sections';
 
 interface Interp { level: 'high' | 'mid' | 'low'; text: string; tips: string[]; }
 function pickInterp(score: number, interp: { high: { range: number[]; text: string; tips: string[] }; mid: { range: number[]; text: string; tips: string[] }; low: { range: number[]; text: string; tips: string[] } }): Interp {
@@ -345,6 +349,50 @@ export function buildCalismaDavranisiDetailedReport(scores: CalismaDavranisiScor
     `Çalışma alışkanlıkları öğrenilebilir ve geliştirilebilir. ${name} için küçük ve tutarlı adımlar, ` +
     `zamanla belirgin fark yaratabilir. Tek seferde her şeyi değiştirmeye çalışmamak en önemli kuraldır. 🌱\n`,
   );
+  // ── Ortak zenginleştirme (hedef ~18.000 karakter) ──
+  const kapanis = P.pop() || '';
+  P.push(...butceliEkle(P.join('\n'), [
+    () => ucPencere({ ad: name, anaBulgu: `${tabloTipi.toLocaleLowerCase('tr')} (teknik %${teknikYeterlilik} · tutum %${tutum})`,
+      ogretmen: { yarin: [tutum < 50 ? 'Teknik öneri vermeden önce "okul senin için ne ifade ediyor?" diye konuşun.' : 'Somut bir çalışma tekniği öğretin; istek var, yöntem eksik.',
+          worst ? `Öncelik alanı: ${worst.info.name.toLocaleLowerCase('tr')}. Tek alandan başlayın.` : 'Mevcut düzeni koruyun.',
+          'Çabayı ve süreci adıyla takdir edin; sonucu değil.'],
+        kacin: ['"Çalışmıyorsun" etiketi; direnci artırır, davranışı değiştirmez.', 'Aynı anda birden çok alışkanlık değiştirmeye çalışmak.'] },
+      veli: { buHafta: ['Her gün aynı saatte 25 dakika — tek ve küçük bir hedef.', 'Planı birlikte değil, ona yazdırın; sahiplenme kalıcılığı artırır.', 'Bitirdiği küçük işleri fark edin ve söyleyin.'],
+        kacin: ['Uzun kesintisiz çalışma dayatmak.', 'Karşılaştırma ("falanca şöyle çalışıyor").'] },
+      ogrenci: { deneyebilir: ['Her gün aynı saatte başla — saat, süreden önemli.', '25 dakika çalış, 5 dakika ara ver.', 'Bugün ne yapacağını başlamadan önce tek cümleyle yaz.'],
+        hatirlat: 'Çalışma alışkanlığı bir yetenek değil; öğrenilebilir bir beceridir. 6–8 haftada yerleşir.' } }),
+    () => gozlemListesi({ ad: name,
+      destekleyen: ['Ödeve başlaması uzun sürüyor ama başlayınca sürdürüyor (veya tersi).', 'Not defteri düzeni bu bulguyla uyumlu.', 'Sınav öncesi yoğunlaşma, düzenli çalışma yerine.'],
+      celisen: ['Sevdiği derste tamamen farklı çalışıyor.', 'Ev ortamı değiştiğinde davranışı değişiyor.', 'Testi doldururken aceleci davranmış olabilir.'] }),
+    () => ilerlemeTakibi({ ad: name,
+      hafta4: 'Her gün aynı saatte başlama alışkanlığı oturdu mu?',
+      hafta8: 'Hatırlatmadan kendi başına başlıyor mu?',
+      hafta12: 'Testi tekrar alın; olumlu davranış yüzdesini karşılaştırın.',
+      olcut: '**Başlama gecikmesi.** Masaya oturduktan kaç dakika sonra gerçekten çalışmaya başlıyor? Bu süre kısalıyorsa alışkanlık yerleşiyor.' }),
+    () => sikSorulanlar({ ad: name, sorular: [
+      ['Çocuğum tembel mi?', 'Hayır. Güçlük yaşamak tembellik değildir. Çalışma alışkanlıkları öğrenilebilir becerilerdir ve öğretilmediği sürece kendiliğinden oluşmaz.'],
+      ['Neden çok çalışıyor ama sonuç alamıyor?', 'Süre ile verim aynı şey değildir. Yöntem profile uymuyorsa saatler sonuç getirmez. Bu durumda süreyi değil yöntemi değiştirmek gerekir.'],
+      ['Alışkanlık ne kadar sürede yerleşir?', 'Genelde 6–8 hafta. Erken vazgeçmek en sık yapılan hatadır; değişim görülmüyorsa plan yanlış değil, süre yetersiz olabilir.'] ] }),
+    () => gorusmeSorulari({ ad: name,
+      acilis: ['Ders çalışmaya başlamak mı zor, sürdürmek mi?', 'Hangi ders için oturmak daha kolay?', 'Okulda seni en çok ne sıkıyor?'],
+      derinlestiren: ['Masaya oturduktan sonra ilk ne yapıyorsun?', 'Planın var mı, yoksa geldiği gibi mi çalışıyorsun?', 'Çalışırken en çok ne bölüyor seni?'],
+      kapanis: ['Bu hafta tek bir şey deneyelim mi — her gün aynı saatte 25 dakika?', 'Kendi planını yazmak ister misin?', 'Bir hafta sonra ne değişti diye konuşalım mı?'] }),
+    () => okumaKilavuzu({ ad: name,
+      anaMesaj: `Bu raporun tek mesajı: sorunun **teknik mi tutum mu** olduğunu bilmek, çözümü belirler. Tablo: **${tabloTipi}**.`,
+      yanlisOkumalar: [['"Çalışmıyor, tembel."', 'Güçlük yaşamak tembellik değildir. Çoğu zaman yöntem eksikliğidir.'],
+        ['"Daha çok çalışsın, düzelir."', 'Tutum düşükse süre artırmak işe yaramaz; önce anlam gerekir.'],
+        ['"Bu sonuç kalıcı bir özellik."', 'Çalışma alışkanlıkları öğrenilebilir ve 6–8 haftada değişir.'],
+        ['"Tek seferde her şey düzelmeli."', 'Aynı anda birden çok alışkanlık değiştirmek başarısızlığın en yaygın nedenidir.'] ] }),
+    () => gelecekPenceresi({ ad: name,
+      guclu: ['Kendi başına çalışabilme, üniversitede en belirleyici beceridir.', 'Zaman yönetimi ve planlama iş hayatının temelidir.'],
+      gelistirilecek: ['Uzun soluklu proje yönetimi pratiği değerlidir.', 'Kendi verimli saatini tanımak, ömür boyu işe yarar.'] }),
+    () => bilimselTemel({ modelAdi: 'Çalışma Davranışı Ölçeği', gelistiren: 'çalışma alışkanlıkları araştırmaları geleneği',
+      nedirTekCumle: 'Ders çalışma sürecini yedi alanda inceler: başlama, bilinçli çalışma, not tutma, okuma, ödev, okula tutum ve sınav hazırlığı.',
+      neyeDayanir: 'Öğrencinin kendi çalışma davranışlarına ilişkin beyanı; her alanda güçlük bildirimi puanlanır.',
+      kanitDurumu: 'Çalışma alışkanlıklarının öğrenilebilir olduğu ve akademik başarıyla ilişkisi eğitim araştırmalarında geniş biçimde gösterilmiştir.',
+      siniri: 'Öz-beyana dayanır; o dönemki yoğunluk cevapları etkileyebilir. Zekâ, yetenek veya çalışkanlık ölçmez.' }),
+  ]));
+  P.push(kapanis);
   P.push(reportFooter());
   return P.join('\n');
 }

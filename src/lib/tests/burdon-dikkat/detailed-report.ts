@@ -11,6 +11,10 @@ import {
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
 import { tamlayan, belirtme, yonelme } from '@/lib/utils/turkish';
+import {
+  bilimselTemel, ucPencere, gozlemListesi, akademikYansima,
+  ilerlemeTakibi, sikSorulanlar, gelecekPenceresi, gorusmeSorulari, okumaKilavuzu, butceliEkle,
+} from '../../report/common-sections';
 
 interface BurdonResult {
   totalCorrect?: number; totalOmission?: number; totalCommission?: number; totalTargets?: number;
@@ -269,6 +273,118 @@ export function buildBurdonDikkatDetailedReport(scores: BurdonResult, student: S
     `Dikkat, kas gibi çalıştırıldıkça güçlenir. ${name} için düzenli pratik ve uygun çalışma düzeni, ` +
     `zamanla belirgin gelişim getirebilir. 🌱\n`,
   );
+  // ── Ortak zenginleştirme (hedef ~18.000 karakter) ──
+  const kapanis = P.pop() || '';
+  P.push(...butceliEkle(P.join('\n'), [
+    () => ucPencere({
+      ad: name,
+      anaBulgu: `dikkat skoru %${score}, doğruluk %${acc}, hata örüntüsü ${hataTipi.toLocaleLowerCase('tr')}`,
+      ogretmen: {
+        yarin: [
+          hataTipi === 'Acelecilik ağırlıklı'
+            ? 'Optik form doldururken "işaretlemeden önce bir kez daha bak" kuralını uygulatın.'
+            : 'Uzun metinde kalemle satır takibi yapmasını isteyin; atlama belirgin azalır.',
+          'İmla/yazım kontrolü gibi tarama görevlerinde ek süre tanıyın.',
+          artis >= 3 ? 'Uzun sınavda ara vermesine izin verin; son bölümde hata artışı gözleniyor.' : 'Uzun görevler planlanabilir; hata seyri dengeli.',
+        ],
+        kacin: [
+          'Hata sayısını sınıf önünde konuşmak; kaygı dikkati daha da böler.',
+          'Bu sonucu bir tanı gibi kullanmak.',
+        ],
+      },
+      veli: {
+        buHafta: [
+          'Çalışma masasını sadeleştirin; göz alanındaki her nesne dikkat çalar.',
+          'Telefonu başka odada bırakmayı bir hafta deneyin.',
+          'Uyku saatini sabitleyin; dikkat üzerinde en güçlü etken uykudur.',
+        ],
+        kacin: [
+          'Uzun kesintisiz çalışma; verim ilk yarım saatten sonra düşer.',
+          '"Daha dikkatli ol" demek; ne yapacağını söylemediği için işe yaramaz.',
+        ],
+      },
+      ogrenci: {
+        deneyebilir: [
+          'Okurken kalemle satırı takip et.',
+          'İşaretlemeden önce bir saniye dur.',
+          'Masanda sadece o an gerekli olan şey dursun.',
+        ],
+        hatirlat: 'Dikkat bir yetenek değil, alışkanlıktır. Ortamını düzenlemek yarısını halleder.',
+      },
+    }),
+    () => gozlemListesi({
+      ad: name,
+      destekleyen: [
+        artis >= 3 ? 'Sınavın son bölümünde hata sayısı artıyor.' : 'Sınav boyunca hata seyri dengeli.',
+        hataTipi === 'Atlama ağırlıklı' ? 'Soru kökündeki olumsuz ifadeleri atlıyor.' : 'Şıkları okumadan ilk uyana işaretliyor.',
+        'Yazım hatalarını kendi metninde fark etmiyor.',
+      ],
+      celisen: [
+        'Sevdiği konuda uzun süre hatasız çalışabiliyor.',
+        'Sabah dersleri ile öğleden sonra arasında belirgin fark var.',
+        'Test günü yorgun veya isteksizdi.',
+      ],
+    }),
+    () => akademikYansima({
+      ad: name,
+      dersler: [
+        ['Matematik', clampPct(acc * 0.9), 'İşlem hatalarının önemli kısmı dikkat kaynaklıdır.'],
+        ['Türkçe', clampPct(acc * 0.8 + kapsam * 0.15), 'Paragrafta ayrıntı yakalamak tarama becerisidir.'],
+        ['Fen Bilimleri', clampPct(acc * 0.85), 'Deney adımlarını sırayla izlemek sürekli dikkat ister.'],
+        ['Yabancı dil', clampPct(acc * 0.75 + kapsam * 0.1), 'Benzer kelimeleri ayırt etmek seçici dikkat gerektirir.'],
+        ['Sosyal / Tarih', clampPct(acc * 0.6 + kapsam * 0.2), 'Uzun metin okuma süreklilik ister.'],
+      ],
+    }),
+    () => ilerlemeTakibi({
+      ad: name,
+      hafta4: 'Deneme sınavında "biliyordum ama yanlış işaretledim" dediği soru sayısı azaldı mı?',
+      hafta8: 'Kesintisiz çalışma süresi uzayabildi mi?',
+      hafta12: 'Testi tekrar alın; doğruluk oranını ve hata tipini karşılaştırın.',
+      olcut: '**Dikkatsizlik hatası sayısı.** Deneme sonrası "bunu biliyordum" denen soruları sayın; bu sayı düşüyorsa plan işliyor.',
+    }),
+    () => sikSorulanlar({
+      ad: name,
+      sorular: [
+        ['Bu sonuç dikkat eksikliği anlamına gelir mi?',
+         'Hayır. Bu bir tanı aracı değildir. Sürekli ve belirgin güçlük gözleniyorsa okul rehberlik servisiyle görüşmek doğru adımdır.'],
+        ['Dikkat geliştirilebilir mi?',
+         'Evet. En hızlı sonuç ortam düzenlemesi ve uyku düzeninden gelir; egzersizler ikincil katkı sağlar.'],
+        ['Neden bazı derslerde dikkatli, bazılarında değil?',
+         'İlgi dikkati doğrudan besler. İlgi düşükse dikkat de düşer — bu bir dikkat sorunu değil, motivasyon meselesi olabilir.'],
+      ],
+    }),
+    () => gorusmeSorulari({
+      ad: name,
+      acilis: ['Çalışırken aklın en çok ne zaman kayıyor?', 'Hangi saatte daha rahat odaklanıyorsun?', 'Sınavda nerede hata yaptığını fark ettin mi?'],
+      derinlestiren: ['Bildiğin bir soruyu yanlış işaretlediğin oldu mu?', 'Telefonun çalışırken nerede duruyor?', 'Kaç dakika kesintisiz çalışabiliyorsun?'],
+      kapanis: ['Bu hafta masanı sadeleştirmeyi denemek ister misin?', 'Kalemle satır takibini bir hafta deneyelim mi?', 'Hafta sonu ne değişti diye konuşalım mı?'],
+    }),
+    () => okumaKilavuzu({
+      ad: name,
+      anaMesaj: `Bu raporun tek mesajı: hata sayısı değil, **hata türü** yol gösterir. ${tamlayan(name)} hataları ${hataTipi.toLocaleLowerCase('tr')}; çözüm de buna göre seçilmeli.`,
+      yanlisOkumalar: [
+        ['"Düşük skor = dikkat bozukluğu."', 'Bu test tanı koymaz, tarama aracı bile değildir.'],
+        ['"Hata sayısı tek başına anlamlı."', 'Atlama ile acelecilik farklı şeyler anlatır ve farklı çözüm ister.'],
+        ['"Dikkat değişmez."', 'Ortam düzenlemesi ve uykuyla belirgin şekilde değişir.'],
+        ['"Test yüksek çıktı, sınıfta da öyledir."', 'Test sessiz ortamda yapılır; sınıf gürültüsü tabloyu değiştirebilir.'],
+      ],
+    }),
+    () => gelecekPenceresi({
+      ad: name,
+      guclu: ['Detay yakalama; sağlık, hukuk, mühendislik gibi alanlarda kritik yetkinliktir.', 'Sürdürülebilir dikkat, uzun soluklu her işte doğrudan avantajdır.'],
+      gelistirilecek: ['Uzun süreli odak (60+ dk) üniversitede sık gerekir.', 'Dijital dikkat dağınıklığını yönetmek yetişkinlikte de gerekecek.'],
+    }),
+    () => bilimselTemel({
+      modelAdi: 'Burdon tarama testi',
+      gelistiren: 'Benjamin Bourdon',
+      yil: 1895,
+      nedirTekCumle: 'Metin içindeki hedef harfleri bulma görevi üzerinden seçici dikkati ve tarama doğruluğunu ölçer.',
+      neyeDayanir: 'Belirli sürede taranan alan ile atlama (omission) ve yanlış işaretleme (commission) hatalarının dağılımı.',
+      kanitDurumu: 'İptal (cancellation) testleri dikkat araştırmalarının en eski ve en yaygın araçlarındandır; hata türü ayrımı literatürde standarttır.',
+      siniri: 'Tek oturumluk performanstır; uyku, açlık ve motivasyon sonucu belirgin etkiler. Tanı koymaz.',
+    }),
+  ]));
+  P.push(kapanis);
   P.push(reportFooter());
   return P.join('\n');
 }

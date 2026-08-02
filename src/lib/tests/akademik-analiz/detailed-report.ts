@@ -14,6 +14,10 @@ import {
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
 import { tamlayan, belirtme, yonelme } from '@/lib/utils/turkish';
+import {
+  bilimselTemel, ucPencere, gozlemListesi, ilerlemeTakibi,
+  sikSorulanlar, gelecekPenceresi, gorusmeSorulari, okumaKilavuzu, butceliEkle,
+} from '../../report/common-sections';
 
 /** Baştaki emoji/simgeleri atar. Motor beceri adlarını '📖 Okuma Anlama' gibi
  *  emojili döndürüyor; rapor metninde ve stat kartında tuhaf duruyordu. */
@@ -300,6 +304,55 @@ export function buildAkademikDetailedReport(scores: AkademikScores, student: Stu
     `Akademik beceriler hedefli ve düzenli çalışmayla gelişir. ${name} için güçlü alanları koruyan, ` +
     `gelişim alanlarına odaklanan ve öz-algıyı gerçekçi tutan bir plan, zamanla genel başarıyı yükseltebilir. 🌱\n`,
   );
+  // ── Ortak zenginleştirme (hedef ~18.000 karakter) ──
+  const kapanis = P.pop() || '';
+  P.push(...butceliEkle(P.join('\n'), [
+    () => ucPencere({ ad: name, anaBulgu: `genel başarı %${overall}, öz-algı ${gapLabelTr.toLocaleLowerCase('tr')} (${gap >= 0 ? '+' : ''}${gap} puan)`,
+      ogretmen: { yarin: [`Zor konuya en güçlü beceriden (${strongestName.toLocaleLowerCase('tr')}) girin; direnç azalır.`,
+          `Öncelik: ${weakestName.toLocaleLowerCase('tr')}. Küçük ve kademeli adımlarla başlayın.`,
+          gapType === 'tutarli' ? 'Hedefleri onunla birlikte koyun; öz-değerlendirmesi gerçekçi.' : gl.yaklasim],
+        kacin: ['Tek bir genel notla konuşmak; beceriler arası fark bu notta gizlenir.', 'Tek ölçümle kalıcı yargıya varmak.'] },
+      veli: { buHafta: [`Bir sınav öncesi "kaç alacaksın sence?" diye sorun, sonucu birlikte karşılaştırın.`,
+          'Genel not yerine beceri adıyla konuşun ("okuma anlaman iyi" gibi).', 'Doğru yaptığı işleri adıyla takdir edin.'],
+        kacin: ['"Başarısız" etiketi; beceri bazlı tablo bunu çürütür.', 'Kardeş/arkadaş karşılaştırması.'] },
+      ogrenci: { deneyebilir: ['Sınav öncesi kendine bir tahmin ver, sonra karşılaştır.', 'Yanlışlarını tek deftere yaz, haftada bir tekrar et.', 'En zorlandığın beceriden günde 15 dakika çalış.'],
+        hatirlat: 'Genel not seni anlatmaz. Hangi beceride nerede olduğunu bilmek, çalışmayı kolaylaştırır.' } }),
+    () => gozlemListesi({ ad: name,
+      destekleyen: [gap <= -15 ? 'Bildiği konularda bile emin olamıyor, sık soruyor.' : gap >= 20 ? 'Hazırlık süresini olduğundan kısa tahmin ediyor.' : 'Kendi düzeyini gerçekçi tahmin ediyor.',
+        `${weakestName} gerektiren görevlerde belirgin zorlanıyor.`, 'Sınav sonuçları beceri dağılımıyla uyumlu.'],
+      celisen: ['Derste güçlü görünen beceride testte düşük çıkmış.', 'Test günü isteksiz veya yorgundu.', 'Sonuçlar karne notlarıyla belirgin çelişiyor.'] }),
+    () => ilerlemeTakibi({ ad: name,
+      hafta4: `${weakestName} becerisinde kısa bir ara ölçüm yapın; fark var mı?`,
+      hafta8: 'Hata defteri düzenli tutuluyor mu, tekrar ediliyor mu?',
+      hafta12: 'Testi tekrar alın; beceri dağılımını ve öz-algı farkını karşılaştırın.',
+      olcut: gapType === 'tutarli'
+        ? `**${weakestName} yüzdesi.** Bugün %${weakestPct}. Bu tek sayının yükselmesi genel başarıyı da yukarı çeker.`
+        : `**Tahmin ile sonuç arasındaki fark.** Bugün ${gap >= 0 ? '+' : ''}${gap} puan. Bu fark sıfıra yaklaşıyorsa öz-algı kalibre oluyor demektir.` }),
+    () => sikSorulanlar({ ad: name, sorular: [
+      ['Bu sonuç karne notunun yerine mi geçer?', 'Hayır. Karne notunu tamamlar. Karne genel bir sonuç verir; bu rapor hangi becerinin nerede olduğunu gösterir.'],
+      ['Düşük çıkan beceri yetenek eksikliği mi?', 'Genelde hayır. Çoğu zaman "henüz yeterince çalışılmamış alan" anlamına gelir. Hedefli çalışmayla belirgin gelişir.'],
+      ['Öz-algı farkı neden önemli?', 'Kendi düzeyini doğru tahmin edebilen öğrenci, çalışma süresini doğru planlar. Fark büyükse ya yetersiz hazırlanır ya da potansiyelinin altında kalır.'] ] }),
+    () => gorusmeSorulari({ ad: name,
+      acilis: ['Hangi derste kendini rahat hissediyorsun?', 'Sınav sonucunu görmeden önce kaç alacağını tahmin ediyor musun?', 'En çok hangi konuda zorlandığını biliyor musun?'],
+      derinlestiren: ['Bir konuyu anlamadığını nasıl fark ediyorsun?', 'Yanlışlarına sonradan bakıyor musun?', 'Tahminin ile sonucun genelde tutuyor mu?'],
+      kapanis: ['Bu hafta bir sınav öncesi tahmin yazmayı denemek ister misin?', 'Hata defteri tutmayı dener misin?', 'Bir ay sonra karşılaştıralım mı?'] }),
+    () => okumaKilavuzu({ ad: name,
+      anaMesaj: `Bu raporun tek mesajı: **genel not profili gizler**. ${tamlayan(name)} güçlü ve gelişime açık becerileri ayrı ayrı görülmeli; çalışma planı beceri bazında yapılmalı.`,
+      yanlisOkumalar: [['"Genel not düşük, başarısız."', 'Beceriler arasında büyük fark olabilir. Bazıları güçlü, bazıları geride — plan buna göre yapılır.'],
+        ['"Düşük beceri = yeteneksizlik."', 'Genelde çalışılmamış alan demektir. Hedefli çalışmayla gelişir.'],
+        ['"Tek ölçüm kesin sonuç."', 'O günkü performansı yansıtır; uyku, kaygı ve motivasyon etkiler.'],
+        ['"Öz-algı farkı kişilik özelliği."', 'Geri bildirimle değişebilen bir alışkanlıktır.'] ] }),
+    () => gelecekPenceresi({ ad: name,
+      guclu: ['Kendi düzeyini gerçekçi değerlendirebilmek, üniversite ve iş hayatında en değerli becerilerden biridir.', `${strongestName} gücü, ilgili alanlarda doğrudan avantaj sağlar.`],
+      gelistirilecek: ['Zayıf beceriyi erken desteklemek, ileride birikmiş açık oluşmasını önler.', 'Öz-değerlendirme alışkanlığı, hayat boyu öğrenmenin temelidir.'] }),
+    () => bilimselTemel({ modelAdi: 'Beceri bazlı akademik değerlendirme + öz-algı kalibrasyonu',
+      gelistiren: 'biçimlendirici değerlendirme (formative assessment) ve üstbiliş araştırmaları geleneği',
+      nedirTekCumle: 'Akademik performansı beceri bazında ölçer ve öğrencinin kendi düzeyini ne kadar doğru tahmin ettiğini karşılaştırır.',
+      neyeDayanir: 'Beceri alanlarına göre gruplanmış sorular ile öğrencinin kendi düzeyine ilişkin beyanı.',
+      kanitDurumu: 'Öz-değerlendirme doğruluğu (kalibrasyon) ile akademik başarı arasındaki ilişki üstbiliş araştırmalarında iyi belgelenmiştir.',
+      siniri: 'Tek ölçüme dayanır; uyku, kaygı ve motivasyon sonucu etkiler. Karne notunun yerine geçmez, onu tamamlar.' }),
+  ]));
+  P.push(kapanis);
   P.push(reportFooter());
   return P.join('\n');
 }

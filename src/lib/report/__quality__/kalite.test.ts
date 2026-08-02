@@ -45,10 +45,14 @@ function denetle(rep: string): Bulgu[] {
   const g = govde(rep);
   const add = (tip: string, m: RegExpMatchArray | null) => { if (m) b.push({ tip, ornek: m[0].slice(0, 62) }); };
 
-  add('2. şahıs', g.match(/\b(Sen |sensin|güçlüsün|ararsın|bakıyorsun|öğrenicisin|birisin|kayarsın|yönelirsin|olabilirsin|edebilirsin|kavuşursun|olursun|hissedersin|başlarsın|duyarlılığın var|senin en)/));
+  // Tırnak içindeki örnek ifadeler ("Sen şusun" gibi) kasıtlıdır.
+  const gTemiz = g.replace(/"[^"]{0,160}"/g, '""');
+  add('2. şahıs', gTemiz.match(/\b(Sen |sensin|güçlüsün|ararsın|bakıyorsun|öğrenicisin|birisin|kayarsın|yönelirsin|olabilirsin|edebilirsin|kavuşursun|olursun|hissedersin|başlarsın|duyarlılığın var|senin en)/));
   add('İngilizce parantez', rep.match(/\((Visual|Aural|Read\/Write|Kinesthetic|Artistic|Investigative|Realistic|Enterprising|Conventional|Social)\)/));
   add('emir kipi tırnakta', rep.match(/"[^"]{0,70}(yap|çiz|oku|dene|kullan|ayır|dinle|yaz)\.\s*"/));
-  add('tırnakta emoji', rep.match(/"\s*[\u{1F300}-\u{1FAFF}]/u));
+  // Blok BAŞLIKLARINDA emoji serbest (rapor genelinde tutarlı); yalnızca
+  // alıntılanmış ipuçlarının başındaki emoji sorundur.
+  add('tırnakta emoji', rep.match(/(?<!title=)"\s*[\u{1F300}-\u{1FAFF}]/u));
   add('undefined/NaN', rep.match(/\bundefined\b|\bNaN\b|\[object Object\]/));
   add('ham markdown blok', rep.match(/\[!\w+[^\]]*\](?![\s\S]*?\[\/!)/) && null);
   add('footer yok', /Klinik tanı içermez/.test(rep) ? null : ['footer disclaimer eksik'] as any);

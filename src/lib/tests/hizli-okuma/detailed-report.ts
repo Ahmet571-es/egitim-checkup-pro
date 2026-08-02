@@ -14,6 +14,10 @@ import {
 } from '../../report/report-blocks';
 import type { SpeedReadingScores } from '../types';
 import { tamlayan, belirtme, yonelme } from '@/lib/utils/turkish';
+import {
+  bilimselTemel, ucPencere, gozlemListesi, akademikYansima,
+  ilerlemeTakibi, sikSorulanlar, gelecekPenceresi, gorusmeSorulari, okumaKilavuzu, butceliEkle,
+} from '../../report/common-sections';
 
 /** Kademeye göre yaklaşık beklenen okuma hızı aralığı (kelime/dakika). Kaba referans. */
 const EXPECTED_WPM: Record<string, number> = {
@@ -270,6 +274,148 @@ export function buildHizliOkumaDetailedReport(scores: SpeedReadingScores, studen
     `tek bir derse değil, öğrenmenin tamamına yansır. Hızdan çok **anlamayı** merkeze alan düzenli pratik, ` +
     `zamanla ikisini birden yükseltir. 🌱\n`,
   );
+  // ── Ortak zenginleştirme (hedef uzunluğa kadar) ──
+  // Kapanış notundan ÖNCE eklenir; sıralama öncelik sırasıdır.
+  const kapanis = P.pop() || '';   // kapanış notu
+  const govde = P.join('\n');
+  P.push(...butceliEkle(govde, [
+    () => ucPencere({
+      ad: name,
+      anaBulgu: `okuma hızı ${wpm} kelime/dakika, anlama %${comp} — ${profil.toLocaleLowerCase('tr')}`,
+      ogretmen: {
+        yarin: [
+          comp < 60
+            ? 'Paragraf sorusunu okuduktan sonra "metin ne diyordu?" diye sorun; cevap gelmiyorsa hız fazla demektir.'
+            : 'Uzun metinli sınavlarda süreyi bölmesini önerin: önce sorular, sonra metin.',
+          'Okuduğunu kendi cümleleriyle iki cümlede özetletin — anlamayı ölçmenin en pratik yolu budur.',
+          'Bilinmeyen kelimeleri işaretlemesini isteyin; anlama boşluğu çoğu zaman kelime dağarcığındadır.',
+        ],
+        kacin: [
+          comp < 60
+            ? '"Daha hızlı oku" demeyin — bu profilde ters etki yapar, anlama daha da düşer.'
+            : 'Sadece hız ölçmeyin; anlama kontrolü olmadan hız artışı kazanç sayılmaz.',
+          'Sesli okuma ile sessiz okumayı karıştırmayın; ikisi farklı beceridir.',
+        ],
+      },
+      veli: {
+        buHafta: [
+          'Her akşam 15 dakika okuma; süreyi değil sürekliliği hedefleyin.',
+          '"Kaç sayfa okudun" yerine "bugün ne anlattı" diye sorun.',
+          'Kitabı kendisi seçsin — ilgi, hızdan daha güçlü bir etkendir.',
+        ],
+        kacin: [
+          'Okumayı ceza veya ödev gibi konumlandırmayın.',
+          'Yaşına göre çok ağır kitap seçmeyin; bir sayfada 5\'ten fazla bilinmeyen kelime varsa kitap zordur.',
+        ],
+      },
+      ogrenci: {
+        deneyebilir: [
+          'Okumaya başlamadan başlığa bak ve "bu metin neyi anlatacak?" diye tahmin et.',
+          'Her paragraf sonunda bir saniye dur, "ne dedi?" diye kendine sor.',
+          'Parmağınla veya kalemle satır takip et — gözün daha az geri döner.',
+        ],
+        hatirlat: comp < 60
+          ? 'Hızlı okumak marifet değil; anladığın kadarı senin kalır.'
+          : 'Anlaman iyi; şimdi aynı anlamayı koruyarak biraz hızlanmayı deneyebilirsin.',
+      },
+    }),
+    () => gozlemListesi({
+      ad: name,
+      destekleyen: [
+        comp < 60 ? 'Paragraf sorusunu okuyup metne geri dönüyor.' : 'Metni bir okumada kavrıyor, geri dönmüyor.',
+        hizEkseni < 50 ? 'Uzun metinli sınavlarda son sorular boş kalıyor.' : 'Uzun metni süresinde bitiriyor.',
+        'Sessiz okurken dudakları kıpırdıyor (içinden seslendirme — hızı sınırlar).',
+      ],
+      celisen: [
+        'Sevdiği bir kitabı hızlı ve anlayarak okuyor — ilgi faktörü sonucu değiştirmiş olabilir.',
+        'Sesli okuduğunda akıcı ama sessiz okumada zorlanıyor (veya tersi).',
+        'Farklı derslerde okuma performansı belirgin değişiyor.',
+      ],
+    }),
+    () => akademikYansima({
+      ad: name,
+      dersler: [
+        ['Türkçe / Edebiyat', clampPct(comp * 0.95 + hizEkseni * 0.2), 'Paragraf ve metin soruları doğrudan bu beceriye dayanır.'],
+        ['Sosyal / Tarih', clampPct(comp * 0.85 + hizEkseni * 0.25), 'Uzun metin okuma ve ayrıntı yakalama gerektirir.'],
+        ['Fen Bilimleri', clampPct(comp * 0.7 + hizEkseni * 0.3), 'Soru kökünü doğru okumak çözümün yarısıdır.'],
+        ['Matematik', clampPct(comp * 0.65 + hizEkseni * 0.35), 'Problem metnini yanlış okumak en sık hata kaynağıdır.'],
+        ['Yabancı dil', clampPct(comp * 0.8 + hizEkseni * 0.2), 'Okuduğunu anlama bölümü doğrudan etkilenir.'],
+      ],
+    }),
+    () => ilerlemeTakibi({
+      ad: name,
+      hafta4: comp < 60
+        ? 'Anlama sorularında doğru sayısı arttı mı? Hız şimdilik önemli değil.'
+        : 'Aynı uzunlukta metni kaç saniyede bitiriyor? Anlama düşmeden süre kısaldı mı?',
+      hafta8: 'Okuma alışkanlığı yerleşti mi — hatırlatmadan kitaba uzanıyor mu?',
+      hafta12: 'Testi tekrar alın. Etkin okuma skorunu bugünküyle karşılaştırın.',
+      olcut: comp < 60
+        ? `**Anlama yüzdesi.** Bugün %${comp}. Hedef, hızdan bağımsız olarak bunu %70 üzerine çıkarmak.`
+        : `**Etkin okuma skoru.** Bugün %${eff}. Hız artarken anlama düşmüyorsa bu sayı yükselir.`,
+    }),
+    () => sikSorulanlar({
+      ad: name,
+      sorular: [
+        ['Hızlı okuma kursu işe yarar mı?',
+         'Anlama sağlamsa hız teknikleri fayda sağlayabilir. Anlama düşükken hız çalışmak boşa emektir — önce anlama gelir.'],
+        ['Çocuğum çok okuyor ama anlamıyor, neden?',
+         'Gözle tarama ile zihinde işleme farklı şeylerdir. Her paragraf sonunda durup özetletmek, işlemeyi devreye sokar.'],
+        ['Okuma hızı zekâyla ilgili mi?',
+         'Hayır. Okuma hızı; alışkanlık, kelime dağarcığı ve konuya aşinalıkla ilgilidir. Pratikle gelişir.'],
+      ],
+    }),
+    () => gelecekPenceresi({
+      ad: name,
+      guclu: [
+        comp >= 60 ? 'Okuduğunu anlama, üniversite ve iş hayatında en çok kullanılan beceridir.' : 'Okuma becerisi geliştikçe tüm derslerdeki performans birlikte yükselir.',
+        'Sözleşme, yönerge, rapor okumak — yetişkin hayatının her alanında bu beceri kullanılır.',
+      ],
+      gelistirilecek: [
+        'Farklı metin türlerinde pratik (haber, deneme, teknik metin) esnekliği artırır.',
+        'Kelime dağarcığını genişletmek, anlama hızını doğrudan yükseltir.',
+      ],
+    }),
+    () => gorusmeSorulari({
+      ad: name,
+      acilis: [
+        'Bir metni okurken zorlandığın oluyor mu? En çok ne zaman?',
+        'Okurken aklın başka yere kayıyor mu, yoksa kelimeler mi zorluyor?',
+        'Sevdiğin bir kitabı okurken de aynı zorluk oluyor mu?',
+      ],
+      derinlestiren: [
+        'Bir paragrafı bitirdiğinde ne anlattığını hatırlıyor musun?',
+        'Sınavda soruyu kaç kez okuyorsun?',
+        'Okurken içinden sesli okuyor musun?',
+        'Bilmediğin bir kelime gördüğünde ne yapıyorsun — geçiyor musun, duruyor musun?',
+      ],
+      kapanis: [
+        'Bu hafta hangi kitabı okumak isterdin?',
+        'Her paragraf sonunda bir saniye durup özetlemeyi denemek ister misin?',
+        'Bir hafta sonra tekrar konuşalım mı — ne değişti diye?',
+      ],
+    }),
+    () => okumaKilavuzu({
+      ad: name,
+      anaMesaj: comp < 60
+        ? `Bu raporun tek mesajı şu: **hız değil, anlama önce gelir.** ${tamlayan(name)} okuma hızı yeterli görünüyor; asıl çalışılması gereken metni zihinde işlemek.`
+        : `Bu raporun tek mesajı şu: **anlama sağlam.** Bundan sonrası, anlamayı bozmadan süre kazanmak üzerine kurulmalı.`,
+      yanlisOkumalar: [
+        ['"Hızlı okuyor, demek ki iyi okuyor."', 'Hız tek başına anlamlı değildir. Anlama düşükse hız kayıptır, kazanç değil.'],
+        ['"Yavaş okuyor, demek ki zorlanıyor."', 'Yavaş ama anlayan okuyucu, hızlı ama anlamayandan iyidir. Sorun süre yönetimindedir.'],
+        ['"Bu sonuç zekâsını gösterir."', 'Okuma hızı; alışkanlık, kelime dağarcığı ve konuya aşinalıkla ilgilidir. Zekâ ölçmez.'],
+        ['"Bir kez ölçüldü, kesin sonuç."', 'Tek metne dayanır. Tanıdık konuda yüksek, yabancı konuda düşük çıkar.'],
+      ],
+    }),
+    () => bilimselTemel({
+      modelAdi: 'Okuma hızı ve anlama ölçümü',
+      gelistiren: 'okuma araştırmaları alanında yaygın kullanılan iki ölçütün birleşimi',
+      nedirTekCumle: 'Dakikada okunan kelime sayısı (WPM) ile metni anlama düzeyi birlikte değerlendirilir.',
+      neyeDayanir: 'Belirli uzunlukta bir metnin okunma süresi ve ardından sorulan anlama sorularının doğruluğu.',
+      kanitDurumu: 'Okuma hızı ve anlama arasındaki ödünleşim (trade-off) okuma araştırmalarında iyi belgelenmiştir; tek başına hız, başarının güvenilir göstergesi değildir.',
+      siniri: 'Tek metne dayanır. Metnin konusu tanıdıksa hem hız hem anlama yükselir; yabancı konuda ikisi de düşer.',
+    }),
+  ]));
+  P.push(kapanis);
   P.push(reportFooter());
   return P.join('\n');
 }

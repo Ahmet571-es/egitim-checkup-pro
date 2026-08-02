@@ -15,6 +15,10 @@ import {
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
 import { belirtme, tamlayan, yonelme, ucuncuSahis } from '@/lib/utils/turkish';
+import {
+  bilimselTemel, ucPencere, gozlemListesi, ilerlemeTakibi,
+  sikSorulanlar, gorusmeSorulari, okumaKilavuzu, butceliEkle,
+} from '../../report/common-sections';
 
 /** Dokuz tip eşit dağılsa her biri ~%11 olurdu. Sapma referansı. */
 const EVEN_SHARE = 11;
@@ -283,6 +287,52 @@ export function buildEnneagramDetailedReport(scores: EnneagramScores, student: S
     `${main.famousExamples ? `Aynı örüntüden bilinen örnekler: ${main.famousExamples}. ` : ''}` +
     `Enneagram bir etiket değil, öz-farkındalık ve gelişim aracıdır. 🌱\n`,
   );
+  // ── Ortak zenginleştirme (hedef ~18.000 karakter) ──
+  const kapanis = P.pop() || '';
+  P.push(...butceliEkle(P.join('\n'), [
+    () => ucPencere({ ad: name, anaBulgu: `ana tip ${mainType} — ${roleOf(mainType)} (rezonans %${mainPct})`,
+      ogretmen: { yarin: [`Görev verirken temel motivasyonunu gözetin: ${main.desire.toLocaleLowerCase('tr')}`,
+          `Verimli olduğu ortam: ${ucuncuSahis(main.workStyle).toLocaleLowerCase('tr')}`,
+          `Güçlü yönüne alan açın: ${main.strengths[0].toLocaleLowerCase('tr')}`],
+        kacin: [`Temel kaygısını tetikleyen geri bildirim: ${main.fear.toLocaleLowerCase('tr')}`,
+          'Tipi bir etiket gibi kullanmak; öğrenci bu tanımın dışına çıkabilir ve çıkması normaldir.'] },
+      veli: { buHafta: ['"Bir şeyi yaparken seni en çok ne motive ediyor?" diye sorun.',
+          'Stres işaretleri göründüğünde yargılamadan alan tanıyın.', 'Güçlü yönünü adıyla fark ettirin.'],
+        kacin: ['Tipi kişilik yargısına çevirmek.', 'Kardeş/arkadaş tipleriyle karşılaştırmak.'] },
+      ogrenci: { deneyebilir: ['Kendini ne kadar tanıdın — hangi cümle sana uydu, hangisi uymadı?',
+          'Stres altında ne yaptığını fark etmeye çalış.', 'Güçlü yönünü kullanabileceğin bir görev seç.'],
+        hatirlat: 'Bu bir kutu değil, ayna. Tanıdığın kadarını al, gerisini bırak.' } }),
+    () => gozlemListesi({ ad: name,
+      destekleyen: [`Sınıfta ${main.strengths[0].toLocaleLowerCase('tr')} yönü görünüyor.`,
+        `Baskı altında ${ucuncuSahis(main.stressBehavior).toLocaleLowerCase('tr')}`,
+        'Motivasyonu temel arzusuyla uyumlu görevlerde belirgin yükseliyor.'],
+      celisen: ['Farklı ortamlarda tamamen farklı davranıyor.', 'İkinci tipin özellikleri daha baskın görünüyor.', 'Ergenlik dönemi geçişi tabloyu bulanıklaştırmış olabilir.'] }),
+    () => ilerlemeTakibi({ ad: name,
+      hafta4: 'Kendi örüntüsünü fark etmeye başladı mı — "ben böyle yapıyorum" diyebiliyor mu?',
+      hafta8: 'Stres işaretlerini erken tanıyıp adım atabiliyor mu?',
+      hafta12: 'Gelişim yönündeki davranışlar sıklaştı mı?',
+      olcut: '**Kendi davranışını adlandırma sıklığı.** "Şu an stres tepkim devrede" diyebilmek, farkındalığın en somut göstergesidir.' }),
+    () => sikSorulanlar({ ad: name, sorular: [
+      ['Enneagram bilimsel mi?', 'Bir öz-farkındalık çerçevesidir, klinik ölçek değildir. Kişiliği anlamak için yararlı bir dil sunar; tanı koymaz, yönlendirme yapmaz.'],
+      ['Tip değişir mi?', 'Temel örüntü genelde kalıcıdır ama ergenlikte henüz oturmamış olabilir. Sonuç zamanla netleşir.'],
+      ['Çocuğuma tipini söylemeli miyim?', 'Söylenebilir — ama kutu olarak değil, ayna olarak. "Sen busun" yerine "bu tanım sana ne kadar uyuyor?" daha yararlıdır.'] ] }),
+    () => gorusmeSorulari({ ad: name,
+      acilis: ['Bir şeyi yaparken seni en çok ne motive ediyor?', 'En çok neyden çekiniyorsun?', 'Kendini en rahat nerede hissediyorsun?'],
+      derinlestiren: ['Stresliyken ne yaparsın — geri mi çekilirsin, öne mi atılırsın?', 'Bir işi bitiremediğinde ne hissedersin?', 'Bu rapordaki hangi cümle sana çok uydu, hangisi hiç uymadı?'],
+      kapanis: ['Güçlü yönünü kullanabileceğin bir görev seçmek ister misin?', 'Stres anını fark ettiğinde ne yapacağını birlikte belirleyelim mi?', 'Bir ay sonra tekrar konuşalım mı?'] }),
+    () => okumaKilavuzu({ ad: name,
+      anaMesaj: `Bu raporun tek mesajı: tip bir **kutu değil, aynadır**. ${tamlayan(name)} davranışlarının ardındaki motivasyonu anlamak için bir dil sunar; kim olduğunu tanımlamaz.`,
+      yanlisOkumalar: [['"Tipi bu, hep böyle olacak."', 'Örüntü bir başlangıç noktasıdır. İnsanlar tanımlarının dışına çıkar ve çıkması normaldir.'],
+        ['"Bu bir kişilik testi sonucu, kesin."', 'Enneagram klinik bir ölçek değildir; öz-farkındalık çerçevesidir.'],
+        ['"Zayıf yönler düzeltilmeli."', 'Enneagram\'da "kötü tip" yoktur. Her örüntünün güçlü ve gölge tarafı vardır.'],
+        [netlik === 0 ? '"Ana tip belli."' : '"Tek tip yeterli."', netlik === 0 ? 'İlk iki tip eşit puanda; ikisini birlikte okumak gerekir.' : 'İkinci tip de profili tamamlar.'] ] }),
+    () => bilimselTemel({ modelAdi: 'Enneagram kişilik çerçevesi', gelistiren: 'çağdaş biçimiyle Oscar Ichazo ve Claudio Naranjo',
+      nedirTekCumle: 'Dokuz kişilik örüntüsünü temel korku ve arzular üzerinden inceleyen bir öz-farkındalık modelidir.',
+      neyeDayanir: 'Her tipe ait ifadelere katılım düzeyinin öz-beyanla derecelendirilmesi.',
+      kanitDurumu: 'Kişisel gelişim ve koçlukta yaygın kullanılır. Akademik psikolojide Beş Faktör gibi modeller kadar güçlü ampirik desteğe sahip değildir; bir öz-farkındalık dili olarak değerlendirilmelidir.',
+      siniri: 'Klinik tanı aracı değildir. Zekâ, yetenek veya başarı ölçmez. Ergenlikte örüntü henüz oturmamış olabilir.' }),
+  ]));
+  P.push(kapanis);
   P.push(reportFooter());
   return P.join('\n');
 }

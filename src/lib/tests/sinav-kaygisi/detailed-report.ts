@@ -17,6 +17,10 @@ import {
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
 import { tamlayan, belirtme, yonelme } from '@/lib/utils/turkish';
+import {
+  bilimselTemel, ucPencere, gozlemListesi, ilerlemeTakibi,
+  sikSorulanlar, gelecekPenceresi, gorusmeSorulari, okumaKilavuzu, butceliEkle,
+} from '../../report/common-sections';
 
 interface Interp { level: 'high' | 'mid' | 'low'; text: string; tips: string[]; }
 function pickInterp(score: number, interp: { high: { range: number[]; text: string; tips: string[] }; mid: { range: number[]; text: string; tips: string[] }; low: { range: number[]; text: string; tips: string[] } }): Interp {
@@ -301,6 +305,49 @@ export function buildSinavKaygisiDetailedReport(scores: SinavKaygisiScores, stud
     `Sınav kaygısı yaşamak bir zayıflık değildir; çok yaygındır ve **yönetilebilir**. ` +
     `${tamlayan(name)} kaygısı doğru tekniklerle zamanla azalabilir. Küçük adımlar kalıcı rahatlama getirir. 🌱\n`,
   );
+  // ── Ortak zenginleştirme (hedef ~18.000 karakter) ──
+  const kapanis = P.pop() || '';
+  P.push(...butceliEkle(P.join('\n'), [
+    () => ucPencere({ ad: name, anaBulgu: `kaygı düzeyi %${totalPct}, bileşen ${bilesenLabel.toLocaleLowerCase('tr')}`,
+      ogretmen: { yarin: [bilesenLabel === 'Beden ağırlıklı' ? 'Sınav öncesi 2 dakikalık nefes çalışması yaptırın (4 saniye al, 4 saniye ver).' : 'Sınav formatını ve süreyi önceden net anlatın; belirsizlik kaygıyı büyütür.',
+          'Sonucu değil çabayı adıyla takdir edin.', 'Not ve sıralamayı sınıf önünde paylaşmayın.'],
+        kacin: ['"Başarabilirsin" baskısı; iyi niyetli olsa da kaygıyı artırabilir.', 'Kaygıyı küçümsemek ("abartıyorsun"); paylaşımı kapatır.'] },
+      veli: { buHafta: ['Bir kez, ders konuşmadan "sınav aklına gelince ne hissediyorsun?" diye sorun.', 'Uyku saatini sabitleyin; kaygıyı en çok azaltan tek etken uykudur.', 'Sınav dönemi sohbetlerini yalnızca dersle sınırlamayın.'],
+        kacin: ['Kendi kaygınızı yansıtmak.', 'Sonucu aile beklentisine bağlamak.'] },
+      ogrenci: { deneyebilir: ['Sınavdan önce 4 saniye al, 4 saniye ver — iki dakika yeterli.', 'Çalışmayı küçük ve bitirilebilir parçalara böl.', 'Kaygını güvendiğin birine anlat; anlatılan kaygı küçülür.'],
+        hatirlat: 'Bir miktar kaygı normaldir, hatta odaklanmana yardım eder. Yönetilebilir bir şeydir.' } }),
+    () => gozlemListesi({ ad: name,
+      destekleyen: ['Sınav öncesi karın ağrısı, baş ağrısı gibi şikâyetler.', 'Bildiği soruları sınavda yapamama.', 'Sınav gününe yakın uyku düzeninin bozulması.'],
+      celisen: ['Sınavda rahat ama sonrasında çok üzülüyor (kaygı değil, beklenti meselesi olabilir).', 'Yalnızca belirli bir derste kaygı yaşıyor.', 'Test günü özel bir stres kaynağı vardı.'] }),
+    () => ilerlemeTakibi({ ad: name,
+      hafta4: 'Sınav öncesi bedensel şikâyet sayısı azaldı mı?',
+      hafta8: 'Nefes/planlama tekniğini hatırlatmadan kullanıyor mu?',
+      hafta12: 'Testi tekrar alın; bileşen dağılımını karşılaştırın.',
+      olcut: '**"Biliyordum ama yapamadım" dediği soru sayısı.** Bu sayı düşüyorsa kaygı yönetimi işliyor demektir.' }),
+    () => sikSorulanlar({ ad: name, sorular: [
+      ['Sınav kaygısı hastalık mı?', 'Hayır. Çok yaygındır ve belirli bir düzeyi normaldir, hatta odaklanmayı destekler. Sürekli olduğunda ve günlük hayatı etkilediğinde destek gerekir.'],
+      ['Daha çok çalışırsa kaygı geçer mi?', 'Her zaman değil. Hazırlık yeterliyken de kaygı yüksek olabilir; bu durumda "daha çok çalış" işe yaramaz, kaygı yönetimi gerekir.'],
+      ['Ne zaman uzmana başvurmalıyız?', 'Kaygı sürekliyse, uyku ve iştahı etkiliyorsa veya okula gitmeyi zorlaştırıyorsa okul rehberlik servisiyle görüşmek en doğru adımdır.'] ] }),
+    () => gorusmeSorulari({ ad: name,
+      acilis: ['Sınav aklına geldiğinde ne hissediyorsun?', 'En çok hangi sınavdan önce zorlanıyorsun?', 'Kaygını birine anlatabiliyor musun?'],
+      derinlestiren: ['Sınav sırasında kafanda ne dönüyor?', 'Bedeninde bir şey oluyor mu — kalp, mide, eller?', 'Hazırlıklı hissettiğinde de kaygı oluyor mu?'],
+      kapanis: ['Bu hafta nefes çalışmasını denemek ister misin?', 'Deneme sınavını gerçek saatte çözmeyi dener misin?', 'Bir hafta sonra ne değişti diye konuşalım mı?'] }),
+    () => okumaKilavuzu({ ad: name,
+      anaMesaj: `Bu raporun tek mesajı: kaygının **nerede yaşandığı** çözümü belirler. ${tamlayan(name)} kaygısı ${bilesenLabel.toLocaleLowerCase('tr')}; müdahale de buna göre seçilmeli.`,
+      yanlisOkumalar: [['"Yüksek kaygı = ruhsal sorun."', 'Bu bir tanı aracı değildir. Sınav kaygısı çok yaygındır ve yönetilebilir.'],
+        ['"Kaygılıysa daha çok çalışmalı."', 'Hazırlık yeterliyken de kaygı yüksek olabilir. Bu durumda çalışma önerisi işe yaramaz.'],
+        ['"Kaygı tamamen kötüdür."', 'Belirli bir düzeyi odaklanmayı destekler. Amaç sıfırlamak değil, yönetmek.'],
+        ['"Zamanla kendiliğinden geçer."', 'Bazen geçer, bazen yerleşir. Erken tekniklerle desteklemek etkilidir.'] ] }),
+    () => gelecekPenceresi({ ad: name,
+      guclu: ['Kaygıyı yönetmeyi öğrenmek, üniversite ve iş hayatında ömür boyu kullanılan bir beceridir.', 'Kendi tepkilerini tanımak, baskı altında karar vermeyi kolaylaştırır.'],
+      gelistirilecek: ['Sunum, mülakat gibi performans anları için erken pratik değerlidir.', 'Nefes ve planlama teknikleri her yaşta işe yarar.'] }),
+    () => bilimselTemel({ modelAdi: 'Sınav kaygısı ölçümü (endişe–tepki ayrımı)', gelistiren: 'Liebert ve Morris çizgisindeki kaygı araştırmaları', yil: 1967,
+      nedirTekCumle: 'Sınav kaygısını düşünce (endişe) ve beden (tepki) olmak üzere iki bileşende inceler.',
+      neyeDayanir: 'Sınav öncesi ve sırasında yaşanan düşünce ve bedensel belirtilerin öz-beyanla bildirilmesi.',
+      kanitDurumu: 'Endişe–tepki ayrımı sınav kaygısı literatüründe uzun süredir kabul görür; iki bileşenin farklı müdahale gerektirdiği geniş biçimde gösterilmiştir.',
+      siniri: 'Tarama veya tanı aracı değildir. O günkü hâli yansıtır; herhangi bir ruhsal duruma işaret etmez.' }),
+  ]));
+  P.push(kapanis);
   P.push(reportFooter());
   return P.join('\n');
 }

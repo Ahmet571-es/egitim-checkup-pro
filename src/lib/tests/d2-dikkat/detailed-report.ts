@@ -15,6 +15,10 @@ import {
   reportHeader, reportFooter, safeName, type StudentInfo,
 } from '../../report/report-blocks';
 import { tamlayan, belirtme, yonelme } from '@/lib/utils/turkish';
+import {
+  bilimselTemel, ucPencere, gozlemListesi, akademikYansima,
+  ilerlemeTakibi, sikSorulanlar, gelecekPenceresi, gorusmeSorulari, okumaKilavuzu, butceliEkle,
+} from '../../report/common-sections';
 
 interface D2Result {
   cpPct?: number; hitRate?: number; errorPct?: number;
@@ -287,6 +291,135 @@ export function buildD2DikkatDetailedReport(scores: D2Result, student: StudentIn
     `Dikkat, kas gibi çalıştırıldıkça güçlenir. ${name} için düzenli ve keyifli dikkat pratikleri, ` +
     `uygun çalışma düzeniyle birleştiğinde zamanla belirgin gelişim getirebilir. 🌱\n`,
   );
+  // ── Ortak zenginleştirme (hedef ~18.000 karakter) ──
+  const kapanis = P.pop() || '';
+  P.push(...butceliEkle(P.join('\n'), [
+    () => ucPencere({
+      ad: name,
+      anaBulgu: `konsantrasyon %${cp}, hata örüntüsü ${hataTipi.toLocaleLowerCase('tr')}`,
+      ogretmen: {
+        yarin: [
+          hataTipi === 'Acelecilik ağırlıklı'
+            ? 'Optik formda "işaretlemeden önce şıkkı bir kez daha oku" kuralını hatırlatın.'
+            : 'Uzun metinli soruda kalemle satır takibi yapmasını isteyin — atlama belirgin azalır.',
+          'Dikkat gerektiren görevleri günün ilk saatlerine alın; performans gün içinde düşer.',
+          dusus >= 15 ? 'Uzun sınavda 15–20 dakikada bir 20 saniyelik göz dinlendirme molası verin.' : 'Uzun görevleri planlayabilirsiniz; süreklilik korunuyor.',
+        ],
+        kacin: [
+          '"Dikkatini toplayamıyorsun" gibi etiket cümleleri; motivasyonu düşürür, davranışı değiştirmez.',
+          'Bu sonucu bir tanı gibi kullanmak — test tarama aracı bile değildir.',
+        ],
+      },
+      veli: {
+        buHafta: [
+          'Telefonu çalışma odasının dışında bırakın; tek başına en hızlı sonuç veren değişiklik budur.',
+          'Çalışmayı 25 dakikalık bloklara bölün, arada 5 dakika ekrandan uzak durun.',
+          'Uyku saatini sabitleyin — dikkat üzerinde en güçlü etkiye sahip tek etken uykudur.',
+        ],
+        kacin: [
+          'Uzun kesintisiz oturuşlar; verim ilk 30 dakikadan sonra hızla düşer.',
+          'Yatmadan hemen önce ekran; ertesi gün dikkati doğrudan etkiler.',
+        ],
+      },
+      ogrenci: {
+        deneyebilir: [
+          'Çalışmaya başlamadan masanı sadeleştir — göz alanındaki her nesne dikkat çalar.',
+          hataTipi === 'Acelecilik ağırlıklı' ? 'İşaretlemeden önce bir saniye dur, şıkkı bir kez daha oku.' : 'Okurken kalemle satırı takip et; gözün geri dönmez.',
+          '25 dakika çalış, 5 dakika ara ver. Ara verirken ekrana bakma.',
+        ],
+        hatirlat: 'Dikkat sabit bir özellik değil; kas gibi çalıştırıldıkça güçlenir.',
+      },
+    }),
+    () => gozlemListesi({
+      ad: name,
+      destekleyen: [
+        dusus >= 15 ? 'Sınavın son sorularında hata sayısı belirgin artıyor.' : 'Sınav boyunca performansı dengeli seyrediyor.',
+        hataTipi === 'Acelecilik ağırlıklı' ? 'Soruyu bitirmeden şıkka geçiyor, sonra düzeltiyor.' : 'Soru kökündeki "değildir", "hangisi olamaz" gibi ifadeleri atlıyor.',
+        'Uzun süreli görevlerde sık sık başını kaldırıyor, etrafa bakıyor.',
+      ],
+      celisen: [
+        'Sevdiği bir konuda saatlerce kesintisiz odaklanabiliyor — ilgi faktörü sonucu değiştirmiş olabilir.',
+        'Sabah derslerinde dikkatli, öğleden sonra dağınık (biyolojik ritim etkisi).',
+        'Test günü uykusuz veya hastaydı.',
+      ],
+    }),
+    () => akademikYansima({
+      ad: name,
+      dersler: [
+        ['Matematik', clampPct(dogruluk * 0.9 + hiz * 0.2), 'İşlem hatası çoğu zaman dikkat hatasıdır, bilgi eksiği değil.'],
+        ['Fen Bilimleri', clampPct(dogruluk * 0.8 + hiz * 0.25), 'Deney adımlarını sırayla takip etmek sürekli dikkat ister.'],
+        ['Türkçe', clampPct(dogruluk * 0.75 + hiz * 0.3), 'Uzun paragrafta ayrıntı yakalamak tarama becerisine dayanır.'],
+        ['Yabancı dil', clampPct(dogruluk * 0.7 + hiz * 0.3), 'Benzer kelimeleri ayırt etmek seçici dikkat gerektirir.'],
+        ['Sosyal / Tarih', clampPct(dogruluk * 0.6 + hiz * 0.25), 'Uzun metin okuma süreklilik ister.'],
+      ],
+    }),
+    () => ilerlemeTakibi({
+      ad: name,
+      hafta4: 'Deneme sınavında son 10 sorudaki hata sayısı ilk 10 soruyla kıyaslandığında fark azaldı mı?',
+      hafta8: 'Kesintisiz çalışma süresi 25 dakikadan 35 dakikaya çıkabildi mi?',
+      hafta12: 'Testi tekrar alın; konsantrasyon oranını ve hata tipini bugünküyle karşılaştırın.',
+      olcut: `**Dikkatsizlik hatası sayısı.** Deneme sınavlarında "biliyordum ama yanlış işaretledim" dediği soru sayısını sayın. Bu sayı düşüyorsa plan işliyor demektir.`,
+    }),
+    () => sikSorulanlar({
+      ad: name,
+      sorular: [
+        ['Bu sonuç dikkat eksikliği (DEHB) anlamına gelir mi?',
+         'Hayır. Bu test bir tanı aracı değildir, tarama aracı bile sayılmaz. DEHB yalnızca uzman değerlendirmesiyle konuşulabilir. Sürekli ve belirgin güçlük gözleniyorsa okul rehberlik servisiyle görüşmek doğru adımdır.'],
+        ['Dikkat geliştirilebilir mi?',
+         'Evet. Dikkat; uyku düzeni, ortam düzenlemesi ve düzenli pratikle belirgin şekilde gelişir. En hızlı sonuç veren müdahale, dikkat dağıtıcıları ortamdan çıkarmaktır.'],
+        ['Dikkat oyunları (sudoku, zekâ oyunları) işe yarar mı?',
+         'Kısmen. Oyunlar dikkati keyifli hâle getirir ama asıl fark, çalışma ortamının ve uyku düzeninin düzenlenmesiyle gelir.'],
+      ],
+    }),
+    () => gorusmeSorulari({
+      ad: name,
+      acilis: [
+        'Ders çalışırken aklın en çok ne zaman başka yere kayıyor?',
+        'Günün hangi saatinde daha rahat odaklanıyorsun?',
+        'Sınavda hangi bölümde daha çok hata yaptığını fark ettin mi?',
+      ],
+      derinlestiren: [
+        'Bir soruyu bilmene rağmen yanlış işaretlediğin oldu mu? Ne olmuştu?',
+        'Çalışırken telefonun nerede duruyor?',
+        'Ne kadar süre kesintisiz çalışabiliyorsun sence?',
+      ],
+      kapanis: [
+        'Bu hafta telefonu başka odada bırakmayı denemek ister misin?',
+        '25 dakika çalış–5 dakika ara düzenini bir hafta deneyelim mi?',
+        'Bir hafta sonra ne değişti diye konuşalım mı?',
+      ],
+    }),
+    () => okumaKilavuzu({
+      ad: name,
+      anaMesaj: `Bu raporun tek mesajı şu: hata sayısı değil, **hata TÜRÜ** önemlidir. ${tamlayan(name)} hataları ${hataTipi.toLocaleLowerCase('tr')}; müdahale de buna göre seçilmeli.`,
+      yanlisOkumalar: [
+        ['"Düşük skor = dikkat eksikliği var."', 'Bu test tanı koymaz. Tek oturumluk performanstır; uyku ve motivasyon sonucu belirgin etkiler.'],
+        ['"Hata sayısı önemli."', 'Asıl bilgi hata TÜRÜNDE. Atlama ile acelecilik farklı şeyler anlatır ve farklı çözüm gerektirir.'],
+        ['"Dikkat doğuştandır, değişmez."', 'Dikkat düzenli pratik ve ortam düzenlemesiyle gelişen bir beceridir.'],
+        ['"Test yüksek çıktı, sorun yok."', 'Test sessiz ortamda yapılır. Sınıfta gürültü varken performans farklı olabilir.'],
+      ],
+    }),
+    () => gelecekPenceresi({
+      ad: name,
+      guclu: [
+        cp >= 60 ? 'Sürdürülebilir dikkat, üniversite sınavı ve uzun soluklu işlerde doğrudan avantajdır.' : 'Dikkat becerisi geliştikçe tüm derslerdeki performans birlikte yükselir.',
+        'Detay yakalama; sağlık, mühendislik, hukuk gibi alanlarda kritik bir yetkinliktir.',
+      ],
+      gelistirilecek: [
+        'Uzun süreli odak (60+ dakika) üniversite hayatında sık gerekir; kademeli artırmakta fayda var.',
+        'Dijital dikkat dağınıklığını yönetmek, yetişkinlikte de sürekli gerekecek bir beceridir.',
+      ],
+    }),
+    () => bilimselTemel({
+      modelAdi: 'Seçici dikkat ve tarama testleri (d2 / Burdon geleneği)',
+      gelistiren: 'Rolf Brickenkamp ve Benjamin Bourdon',
+      nedirTekCumle: 'Benzer uyaranlar arasından hedefleri hızlı ve doğru seçebilme becerisini ölçer.',
+      neyeDayanir: 'Belirli sürede taranan uyaran sayısı ile atlama ve yanlış işaretleme hatalarının dağılımı.',
+      kanitDurumu: 'Bu tür iptal (cancellation) testleri dikkat araştırmalarında yaygın kullanılır; hız–doğruluk ödünleşimi iyi belgelenmiştir.',
+      siniri: 'Tek oturumluk performanstır. Uyku, açlık, motivasyon ve günün saati sonucu belirgin şekilde etkiler; tanı koymaz.',
+    }),
+  ]));
+  P.push(kapanis);
   P.push(reportFooter());
   return P.join('\n');
 }
