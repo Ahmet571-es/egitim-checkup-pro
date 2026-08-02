@@ -120,7 +120,7 @@ export function buildHollandDetailedReport(scores: HollandScores, student: Stude
   // ═══ 1. YÖNETİCİ ÖZETİ ═══
   P.push(`## 📋 1. Yönetici Özeti\n`);
   P.push(
-    `**${tamlayan(name)}** en baskın mesleki ilgi alanı **${topInfo.name} (%${topPct})** — ${ilgiBand(topPct).frame}. ` +
+    `**${tamlayan(name)}** en baskın mesleki ilgi alanı **${topShortName(topInfo.name)} (%${topPct})** — ${ilgiBand(topPct).frame}. ` +
     `Holland kodu **${code}**; en güçlü üç ilgi alanının birleşimini temsil eder. ` +
     `${farklilasma >= 25
       ? `İlgi profili belirgin şekilde farklılaşmış (${farklilasma} puan); yönelim nettir. `
@@ -141,7 +141,7 @@ export function buildHollandDetailedReport(scores: HollandScores, student: Stude
   P.push(`| İlgi Alanı | Oran | Grafik | Düzey |\n|---|---|---|---|`);
   P.push(sorted.map(([k, v]) => {
     const p = pctOf(k, v); const b = ilgiBand(p);
-    return `| ${HOLLAND_TYPES[k].icon} ${HOLLAND_TYPES[k].name} | %${p} | ${bar(p)} | ${b.risk} ${b.label} |`;
+    return `| ${HOLLAND_TYPES[k].icon} ${topShortName(HOLLAND_TYPES[k].name)} | %${p} | ${bar(p)} | ${b.risk} ${b.label} |`;
   }).join('\n') + '\n');
   P.push('---\n');
 
@@ -158,7 +158,7 @@ export function buildHollandDetailedReport(scores: HollandScores, student: Stude
     { selfLabel: first, refLabel: 'Orta düzey' },
   ));
   P.push(
-    `En düşük ilgi **${HOLLAND_TYPES[lowest[0]].name} (%${lowPct})** alanında. ` +
+    `En düşük ilgi **${topShortName(HOLLAND_TYPES[lowest[0]].name)} (%${lowPct})** alanında. ` +
     `Bu, o tür işlerin ${belirtme(name)} şu an daha az çektiği anlamına gelir — bir yetersizlik göstergesi değildir.\n`,
   );
   P.push('---\n');
@@ -231,7 +231,7 @@ export function buildHollandDetailedReport(scores: HollandScores, student: Stude
   sorted.slice(0, 3).forEach(([k, v]) => {
     const d = HOLLAND_TYPES[k]; const p = pctOf(k, v); const b = ilgiBand(p);
     P.push(
-      `### ${d.icon} ${d.name} — %${p} ${b.risk} ${b.label}\n\n` +
+      `### ${d.icon} ${topShortName(d.name)} — %${p} ${b.risk} ${b.label}\n\n` +
       `${d.description}\n\n` +
       `**Sınıfta nasıl görünür:** ${TYPE_LENS[k].classroom}\n\n` +
       `**Belirgin özellikleri:** ${d.characteristics.slice(0, 3).join(', ').toLocaleLowerCase('tr')}.\n\n` +
@@ -240,7 +240,7 @@ export function buildHollandDetailedReport(scores: HollandScores, student: Stude
     );
   });
   const rest = sorted.slice(3);
-  if (rest.length) P.push(`**Diğer alanlar (özet):**\n${rest.map(([k, v]) => `- **${HOLLAND_TYPES[k].icon} ${HOLLAND_TYPES[k].name} (%${pctOf(k, v)})** — ${ilgiBand(pctOf(k, v)).label}.`).join('\n')}\n`);
+  if (rest.length) P.push(`**Diğer alanlar (özet):**\n${rest.map(([k, v]) => `- **${HOLLAND_TYPES[k].icon} ${topShortName(HOLLAND_TYPES[k].name)} (%${pctOf(k, v)})** — ${ilgiBand(pctOf(k, v)).label}.`).join('\n')}\n`);
   P.push('---\n');
 
   // ═══ 8. SONUÇ — KEŞİF PLANI ═══
@@ -266,7 +266,7 @@ export function buildHollandDetailedReport(scores: HollandScores, student: Stude
   // ═══ 10. ÖĞRETMEN KARTI ═══
   P.push(`## 👩‍🏫 10. Öğretmen İçin Hızlı Kart\n`);
   P.push(insight('strength', 'İşe Yarayabilecekler',
-    `- ${tamlayan(name)} baskın ilgisi **${topInfo.name.toLocaleLowerCase('tr')}**; bu yöndeki görev ve kulüpler katılımı artırabilir.\n` +
+    `- ${tamlayan(name)} baskın ilgisi **${topShortName(topInfo.name).toLocaleLowerCase('tr')}**; bu yöndeki görev ve kulüpler katılımı artırabilir.\n` +
     `- Uygun öğrenme ortamı: ${topInfo.studyEnvironment.toLocaleLowerCase('tr')}\n` +
     `- Sınıf içi rol dağılımında bu ilgiden yararlanılabilir.`));
   P.push(insight('risk', 'Dikkat Edilebilecekler',
@@ -280,7 +280,7 @@ export function buildHollandDetailedReport(scores: HollandScores, student: Stude
   // ═══ 11. AİLE ═══
   P.push(`## 👨‍👩‍👦 11. Aile İçin Rehber\n`);
   P.push(
-    `- Baskın ilgi **${topInfo.name.toLocaleLowerCase('tr')}**; bu yöndeki etkinlikler (kulüp, proje, staj) ilgiyi besleyebilir.\n` +
+    `- Baskın ilgi **${topShortName(topInfo.name).toLocaleLowerCase('tr')}**; bu yöndeki etkinlikler (kulüp, proje, staj) ilgiyi besleyebilir.\n` +
     `- Kariyer keşfi bir süreçtir; farklı alanları deneyimlemek sağlıklıdır.\n` +
     `- Kod bir karar değil, bir başlangıç noktasıdır.\n`,
   );

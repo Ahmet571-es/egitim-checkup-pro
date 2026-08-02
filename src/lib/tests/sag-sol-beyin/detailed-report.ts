@@ -12,9 +12,9 @@ import type { SagSolBeyinScores } from '../types';
 import {
   clampPct, statGrid, gauge, barsBlock, insight,
   compareBlock, chainBlock, timelineBlock, quadrantBlock, donutBlock, heatmapBlock,
-  reportHeader, reportFooter, safeName, type StudentInfo,
+  reportHeader, reportFooter, safeName, ogrenciIpucu, type StudentInfo,
 } from '../../report/report-blocks';
-import { tamlayan, belirtme, yonelme } from '@/lib/utils/turkish';
+import { tamlayan, belirtme, yonelme, ucuncuSahis } from '@/lib/utils/turkish';
 
 /** Ders alanlarının sol/sağ düşünme yüküne dair sabit ağırlıklar (0–1). Ölçüm değil. */
 const SUBJECT_LOAD: Record<string, { sol: number; sag: number }> = {
@@ -95,7 +95,7 @@ export function buildSagSolBeyinDetailedReport(scores: SagSolBeyinScores, studen
   P.push(`## 📋 1. Yönetici Özeti\n`);
   P.push(
     `**${tamlayan(name)}** düşünme stili **${d.title.toLocaleLowerCase('tr')}** yönünde eğilim gösteriyor ` +
-    `(Sol %${sol} · Sağ %${sag}, fark ${fark} puan). ${d.description} ` +
+    `(Sol %${sol} · Sağ %${sag}, fark ${fark} puan). ${ucuncuSahis(d.description)} ` +
     `${dom === 'dengeli'
       ? 'Dengeli profil, her iki stili de esnekçe kullanabildiğine işaret edebilir. '
       : denge >= 60
@@ -189,22 +189,24 @@ export function buildSagSolBeyinDetailedReport(scores: SagSolBeyinScores, studen
 
   // ═══ 7. DERİN YORUM ═══
   P.push(`## 🧠 7. Düşünme Stilinin Derinlemesine Yorumu — ${d.title}\n`);
-  P.push(`${d.description}\n`);
+  // SAG_SOL_BEYIN_DATA açıklamaları öğrenciye 2. tekil şahısla yazılmıştır;
+  // öğretmen raporunun 3. şahıs anlatımına ham karışmasın diye etiketli alıntı.
+  P.push(`> **Öğrenciye anlatım:** "${d.description}"\n`);
   P.push(`**Sınıfta nasıl görünür:** ${lens.classroom}\n`);
   P.push(`**Sınav ve ödevde:** ${lens.exam}\n`);
-  P.push(insight('strength', 'Güçlü Yönler', d.strengths.map((s) => `• ${s}`).join('\n')));
-  P.push(insight('action', 'Gelişim Alanları', d.developmentAreas.map((s) => `• ${s}`).join('\n')));
+  P.push(insight('strength', 'Güçlü Yönler', d.strengths.map((s) => `• ${ucuncuSahis(s)}`).join('\n')));
+  P.push(insight('action', 'Gelişim Alanları', d.developmentAreas.map((s) => `• ${ucuncuSahis(s)}`).join('\n')));
   P.push('---\n');
 
   // ═══ 8. SONUÇ — YOL HARİTASI ═══
   P.push(`## 🎯 8. SONUÇ — Uygulama Yol Haritası\n`);
   P.push(timelineBlock(`${d.title} Eğilimine Uygun 8 Haftalık Plan`, [
     ['Mevcut yöntemi konuş', `${name} şu an nasıl çalışıyor — birlikte yazın.`, '1. hafta'],
-    ['Güçlü yönü merkeze al', d.studyTips[0], '1–2. hafta'],
+    ['Güçlü yönü merkeze al', ogrenciIpucu(d.studyTips[0]), '1–2. hafta'],
     ['Tek derste dene', 'En zorlandığı derste bu yöntemi uygulayın.', '2–3. hafta'],
     ['Sonucu ölç', 'Aynı konuda öncesi/sonrası farkı konuşun.', '3. hafta'],
-    ['İkinci yöntemi ekle', d.studyTips[1] ?? d.studyTips[0], '4–5. hafta'],
-    ['Diğer stili besle', `${other.title} tarafını geliştiren bir etkinlik: ${other.studyTips[0]}`, '5–6. hafta'],
+    ['İkinci yöntemi ekle', ogrenciIpucu(d.studyTips[1] ?? d.studyTips[0]), '4–5. hafta'],
+    ['Diğer stili besle', `${other.title} tarafını geliştiren bir etkinlik — ${ogrenciIpucu(other.studyTips[0], 'öneri')}`, '5–6. hafta'],
     ['Sınav provası', lens.exam, '6–7. hafta'],
     ['Rutine dönüştür', 'İşe yarayan yöntemleri haftalık plana sabitleyin.', '8. hafta'],
   ]));
@@ -214,7 +216,7 @@ export function buildSagSolBeyinDetailedReport(scores: SagSolBeyinScores, studen
   P.push(`## 👩‍🏫 9. Öğretmen İçin Hızlı Kart\n`);
   P.push(insight('strength', 'İşe Yarayabilecekler',
     `- ${yonelme(name)} anlatırken ${dom === 'sol' ? 'adım adım yapı ve net kurallar' : dom === 'sag' ? 'büyük resim, görsel ve hikâye' : 'hem yapı hem büyük resim'} sunmak kavramayı kolaylaştırabilir.\n` +
-    `- ${d.studyTips[0]}\n` +
+    `- ${ogrenciIpucu(d.studyTips[0])}\n` +
     `- Güçlü yönü: ${d.strengths[0].toLocaleLowerCase('tr')} — sınıf içi rol dağılımında bundan yararlanılabilir.`));
   P.push(insight('risk', 'Dikkat Edilebilecekler',
     `- ${lens.risk}\n` +
@@ -225,7 +227,7 @@ export function buildSagSolBeyinDetailedReport(scores: SagSolBeyinScores, studen
   // ═══ 10. AİLE ═══
   P.push(`## 👨‍👩‍👦 10. Aile İçin Rehber\n`);
   P.push(`${tamlayan(name)} doğal düşünme stilini desteklemek öğrenmeyi kolaylaştırabilir. Diğer yarımküreyi besleyen etkinlikler ise dengeyi güçlendirir.\n`);
-  P.push(`### Evde Denenebilecekler\n${d.studyTips.slice(0, 4).map((t) => `- ${t}`).join('\n')}\n`);
+  P.push(`### Evde Denenebilecekler\n${d.studyTips.slice(0, 4).map((t) => `- ${ogrenciIpucu(t, 'öneri')}`).join('\n')}\n`);
   P.push(insight('action', 'Küçük Bir Deney',
     `Bir hafta boyunca ödevlerini ${dom === 'sol' ? 'önce plan çıkararak' : 'önce görselleştirerek'} yaptırın. ` +
     `Sonunda ${belirtme(name)} sorun: "Böyle daha kolay mı geldi?" Cevap, yöntemi birlikte seçmenizi sağlar.`));

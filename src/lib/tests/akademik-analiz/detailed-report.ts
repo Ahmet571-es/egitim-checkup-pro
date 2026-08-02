@@ -15,7 +15,17 @@ import {
 } from '../../report/report-blocks';
 import { tamlayan, belirtme, yonelme } from '@/lib/utils/turkish';
 
-function label(k: string): string { return SKILL_LABELS[k] ?? k.replace(/_/g, ' '); }
+/** Baştaki emoji/simgeleri atar. Motor beceri adlarını '📖 Okuma Anlama' gibi
+ *  emojili döndürüyor; rapor metninde ve stat kartında tuhaf duruyordu. */
+function clean(s: string | undefined | null): string {
+  return (s || '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
+}
+
+/** Beceri adı — baştaki emoji atılır. */
+function label(k: string): string {
+  const raw = SKILL_LABELS[k] ?? k.replace(/_/g, ' ');
+  return raw.replace(/^[^\p{L}\p{N}]+/u, '').trim();
+}
 
 interface Band { risk: '🟢' | '🟡' | '🔴'; label: string; frame: string; }
 function perfBand(pct: number): Band {
@@ -76,9 +86,9 @@ export function buildAkademikDetailedReport(scores: AkademikScores, student: Stu
     .map(([k, v]) => ({ key: k, name: label(k), pct: clampPct(v?.pct ?? 0) }))
     .sort((a, b) => b.pct - a.pct);
 
-  const strongestName = scores.strongest?.name || sectionList[0]?.name || '—';
+  const strongestName = clean(scores.strongest?.name) || sectionList[0]?.name || '—';
   const strongestPct = clampPct(scores.strongest?.pct ?? sectionList[0]?.pct ?? 0);
-  const weakestName = scores.weakest?.name || sectionList[sectionList.length - 1]?.name || '—';
+  const weakestName = clean(scores.weakest?.name) || sectionList[sectionList.length - 1]?.name || '—';
   const weakestPct = clampPct(scores.weakest?.pct ?? sectionList[sectionList.length - 1]?.pct ?? 0);
   const spread = clampPct(strongestPct - weakestPct);
 

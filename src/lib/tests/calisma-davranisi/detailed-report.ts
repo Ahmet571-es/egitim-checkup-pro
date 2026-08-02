@@ -15,7 +15,7 @@ import type { CalismaDavranisiScores } from '../types';
 import {
   clampPct, bar, statGrid, gauge, barsBlock, radarBlock, insight,
   compareBlock, chainBlock, timelineBlock, quadrantBlock, donutBlock, heatmapBlock,
-  reportHeader, reportFooter, safeName, type StudentInfo,
+  reportHeader, reportFooter, safeName, emojisiz, type StudentInfo,
 } from '../../report/report-blocks';
 import { tamlayan, belirtme, yonelme } from '@/lib/utils/turkish';
 
@@ -31,17 +31,33 @@ function pickInterp(score: number, interp: { high: { range: number[]; text: stri
 const diffColor = (lv: string) => (lv === 'high' ? '🔴' : lv === 'mid' ? '🟡' : '🟢');
 const diffLabel = (lv: string) => (lv === 'high' ? 'Belirgin Güçlük' : lv === 'mid' ? 'Bir Miktar Güçlük' : 'Güçlük Yok');
 
-/** Teknik beceri alanları ve tutum alanı. */
-const TEKNIK_KEYS = ['A', 'B', 'C', 'D'];
-const TUTUM_KEYS = ['E'];
+/**
+ * Teknik beceri alanları ve tutum alanı.
+ *
+ * DİKKAT: Ölçekte YEDİ kategori var (A–G), beş değil:
+ *   A Çalışmaya başlamak ve sürdürmek        → teknik
+ *   B Bilinçli çalışmak, öğrendiğini kullanmak → teknik
+ *   C Not tutmak ve dersi dinlemek            → teknik
+ *   D Okuma alışkanlıkları ve teknikleri      → teknik
+ *   E Ödev hazırlamak                         → teknik
+ *   F OKULA KARŞI TUTUM                       → tutum
+ *   G Sınavlara hazırlanmak ve sınava girmek  → teknik
+ * Önceki eşleme TUTUM'u E (ödev hazırlamak) sanıyor, F ve G'yi hiç hesaba
+ * katmıyordu; raporun merkezindeki teknik/tutum ayrımı yanlış alanlardan
+ * hesaplanıyordu.
+ */
+const TEKNIK_KEYS = ['A', 'B', 'C', 'D', 'E', 'G'];
+const TUTUM_KEYS = ['F'];
 
 /** Alanların çalışma döngüsündeki yeri (0–1). Ölçüm değil; alan tanımından. */
 const CYCLE_LOAD: Record<string, { derste: number; evde: number; oncesi: number }> = {
-  A: { derste: 0.3, evde: 1.0, oncesi: 0.8 },
-  B: { derste: 1.0, evde: 0.4, oncesi: 0.5 },
-  C: { derste: 0.5, evde: 1.0, oncesi: 0.9 },
-  D: { derste: 0.3, evde: 1.0, oncesi: 0.4 },
-  E: { derste: 0.9, evde: 0.7, oncesi: 0.6 },
+  A: { derste: 0.3, evde: 1.0, oncesi: 0.8 },   // çalışmaya başlama
+  B: { derste: 0.5, evde: 1.0, oncesi: 0.7 },   // bilinçli çalışma
+  C: { derste: 1.0, evde: 0.4, oncesi: 0.5 },   // not tutma / dersi dinleme
+  D: { derste: 0.4, evde: 1.0, oncesi: 0.9 },   // okuma alışkanlıkları
+  E: { derste: 0.3, evde: 1.0, oncesi: 0.4 },   // ödev hazırlama
+  F: { derste: 0.9, evde: 0.7, oncesi: 0.6 },   // okula karşı tutum
+  G: { derste: 0.4, evde: 0.7, oncesi: 1.0 },   // sınava hazırlanma
 };
 
 export function buildCalismaDavranisiDetailedReport(scores: CalismaDavranisiScores, student: StudentInfo): string {
@@ -242,7 +258,7 @@ export function buildCalismaDavranisiDetailedReport(scores: CalismaDavranisiScor
     const it = pickInterp(c.score, c.info.interpretations);
     P.push(
       `### ${c.info.name} — %${c.pct} ${diffColor(it.level)} ${diffLabel(it.level)}\n\n${it.text}\n` +
-      (it.tips.length ? `\n**Öneriler:**\n${it.tips.map((t) => `- ${t}`).join('\n')}\n` : ''),
+      (it.tips.length ? `\n**Öneriler:**\n${it.tips.map((t) => `- ${emojisiz(t)}`).join('\n')}\n` : ''),
     );
   });
   P.push('---\n');
@@ -252,7 +268,10 @@ export function buildCalismaDavranisiDetailedReport(scores: CalismaDavranisiScor
     P.push(`## 🔗 8. Davranış Birleşimleri\n`);
     P.push(`Tek tek alanların ötesinde, birlikte görülen davranış örüntüleri.\n`);
     for (const cb of combos.slice(0, 4)) {
-      P.push(insight('note', cb.title, `${cb.detail}${cb.tip ? `\n\n**Öneri:** ${cb.tip}` : ''}`));
+      // combinations metinleri öğrenciye 2. tekil şahısla yazılmıştır
+      // ("alışkanlığın", "tutumun"); öğretmen raporunda etiketli alıntı olarak verilir.
+      P.push(insight('note', emojisiz(cb.title),
+        `> **Öğrenciye anlatım:** "${cb.detail}"${cb.tip ? `\n\n**Öneri:** ${emojisiz(cb.tip)}` : ''}`));
     }
     P.push('---\n');
   }
@@ -268,10 +287,10 @@ export function buildCalismaDavranisiDetailedReport(scores: CalismaDavranisiScor
       [tutum < 50 ? 'Önce "neden" konuşun' : 'Çalışma saatini sabitleyin',
         tutum < 50 ? 'Okulun onun için ne anlam taşıdığını konuşun; hedefini kendisi tanımlasın.' : 'Her gün aynı saatte başlamak, en güçlü tek alışkanlıktır.', '1–2. hafta'],
       [f0 ? `Öncelikli alan: ${f0.info.name}` : 'Mevcut düzeni koruyun',
-        f0 ? (pickInterp(f0.score, f0.info.interpretations).tips[0] || 'Bu alanda küçük düzenli adımlar denenebilir.') : 'Yeni teknikler denemek pekiştirici olabilir.', '2–3. hafta'],
+        f0 ? emojisiz(pickInterp(f0.score, f0.info.interpretations).tips[0]) || ( 'Bu alanda küçük düzenli adımlar denenebilir.') : 'Yeni teknikler denemek pekiştirici olabilir.', '2–3. hafta'],
       ['Küçük bir başarı yaratın', 'Kesin bitirilebilecek küçük bir hedef verin; bitirme deneyimi motivasyonu besler.', '3–4. hafta'],
       [f1 ? `İkinci alan: ${f1.info.name}` : 'İkinci alışkanlığı ekleyin',
-        f1 ? (pickInterp(f1.score, f1.info.interpretations).tips[0] || 'Aynı yöntemi ikinci alana uygulayın.') : 'Bir teknik daha ekleyin.', '4–5. hafta'],
+        f1 ? emojisiz(pickInterp(f1.score, f1.info.interpretations).tips[0]) || ( 'Aynı yöntemi ikinci alana uygulayın.') : 'Bir teknik daha ekleyin.', '4–5. hafta'],
       [best ? `Güçlü alanı köprü yapın — ${best.info.name}` : 'Güçlü alanı kullanın',
         'Sağlam olan alandan zorlanılan alana bağlantı kurun.', '5–6. hafta'],
       ['Haftalık plan yazın', 'Öğrenci kendi planını yazsın; sahiplenme kalıcılığı artırır.', '6–7. hafta'],
@@ -279,7 +298,7 @@ export function buildCalismaDavranisiDetailedReport(scores: CalismaDavranisiScor
     ]));
     focus.forEach((c, i) => {
       const it = pickInterp(c.score, c.info.interpretations);
-      P.push(`**📌 Adım ${i + 1}: ${c.info.name}**\n${(it.tips.length ? it.tips : ['Bu alanda küçük, düzenli adımlar denemek faydalı olabilir.']).map((t) => `- ${t}`).join('\n')}\n`);
+      P.push(`**📌 Adım ${i + 1}: ${c.info.name}**\n${(it.tips.length ? it.tips : ['Bu alanda küçük, düzenli adımlar denemek faydalı olabilir.']).map((t) => `- ${emojisiz(t)}`).join('\n')}\n`);
     });
     if (!focus.length) P.push(`Genel çalışma alışkanlıkları güçlü görünüyor; mevcut düzeni korumak yeterli olabilir.\n`);
   }

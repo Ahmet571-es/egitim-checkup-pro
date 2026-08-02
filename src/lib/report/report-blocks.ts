@@ -169,3 +169,21 @@ export function heatmapBlock(
   const body = rows.map(([l, vs]) => `${l}: ${vs.map((v) => clampPct(v)).join(',')}`).join('\n');
   return `[!heatmap title="${title}" cols="${cols.join(',')}"${cap}]\n${body}\n[/!heatmap]\n`;
 }
+
+/**
+ * Öğrenciye yönelik (2. tekil şahıs) bir ipucunu öğretmen raporunda güvenle
+ * göstermek için hazırlar: baştaki emoji atılır, metin tırnağa alınır ve
+ * kimin diliyle konuşulduğu açıkça belirtilir.
+ *
+ * Ham konulduğunda hem ton çakışıyor ("...senin en iyi arkadaşın") hem de
+ * emojiler tırnak içinde tuhaf duruyordu.
+ */
+export function ogrenciIpucu(tip: string, onek = 'Öğrenciye önerilebilecek yaklaşım'): string {
+  const t = (tip || '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
+  return t ? `${onek}: "${t}"` : '';
+}
+
+/** Baştaki emoji/simgeleri atar (liste ve kart metinleri için). */
+export function emojisiz(s: string | null | undefined): string {
+  return (s || '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
+}

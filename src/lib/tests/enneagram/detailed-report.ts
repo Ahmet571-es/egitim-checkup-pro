@@ -54,7 +54,10 @@ export function buildEnneagramDetailedReport(scores: EnneagramScores, student: S
   const typeStr = scores.fullTypeStr || `${mainType}${wingType ? 'w' + wingType : ''}`;
 
   const secondPct = clampPct(sorted[1]?.[1] ?? 0);
-  const netlik = clampPct((mainPct - secondPct) * 4);   // ana tip ne kadar net ayrışıyor
+  // Ana tip ile ikincinin farkı. Beraberlikte 0 çıkması DOĞRUDUR (profil gerçekten
+  // karışıktır), ama kartta çıplak '%0' bozukmuş gibi görünüyordu → etiket kullanılıyor.
+  const netlik = clampPct((mainPct - secondPct) * 4);
+  const netlikLabel = netlik >= 60 ? 'Net' : netlik >= 35 ? 'Orta' : netlik > 0 ? 'Düşük' : 'Berabere';
   const top3 = sorted.slice(0, 3);
   const lowest = sorted[sorted.length - 1];
 
@@ -69,7 +72,7 @@ export function buildEnneagramDetailedReport(scores: EnneagramScores, student: S
     { label: 'Ana Tip', value: `${mainType}. ${roleOf(mainType)}`, theme: 'success', icon: 'star' },
     { label: 'Kanat', value: wing ? typeStr : `Tip ${mainType}`, theme: 'primary', icon: 'compass' },
     { label: 'Rezonans', value: mainPct, unit: '%', theme: 'info', icon: 'heart' },
-    { label: 'Netlik', value: netlik, unit: '%', theme: netlik >= 50 ? 'success' : 'warning', icon: 'target' },
+    { label: 'Ayrışma', value: netlikLabel, theme: netlik >= 50 ? 'success' : 'warning', icon: 'target' },
   ], 4));
   P.push('---\n');
 
