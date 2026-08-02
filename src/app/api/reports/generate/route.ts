@@ -300,7 +300,7 @@ export async function POST(request: NextRequest) {
 
     const { data: testResult, error: trErr } = await admin
       .from('test_results')
-      .select('id, test_type, scores, completed_at, ai_report, ai_report_generated_at')
+      .select('id, test_type, scores, raw_answers, completed_at, ai_report, ai_report_generated_at')
       .eq('id', test_result_id)
       .single();
 
@@ -322,9 +322,15 @@ export async function POST(request: NextRequest) {
     // Öğretmen panelindeki "analiz" butonu artık bu test için kendi sistem
     // analizimizi üretir. Diğer testler şimdilik AI ile devam eder.
     // Deterministik motor (API'SIZ) — motoru olan testler için. Yoksa AI'a düşer.
+    // Eski kayıtlarda scores düzleştirilmiş olabilir; ham cevaplardan yeniden hesapla.
+
+    const { bestScoresForReport } = await import('@/lib/report/recompute-scores');
+
+    const picked = await bestScoresForReport(testResult.test_type, testResult.scores, testResult.raw_answers);
+
     const deterministic = buildDeterministicReport(
       testResult.test_type,
-      testResult.scores,
+      picked.scores,
       { studentName: student.full_name, studentGrade: student.grade ?? null, studentAge: calculateAge(student.birth_date) },
     );
 
@@ -409,7 +415,7 @@ export async function PUT(request: NextRequest) {
 
     const { data: testResult } = await admin
       .from('test_results')
-      .select('id, test_type, scores')
+      .select('id, test_type, scores, raw_answers')
       .eq('id', test_result_id)
       .single();
 
@@ -421,9 +427,15 @@ export async function PUT(request: NextRequest) {
     // Öğretmen panelindeki "analiz" butonu artık bu test için kendi sistem
     // analizimizi üretir. Diğer testler şimdilik AI ile devam eder.
     // Deterministik motor (API'SIZ) — motoru olan testler için. Yoksa AI'a düşer.
+    // Eski kayıtlarda scores düzleştirilmiş olabilir; ham cevaplardan yeniden hesapla.
+
+    const { bestScoresForReport } = await import('@/lib/report/recompute-scores');
+
+    const picked = await bestScoresForReport(testResult.test_type, testResult.scores, testResult.raw_answers);
+
     const deterministic = buildDeterministicReport(
       testResult.test_type,
-      testResult.scores,
+      picked.scores,
       { studentName: student.full_name, studentGrade: student.grade ?? null, studentAge: calculateAge(student.birth_date) },
     );
 

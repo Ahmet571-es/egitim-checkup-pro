@@ -162,6 +162,9 @@ export async function GET(request: NextRequest) {
     try {
       let report: string;
       const { buildDeterministicReport } = await import('@/lib/report/detailed-report-router');
+      // Eski kayıtlarda scores düzleştirilmiş olabilir; ham cevaplardan yeniden hesapla.
+      const { bestScoresForReport } = await import('@/lib/report/recompute-scores');
+      const picked = await bestScoresForReport(tr.test_type as string, tr.scores, tr.raw_answers);
       const { data: prof } = await admin
         .from('profiles')
         .select('full_name, grade, birth_date')
@@ -170,7 +173,7 @@ export async function GET(request: NextRequest) {
       const { calculateAge } = await import('@/lib/utils/age');
       const deep = buildDeterministicReport(
         tr.test_type as string,
-        (tr.scores ?? {}) as Record<string, unknown>,
+        picked.scores,
         {
           studentName: (prof?.full_name as string) || 'Öğrenci',
           studentGrade: (prof?.grade as string | number | null) ?? null,
