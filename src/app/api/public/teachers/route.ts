@@ -5,10 +5,26 @@
  *
  * Auth gerekmez (kayıt öncesi çağrılır), CSRF muaf değil — middleware'den geçer
  * ama proxy.ts'te /api/public/* CSRF muaf değil, sadece GET kullanıyoruz.
+ *
+ * ─────────────────────────────────────────────────────────────────────
+ * HATA GÖRÜNÜRLÜĞÜ (18 Ağustos 2026 kesintisi sonrası):
+ *   Bu route eskiden Supabase hatasını YUTUYORDU:
+ *
+ *     const { data: profiles } = await admin.from('profiles')...  // error okunmuyor
+ *     const users = await listAllAuthUsers(admin);                // hatada [] döner
+ *
+ *   Sonuç: veritabanı tamamen kapalıyken bile "HTTP 200 + boş liste"
+ *   dönüyordu. Kayıt formu "hiç öğretmen yok" gösteriyor, kimse kesintiyi
+ *   fark etmiyordu. Kesinti haftalarca sürdü.
+ *
+ *   Artık ayrım net:
+ *     - Gerçekten onaylı öğretmen yoksa  → 200 + boş liste  (doğru)
+ *     - Supabase erişilemiyorsa          → 503              (görünür)
  */
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { listAllAuthUsers } from '@/lib/auth/admin-users';
+import { listAllAuthUsersStrict } from '@/lib/auth/admin-users';
+import { serverError } from '@/lib/api/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,15 +32,25 @@ export async function GET() {
   try {
     const admin = createAdminClient();
 
-    // Tüm öğretmen profillerini çek
-    const { data: profiles } = await admin
+    // Tüm öğretmen profillerini çek — error ARTIK kontrol ediliyor
+    const { data: profiles, error: profilesError } = await admin
       .from('profiles')
       .select('id, full_name')
       .eq('role', 'teacher')
       .order('full_name');
 
+    if (profilesError) {
+      return serverError(
+        'public/teachers',
+        profilesError,
+        503,
+        'Servise şu anda ulaşılamıyor. Lütfen birazdan tekrar deneyin.',
+      );
+    }
+
     // Auth user_metadata'dan branch + school_name + onay durumu
-    const users = await listAllAuthUsers(admin);
+    // Katı sürüm: Supabase kapalıysa boş liste değil, hata fırlatır.
+    const users = await listAllAuthUsersStrict(admin);
     const metaMap = new Map<string, Record<string, unknown>>();
     (users || []).forEach((u) => metaMap.set(u.id, u.user_metadata || {}));
 
@@ -45,7 +71,12 @@ export async function GET() {
 
     return NextResponse.json({ teachers });
   } catch (err) {
-    console.error('[public/teachers]', err);
-    return NextResponse.json({ error: 'Sunucu hatası', teachers: [] }, { status: 500 });
+    // Supabase erişilemiyor → 503 (eskiden 500 + teachers:[] idi, kesinti görünmezdi)
+    return serverError(
+      'public/teachers',
+      err,
+      503,
+      'Servise şu anda ulaşılamıyor. Lütfen birazdan tekrar deneyin.',
+    );
   }
 }

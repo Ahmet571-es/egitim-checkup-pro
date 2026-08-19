@@ -1,0 +1,69 @@
+name: Sağlık Kontrolü
+
+# ─────────────────────────────────────────────────────────────────────────
+# İKİ GÖREVİ VAR:
+#
+#   1. DURAKLATMAYI ÖNLEMEK
+#      Supabase Free plan projeleri ~7 gün düşük aktivitede otomatik
+#      duraklatılır. /api/health gerçek bir DB sorgusu ürettiği için
+#      günlük ping projeyi ayakta tutar.
+#
+#   2. KESİNTİYİ DUYURMAK
+#      18 Ağustos 2026'da veritabanı ödenmemiş fatura yüzünden askıya
+#      alındı ve kimse fark etmedi — sorun ancak bir öğrenci "giriş
+#      yapamıyorum" deyince ortaya çıktı. Bu iş başarısız olursa GitHub
+#      otomatik e-posta gönderir; artık öğrenciden önce biz haberdar oluruz.
+#
+# Not: schedule tetikleyicisi UTC çalışır ve GitHub yoğunlukta birkaç
+# dakika gecikmeli başlatabilir — 7 günlük eşik için sorun değil.
+# ─────────────────────────────────────────────────────────────────────────
+
+on:
+  schedule:
+    # Her gün 06:00 UTC (TR saatiyle 09:00)
+    - cron: '0 6 * * *'
+  # Elle de çalıştırılabilir: Actions sekmesi → Run workflow
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    name: /api/health kontrolü
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sağlık ucunu çağır
+        run: |
+          echo "İstek: https://egitim-checkup.com/api/health"
+
+          # 3 deneme — geçici ağ hatası yüzünden yanlış alarm vermeyelim
+          for attempt in 1 2 3; do
+            body=$(curl -sS --max-time 30 \
+                        -w $'\n%{http_code}' \
+                        -H 'Accept: application/json' \
+                        https://egitim-checkup.com/api/health || echo $'\n000')
+
+            code=$(echo "$body" | tail -n1)
+            payload=$(echo "$body" | sed '$d')
+
+            echo "Deneme $attempt → HTTP $code"
+            echo "$payload"
+
+            if [ "$code" = "200" ]; then
+              echo "✅ Sistem sağlıklı — veritabanı ve auth ayakta."
+              exit 0
+            fi
+
+            if [ $attempt -lt 3 ]; then
+              echo "Başarısız, 30 sn sonra tekrar denenecek..."
+              sleep 30
+            fi
+          done
+
+          echo ""
+          echo "❌ SAĞLIK KONTROLÜ BAŞARISIZ (3 denemede de)."
+          echo "Muhtemel sebepler:"
+          echo "  - Supabase projesi duraklatılmış (Free plan 7 gün hareketsizlik)"
+          echo "  - Ödenmemiş fatura → org askıya alınmış"
+          echo "  - Supabase servis kesintisi"
+          echo ""
+          echo "Kontrol et: https://supabase.com/dashboard/project/orvrjtcxowdrcdrctgqc"
+          exit 1

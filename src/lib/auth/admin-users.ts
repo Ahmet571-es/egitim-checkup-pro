@@ -33,6 +33,37 @@ export async function listAllAuthUsers(admin: SupabaseClient): Promise<User[]> {
 }
 
 /**
+ * listAllAuthUsers'ın KATI sürümü — hata olursa boş liste dönmek yerine FIRLATIR.
+ *
+ * NEDEN AYRI FONKSİYON:
+ *   Yukarıdaki `listAllAuthUsers` hatayı yutup elindeki kadarını döndürür.
+ *   Bu davranış dashboard/panel gibi "kısmi veri hiç yoktan iyidir" durumları
+ *   için bilinçli bir tercih ve 20+ çağrı noktası buna güveniyor — dolayısıyla
+ *   onu değiştirmiyoruz.
+ *
+ *   Ama Supabase TAMAMEN erişilemezken de aynı fonksiyon boş liste döndürüyor
+ *   ve çağıran taraf bunu "kayıt yok" sanıyor. 18 Ağustos 2026 kesintisinde
+ *   tam olarak bu oldu: veritabanı haftalarca kapalıyken /api/public/teachers
+ *   "200 + boş liste" dönüp kesintiyi görünmez kıldı.
+ *
+ *   Kesintiyi kayıt yokluğundan ayırt etmesi gereken yerler (health check,
+ *   public endpoint'ler) bu katı sürümü kullanmalı.
+ */
+export async function listAllAuthUsersStrict(admin: SupabaseClient): Promise<User[]> {
+  const all: User[] = [];
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: PER_PAGE });
+    if (error) {
+      throw new Error(`auth.listUsers sayfa ${page} başarısız: ${error.message}`);
+    }
+    const users = data?.users ?? [];
+    all.push(...users);
+    if (users.length < PER_PAGE) break; // son sayfa
+  }
+  return all;
+}
+
+/**
  * Tek kullanıcıyı e-postaya göre bulur.
  *
  * 1) profiles.email fast-path (ölçeklenir) → id → auth'tan tam kaydı çek
