@@ -81,8 +81,8 @@ export const HOLLAND_INFO: Record<string, { like: string; act: string; env: stri
     like: 'insanlara yardım etmeyi, onlarla doğrudan çalışmayı ve öğretmeyi',
     act: 'insanlarla doğrudan çalışma ve yardım',
     env: 'insanlarla iç içe, iş birliğine dayalı ve yardım odaklı',
-    jobs: ['öğretmenlik', 'hekimlik ve hemşirelik', 'psikoloji ve rehberlik', 'sosyal hizmet', 'fizyoterapi'],
-    fields: ['Tıp / Hemşirelik / Fizyoterapi', 'Psikoloji', 'Rehberlik ve Psikolojik Danışmanlık', 'Öğretmenlik Programları', 'Sosyal Hizmet'],
+    jobs: ['öğretmenlik', 'psikoloji ve rehberlik', 'hemşirelik ve fizyoterapi', 'sosyal hizmet', 'çocuk gelişimi'],
+    fields: ['Psikoloji', 'Rehberlik ve Psikolojik Danışmanlık', 'Öğretmenlik Programları', 'Hemşirelik / Fizyoterapi', 'Sosyal Hizmet'],
     skill: 'iletişim, empati ve iş birliği',
   },
   E: {

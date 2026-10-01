@@ -52,7 +52,30 @@ function weakestAcademic(c: Ctx): { label: string; short: string; level: Level }
   const short = w.label.startsWith('Matematik') ? 'matematik' : w.label.startsWith('Okuduğunu') ? 'okuduğunu anlama' : 'mantık yürütme';
   return { label: w.label, short, level: w.level };
 }
-const isHigh = (c: Ctx) => (c.student.grade ?? 0) >= 9;
+/**
+ * Öğrencinin okul kademesi. Sınıf bilgisi yoksa yaştan kestirilir; 14 yaş gibi
+ * geçiş yaşlarında kademe belirsiz (null) kabul edilir ve metinler buna göre
+ * kademe varsaymadan yazılır.
+ */
+type Stage = 'ilkokul' | 'ortaokul' | 'lise' | null;
+function stageOf(c: Ctx): Stage {
+  const g = c.student.grade;
+  if (g) return g <= 4 ? 'ilkokul' : g <= 8 ? 'ortaokul' : 'lise';
+  const a = c.student.age;
+  if (!a) return null;
+  if (a <= 9) return 'ilkokul';
+  if (a <= 13) return 'ortaokul';
+  if (a >= 15) return 'lise';
+  return null;
+}
+/** Lise son sınıflarına henüz gelmemiş mi (üniversite tercihi henüz uzak mı)? */
+function isEarly(c: Ctx): boolean {
+  const g = c.student.grade;
+  if (g) return g <= 9;
+  const a = c.student.age;
+  return !a || a <= 15;
+}
+const isHigh = (c: Ctx) => stageOf(c) === 'lise';
 
 // ── Kişilik temelli alt bölümler ─────────────────────────────
 
@@ -226,9 +249,9 @@ const futureHints: SubBuilder = (c) => {
     const fields = [...new Set(top.slice(0, 2).flatMap((k) => MI_INFO[k]?.careers ?? []))].slice(0, 5);
     if (fields.length) blocks.push(P(c.f(`İlgi alanları göz önüne alındığında ${joinTr(fields)} gibi alanlar, ileride keşfetmeye değer seçenekler arasında görünüyor.`)));
   }
-  const g = c.student.grade;
-  blocks.push(P(c.f(g && g <= 8
-    ? `{ad} henüz ${g <= 4 ? 'ilkokul' : 'ortaokul'} çağında ve ilgileri bu yıllarda şekillenmeye devam edecek. Şimdilik en doğrusu, farklı alanları merakla denemesine alan açmak.`
+  const st = stageOf(c);
+  blocks.push(P(c.f(st === 'ilkokul' || st === 'ortaokul'
+    ? `{ad} henüz ${st} çağında ve ilgileri bu yıllarda şekillenmeye devam edecek. Şimdilik en doğrusu, farklı alanları merakla denemesine alan açmak.`
     : 'İlgiler bu yıllarda şekillenmeye devam ediyor. Şimdilik en doğrusu, farklı alanları merakla denemesine alan açmak; ilerleyen dönemde ilgi, yetenek ve değerlerini birlikte ele alan bir kariyer değerlendirmesi daha net bir yol haritası çizmekte faydalı olacaktır.')));
   return blocks.length > 1 ? { title: 'Geleceğe Dair İlk İpuçları', blocks } : null;
 };
@@ -421,12 +444,13 @@ const subjectTips: SubBuilder = (c) => {
     },
   };
   const hi = isHigh(c);
+  const unknownStage = stageOf(c) === null;
   const mathTip = c.has('ac_math_low') ? 'Eksik konuları kolaydan zora sıralayan kısa setler ve bir hata defteri; her yanlışın doğru çözümünü yazmak.' : TIP.mat[style];
   const rows: [string, string][] = [
-    [hi ? 'Türk Dili ve Edebiyatı' : 'Türkçe', c.has('ac_read_low') || c.has('rd_slow') ? 'Her gün 15 dakika okuma ve iki cümlelik özet; paragraf sorularında önce soru kökü, sonra metin.' : TIP.tr[style]],
+    [hi ? 'Türk Dili ve Edebiyatı' : unknownStage ? 'Türkçe / Edebiyat' : 'Türkçe', c.has('ac_read_low') || c.has('rd_slow') ? 'Her gün 15 dakika okuma ve iki cümlelik özet; paragraf sorularında önce soru kökü, sonra metin.' : TIP.tr[style]],
     ['Matematik', mathTip],
-    [hi ? 'Fizik / Kimya / Biyoloji' : 'Fen Bilimleri', TIP.fen[style]],
-    [hi ? 'Tarih / Coğrafya' : 'Sosyal Bilgiler', TIP.sos[style]],
+    [hi ? 'Fizik / Kimya / Biyoloji' : unknownStage ? 'Fen dersleri' : 'Fen Bilimleri', TIP.fen[style]],
+    [hi ? 'Tarih / Coğrafya' : unknownStage ? 'Sosyal dersler' : 'Sosyal Bilgiler', TIP.sos[style]],
     ['Yabancı Dil', TIP.dil[style]],
   ];
   if (!a && !vark && !brain) return null;
@@ -824,8 +848,8 @@ const majorsMap: SubBuilder = (c) => {
   const h = c.get('holland');
   const order = ((h?.facts as Record<string, unknown> | undefined)?.order as string[]) ?? [];
   const last = order[order.length - 1];
-  const g = c.student.grade ?? 0;
-  if (g && g <= 8) {
+  const st = stageOf(c);
+  if (st === 'ilkokul' || st === 'ortaokul') {
     const LISE: Record<string, string> = {
       R: 'Mesleki ve Teknik Anadolu Liselerinin teknik alanları; Anadolu Lisesi',
       I: 'Fen Lisesi; Anadolu Lisesi (sayısal ağırlıklı)',
@@ -845,13 +869,30 @@ const majorsMap: SubBuilder = (c) => {
       ],
     };
   }
+  // Aynı alan (ör. Tıp) iki satırda birden çıkmasın: anahtar kelimeye göre tekilleştir.
   const seen = new Set<string>();
-  const pick = (k: string, n: number) => (HOLLAND_INFO[k]?.fields ?? []).filter((x) => !seen.has(x)).slice(0, n).map((x) => (seen.add(x), x)).join(', ');
+  const keyOf = (x: string) => {
+    const t = x.toLocaleLowerCase('tr-TR');
+    if (/tıp|hekim|hemşire|eczacı|fizyoterapi/.test(t)) return 'saglik';
+    if (/mühendis|mekatronik/.test(t)) return 'muhendislik:' + t;
+    if (/psikolo|rehberlik/.test(t)) return 'psikoloji';
+    if (/kamu yönetimi|siyaset/.test(t)) return 'kamu';
+    return t;
+  };
+  const pick = (k: string, n: number) =>
+    (HOLLAND_INFO[k]?.fields ?? [])
+      .filter((x) => !seen.has(keyOf(x)))
+      .slice(0, n)
+      .map((x) => (seen.add(keyOf(x)), x))
+      .join(', ');
   const rows: [string, string][] = [['İlgiyle en uyumlu', pick(code[0], 4)]];
   if (code[1]) rows.push(['Değerlendirilebilir', pick(code[1], 3)]);
   if (code[2]) rows.push(['Keşfedilebilir', pick(code[2], 3)]);
   if (last && !code.includes(last)) rows.push(['Şu an daha az ilgi duyduğu', pick(last, 3)]);
-  return { title: 'Bölüm ve Alan Tercih Haritası', blocks: [{ t: 'table', head: ['İlgiyle uyum', 'Bölüm ve alanlar'], rows: rows.filter((r) => r[1]) }, NOTE('Bölüm tercihinde puan aralıkları ve sınav türü de belirleyicidir. Bu harita, ilgi temelli bir ön yönlendirmedir.')] };
+  const note = st === null
+    ? 'Bu harita uzun vadeli, ilgi temelli bir ön yönlendirmedir. Öğrenci henüz lise türü tercihi aşamasındaysa önce ilgisine uygun lise türü değerlendirilmeli; bölüm tercihinde ise puan ve sınav türü de belirleyici olacaktır.'
+    : 'Bölüm tercihinde puan aralıkları ve sınav türü de belirleyicidir. Bu harita, ilgi temelli bir ön yönlendirmedir.';
+  return { title: 'Bölüm ve Alan Tercih Haritası', blocks: [{ t: 'table', head: ['İlgiyle uyum', 'Bölüm ve alanlar'], rows: rows.filter((r) => r[1]) }, NOTE(note)] };
 };
 
 const selfDevelopment: SubBuilder = (c) => {
@@ -881,13 +922,16 @@ const decisionTips: SubBuilder = (c) => {
     9: 'Kararı ertelememek; kendi isteğini açıkça ortaya koymak.',
   };
   if (main && byType[main]) items.push(byType[main]);
-  const g = c.student.grade ?? 0;
-  if (g && g <= 8) {
+  const st = stageOf(c);
+  if (st === 'ilkokul' || st === 'ortaokul') {
     items.push('Lise tercihini yalnızca LGS puanına göre değil, ilgi alanlarına ve okulun sunduğu imkânlara göre de değerlendirmek.');
     items.push('Tercih edilen liseleri tanıtım günlerinde ziyaret etmek; o okullarda okuyan öğrencilerle konuşmak.');
-  } else {
+  } else if (st === 'lise') {
     items.push('Bölüm tercihini yalnızca puana göre değil, ilgi ve çalışma ortamı tercihlerine göre de değerlendirmek.');
     items.push('Merak ettiği alanlarda üniversite tanıtım günleri, kısa kurslar ya da gönüllü çalışmalarla deneyim kazanmak.');
+  } else {
+    items.push('Okul ve alan tercihlerini yalnızca puana göre değil, ilgi alanlarına ve çalışma ortamı tercihlerine göre de değerlendirmek.');
+    items.push('Merak ettiği alanlarda tanıtım günleri, kulüpler, kısa kurslar ya da gönüllü çalışmalarla deneyim kazanmak.');
   }
   if (c.has('hol_flat')) items.push('İlgiler henüz net değilse, kararı aceleye getirmeden farklı alanları denemeye zaman tanımak.');
   if (!p && !hollandCode(c)) return null;
@@ -896,8 +940,7 @@ const decisionTips: SubBuilder = (c) => {
 
 const roadmap: SubBuilder = (c) => {
   if (!hollandCode(c)) return null;
-  const g = c.student.grade ?? null;
-  const rows: { period: string; title: string; text: string }[] = g && g <= 9
+  const rows: { period: string; title: string; text: string }[] = isEarly(c)
     ? [
         { period: 'Bu yıl', title: 'Keşif', text: 'İlgi alanlarıyla ilgili kulüp ve etkinliklere katılmak; farklı meslekleri tanımak.' },
         { period: 'Gelecek yıl', title: 'Derinleşme', text: 'Öne çıkan iki alanda küçük projeler yapmak; alan seçimi için akademik durumu değerlendirmek.' },

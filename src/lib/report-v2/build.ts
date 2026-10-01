@@ -280,13 +280,13 @@ function studentSection(c: Ctx): Section {
   const vark = c.get('vark');
   if (vark && ways.length < 5) {
     const d = String((vark.facts as Record<string, unknown>).dominant);
-    const tips: Record<string, string> = {
-      V: 'Konuları şemaya ve zihin haritasına dök; renkli kalemler kullan.',
-      A: 'Konuyu sesli anlatarak tekrar et; bir arkadaşınla soru-cevap yap.',
-      R: 'Okuduğunu kendi cümlelerinle özetle; maddeler hâlinde not tut.',
-      K: 'Bol örnek ve uygulama sorusu çöz; çalışırken kısa hareket molaları ver.',
+    const tips: Record<string, string[]> = {
+      V: ['Konuları şemaya ve zihin haritasına dök.', 'Renkli kalemlerle görsel notlar tut.', 'Videolardan ve görsel kaynaklardan yararlan.'],
+      A: ['Konuyu sesli anlatarak tekrar et.', 'Bir arkadaşınla soru-cevap yap.', 'Önemli bilgileri kaydedip dinle.'],
+      R: ['Okuduğunu kendi cümlelerinle özetle.', 'Maddeler hâlinde not tut.', 'Konuyu yazarak yeniden anlat.'],
+      K: ['Bol örnek ve uygulama sorusu çöz.', 'Deney, model ve somut materyallerle çalış.', 'Çalışırken kısa hareket molaları ver.'],
     };
-    if (tips[d]) ways.push(tips[d]);
+    for (const t of tips[d] ?? []) if (ways.length < 5) ways.push(t);
   }
   items.push({ title: 'Sana İyi Gelen Çalışma Yolları', blocks: ways.length ? [BUL(ways.slice(0, 5))] : [] });
   const comm = c.first('youComm');

@@ -20,7 +20,7 @@ const MI_ADJ: Record<string, string> = {
   mantiksal: 'sayılar ve mantıkla düşünmeyi seven',
   gorsel: 'şekiller ve görsellerle düşünen',
   muziksel: 'ritim ve seslere duyarlı',
-  dogaci: 'doğaya ve canlılara ilgili',
+  dogaci: 'doğaya ve canlılara ilgi duyan',
   sosyal: 'insanlarla kolay bağ kuran',
   bedensel: 'hareketli ve yaparak öğrenen',
   icsel: 'kendini tanımaya ilgi duyan',
@@ -57,7 +57,7 @@ const STUDY_YOU: Record<string, string> = {
   E: 'ödevlerini düzenli hazırlıyorsun', F: 'okula karşı olumlu bir tutumun var', G: 'sınavlara iyi hazırlanıyorsun',
 };
 const HOL_ADJ: Record<string, string> = {
-  R: 'elleriyle çalışmayı seven', I: 'araştırmayı ve sorgulamayı seven', A: 'yaratıcı', S: 'insanlara yardım etmeyi seven', E: 'sorumluluk almayı seven', C: 'düzenli ve planlı çalışmayı seven',
+  R: 'elle çalışılan, somut işlere ilgi duyan', I: 'araştırmaya ve sorgulamaya ilgi duyan', A: 'yaratıcı işlere ilgi duyan', S: 'insanlarla çalışmaya ilgi duyan', E: 'yönlendirme ve sorumluluk almaya ilgi duyan', C: 'düzenli ve planlı işlere ilgi duyan',
 };
 const lc = (x: string) => `${x.charAt(0).toLocaleLowerCase('tr-TR')}${x.slice(1)}`;
 
@@ -385,7 +385,12 @@ export function syntheticProfile(traits: TraitMap, analyses: TestAnalysis[], has
   if (hasPersona) return p;
 
   const adj = s.adj.slice(0, 3);
-  const joinAdj = (xs: string[]) => (xs.some((x) => / ve /.test(x)) ? xs.join(', ') : joinTr(xs));
+  const joinAdj = (xs: string[]) =>
+    xs.length === 2 && xs.every((x) => / ve /.test(x))
+      ? `${xs[0]}, aynı zamanda ${xs[1]}`
+      : xs.some((x) => / ve /.test(x))
+        ? xs.join(', ')
+        : joinTr(xs);
   const head = adj.length ? `{ad}, ${joinAdj(adj)} bir öğrenci` : '{adın} sonuçları dengeli bir tablo çiziyor';
   const next = g[0] ? ` Bundan sonraki adım: ${lc(g[0])}` : '';
   const issue2 = issue ? ISSUES.find((i) => i !== issue && has(i.trait) && !(issue.trait === 'ac_both_low' && /^ac_(math|read)_low$/.test(i.trait))) : undefined;

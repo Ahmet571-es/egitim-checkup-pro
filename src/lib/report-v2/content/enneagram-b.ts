@@ -209,7 +209,7 @@ export const ENN5: Profile = {
   motivators: ['merakı besleyen konular', 'bağımsız çalışma', 'mantıklı açıklamalar', 'kendi hızında ilerleme'],
   stoppers: ['anlamsız ezber', 'sürekli grup etkileşimi', 'aceleyle karar verme baskısı', 'kalabalık ve gürültü'],
   resources: [
-    '{adın} en güçlü kaynağı merakı ve derinlemesine düşünme becerisi. Bir konuyu bütün yönleriyle anlamaya çalışması, özellikle fen, matematik ve araştırma gerektiren alanlarda ona önemli bir avantaj sağlıyor.',
+    '{adın} en güçlü kaynağı merakı ve derinlemesine düşünme becerisi. Bir konuyu bütün yönleriyle anlamaya çalışması, özellikle fen, matematik ve araştırma gerektiren alanlarda ona önemli bir avantaj sağlayabilir.',
     'Sakinliği ve mantıklı yaklaşımı, kriz anlarında bile soğukkanlı kalmasını kolaylaştırıyor.',
   ],
   resourceBullets: ['Merak ve öğrenme isteği', 'Analitik ve bağımsız düşünme', 'Gözlem gücü', 'Sakinlik ve soğukkanlılık'],
