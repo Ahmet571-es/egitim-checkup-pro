@@ -3,6 +3,8 @@
 import React from 'react';
 import { parseReport, type InfographicAudience } from '@/lib/report/infographic-blocks';
 import InfographicBlockRenderer from '@/components/infographic/InfographicBlockRenderer';
+import ReportV2View from '@/components/report-v2/ReportV2View';
+import { decodeReportV2 } from '@/lib/report-v2/serialize';
 
 /**
  * Renkli, zengin AI rapor render bileşeni.
@@ -299,6 +301,10 @@ export default function ReportRenderer({
   // İleride scores/testType ile rapor başına grafik üretmek için opsiyonel
   void scores; void testType;
   if (!text || !text.trim()) return <p className="text-gray-400 dark:text-slate-500 italic">Rapor içeriği boş.</p>;
+
+  // Yeni format (v2) rapor: kendi görünümüyle çizilir.
+  const v2 = decodeReportV2(text);
+  if (v2) return <ReportV2View report={v2} />;
 
   // FAZ 2C: Önce infografik bloklarını ayır; metin parçaları eski parseBlocks
   // ile işlenir, blok parçaları InfographicBlockRenderer ile render edilir.

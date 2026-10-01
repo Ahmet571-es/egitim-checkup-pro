@@ -33,17 +33,23 @@ export interface ReportFreshness {
   reason: string;
 }
 
+/** Yeni format (v2) "Bütünsel Değerlendirme Raporu" imzası. */
+const V2_MARKER = '<!--ECR2:';
+
 export function checkReportFreshness(reportText: string | null | undefined): ReportFreshness {
   const t = (reportText || '').trim();
   if (!t) return { fresh: false, markers: 0, reason: 'Rapor henüz üretilmemiş.' };
 
+  // Yeni format raporlar her zaman günceldir.
+  if (t.includes(V2_MARKER)) return { fresh: true, markers: DEEP_MARKERS.length, reason: 'Yeni rapor formatıyla üretilmiş.' };
+
+  // Yeni format devreye girdikten sonra eski biçimli tüm raporlar "eski sürüm"
+  // sayılır; öğretmen "Yenile" ile yeni formata geçirebilir.
   const markers = DEEP_MARKERS.reduce((n, m) => (t.includes(m) ? n + 1 : n), 0);
-  if (markers >= MIN_MARKERS) {
-    return { fresh: true, markers, reason: 'Güncel rapor motoruyla üretilmiş.' };
-  }
+  void MIN_MARKERS;
   return {
     fresh: false,
     markers,
-    reason: 'Bu rapor eski sürümle üretilmiş; yenilendiğinde çok daha ayrıntılı ve görselli olur.',
+    reason: 'Bu rapor eski formatla üretilmiş; yenilendiğinde yeni rapor formatına (renkli grafikler, öğrenci/aile/uzman bölümleri) geçer.',
   };
 }

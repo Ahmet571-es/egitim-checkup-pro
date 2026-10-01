@@ -2,6 +2,7 @@
  * Excel Rapor Üretici — exceljs (tam Unicode/Türkçe desteği)
  */
 import ExcelJS from 'exceljs';
+import { stripReportV2Payload } from '@/lib/report-v2/serialize';
 
 export interface ExcelStudentData {
   studentId: string;
@@ -160,7 +161,8 @@ export async function generateStudentExcel(data: ExcelStudentData): Promise<Buff
     styleDataRow(emptyRow, false);
   } else {
     reportedTests.forEach((t, idx) => {
-      let reportContent = t.aiReport ?? '';
+      // Yeni format raporlarda sondaki yapılandırılmış veri Excel'e yazılmaz.
+      let reportContent = stripReportV2Payload(t.aiReport ?? '');
       if (reportContent.length > 32000) {
         reportContent = reportContent.slice(0, 32000) + '\n... (kesildi)';
       }

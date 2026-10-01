@@ -21,20 +21,9 @@ import {
 } from 'recharts';
 import type { StudentTrend } from '@/lib/services/longitudinal';
 import { getStudentAllTrends } from '@/lib/services/longitudinal';
+import { TEST_COLORS } from '@/lib/tests/colors';
 
 // ── Test renkleri & etiketleri ──────────────────────────────
-const TEST_COLORS: Record<string, string> = {
-  enneagram: '#8b5cf6',
-  vark: '#10b981',
-  holland: '#f59e0b',
-  'coklu-zeka': '#6366f1',
-  'sinav-kaygisi': '#ef4444',
-  'calisma-davranisi': '#0ea5e9',
-  'akademik-analiz': '#059669',
-  'hizli-okuma': '#f97316',
-  'd2-dikkat': '#dc2626',
-  'sag-sol-beyin': '#7c3aed',
-};
 
 const TEST_LABELS: Record<string, string> = {
   enneagram: 'Enneagram',

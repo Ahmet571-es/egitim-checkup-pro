@@ -49,9 +49,10 @@ export const PACKAGES: Record<PackageType, PackageDefinition> = {
   'potansiyel-mizac': {
     id: 'potansiyel-mizac',
     label: 'Potansiyel & Mizaç',
-    description: 'Çocuğun mizaç yapısı ve genetik temelli yatkınlıklarına odaklanır.',
+    description: 'Çocuğun mizaç yapısını, ilgi ve öğrenme tercihlerini birlikte ele alır.',
     test_groups: [ENNEAGRAM, COKLU_ZEKA],
-    uses_genetic: true,
+    // Paket raporları (rapor v2) genetik (DMIT) bilgisi içermez.
+    uses_genetic: false,
     audience_focus: 'Erken yaş (ilkokul-ortaokul) — kişisel yatkınlık keşfi',
   },
   'akademik-performans': {
@@ -75,7 +76,7 @@ export const PACKAGES: Record<PackageType, PackageDefinition> = {
     label: 'Kariyer & Gelecek',
     description: 'Mesleki yatkınlık ve kişilik temelli kariyer yönelimi.',
     test_groups: [HOLLAND, ENNEAGRAM],
-    uses_genetic: true,
+    uses_genetic: false,
     audience_focus: 'Lise — meslek seçimi ve uzun vadeli yönelim',
   },
   'vip': {
@@ -88,8 +89,8 @@ export const PACKAGES: Record<PackageType, PackageDefinition> = {
       AKADEMIK_ANALIZ, HIZLI_OKUMA,
       DIKKAT_TESTI, SAG_SOL_BEYIN,
     ],
-    uses_genetic: true,
-    audience_focus: 'Tüm testler + genetik — bütüncül 360° değerlendirme',
+    uses_genetic: false,
+    audience_focus: 'Tüm testler — bütüncül 360° değerlendirme',
   },
 };
 

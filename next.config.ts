@@ -11,9 +11,20 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/api/export/[format]': [
       './node_modules/pdfmake/build/fonts/Roboto/*.ttf',
+      './src/lib/export/fonts/*.ttf',
     ],
     'app/api/export/[format]/route': [
       './node_modules/pdfmake/build/fonts/Roboto/*.ttf',
+      './src/lib/export/fonts/*.ttf',
+    ],
+    // Yeni format raporların PDF'i DejaVu fontlarını kullanır (Türkçe karakterler tam).
+    '/api/export/holistic/[format]': [
+      './node_modules/pdfmake/build/fonts/Roboto/*.ttf',
+      './src/lib/export/fonts/*.ttf',
+    ],
+    'app/api/export/holistic/[format]/route': [
+      './node_modules/pdfmake/build/fonts/Roboto/*.ttf',
+      './src/lib/export/fonts/*.ttf',
     ],
   },
   async headers() {

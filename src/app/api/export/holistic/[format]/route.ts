@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { buildContentDisposition } from '@/lib/export/content-disposition';
+import { isReportV2Text } from '@/lib/report-v2/serialize';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
@@ -150,7 +151,8 @@ export async function GET(
       // Faz 9 KVKK m.6 kritik: SADECE 'teacher' audience'da genetik PDF gömülür.
       // 'parent' ve 'student' versiyonlarına ASLA gömülmez (özel kategori veri).
       // audience NULL ise eski Faz 6 raporu — genetik gömme davranışı korunur.
-      const shouldEmbedGenetic = !hr.audience || hr.audience === 'teacher';
+      // Yeni format (v2) raporlara genetik (DMIT) eki konmaz.
+      const shouldEmbedGenetic = (!hr.audience || hr.audience === 'teacher') && !isReportV2Text(hr.report_text);
 
       let finalPdfBytes: Uint8Array;
       if (shouldEmbedGenetic) {
@@ -167,7 +169,7 @@ export async function GET(
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': buildContentDisposition(
-            `${safeName}_harmanlanmis_rapor${pkgSuffix}${audienceSuffix}_${dateLabel}.pdf`,
+            `${safeName}_${isReportV2Text(hr.report_text) && hr.package_type ? 'paket_raporu' : 'harmanlanmis_rapor'}${pkgSuffix}${audienceSuffix}_${dateLabel}.pdf`,
           ),
         },
       });
@@ -180,7 +182,7 @@ export async function GET(
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': buildContentDisposition(
-          `${safeName}_harmanlanmis_rapor_${dateLabel}.docx`,
+          `${safeName}_${isReportV2Text(hr.report_text) && hr.package_type ? `paket_raporu_${hr.package_type}` : 'harmanlanmis_rapor'}_${dateLabel}.docx`,
         ),
       },
     });

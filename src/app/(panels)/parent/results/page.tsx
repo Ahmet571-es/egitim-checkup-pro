@@ -8,6 +8,7 @@ import PageHeader from '@/components/ui/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import { CardGridSkeleton } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/Toast';
+import { isReportV2Text, reportPreviewText } from '@/lib/report-v2/serialize';
 
 interface Child {
   id: string;
@@ -246,8 +247,8 @@ function ResultsContent() {
 
               {r.ai_report ? (
                 <div className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed bg-pink-50/50 dark:bg-slate-900/40 rounded-xl p-4 mt-2 border border-pink-100/60 dark:border-slate-700/60">
-                  {r.ai_report.slice(0, 400)}
-                  {r.ai_report.length > 400 && (
+                  {reportPreviewText(r.ai_report, 400)}
+                  {(isReportV2Text(r.ai_report) || r.ai_report.length > 400) && (
                     <span className="text-pink-600 dark:text-pink-400 font-semibold"> … tam rapor için indirin.</span>
                   )}
                 </div>

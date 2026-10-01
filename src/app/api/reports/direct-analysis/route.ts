@@ -161,6 +161,25 @@ export async function GET(request: NextRequest) {
     // tutarsız kalite görüyordu. Artık her yol AYNI derin motoru kullanıyor.
     try {
       let report: string;
+      // Yeni format (rapor v2) — "Rapor Üret" ile aynı tasarım ve içerik.
+      try {
+        const { data: profV2 } = await admin
+          .from('profiles')
+          .select('full_name, grade, birth_date, school_id')
+          .eq('id', tr.student_id)
+          .maybeSingle();
+        const { buildStoredReportV2 } = await import('@/lib/report-v2/server');
+        const built = await buildStoredReportV2(admin, {
+          kind: 'single',
+          student: (profV2 ?? {}) as { full_name?: string | null; grade?: number | null; birth_date?: string | null; school_id?: string | null },
+          results: [{ test_type: tr.test_type as string, scores: tr.scores, raw_answers: tr.raw_answers, completed_at: (tr.completed_at as string | null) ?? null }],
+        });
+        if (built) {
+          return NextResponse.json({ report: built.text, test_type: tr.test_type, completed_at: tr.completed_at });
+        }
+      } catch (e) {
+        console.error('[direct-analysis] yeni format rapor kurulamadı, eski motora düşülüyor:', (e as Error).message);
+      }
       const { buildDeterministicReport } = await import('@/lib/report/detailed-report-router');
       // Eski kayıtlarda scores düzleştirilmiş olabilir; ham cevaplardan yeniden hesapla.
       const { bestScoresForReport } = await import('@/lib/report/recompute-scores');

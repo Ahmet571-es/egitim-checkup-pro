@@ -318,28 +318,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // ── Çoklu Zekâ → DETERMİNİSTİK MOTOR (API kullanmaz) ──
-    // Öğretmen panelindeki "analiz" butonu artık bu test için kendi sistem
-    // analizimizi üretir. Diğer testler şimdilik AI ile devam eder.
-    // Deterministik motor (API'SIZ) — motoru olan testler için. Yoksa AI'a düşer.
-    // Eski kayıtlarda scores düzleştirilmiş olabilir; ham cevaplardan yeniden hesapla.
-
-    const { bestScoresForReport } = await import('@/lib/report/recompute-scores');
-
-    const picked = await bestScoresForReport(testResult.test_type, testResult.scores, testResult.raw_answers);
-
-    const deterministic = buildDeterministicReport(
-      testResult.test_type,
-      picked.scores,
-      { studentName: student.full_name, studentGrade: student.grade ?? null, studentAge: calculateAge(student.birth_date) },
-    );
-
-    // Bilinmeyen tür gelirse generic deterministik fallback (API'SIZ)
-    const report = deterministic ?? buildGenericDeterministicReport(
-      testResult.test_type,
-      testResult.scores,
-      { studentName: student.full_name, studentGrade: student.grade ?? null, studentAge: calculateAge(student.birth_date) },
-    );
+    // Yeni format (v2) "Değerlendirme Raporu"; kurulamazsa eski deterministik motora düşer.
+    const report = await buildSingleTestReport(admin, student, testResult);
 
     // Admin client ile raporu kaydet (RLS bypass — outer scope admin)
     const { error: updateErr } = await admin
@@ -405,7 +385,7 @@ export async function PUT(request: NextRequest) {
 
     const { data: student } = await admin
       .from('profiles')
-      .select('id, full_name, grade, birth_date')
+      .select('id, full_name, grade, birth_date, school_id')
       .eq('id', student_id)
       .single();
 
@@ -415,7 +395,7 @@ export async function PUT(request: NextRequest) {
 
     const { data: testResult } = await admin
       .from('test_results')
-      .select('id, test_type, scores, raw_answers')
+      .select('id, test_type, scores, raw_answers, completed_at')
       .eq('id', test_result_id)
       .single();
 
@@ -423,28 +403,8 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Test sonucu bulunamadı.' }, { status: 404 });
     }
 
-    // ── Çoklu Zekâ → DETERMİNİSTİK MOTOR (API kullanmaz) ──
-    // Öğretmen panelindeki "analiz" butonu artık bu test için kendi sistem
-    // analizimizi üretir. Diğer testler şimdilik AI ile devam eder.
-    // Deterministik motor (API'SIZ) — motoru olan testler için. Yoksa AI'a düşer.
-    // Eski kayıtlarda scores düzleştirilmiş olabilir; ham cevaplardan yeniden hesapla.
-
-    const { bestScoresForReport } = await import('@/lib/report/recompute-scores');
-
-    const picked = await bestScoresForReport(testResult.test_type, testResult.scores, testResult.raw_answers);
-
-    const deterministic = buildDeterministicReport(
-      testResult.test_type,
-      picked.scores,
-      { studentName: student.full_name, studentGrade: student.grade ?? null, studentAge: calculateAge(student.birth_date) },
-    );
-
-    // Bilinmeyen tür gelirse generic deterministik fallback (API'SIZ)
-    const report = deterministic ?? buildGenericDeterministicReport(
-      testResult.test_type,
-      testResult.scores,
-      { studentName: student.full_name, studentGrade: student.grade ?? null, studentAge: calculateAge(student.birth_date) },
-    );
+    // Yeni format (v2) "Değerlendirme Raporu"; kurulamazsa eski deterministik motora düşer.
+    const report = await buildSingleTestReport(admin, student, testResult);
 
     // Admin client ile kaydet (RLS bypass — outer scope admin)
     const { error: saveErr } = await admin
@@ -464,4 +424,30 @@ export async function PUT(request: NextRequest) {
     console.error('[reports/generate PUT]', err);
     return NextResponse.json({ error: 'Sunucu hatası.' }, { status: 500 });
   }
+}
+// ── Tek test raporu kurucu ─────────────────────────────────────
+type AdminClient = ReturnType<typeof createAdminClient>;
+interface SingleStudent { full_name: string | null; grade?: number | null; birth_date?: string | null; school_id?: string | null }
+interface SingleResult { test_type: string; scores: unknown; raw_answers?: unknown; completed_at?: string | null }
+
+/**
+ * Önce yeni formatı (rapor v2) dener; test türü tanınmazsa ya da bir hata
+ * olursa eski deterministik rapora düşer. Yapay zekâ kullanılmaz.
+ */
+async function buildSingleTestReport(admin: AdminClient, student: SingleStudent, testResult: SingleResult): Promise<string> {
+  try {
+    const { buildStoredReportV2 } = await import('@/lib/report-v2/server');
+    const built = await buildStoredReportV2(admin, {
+      kind: 'single',
+      student,
+      results: [{ test_type: testResult.test_type, scores: testResult.scores, raw_answers: testResult.raw_answers, completed_at: testResult.completed_at ?? null }],
+    });
+    if (built) return built.text;
+  } catch (e) {
+    console.error('[reports/generate] yeni format rapor kurulamadı, eski motora düşülüyor:', (e as Error).message);
+  }
+  const { bestScoresForReport } = await import('@/lib/report/recompute-scores');
+  const picked = await bestScoresForReport(testResult.test_type, testResult.scores, testResult.raw_answers);
+  const info = { studentName: student.full_name ?? 'Öğrenci', studentGrade: student.grade ?? null, studentAge: calculateAge(student.birth_date ?? null) };
+  return buildDeterministicReport(testResult.test_type, picked.scores, info) ?? buildGenericDeterministicReport(testResult.test_type, testResult.scores, info);
 }

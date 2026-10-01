@@ -10,6 +10,7 @@ const virtualFs = require('pdfmake/js/virtual-fs').default;
 import path from 'path';
 
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
+import { decodeReportV2 } from '@/lib/report-v2/serialize';
 import {
   parseReport,
   AUDIENCE_PALETTES,
@@ -727,6 +728,9 @@ function markdownToContent(
 }
 
 export function generateReportPdf(reportText: string, meta: ReportMetadata): Promise<Buffer> {
+  // Yeni format (v2) raporlar kendi tasarımıyla çizilir.
+  const v2 = decodeReportV2(reportText);
+  if (v2) return import('./v2/pdf').then((m) => m.generateReportV2Pdf(v2));
   return new Promise((resolve, reject) => {
     try {
       const printer = getPrinter();

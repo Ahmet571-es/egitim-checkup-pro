@@ -178,13 +178,27 @@ export async function POST(req: NextRequest) {
         selected_test_types: string[];
         test_count: number;
         generated_at: string;
+        package_type?: string | null;
       }> = [];
       try {
-        const { data: hrList } = await admin
+        // package_type kolonu (Faz 9) yoksa eski seçimle devam et
+        type HrRow = { id: string; report_text: string; selected_test_types: string[] | null; test_count: number | null; generated_at: string; package_type?: string | null };
+        let hrList: HrRow[] | null = null;
+        const withPkg = await admin
           .from('holistic_reports')
-          .select('id, report_text, selected_test_types, test_count, generated_at')
+          .select('id, report_text, selected_test_types, test_count, generated_at, package_type')
           .eq('student_id', studentId)
           .order('generated_at', { ascending: false });
+        if (withPkg.error) {
+          const basic = await admin
+            .from('holistic_reports')
+            .select('id, report_text, selected_test_types, test_count, generated_at')
+            .eq('student_id', studentId)
+            .order('generated_at', { ascending: false });
+          hrList = (basic.data as HrRow[] | null) ?? null;
+        } else {
+          hrList = (withPkg.data as HrRow[] | null) ?? null;
+        }
         if (Array.isArray(hrList) && hrList.length > 0) {
           holisticReports = hrList.map(hr => ({
             id: hr.id,
@@ -192,6 +206,7 @@ export async function POST(req: NextRequest) {
             selected_test_types: Array.isArray(hr.selected_test_types) ? hr.selected_test_types : [],
             test_count: hr.test_count || 0,
             generated_at: hr.generated_at,
+            package_type: hr.package_type ?? null,
           }));
           // Geriye uyum: en yeni raporu tekil field olarak da ver
           holisticReport = { text: hrList[0].report_text, generated_at: hrList[0].generated_at };

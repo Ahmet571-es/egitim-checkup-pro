@@ -35,6 +35,7 @@ import {
   type DonutBlock,
   type HeatmapBlock,
 } from '@/lib/report/infographic-blocks';
+import { decodeReportV2 } from '@/lib/report-v2/serialize';
 
 export interface DocxMetadata {
   studentName: string;
@@ -683,6 +684,12 @@ function createInfoTable(meta: DocxMetadata): Table {
 }
 
 export async function generateReportDocx(reportText: string, meta: DocxMetadata): Promise<Buffer> {
+  // Yeni format (v2) raporlar kendi tasarımıyla yazılır.
+  const v2 = decodeReportV2(reportText);
+  if (v2) {
+    const { generateReportV2Docx } = await import('./v2/docx');
+    return generateReportV2Docx(v2);
+  }
   const doc = new Document({
     creator: 'EĞİTİM CHECK UP Pro',
     title: `${meta.studentName} — ${meta.testName}`,

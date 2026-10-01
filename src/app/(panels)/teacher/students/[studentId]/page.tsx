@@ -11,7 +11,7 @@ import GeneticReportsSection from '@/components/GeneticReportsSection';
 import HolisticAttachmentsPanel from '@/components/teacher/HolisticAttachmentsPanel';
 import StudentProgressPanel from '@/components/teacher/StudentProgressPanel';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
-import { PACKAGE_LIST, checkPackageCompletion, type PackageType } from '@/lib/packages';
+import { PACKAGE_LIST, checkPackageCompletion, type PackageType, PACKAGES } from '@/lib/packages';
 import {
   ArrowLeft, GraduationCap, CheckCircle2, Circle, Bell, AlertCircle,
   FileText, BookOpen, X, Send, Loader2, Sparkles, Eye, Download, RefreshCw,
@@ -90,6 +90,8 @@ interface HolisticHistoryItem {
   selected_test_types: string[];
   test_count: number;
   generated_at: string;
+  /** Paket raporuysa paket kimliği (ör. 'vip'). */
+  package_type?: string | null;
 }
 
 interface RiskDimension { key: string; name: string; score: number | null; weight: number; available: boolean; }
@@ -419,7 +421,7 @@ export default function StudentDetailPage() {
     setBusyKey(null);
   };
 
-  // ═══ Faz 9: Paket bazlı 3 versiyonlu rapor üret ═══
+  // ═══ Paket bazlı Bütünsel Değerlendirme Raporu üret (yeni format) ═══
   const generatePackageReport = async () => {
     if (!selectedPackage) return;
     setPackageGenerating(true);
@@ -436,11 +438,15 @@ export default function StudentDetailPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setSuccess(`✅ ${data.package} paketi için 3 versiyon (öğretmen/veli/öğrenci) üretildi.`);
-        setTimeout(() => setSuccess(''), 5000);
+        setSuccess(`✅ ${data.package} paketi raporu üretildi. "Üretilmiş Raporlar" listesinden görüntüleyebilir, PDF veya Word olarak indirebilirsiniz.`);
+        setTimeout(() => setSuccess(''), 7000);
         setPackageModalOpen(false);
         setSelectedPackage(null);
         await loadDetail();
+        setHolisticHistoryOpen(true);
+        if (typeof data.text === 'string' && data.text) {
+          setViewer({ title: `${student?.full_name ?? ''} — ${data.package} Raporu`, text: data.text });
+        }
       } else {
         setError(data.error || 'Paket raporu üretilemedi.');
       }
@@ -1162,8 +1168,8 @@ export default function StudentDetailPage() {
                   <Sparkles className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>
                     <strong>Otomatik Entegrasyon:</strong> Bu öğrencinin {geneticReports.length} adet DMIT raporu var.
-                    Bütüncül (Harmanlanmış) ya da Paket Bazlı rapor ürettiğinde, DMIT PDF&apos;leri raporun sonuna
-                    otomatik olarak gömülecek ve AI yorumunda da DMIT&apos;e atıfta bulunacak.
+                    Bütüncül (Harmanlanmış) rapor ürettiğinde DMIT PDF&apos;leri raporun sonuna eklenir.
+                    Paket raporlarına DMIT eklenmez.
                   </span>
                 </div>
               )}
@@ -1171,7 +1177,7 @@ export default function StudentDetailPage() {
               {/* Çoklu Test Raporları (2+ test gerekli) */}
               {completed.length >= 2 && (
                 <>
-                  {/* FAZ 9: PAKET BAZLI BÜTÜNCÜL RAPOR (3 VERSİYON) */}
+                  {/* PAKET BAZLI BÜTÜNSEL DEĞERLENDİRME RAPORU (yeni format) */}
                   <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 dark:from-amber-950/20 dark:via-orange-950/20 dark:to-rose-950/20 border border-amber-200 dark:border-amber-900/40 rounded-2xl p-5 shadow-sm mb-4">
                     <div className="flex items-start gap-3 mb-3">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-md shrink-0">
@@ -1180,11 +1186,11 @@ export default function StudentDetailPage() {
                       <div className="flex-1">
                         <h3 className="text-[15px] font-extrabold text-[#0f2847] dark:text-slate-100">Paket Bazlı Bütüncül Rapor</h3>
                         <p className="text-[12px] text-amber-800 dark:text-amber-300 mt-0.5">
-                          Excel'deki 5 paketten birini seç → 3 versiyon (öğretmen/veli/öğrenci) otomatik üretilir.
+                          5 paketten birini seç → öğrenci, aile ve uzman bölümlerini içeren tek bir Bütünsel Değerlendirme Raporu üretilir.
                         </p>
                         <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 flex items-center gap-1.5">
                           <Lock className="w-3 h-3" />
-                          KVKK m.6: Genetik PDF sadece öğretmen versiyonunda gömülür. Veli ve öğrenci versiyonlarında ham veri yer almaz.
+                          Rapor renkli grafikler içerir; PDF ve Word olarak indirilebilir. Genetik (DMIT) bilgisi bu rapora eklenmez.
                         </p>
                       </div>
                     </div>
@@ -1374,7 +1380,7 @@ export default function StudentDetailPage() {
                           <div className="flex items-center gap-2">
                             <FileText className="w-4 h-4 text-purple-600" />
                             <span className="text-[12px] font-bold text-[#0f2847] dark:text-slate-100">
-                              Üretilmiş Harmanlanmış Raporlar
+                              Üretilmiş Raporlar (Paket ve Harmanlanmış)
                             </span>
                             <span className="px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold">
                               {holisticHistory.length}
@@ -1396,9 +1402,15 @@ export default function StudentDetailPage() {
                                       <span className="text-[12px] font-semibold text-[#0f2847] dark:text-slate-100">
                                         {formatDate(hr.generated_at)}
                                       </span>
-                                      <span className="text-[11px] font-bold text-purple-600 bg-purple-50 dark:bg-purple-900/30 px-2 py-0.5 rounded">
-                                        {hr.test_count} test harmanlandı
-                                      </span>
+                                      {hr.package_type ? (
+                                        <span className="text-[11px] font-bold text-white bg-[#245B8F] px-2 py-0.5 rounded">
+                                          Paket Raporu · {PACKAGES[hr.package_type as PackageType]?.label ?? hr.package_type}
+                                        </span>
+                                      ) : (
+                                        <span className="text-[11px] font-bold text-purple-600 bg-purple-50 dark:bg-purple-900/30 px-2 py-0.5 rounded">
+                                          {hr.test_count} test harmanlandı
+                                        </span>
+                                      )}
                                     </div>
                                     <div className="text-[10.5px] text-gray-500 dark:text-slate-400 font-semibold mb-1">
                                       Harmanlanan testler:
@@ -1414,7 +1426,9 @@ export default function StudentDetailPage() {
                                   <div className="flex flex-wrap gap-1.5">
                                     <button
                                       onClick={() => setViewer({
-                                        title: `${student.full_name} — Harmanlanmış Rapor (${formatDate(hr.generated_at)})`,
+                                        title: hr.package_type
+                                          ? `${student.full_name} — ${PACKAGES[hr.package_type as PackageType]?.label ?? 'Paket'} Raporu (${formatDate(hr.generated_at)})`
+                                          : `${student.full_name} — Harmanlanmış Rapor (${formatDate(hr.generated_at)})`,
                                         text: hr.text,
                                       })}
                                       className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-purple-700 text-[11px] font-bold border border-purple-300 hover:bg-purple-50 transition"
@@ -1680,7 +1694,7 @@ export default function StudentDetailPage() {
                 </div>
                 <div>
                   <h3 className="text-base font-extrabold">Paket Seç</h3>
-                  <p className="text-[11px] text-amber-100">3 versiyon otomatik üretilir (öğretmen/veli/öğrenci)</p>
+                  <p className="text-[11px] text-amber-100">Öğrenci, aile ve uzman bölümlerini içeren tek rapor üretilir</p>
                 </div>
               </div>
               <button

@@ -27,6 +27,7 @@ import { secureFetch } from '@/lib/csrf-client';
 import { useToast } from '@/components/ui/Toast';
 import { getStudentAllTrends } from '@/lib/services/longitudinal';
 import type { StudentTrend } from '@/lib/services/longitudinal';
+import { TEST_COLORS } from '@/lib/tests/colors';
 
 const TEST_LABELS: Record<string, string> = {
   enneagram: 'Enneagram',
@@ -48,25 +49,6 @@ const TEST_LABELS: Record<string, string> = {
   'sag-sol-beyin': 'Sağ-Sol Beyin',
 };
 
-const TEST_COLORS: Record<string, string> = {
-  enneagram: '#8b5cf6',
-  vark: '#10b981',
-  holland: '#f59e0b',
-  coklu_zeka: '#6366f1',
-  'coklu-zeka': '#6366f1',
-  sinav_kaygisi: '#ef4444',
-  'sinav-kaygisi': '#ef4444',
-  calisma_davranisi: '#0ea5e9',
-  'calisma-davranisi': '#0ea5e9',
-  akademik_analiz: '#059669',
-  'akademik-analiz': '#059669',
-  hizli_okuma: '#f97316',
-  'hizli-okuma': '#f97316',
-  d2_dikkat: '#dc2626',
-  'd2-dikkat': '#dc2626',
-  sag_sol_beyin: '#7c3aed',
-  'sag-sol-beyin': '#7c3aed',
-};
 
 const labelFor = (k: string) => TEST_LABELS[k] || k.replace(/[_-]/g, ' ');
 const colorFor = (k: string) => TEST_COLORS[k] || '#6b7280';
